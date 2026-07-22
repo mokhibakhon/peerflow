@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Today — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 26 26%27%3E%3Ccircle cx=%2710%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%230b8f66%27 stroke-width=%273%27/%3E%3Ccircle cx=%2717%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%2321323b%27 stroke-width=%273%27 opacity=%27.8%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="app.html" aria-label="PeerFlow — Today">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <circle cx="10" cy="13" r="7.5" stroke="#0b8f66" stroke-width="2.5"/>
+        <circle cx="17" cy="13" r="7.5" stroke="#21323b" stroke-width="2.5" opacity=".8"/>
+      </svg>
+      peer<b>flow</b>
+    </a>
+    <nav class="nav-links" aria-label="App">
+      <a href="app.html" class="active">Today</a>
+      <a href="app-sessions.html">Sessions</a>
+      <a href="#" title="Squads unlock after you study with the same people 3 times">My squad</a>
+    </nav>
+    <div class="nav-right">
+      <span class="track-chip" id="nav-track">Cybersecurity</span>
+      <a href="index.html" class="login" id="logout" title="Log out of the demo">Log out</a>
+      <span class="av-nav" id="nav-av" title="Your profile">S</span>
+    </div>
+  </div>
+</header>
+
+<main class="app-main">
+  <div class="wrap">
+    <div class="app-head">
+      <h1 id="greeting">Welcome back</h1>
+      <span class="date" id="today-date"></span>
+    </div>
+
+    <div class="app-grid">
+      <!-- ============ main column ============ -->
+      <div class="app-col">
+
+        <div class="card next-card">
+          <div class="when-big" id="nx-when">TUE 19:00 · YOUR NEXT SESSION</div>
+          <h2 id="nx-title">CTF night — web challenges</h2>
+          <p id="nx-sub">Cybersecurity · collaborative</p>
+          <div class="row">
+            <span class="avstack">
+              <span class="av" style="background:#8e6cc8">AZ</span>
+              <span class="av" style="background:#3d8fd1">TM</span>
+              <span class="av" style="background:#d1793d">DR</span>
+            </span>
+            <span style="font-size:13.5px;color:var(--muted)" id="nx-with">Aziza, Timur and Diyor have seats</span>
+            <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener" style="margin-left:auto">Open in Google Meet</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Live right now
+            <a class="grow" href="app-sessions.html">Full board →</a>
+          </h3>
+          <div class="board" style="margin:0;max-width:none">
+            <div class="slot">
+              <span class="when">now</span>
+              <span class="what"><b>Silent co-work · focus room</b><span>All tracks · 31 min left in this block</span></span>
+              <span class="seats">5/8 seats</span>
+              <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
+            </div>
+            <div class="slot">
+              <span class="when">now</span>
+              <span class="what"><b>Security+ study group — domain 2</b><span>Cybersecurity · collaborative</span></span>
+              <span class="seats">3/6 seats</span>
+              <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Suggested peers on your track
+            <a class="grow" href="#" title="Prototype">See all →</a>
+          </h3>
+          <p class="empty-hint">Study with the same person 3 times and you can form a squad — a recurring crew with its own sessions.</p>
+          <ul class="plist">
+            <li><span class="av" style="background:#8e6cc8">AZ</span><span><b>Aziza</b><span>Builds small things · evenings · 96% show-up</span></span><a class="btn ghost" href="#">Invite to session</a></li>
+            <li><span class="av" style="background:#5a9e6f">KH</span><span><b>Khurshid</b><span>Done tutorials · nights · 91% show-up</span></span><a class="btn ghost" href="#">Invite to session</a></li>
+            <li><span class="av" style="background:#c2568e">ZG</span><span><b>Zarina</b><span>Job-hunt prep · evenings · 98% show-up</span></span><a class="btn ghost" href="#">Invite to session</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ============ side column ============ -->
+      <div class="app-col">
+        <div class="card">
+          <h3>Your streak</h3>
+          <div class="stat-row">
+            <div class="stat"><b id="st-streak">1</b><span>day streak</span></div>
+            <div class="stat"><b id="st-sessions">1</b><span>sessions</span></div>
+            <div class="stat"><b id="st-goals">0</b><span>goals done</span></div>
+          </div>
+          <p class="streak-note">Attend tonight's session to make it <b style="color:var(--green-dark)">2 in a row</b>.</p>
+        </div>
+
+        <div class="card">
+          <h3>Your squad</h3>
+          <p class="empty-hint">No squad yet — that's normal in week one. Keep sitting with the same people and PeerFlow will suggest forming one.</p>
+          <p style="font-size:14px;color:var(--muted)">Closest to a squad: <b style="color:var(--ink)">Aziza</b> — 1 session together.</p>
+        </div>
+
+        <div class="card">
+          <h3>This week's goal</h3>
+          <p style="font-size:14.5px">You planned <b style="color:var(--ink)">3 sessions</b> this week. One down, two to go — Thursday and Saturday evening look open on your schedule.</p>
+          <a class="btn ghost" href="app-sessions.html" style="margin-top:14px">Book the next one</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="assets/site.js"></script>
+<script>
+(function(){
+  /* personalize from onboarding (falls back to demo data) */
+  var name='', track='cybersecurity', booked=null;
+  try {
+    name = localStorage.getItem('pf_name') || '';
+    track = localStorage.getItem('pf_track') || 'cybersecurity';
+    booked = JSON.parse(localStorage.getItem('pf_booked') || 'null');
+  } catch(err) {}
+
+  var trackNames = { frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity', data:'Data & Analytics', mobile:'Mobile', devops:'DevOps & Cloud', aiml:'AI & ML', design:'UX/UI Design', unsure:'Exploring tracks' };
+  document.getElementById('nav-track').textContent = trackNames[track] || 'Cybersecurity';
+  document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
+  document.getElementById('logout').addEventListener('click', function(){
+    try { ['pf_name','pf_email','pf_track','pf_booked'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
+  });
+
+  var h = new Date().getHours();
+  var part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting').textContent = part + (name ? ', ' + name : '');
+
+  try {
+    document.getElementById('today-date').textContent =
+      new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  } catch(err) {}
+
+  if (booked) {
+    document.getElementById('nx-when').textContent = booked.when.toUpperCase() + ' · YOUR NEXT SESSION';
+    document.getElementById('nx-title').textContent = booked.title;
+    document.getElementById('nx-sub').textContent = booked.sub;
+    document.getElementById('nx-with').textContent = 'Reserved at signup · ' + booked.with;
+  }
+})();
+</script>
+</body>
+</html>

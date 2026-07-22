@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Career tracks — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 26 26%27%3E%3Ccircle cx=%2710%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%230b8f66%27 stroke-width=%273%27/%3E%3Ccircle cx=%2717%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%2321323b%27 stroke-width=%273%27 opacity=%27.8%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="index.html" aria-label="PeerFlow home">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <circle cx="10" cy="13" r="7.5" stroke="#0b8f66" stroke-width="2.5"/>
+        <circle cx="17" cy="13" r="7.5" stroke="#21323b" stroke-width="2.5" opacity=".8"/>
+      </svg>
+      peer<b>flow</b>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="how-it-works.html">How it works</a>
+      <a href="tracks.html" class="active">Career tracks</a>
+      <a href="sessions.html">Study sessions</a>
+      <a href="students.html">Students</a>
+    </nav>
+    <div class="nav-right">
+      <a class="login" href="login.html">Log in</a>
+      <a class="btn primary" href="signup.html">Join for free</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<div class="page-hero">
+  <div class="wrap">
+    <h1>Pick your career track</h1>
+    <p class="sub">A track is a shared direction — the topics you study, the peers you're matched with, and the sessions you'll see first. Pick one, switch anytime.</p>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="tracks">
+      <div class="track" id="frontend">
+        <div class="head">
+          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5" stroke="#0b8f66" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div><h3>Frontend Development</h3><span class="career">→ Frontend / web developer</span></div>
+        </div>
+        <p>Build the interfaces everyone uses every day, and ship portfolio projects with peers reviewing your code.</p>
+        <ul class="study">
+          <li>JavaScript fundamentals, then modern frameworks</li>
+          <li>HTML &amp; CSS that holds up on real screens</li>
+          <li>Three portfolio projects, peer-reviewed in sessions</li>
+        </ul>
+        <div class="chips"><span class="chip">JavaScript</span><span class="chip">HTML &amp; CSS</span><span class="chip">React</span><span class="chip">Git &amp; GitHub</span><span class="chip">Portfolio projects</span></div>
+      </div>
+
+      <div class="track" id="backend">
+        <div class="head">
+          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="#0b8f66" stroke-width="2"/><path d="M5 6v12c0 1.66 3.13 3 7 3s7-1.34 7-3V6" stroke="#0b8f66" stroke-width="2"/><path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3" stroke="#0b8f66" stroke-width="2"/></svg></span>
+          <div><h3>Backend Development</h3><span class="career">→ Backend / software engineer</span></div>
+        </div>
+        <p>APIs, databases, and the systems behind the screen. Pair up on the parts tutorials always skip.</p>
+        <ul class="study">
+          <li>Python or Node.js — your squad's choice</li>
+          <li>SQL and data modelling on real schemas</li>
+          <li>Build and deploy an API end to end</li>
+        </ul>
+        <div class="chips"><span class="chip">Python</span><span class="chip">Node.js</span><span class="chip">SQL</span><span class="chip">APIs</span><span class="chip">Deployment</span></div>
+      </div>
+
+      <div class="track" id="cybersecurity">
+        <div class="head">
+          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l8 3.5V11c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5.5L12 2z" stroke="#0b8f66" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.3 2.3L15.5 9.5" stroke="#0b8f66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div><h3>Cybersecurity</h3><span class="career">→ Security analyst / pentester</span></div>
+        </div>
+        <p>From Linux basics to CTF nights and cert prep — with a crew to solve boxes beside you.</p>
+        <ul class="study">
+          <li>Networking and Linux fundamentals first</li>
+          <li>Weekly CTF nights on practice platforms</li>
+          <li>Security+ study groups before exam season</li>
+        </ul>
+        <div class="chips"><span class="chip">Networking</span><span class="chip">Linux</span><span class="chip">CTF practice</span><span class="chip">Security+</span><span class="chip">Writeups</span></div>
+        <div class="term"><span class="p">$</span> ssh bandit12@bandit.labs.overthewire.org <span class="caret"></span></div>
+      </div>
+
+      <div class="track" id="data">
+        <div class="head">
+          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20h17M7 20v-8m5 8V5m5 15v-11" stroke="#0b8f66" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+          <div><h3>Data &amp; Analytics</h3><span class="career">→ Data analyst</span></div>
+        </div>
+        <p>Wrangle messy datasets into answers people trust. Practice SQL and Python on real data, together.</p>
+        <ul class="study">
+          <li>SQL until it's second nature</li>
+          <li>Python and pandas on genuinely messy data</li>
+          <li>Charts and dashboards people can actually read</li>
+        </ul>
+        <div class="chips"><span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Pandas</span><span class="chip">Visualization</span><span class="chip">Excel</span></div>
+      </div>
+
+      <div class="track" id="mobile">
+        <div class="head">
+          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5" stroke="#0b8f66" stroke-width="2"/><path d="M10.5 18.5h3" stroke="#0b8f66" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <div><h3>Mobile Development</h3><span class="career">→ Mobile developer</span></div>
+        </div>
+        <p>Put an app on someone's home screen. Build for Android and iOS with peers testing your builds.</p>
+        <ul class="study">
+          <li>Flutter or React Native — one codebase, two stores</li>
+          <li>App architecture, state, and offline storage</li>
+          <li>Ship one real app to the Play Store</li>
+        </ul>
+        <div class="chips"><span class="chip">Flutter</span><span class="chip">React Native</span><span class="chip">Kotlin</span><span class="chip">Firebase</span><span class="chip">Play Store</span></div>
+      </div>
+
+      <div class="track" id="devops">
+        <div class="head">
+          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 18a4.5 4.5 0 01-.4-9A6 6 0 0118 8.5 4 4 0 0117.5 18H7z" stroke="#0b8f66" stroke-width="2" stroke-linejoin="round"/></svg></span>
+          <div><h3>DevOps &amp; Cloud</h3><span class="career">→ DevOps / cloud engineer</span></div>
+        </div>
+        <p>The pipelines and servers everything else runs on. Learn by breaking and fixing real deployments.</p>
+        <ul class="study">
+          <li>Linux and networking until they're boring</li>
+          <li>Docker, CI/CD, and infrastructure as code</li>
+          <li>Deploy and monitor a real service in the cloud</li>
+        </ul>
+        <div class="chips"><span class="chip">Linux</span><span class="chip">Docker</span><span class="chip">CI/CD</span><span class="chip">AWS</span><span class="chip">Terraform</span></div>
+      </div>
+
+      <div class="track" id="aiml">
+        <div class="head">
+          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="2.5" stroke="#0b8f66" stroke-width="2"/><circle cx="4.5" cy="7" r="2" stroke="#0b8f66" stroke-width="2"/><circle cx="19.5" cy="7" r="2" stroke="#0b8f66" stroke-width="2"/><circle cx="4.5" cy="17" r="2" stroke="#0b8f66" stroke-width="2"/><circle cx="19.5" cy="17" r="2" stroke="#0b8f66" stroke-width="2"/><path d="M6.3 7.9L9.8 10.5M17.7 7.9l-3.5 2.6M6.3 16.1l3.5-2.6M17.7 16.1l-3.5-2.6" stroke="#0b8f66" stroke-width="1.8"/></svg></span>
+          <div><h3>AI &amp; Machine Learning</h3><span class="career">→ ML / AI engineer</span></div>
+        </div>
+        <p>From Python and math foundations to building with LLMs — hype-free, fundamentals first.</p>
+        <ul class="study">
+          <li>Python, NumPy, and the math that actually matters</li>
+          <li>Classic machine learning before deep learning</li>
+          <li>Build one LLM-powered project end to end</li>
+        </ul>
+        <div class="chips"><span class="chip">Python</span><span class="chip">PyTorch</span><span class="chip">LLM apps</span><span class="chip">Math</span><span class="chip">Kaggle</span></div>
+      </div>
+
+      <div class="track" id="design">
+        <div class="head">
+          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#0b8f66" stroke-width="2"/><circle cx="9" cy="9" r="2.2" stroke="#0b8f66" stroke-width="2"/><path d="M13.5 15.5L16 10l2.5 5.5M7 15.5h4" stroke="#0b8f66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div><h3>UX/UI Design</h3><span class="career">→ Product / UX designer</span></div>
+        </div>
+        <p>Design the products your frontend peers build. Weekly critique nights beat working in a vacuum.</p>
+        <ul class="study">
+          <li>Figma fundamentals and design systems</li>
+          <li>Critique sessions on real work, every week</li>
+          <li>A portfolio of three solid case studies</li>
+        </ul>
+        <div class="chips"><span class="chip">Figma</span><span class="chip">Design systems</span><span class="chip">Prototyping</span><span class="chip">UX research</span><span class="chip">Portfolio</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap center">
+    <p class="eyebrow">Undecided?</p>
+    <h2>Not sure which track is yours?</h2>
+    <p class="sub">Join a silent co-work session first — every track studies side by side in the focus rooms. Talk to people, see what they're working on, then commit.</p>
+    <div class="section-cta">
+      <a class="btn primary" href="sessions.html">Browse study sessions</a>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="join">
+  <div class="wrap">
+    <h2>Pick a track, meet your crew</h2>
+    <p>You can switch tracks anytime — the only wrong choice is studying alone for another semester.</p>
+    <a class="btn onGreen big" href="signup.html">Join PeerFlow for free</a>
+    <p class="fine">No credit card · no course upsell · just people who show up</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="logo" style="display:flex;align-items:center;gap:9px;font-size:19px">
+          <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+            <circle cx="10" cy="13" r="7.5" stroke="#4fd6a4" stroke-width="2.5"/>
+            <circle cx="17" cy="13" r="7.5" stroke="#ffffff" stroke-width="2.5" opacity=".8"/>
+          </svg>
+          peer<b>flow</b>
+        </div>
+        <p style="max-width:26em">A peer-learning platform where students pick a tech career, find their people, and study together — live.</p>
+      </div>
+      <div>
+        <h4>Tracks</h4>
+        <ul>
+          <li><a href="tracks.html#frontend">Frontend Development</a></li>
+          <li><a href="tracks.html#backend">Backend Development</a></li>
+          <li><a href="tracks.html#cybersecurity">Cybersecurity</a></li>
+          <li><a href="tracks.html#data">Data &amp; Analytics</a></li>
+          <li><a href="tracks.html#mobile">Mobile Development</a></li>
+          <li><a href="tracks.html#devops">DevOps &amp; Cloud</a></li>
+          <li><a href="tracks.html#aiml">AI &amp; Machine Learning</a></li>
+          <li><a href="tracks.html#design">UX/UI Design</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="sessions.html">Study sessions</a></li>
+          <li><a href="index.html#demo">Watch the demo</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Community</h4>
+        <ul>
+          <li><a href="students.html">Student stories</a></li>
+          <li><a href="students.html#conduct">Code of conduct</a></li>
+          <li><a href="signup.html">Join the beta</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 PeerFlow — made by students, for students.</span>
+      <span>Study together. Get hired together.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sessions — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 26 26%27%3E%3Ccircle cx=%2710%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%230b8f66%27 stroke-width=%273%27/%3E%3Ccircle cx=%2717%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%2321323b%27 stroke-width=%273%27 opacity=%27.8%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="app.html" aria-label="PeerFlow — Today">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <circle cx="10" cy="13" r="7.5" stroke="#0b8f66" stroke-width="2.5"/>
+        <circle cx="17" cy="13" r="7.5" stroke="#21323b" stroke-width="2.5" opacity=".8"/>
+      </svg>
+      peer<b>flow</b>
+    </a>
+    <nav class="nav-links" aria-label="App">
+      <a href="app.html">Today</a>
+      <a href="app-sessions.html" class="active">Sessions</a>
+      <a href="#" title="Squads unlock after you study with the same people 3 times">My squad</a>
+    </nav>
+    <div class="nav-right">
+      <span class="track-chip" id="nav-track">Cybersecurity</span>
+      <a href="index.html" class="login" id="logout" title="Log out of the demo">Log out</a>
+      <span class="av-nav" id="nav-av" title="Your profile">S</span>
+    </div>
+  </div>
+</header>
+
+<main class="app-main">
+  <div class="wrap">
+    <div class="app-head board-head">
+      <h1>Session board</h1>
+      <a class="btn primary" href="#" title="Prototype">+ Create a session</a>
+    </div>
+    <div class="filters" aria-label="Filter sessions">
+      <span class="chip sel">All</span>
+      <span class="chip">My track</span>
+      <span class="chip">Silent co-work</span>
+      <span class="chip">Collaborative</span>
+      <span class="chip">My hours</span>
+    </div>
+
+    <div class="board" style="max-width:none">
+      <div class="slot">
+        <span class="when">now</span>
+        <span class="what"><b>Silent co-work · focus room</b><span>All tracks · 31 min left in this block</span></span>
+        <span class="seats">5/8 seats</span>
+        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
+      </div>
+      <div class="slot">
+        <span class="when">now</span>
+        <span class="what"><b>Security+ study group — domain 2</b><span>Cybersecurity · collaborative</span></span>
+        <span class="seats">3/6 seats</span>
+        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
+      </div>
+      <div class="slot">
+        <span class="when">18:00</span>
+        <span class="what"><b>Silent co-work · focus room</b><span>All tracks · 2 × 50 min</span></span>
+        <span class="seats">4/8 seats</span>
+        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
+      </div>
+      <div class="slot">
+        <span class="when">19:00</span>
+        <span class="what"><b>CTF night — web challenges</b><span>Cybersecurity · collaborative</span></span>
+        <span class="seats">3/6 seats</span>
+        <span class="btn ghost">Reserved ✓</span>
+      </div>
+      <div class="slot">
+        <span class="when">20:00</span>
+        <span class="what"><b>Pair programming — React components</b><span>Frontend · collaborative</span></span>
+        <span class="seats">2/4 seats</span>
+        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
+      </div>
+      <div class="slot">
+        <span class="when">21:00</span>
+        <span class="what"><b>SQL practice — window functions</b><span>Data &amp; Analytics · collaborative</span></span>
+        <span class="seats">5/6 seats</span>
+        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
+      </div>
+      <div class="slot">
+        <span class="when">22:00</span>
+        <span class="what"><b>Late silent co-work · night owls</b><span>All tracks · 2 × 50 min</span></span>
+        <span class="seats">6/8 seats</span>
+        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
+      </div>
+    </div>
+    <p class="board-note">Every session runs on Google Meet — Join opens your room in one click. Nothing fits? <a href="#" style="color:var(--green-dark);font-weight:600" title="Prototype">Create your own session</a> — PeerFlow invites peers on your track who are free at that time.</p>
+  </div>
+</main>
+
+<script>
+(function(){
+  var track = 'cybersecurity', name = '';
+  try {
+    track = localStorage.getItem('pf_track') || track;
+    name = localStorage.getItem('pf_name') || '';
+  } catch(err) {}
+  var trackNames = { frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity', data:'Data & Analytics', mobile:'Mobile', devops:'DevOps & Cloud', aiml:'AI & ML', design:'UX/UI Design', unsure:'Exploring tracks' };
+  document.getElementById('nav-track').textContent = trackNames[track] || 'Cybersecurity';
+  document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
+  document.getElementById('logout').addEventListener('click', function(){
+    try { ['pf_name','pf_email','pf_track','pf_booked'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
+  });
+})();
+</script>
+</body>
+</html>
