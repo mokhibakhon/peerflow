@@ -5,8 +5,7 @@ window.PF_SUPABASE = {
   url: 'https://ooolpkdqrfhnmcmdqhau.supabase.co',
   key: 'sb_publishable_J6dkpaoxLvLIhAEHldN-Sw_BXrYjv54',
   enabled: true,
-  /* Flip to true once Google/GitHub providers are configured in
-     Supabase → Authentication → Providers (SETUP_GUIDE.md steps 5–6).
-     Until then those buttons use the simulated demo sign-in. */
-  realOAuth: false
+  /* Google/GitHub providers are configured in Supabase → Authentication →
+     Providers. Set back to false to demo with the simulated sign-in. */
+  realOAuth: true
 };
