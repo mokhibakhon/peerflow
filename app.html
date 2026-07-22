@@ -145,7 +145,23 @@
 
   var h = new Date().getHours();
   var part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-  document.getElementById('greeting').textContent = part + (name ? ', ' + name : '');
+  function greet(){
+    document.getElementById('greeting').textContent = part + (name ? ', ' + name : '');
+    document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
+  }
+  greet();
+
+  /* If signed in via OAuth (no localStorage), pull name from the session. */
+  pf.currentUser().then(function(user){
+    if (!user) return;
+    var meta = user.user_metadata || {};
+    if (!name) { name = meta.name || meta.full_name || (user.email || '').split('@')[0]; }
+    try {
+      if (name) localStorage.setItem('pf_name', name);
+      if (user.email) localStorage.setItem('pf_email', user.email);
+    } catch(err) {}
+    greet();
+  });
 
   try {
     document.getElementById('today-date').textContent =

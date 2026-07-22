@@ -79,15 +79,18 @@
     window.location.href = 'app.html';
   }
 
-  /* Google/GitHub: real OAuth once providers are configured, demo until then */
+  /* Google/GitHub: real OAuth on the live site; simulated only when offline */
   function social(provider, mock){
-    pf.signInOAuth(provider).then(function(res){
-      if (res.redirecting) return;            // browser is navigating to the provider
-      mock(enter);                            // fall back to the simulated flow
+    if (!pf.ready()) { mock(enter); return; }        // offline demo only
+    pf.signInOAuth(provider, 'app.html').then(function(res){
+      if (res.redirecting) return;                   // browser navigates to the provider
+      var s = document.getElementById('li-status');
+      s.textContent = res.error || ('Could not reach ' + provider + ' sign-in. Please try again.');
+      s.style.display = 'block';
     });
   }
-  document.getElementById('btn-google').addEventListener('click', function(){ social('google', pfAuth.google); });
-  document.getElementById('btn-github').addEventListener('click', function(){ social('github', pfAuth.github); });
+  document.getElementById('btn-google').addEventListener('click', function(){ social('Google', pfAuth.google); });
+  document.getElementById('btn-github').addEventListener('click', function(){ social('GitHub', pfAuth.github); });
 
   var mailF = document.getElementById('f-email'), mailI = document.getElementById('li-email');
   var passF = document.getElementById('f-pass'), passI = document.getElementById('li-pass');

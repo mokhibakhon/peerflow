@@ -221,25 +221,46 @@
     if (b) { e.preventDefault(); show(cur-1); return; }
   });
 
-  /* ---------- step 1: social sign-in (simulated) ---------- */
-  function onAuthed(account){
+  /* ---------- step 1: social sign-in ---------- */
+  function showSignedIn(email, provider){
+    document.getElementById('auth-chip-text').textContent =
+      'Signed in' + (provider ? ' with ' + provider : '') + (email ? ' as ' + email : '') + ' ·';
+    document.getElementById('auth-chip').hidden = false;
+  }
+  function onAuthed(account){          // simulated flow (offline demo only)
     state.name = account.name;
     state.email = account.email;
     state.provider = account.provider;
-    var chip = document.getElementById('auth-chip');
-    document.getElementById('auth-chip-text').textContent =
-      'Signed in with ' + account.provider + ' as ' + account.email + ' ·';
-    chip.hidden = false;
+    showSignedIn(account.email, account.provider);
     show(1);
   }
   function social(provider, mock){
-    pf.signInOAuth(provider).then(function(res){
-      if (res.redirecting) return;          // real OAuth: browser navigates away
-      mock(onAuthed);                       // not configured yet: simulated flow
+    /* Offline demo (no Supabase): keep the simulated picker for the video. */
+    if (!pf.ready()) { mock(onAuthed); return; }
+    /* Live site: go straight to the real provider — come back to signup to
+       finish picking a track. */
+    pf.signInOAuth(provider, 'signup.html').then(function(res){
+      if (res.redirecting) return;      // browser navigates to Google/GitHub
+      var s = document.getElementById('su-status');
+      s.textContent = res.error || ('Could not reach ' + provider + ' sign-in. Please try again.');
+      s.style.color = '#c0392b';
+      s.style.display = 'block';
     });
   }
-  document.getElementById('btn-google').addEventListener('click', function(){ social('google', pfAuth.google); });
-  document.getElementById('btn-github').addEventListener('click', function(){ social('github', pfAuth.github); });
+  document.getElementById('btn-google').addEventListener('click', function(){ social('Google', pfAuth.google); });
+  document.getElementById('btn-github').addEventListener('click', function(){ social('GitHub', pfAuth.github); });
+
+  /* If we just came back from an OAuth redirect, the user is signed in —
+     skip account creation and resume onboarding at "pick your track". */
+  pf.currentUser().then(function(user){
+    if (!user) return;
+    var meta = user.user_metadata || {};
+    state.name = meta.name || meta.full_name || (user.email || '').split('@')[0];
+    state.email = user.email || '';
+    state.provider = 'oauth';
+    showSignedIn(state.email, null);
+    if (cur === 0) show(1);
+  });
   document.getElementById('auth-switch').addEventListener('click', function(e){
     e.preventDefault();
     document.getElementById('auth-chip').hidden = true;

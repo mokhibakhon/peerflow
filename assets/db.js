@@ -38,14 +38,25 @@ window.pf = (function(){
       }).catch(function(){ return { demo: true }; });
   }
 
-  function signInOAuth(provider){
+  function signInOAuth(provider, redirectPath){
     if (!client || !cfg.realOAuth) return Promise.resolve({ demo: true });
+    var base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
     return client.auth.signInWithOAuth({
       provider: provider,
-      options: { redirectTo: window.location.origin + '/app.html' }
+      options: { redirectTo: base + (redirectPath || 'app.html') }
     }).then(function(res){
       return res.error ? { error: res.error.message } : { redirecting: true };
-    }).catch(function(){ return { demo: true }; });
+    }).catch(function(err){ return { error: (err && err.message) || 'Sign-in failed' }; });
+  }
+
+  /* Current signed-in user (after an OAuth redirect, the session is in the URL
+     and supabase-js stores it automatically). Resolves null when signed out. */
+  function currentUser(){
+    if (!client) return Promise.resolve(null);
+    return client.auth.getSession().then(function(res){
+      var s = res.data && res.data.session;
+      return s ? s.user : null;
+    }).catch(function(){ return null; });
   }
 
   function signOut(){
@@ -163,6 +174,7 @@ window.pf = (function(){
     signUpEmail: signUpEmail,
     signInEmail: signInEmail,
     signInOAuth: signInOAuth,
+    currentUser: currentUser,
     signOut: signOut,
     saveProfile: saveProfile,
     fetchUpcomingSessions: fetchUpcomingSessions,
