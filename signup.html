@@ -234,17 +234,18 @@
     showSignedIn(account.email, account.provider);
     show(1);
   }
+  function suError(msg){
+    var s = document.getElementById('su-status');
+    s.textContent = msg; s.style.color = '#c0392b'; s.style.display = 'block';
+  }
   function social(provider, mock){
-    /* Offline demo (no Supabase): keep the simulated picker for the video. */
-    if (!pf.ready()) { mock(onAuthed); return; }
-    /* Live site: go straight to the real provider — come back to signup to
-       finish picking a track. */
+    /* Offline demo only (opening the file directly): simulated picker. */
+    if (location.protocol === 'file:') { mock(onAuthed); return; }
+    /* Live site: always real OAuth — never the fake popup. */
+    if (!pf.ready()) { suError('Sign-in is temporarily unavailable — check your connection and try again.'); return; }
     pf.signInOAuth(provider, 'signup.html').then(function(res){
       if (res.redirecting) return;      // browser navigates to Google/GitHub
-      var s = document.getElementById('su-status');
-      s.textContent = res.error || ('Could not reach ' + provider + ' sign-in. Please try again.');
-      s.style.color = '#c0392b';
-      s.style.display = 'block';
+      suError(res.error || ('Could not reach ' + provider + ' sign-in. Please try again.'));
     });
   }
   document.getElementById('btn-google').addEventListener('click', function(){ social('Google', pfAuth.google); });

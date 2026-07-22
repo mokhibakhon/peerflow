@@ -81,10 +81,11 @@
 
   /* Google/GitHub: real OAuth on the live site; simulated only when offline */
   function social(provider, mock){
-    if (!pf.ready()) { mock(enter); return; }        // offline demo only
+    if (location.protocol === 'file:') { mock(enter); return; }   // offline demo only
+    var s = document.getElementById('li-status');
+    if (!pf.ready()) { s.textContent = 'Sign-in is temporarily unavailable — check your connection and try again.'; s.style.display='block'; return; }
     pf.signInOAuth(provider, 'app.html').then(function(res){
       if (res.redirecting) return;                   // browser navigates to the provider
-      var s = document.getElementById('li-status');
       s.textContent = res.error || ('Could not reach ' + provider + ' sign-in. Please try again.');
       s.style.display = 'block';
     });

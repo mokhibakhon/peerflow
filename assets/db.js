@@ -65,6 +65,17 @@ window.pf = (function(){
 
   /* ---------- profile ---------- */
 
+  /* The signed-in user's profile row, or null (signed out / no row yet). */
+  function getProfile(){
+    if (!client) return Promise.resolve(null);
+    return client.auth.getUser().then(function(res){
+      var user = res.data && res.data.user;
+      if (!user) return null;
+      return client.from('profiles').select('*').eq('id', user.id).maybeSingle()
+        .then(function(r){ return r.data || null; });
+    }).catch(function(){ return null; });
+  }
+
   function saveProfile(profile){
     if (!client) return Promise.resolve({ demo: true });
     return client.auth.getUser().then(function(res){
@@ -175,6 +186,7 @@ window.pf = (function(){
     signInEmail: signInEmail,
     signInOAuth: signInOAuth,
     currentUser: currentUser,
+    getProfile: getProfile,
     signOut: signOut,
     saveProfile: saveProfile,
     fetchUpcomingSessions: fetchUpcomingSessions,

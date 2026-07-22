@@ -151,9 +151,10 @@
   }
   greet();
 
-  /* If signed in via OAuth (no localStorage), pull name from the session. */
+  /* Signed-in users: load their real profile. Anyone without a track still
+     needs onboarding, so send them to finish it. */
   pf.currentUser().then(function(user){
-    if (!user) return;
+    if (!user) return;                         // demo mode / not signed in
     var meta = user.user_metadata || {};
     if (!name) { name = meta.name || meta.full_name || (user.email || '').split('@')[0]; }
     try {
@@ -161,6 +162,17 @@
       if (user.email) localStorage.setItem('pf_email', user.email);
     } catch(err) {}
     greet();
+    pf.getProfile().then(function(profile){
+      if (!profile || !profile.track_id) {       // new OAuth user — finish onboarding
+        window.location.replace('signup.html');
+        return;
+      }
+      name = profile.name || name;
+      track = profile.track_id;
+      try { localStorage.setItem('pf_track', track); } catch(err) {}
+      document.getElementById('nav-track').textContent = trackNames[track] || track;
+      greet();
+    });
   });
 
   try {
