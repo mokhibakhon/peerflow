@@ -397,12 +397,28 @@
       function(c){ return c.getAttribute('aria-label'); });
     var tz = '';
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(err) {}
-    var save = pf.saveProfile({
+
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Reserving your seat…';
+    var done = false, errored = false;
+    function go(){ if (done || errored) return; done = true; window.location.href = 'app.html'; }
+
+    /* Wait for the profile to actually save before leaving, so the dashboard
+       sees the track and doesn't send us back to onboarding. */
+    pf.saveProfile({
       name: state.name, track: state.track === 'unsure' ? null : state.track,
       level: state.level, goal: state.goal, timezone: tz, availability: availability
+    }).then(function(res){
+      if (res && res.error) {
+        errored = true;
+        btn.disabled = false; btn.textContent = 'Reserve my seat';
+        suError('Could not save your profile: ' + res.error);
+        return;
+      }
+      go();                               // saved (or offline demo) → dashboard
     });
-    var go = function(){ window.location.href = 'app.html'; };
-    Promise.race([save, new Promise(function(r){ setTimeout(r, 1200); })]).then(go, go);
+    /* Safety net if the network hangs — localStorage already holds the track. */
+    setTimeout(function(){ if (!errored) go(); }, 8000);
   });
 })();
 </script>

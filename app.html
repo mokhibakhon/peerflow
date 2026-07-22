@@ -163,15 +163,20 @@
     } catch(err) {}
     greet();
     pf.getProfile().then(function(profile){
-      if (!profile || !profile.track_id) {       // new OAuth user — finish onboarding
-        window.location.replace('signup.html');
+      if (profile && profile.track_id) {         // fully onboarded
+        name = profile.name || name;
+        track = profile.track_id;
+        try { localStorage.setItem('pf_track', track); } catch(err) {}
+        document.getElementById('nav-track').textContent = trackNames[track] || track;
+        greet();
         return;
       }
-      name = profile.name || name;
-      track = profile.track_id;
-      try { localStorage.setItem('pf_track', track); } catch(err) {}
-      document.getElementById('nav-track').textContent = trackNames[track] || track;
-      greet();
+      /* No track on the profile. If they just finished onboarding (localStorage
+         has a track, including "unsure"), trust it and stay — don't loop.
+         Only a genuinely new user with nothing gets sent to onboarding. */
+      var ls = '';
+      try { ls = localStorage.getItem('pf_track') || ''; } catch(err) {}
+      if (!ls) window.location.replace('signup.html');
     });
   });
 
