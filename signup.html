@@ -69,6 +69,7 @@
       <span></span>
       <button class="btn primary big" id="create-email">Create my account</button>
     </div>
+    <p id="su-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px;max-width:430px"></p>
   </section>
 
   <!-- ============ STEP 2 — track ============ -->
@@ -194,6 +195,9 @@
   <p class="onb-note">Prototype — no real account is created and nothing leaves your computer.</p>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
 <script src="assets/auth.js"></script>
 <script>
 (function(){
@@ -228,8 +232,14 @@
     chip.hidden = false;
     show(1);
   }
-  document.getElementById('btn-google').addEventListener('click', function(){ pfAuth.google(onAuthed); });
-  document.getElementById('btn-github').addEventListener('click', function(){ pfAuth.github(onAuthed); });
+  function social(provider, mock){
+    pf.signInOAuth(provider).then(function(res){
+      if (res.redirecting) return;          // real OAuth: browser navigates away
+      mock(onAuthed);                       // not configured yet: simulated flow
+    });
+  }
+  document.getElementById('btn-google').addEventListener('click', function(){ social('google', pfAuth.google); });
+  document.getElementById('btn-github').addEventListener('click', function(){ social('github', pfAuth.github); });
   document.getElementById('auth-switch').addEventListener('click', function(e){
     e.preventDefault();
     document.getElementById('auth-chip').hidden = true;
@@ -265,7 +275,9 @@
     p[1].addEventListener('input', function(){ p[0].classList.remove('bad'); });
   });
 
-  document.getElementById('create-email').addEventListener('click', function(){
+  var suStatus = document.getElementById('su-status');
+  var createBtn = document.getElementById('create-email');
+  createBtn.addEventListener('click', function(){
     var ok = true;
     if (!nameI.value.trim()) { nameF.classList.add('bad'); ok = false; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mailI.value.trim())) { mailF.classList.add('bad'); ok = false; }
@@ -275,7 +287,27 @@
     state.email = mailI.value.trim();
     state.provider = 'email';
     document.getElementById('auth-chip').hidden = true;
-    show(1);
+    suStatus.style.display = 'none';
+
+    createBtn.disabled = true;
+    createBtn.textContent = 'Creating your account…';
+    pf.signUpEmail(state.name, state.email, passI.value).then(function(res){
+      createBtn.disabled = false;
+      createBtn.textContent = 'Create my account';
+      if (res.error) {
+        suStatus.textContent = res.error;
+        suStatus.style.display = 'block';
+        return;
+      }
+      if (res.needsConfirm) {
+        suStatus.style.color = '#0b8f66';
+        suStatus.textContent = 'Account created — check your inbox to confirm your email. Meanwhile, let’s finish setting you up.';
+        suStatus.style.display = 'block';
+        setTimeout(function(){ show(1); }, 1600);
+        return;
+      }
+      show(1);
+    });
   });
 
   /* ---------- single-select groups ---------- */
@@ -328,7 +360,7 @@
     if (first) document.getElementById('final-title').textContent = first + ', your first session is ready';
   }
 
-  /* ---------- reserve → store + go to app ---------- */
+  /* ---------- reserve → save profile + go to app ---------- */
   document.getElementById('reserve').addEventListener('click', function(){
     var s = firstSessions[state.track] || firstSessions.unsure;
     try {
@@ -337,7 +369,18 @@
       localStorage.setItem('pf_track', state.track || 'unsure');
       localStorage.setItem('pf_booked', JSON.stringify({ when:'Tue 19:00', title:s.title, sub:s.sub, with:s.with }));
     } catch(err) {}
-    window.location.href = 'app.html';
+
+    var availability = Array.prototype.map.call(
+      document.querySelectorAll('#avail .cell.sel'),
+      function(c){ return c.getAttribute('aria-label'); });
+    var tz = '';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(err) {}
+    var save = pf.saveProfile({
+      name: state.name, track: state.track === 'unsure' ? null : state.track,
+      level: state.level, goal: state.goal, timezone: tz, availability: availability
+    });
+    var go = function(){ window.location.href = 'app.html'; };
+    Promise.race([save, new Promise(function(r){ setTimeout(r, 1200); })]).then(go, go);
   });
 })();
 </script>

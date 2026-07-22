@@ -45,7 +45,7 @@
       <span class="chip">My hours</span>
     </div>
 
-    <div class="board" style="max-width:none">
+    <div class="board" id="main-board" style="max-width:none">
       <div class="slot">
         <span class="when">now</span>
         <span class="what"><b>Silent co-work · focus room</b><span>All tracks · 31 min left in this block</span></span>
@@ -93,6 +93,9 @@
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
 <script>
 (function(){
   var track = 'cybersecurity', name = '';
@@ -105,7 +108,11 @@
   document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
   document.getElementById('logout').addEventListener('click', function(){
     try { ['pf_name','pf_email','pf_track','pf_booked'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
+    pf.signOut();
   });
+
+  /* live sessions from the database (keeps demo board if unreachable) */
+  pf.liveBoard(document.getElementById('main-board'), 12);
 })();
 </script>
 </body>

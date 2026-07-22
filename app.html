@@ -61,7 +61,7 @@
           <h3>Live right now
             <a class="grow" href="app-sessions.html">Full board →</a>
           </h3>
-          <div class="board" style="margin:0;max-width:none">
+          <div class="board" id="live-board" style="margin:0;max-width:none">
             <div class="slot">
               <span class="when">now</span>
               <span class="what"><b>Silent co-work · focus room</b><span>All tracks · 31 min left in this block</span></span>
@@ -118,6 +118,9 @@
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
 <script src="assets/site.js"></script>
 <script>
 (function(){
@@ -134,7 +137,11 @@
   document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
   document.getElementById('logout').addEventListener('click', function(){
     try { ['pf_name','pf_email','pf_track','pf_booked'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
+    pf.signOut();
   });
+
+  /* live sessions from the database (keeps demo board if unreachable) */
+  pf.liveBoard(document.getElementById('live-board'), 4);
 
   var h = new Date().getHours();
   var part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';

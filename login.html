@@ -61,9 +61,13 @@
   </div>
   <p class="swap">Forgot your password? <a href="#" title="Prototype">Reset it</a> · New here? <a href="signup.html">Join for free</a></p>
 
-  <p class="onb-note">Prototype — any details log you into the demo. Nothing leaves your computer.</p>
+  <p id="li-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px"></p>
+  <p class="onb-note">Beta — email login is real; Google/GitHub arrive soon.</p>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
 <script src="assets/auth.js"></script>
 <script>
 (function(){
@@ -74,13 +78,23 @@
     } catch(err) {}
     window.location.href = 'app.html';
   }
-  document.getElementById('btn-google').addEventListener('click', function(){ pfAuth.google(enter); });
-  document.getElementById('btn-github').addEventListener('click', function(){ pfAuth.github(enter); });
+
+  /* Google/GitHub: real OAuth once providers are configured, demo until then */
+  function social(provider, mock){
+    pf.signInOAuth(provider).then(function(res){
+      if (res.redirecting) return;            // browser is navigating to the provider
+      mock(enter);                            // fall back to the simulated flow
+    });
+  }
+  document.getElementById('btn-google').addEventListener('click', function(){ social('google', pfAuth.google); });
+  document.getElementById('btn-github').addEventListener('click', function(){ social('github', pfAuth.github); });
 
   var mailF = document.getElementById('f-email'), mailI = document.getElementById('li-email');
   var passF = document.getElementById('f-pass'), passI = document.getElementById('li-pass');
+  var status = document.getElementById('li-status');
+  var loginBtn = document.getElementById('login');
   [ [mailF,mailI], [passF,passI] ].forEach(function(p){
-    p[1].addEventListener('input', function(){ p[0].classList.remove('bad'); });
+    p[1].addEventListener('input', function(){ p[0].classList.remove('bad'); status.style.display='none'; });
   });
 
   document.getElementById('pw-toggle').addEventListener('click', function(){
@@ -89,14 +103,32 @@
     this.textContent = showing ? 'Show' : 'Hide';
   });
 
-  document.getElementById('login').addEventListener('click', function(){
+  loginBtn.addEventListener('click', function(){
     var ok = true;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mailI.value.trim())) { mailF.classList.add('bad'); ok = false; }
     if (!passI.value) { passF.classList.add('bad'); ok = false; }
     if (!ok) return;
-    var existing = '';
-    try { existing = localStorage.getItem('pf_name') || ''; } catch(err) {}
-    enter({ name: existing || mailI.value.trim().split('@')[0], email: mailI.value.trim() });
+    status.style.display = 'none';
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Logging in…';
+    pf.signInEmail(mailI.value.trim(), passI.value).then(function(res){
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Log in';
+      if (res.error) {
+        status.textContent = res.error === 'Invalid login credentials'
+          ? 'Wrong email or password — try again, or reset your password.'
+          : res.error;
+        status.style.display = 'block';
+        return;
+      }
+      var name = '';
+      if (res.user) {
+        name = (res.user.user_metadata && res.user.user_metadata.name) || '';
+      }
+      var existing = '';
+      try { existing = localStorage.getItem('pf_name') || ''; } catch(err) {}
+      enter({ name: name || existing || mailI.value.trim().split('@')[0], email: mailI.value.trim() });
+    });
   });
 })();
 </script>
