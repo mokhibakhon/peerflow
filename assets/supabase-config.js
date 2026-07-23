@@ -7,5 +7,10 @@ window.PF_SUPABASE = {
   enabled: true,
   /* Google/GitHub providers are configured in Supabase → Authentication →
      Providers. Set back to false to demo with the simulated sign-in. */
-  realOAuth: true
+  realOAuth: true,
+  /* Which social providers are actually enabled in Supabase. The button for a
+     disabled provider is hidden on the live site so users never hit an error.
+     Turn GitHub on here once you've enabled it in Supabase → Providers. */
+  enableGoogle: true,
+  enableGithub: false
 };

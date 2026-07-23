@@ -252,6 +252,14 @@
   document.getElementById('btn-google').addEventListener('click', function(){ social('Google', pfAuth.google); });
   document.getElementById('btn-github').addEventListener('click', function(){ social('GitHub', pfAuth.github); });
 
+  /* Hide provider buttons that aren't enabled in Supabase (live site only),
+     so no one hits an "unsupported provider" error. */
+  if (location.protocol !== 'file:') {
+    var cfg = window.PF_SUPABASE || {};
+    if (cfg.enableGoogle === false) { var bg = document.getElementById('btn-google'); if (bg) bg.style.display = 'none'; }
+    if (cfg.enableGithub === false) { var bh = document.getElementById('btn-github'); if (bh) bh.style.display = 'none'; }
+  }
+
   /* If we just came back from an OAuth redirect, the user is signed in —
      skip account creation and resume onboarding at "pick your track". */
   pf.currentUser().then(function(user){

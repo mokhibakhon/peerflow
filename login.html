@@ -93,6 +93,13 @@
   document.getElementById('btn-google').addEventListener('click', function(){ social('Google', pfAuth.google); });
   document.getElementById('btn-github').addEventListener('click', function(){ social('GitHub', pfAuth.github); });
 
+  /* Hide provider buttons not enabled in Supabase (live site only). */
+  if (location.protocol !== 'file:') {
+    var cfg = window.PF_SUPABASE || {};
+    if (cfg.enableGoogle === false) { var bg = document.getElementById('btn-google'); if (bg) bg.style.display = 'none'; }
+    if (cfg.enableGithub === false) { var bh = document.getElementById('btn-github'); if (bh) bh.style.display = 'none'; }
+  }
+
   var mailF = document.getElementById('f-email'), mailI = document.getElementById('li-email');
   var passF = document.getElementById('f-pass'), passI = document.getElementById('li-pass');
   var status = document.getElementById('li-status');
