@@ -167,6 +167,14 @@ window.pf = (function(){
     });
   }
 
+  /* A STABLE video room per session so everyone who joins the same session
+     lands in the same room. Uses Jitsi (free, no API) keyed by session id.
+     Respects a custom meet_url if one was set (i.e. not the default). */
+  function roomUrl(s){
+    if (s && s.meetUrl && s.meetUrl.indexOf('meet.google.com/new') === -1) return s.meetUrl;
+    return 'https://meet.jit.si/PeerFlow-' + ((s && s.id) || 'lobby');
+  }
+
   function renderBoard(el, sessions){
     el.innerHTML = sessions.map(function(s){
       var when = s.live ? 'now'
@@ -177,13 +185,86 @@ window.pf = (function(){
         '<span class="when">' + esc(when) + '</span>' +
         '<span class="what"><b>' + esc(s.title) + '</b><span>' + esc(trackLabel) + ' · ' + esc(kindLabel) + '</span></span>' +
         '<span class="seats">' + s.taken + '/' + s.capacity + ' seats</span>' +
-        '<a class="btn primary" href="' + esc(s.meetUrl) + '" target="_blank" rel="noopener" data-session="' + esc(s.id) + '">Join</a>' +
+        '<a class="btn primary" href="' + esc(roomUrl(s)) + '" target="_blank" rel="noopener" data-session="' + esc(s.id) + '">Join</a>' +
         '</div>';
     }).join('');
     el.addEventListener('click', function(e){
       var a = e.target.closest('[data-session]');
-      if (a) joinSession(a.getAttribute('data-session'), '');
+      if (a) joinSession(a.getAttribute('data-session'), '');   // record attendance
     });
+  }
+
+  /* ---------- real people & activity (replace hardcoded demo data) ---------- */
+
+  /* Other students on the same track (honest: may be empty in early days). */
+  function fetchPeers(track, limit){
+    if (!client || !track || track === 'unsure') return Promise.resolve(null);
+    return client.auth.getUser().then(function(res){
+      var uid = res.data && res.data.user && res.data.user.id;
+      var q = client.from('profiles').select('id,name,level,timezone').eq('track_id', track).limit(limit || 6);
+      if (uid) q = q.neq('id', uid);
+      return q.then(function(r){ return r.error ? null : (r.data || []); });
+    }).catch(function(){ return null; });
+  }
+
+  /* The signed-in user's real activity from their session memberships. */
+  function myActivity(){
+    if (!client) return Promise.resolve(null);
+    return client.auth.getUser().then(function(res){
+      var uid = res.data && res.data.user && res.data.user.id;
+      if (!uid) return null;
+      return client.from('session_members')
+        .select('goal_done, sessions(starts_at)')
+        .eq('user_id', uid)
+        .then(function(r){
+          if (r.error) return null;
+          var rows = r.data || [];
+          var now = Date.now();
+          var joined = rows.length;
+          var goalsDone = rows.filter(function(x){ return x.goal_done; }).length;
+          var upcoming = rows.filter(function(x){
+            return x.sessions && new Date(x.sessions.starts_at).getTime() > now;
+          }).length;
+          return { joined: joined, goalsDone: goalsDone, upcoming: upcoming };
+        });
+    }).catch(function(){ return null; });
+  }
+
+  /* The soonest upcoming session the user has joined (for the dashboard card). */
+  function myNextSession(){
+    if (!client) return Promise.resolve(null);
+    return client.auth.getUser().then(function(res){
+      var uid = res.data && res.data.user && res.data.user.id;
+      if (!uid) return null;
+      return client.from('session_members')
+        .select('sessions(id,title,track_id,kind,starts_at,capacity,meet_url)')
+        .eq('user_id', uid)
+        .then(function(r){
+          if (r.error || !r.data) return null;
+          var cutoff = Date.now() - 2 * 3600 * 1000;
+          var list = r.data.map(function(x){ return x.sessions; }).filter(Boolean)
+            .filter(function(s){ return new Date(s.starts_at).getTime() >= cutoff; })
+            .sort(function(a,b){ return new Date(a.starts_at) - new Date(b.starts_at); });
+          if (!list.length) return null;
+          var s = list[0];
+          return { id:s.id, title:s.title, track:s.track_id, kind:s.kind,
+                   startsAt:new Date(s.starts_at), capacity:s.capacity, meetUrl:s.meet_url };
+        });
+    }).catch(function(){ return null; });
+  }
+
+  /* At signup: actually join the soonest relevant session for this track,
+     preferring the track's own session over an all-tracks room. */
+  function joinFirstSession(track){
+    if (!client) return Promise.resolve(null);
+    return fetchUpcomingSessions(60).then(function(sessions){
+      if (!sessions || !sessions.length) return null;
+      var list = forTrack(sessions, track);
+      if (!list.length) return null;
+      var own = list.filter(function(s){ return s.track === track; });
+      var pick = own[0] || list[0];
+      return joinSession(pick.id, '').then(function(){ return pick; });
+    }).catch(function(){ return null; });
   }
 
   /* Keep only sessions relevant to a track: that track's own sessions plus
@@ -215,6 +296,11 @@ window.pf = (function(){
     saveProfile: saveProfile,
     fetchUpcomingSessions: fetchUpcomingSessions,
     joinSession: joinSession,
+    joinFirstSession: joinFirstSession,
+    fetchPeers: fetchPeers,
+    myActivity: myActivity,
+    myNextSession: myNextSession,
+    roomUrl: roomUrl,
     renderBoard: renderBoard,
     forTrack: forTrack,
     trackNames: trackNames,

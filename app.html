@@ -43,17 +43,12 @@
       <div class="app-col">
 
         <div class="card next-card">
-          <div class="when-big" id="nx-when">TUE 19:00 · YOUR NEXT SESSION</div>
-          <h2 id="nx-title">CTF night — web challenges</h2>
-          <p id="nx-sub">Cybersecurity · collaborative</p>
+          <div class="when-big" id="nx-when">YOUR NEXT SESSION</div>
+          <h2 id="nx-title">No session booked yet</h2>
+          <p id="nx-sub">Pick one from the board to reserve your seat.</p>
           <div class="row">
-            <span class="avstack">
-              <span class="av" style="background:#8e6cc8">AZ</span>
-              <span class="av" style="background:#3d8fd1">TM</span>
-              <span class="av" style="background:#d1793d">DR</span>
-            </span>
-            <span style="font-size:13.5px;color:var(--muted)" id="nx-with">Aziza, Timur and Diyor have seats</span>
-            <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener" style="margin-left:auto">Open in Google Meet</a>
+            <span style="font-size:13.5px;color:var(--muted)" id="nx-with"></span>
+            <a class="btn primary" id="nx-open" href="app-sessions.html" style="margin-left:auto">Browse sessions</a>
           </div>
         </div>
 
@@ -78,14 +73,12 @@
         </div>
 
         <div class="card">
-          <h3>Suggested peers on your track
-            <a class="grow" href="#" title="Prototype">See all →</a>
+          <h3>Peers on your track
+            <a class="grow" href="app-sessions.html">Sessions →</a>
           </h3>
           <p class="empty-hint">Study with the same person 3 times and you can form a squad — a recurring crew with its own sessions.</p>
-          <ul class="plist">
-            <li><span class="av" style="background:#8e6cc8">AZ</span><span><b>Aziza</b><span>Builds small things · evenings · 96% show-up</span></span><a class="btn ghost" href="#">Invite to session</a></li>
-            <li><span class="av" style="background:#5a9e6f">KH</span><span><b>Khurshid</b><span>Done tutorials · nights · 91% show-up</span></span><a class="btn ghost" href="#">Invite to session</a></li>
-            <li><span class="av" style="background:#c2568e">ZG</span><span><b>Zarina</b><span>Job-hunt prep · evenings · 98% show-up</span></span><a class="btn ghost" href="#">Invite to session</a></li>
+          <ul class="plist" id="peers-list">
+            <li style="color:var(--muted);font-size:14px">Finding peers on your track…</li>
           </ul>
         </div>
       </div>
@@ -93,25 +86,24 @@
       <!-- ============ side column ============ -->
       <div class="app-col">
         <div class="card">
-          <h3>Your streak</h3>
+          <h3>Your activity</h3>
           <div class="stat-row">
-            <div class="stat"><b id="st-streak">1</b><span>day streak</span></div>
-            <div class="stat"><b id="st-sessions">1</b><span>sessions</span></div>
+            <div class="stat"><b id="st-sessions">0</b><span>sessions</span></div>
             <div class="stat"><b id="st-goals">0</b><span>goals done</span></div>
+            <div class="stat"><b id="st-upcoming">0</b><span>upcoming</span></div>
           </div>
-          <p class="streak-note">Attend tonight's session to make it <b style="color:var(--green-dark)">2 in a row</b>.</p>
+          <p class="streak-note" id="activity-note">Join your first session to start building a streak.</p>
         </div>
 
         <div class="card">
           <h3>Your squad</h3>
-          <p class="empty-hint">No squad yet — that's normal in week one. Keep sitting with the same people and PeerFlow will suggest forming one.</p>
-          <p style="font-size:14px;color:var(--muted)">Closest to a squad: <b style="color:var(--ink)">Aziza</b> — 1 session together.</p>
+          <p class="empty-hint">No squad yet — that's normal early on. Keep sitting with the same people and PeerFlow will suggest forming one.</p>
         </div>
 
         <div class="card">
-          <h3>This week's goal</h3>
-          <p style="font-size:14.5px">You planned <b style="color:var(--ink)">3 sessions</b> this week. One down, two to go — Thursday and Saturday evening look open on your schedule.</p>
-          <a class="btn ghost" href="app-sessions.html" style="margin-top:14px">Book the next one</a>
+          <h3>Next step</h3>
+          <p style="font-size:14.5px" id="next-step">Book a session that fits your week and put in your first fifty focused minutes.</p>
+          <a class="btn ghost" href="app-sessions.html" style="margin-top:14px">Browse sessions</a>
         </div>
       </div>
     </div>
@@ -188,12 +180,63 @@
       new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
   } catch(err) {}
 
-  if (booked) {
-    document.getElementById('nx-when').textContent = booked.when.toUpperCase() + ' · YOUR NEXT SESSION';
-    document.getElementById('nx-title').textContent = booked.title;
-    document.getElementById('nx-sub').textContent = booked.sub;
-    document.getElementById('nx-with').textContent = 'Reserved at signup · ' + booked.with;
+  /* ----- next session card: prefer a real booked session, else localStorage ----- */
+  function showNext(when, title, sub, room){
+    document.getElementById('nx-when').textContent = (when ? when.toUpperCase() + ' · ' : '') + 'YOUR NEXT SESSION';
+    document.getElementById('nx-title').textContent = title;
+    document.getElementById('nx-sub').textContent = sub;
+    var open = document.getElementById('nx-open');
+    if (room) {
+      open.textContent = 'Open session room';
+      open.href = room; open.target = '_blank'; open.rel = 'noopener';
+      document.getElementById('nx-with').textContent = 'Your seat is reserved';
+    }
   }
+  if (booked && booked.title) {
+    showNext(booked.when, booked.title, booked.sub || '', booked.room || '');
+  }
+  pf.myNextSession().then(function(s){
+    if (!s) return;
+    var when = s.startsAt.toLocaleString([], { weekday:'short', hour:'2-digit', minute:'2-digit' });
+    var sub = (s.track ? (trackNames[s.track] || s.track) : 'All tracks') + ' · ' + s.kind;
+    showNext(when, s.title, sub, pf.roomUrl(s));
+  });
+
+  /* ----- real peers on this track (honest empty state) ----- */
+  var palette = ['#8e6cc8','#3d8fd1','#d1793d','#5a9e6f','#c2568e','#0b8f66'];
+  var levelLabel = { new:'Just starting', tutorials:'Doing tutorials', builder:'Builds projects', jobprep:'Job-hunt prep' };
+  pf.fetchPeers(track, 5).then(function(peers){
+    var el = document.getElementById('peers-list');
+    if (!el) return;
+    if (peers === null || !peers.length) {      // no peers yet (or offline) — be honest, never stuck
+      el.innerHTML = '<li style="color:var(--muted);font-size:14px">You’re early on this track — no peers yet. ' +
+        'Join a session and invite a friend to be the first crew.</li>';
+      return;
+    }
+    el.innerHTML = peers.map(function(p, i){
+      var nm = p.name || 'Student';
+      var initials = nm.trim().charAt(0).toUpperCase();
+      var meta = [levelLabel[p.level] || 'On your track', p.timezone || ''].filter(Boolean).join(' · ');
+      return '<li><span class="av" style="background:' + palette[i % palette.length] + '">' + initials +
+        '</span><span><b>' + nm + '</b><span>' + meta + '</span></span>' +
+        '<a class="btn ghost" href="app-sessions.html">Study together</a></li>';
+    }).join('');
+  });
+
+  /* ----- real activity stats ----- */
+  pf.myActivity().then(function(a){
+    if (!a) return;
+    document.getElementById('st-sessions').textContent = a.joined;
+    document.getElementById('st-goals').textContent = a.goalsDone;
+    document.getElementById('st-upcoming').textContent = a.upcoming;
+    if (a.joined > 0) {
+      document.getElementById('activity-note').textContent =
+        a.upcoming > 0 ? 'You have ' + a.upcoming + ' session' + (a.upcoming>1?'s':'') + ' coming up. Show up to keep it going.'
+                       : 'Book your next session to keep the momentum.';
+      document.getElementById('next-step').textContent =
+        'You’ve joined ' + a.joined + ' session' + (a.joined>1?'s':'') + '. Keep a steady rhythm — a couple a week beats a burst.';
+    }
+  });
 })();
 </script>
 </body>

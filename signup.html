@@ -180,7 +180,7 @@
         <span class="seats" id="fs-with">with Aziza +2</span>
       </div>
     </div>
-    <p class="tz-note" style="margin-top:14px">Sessions run on <b>Google Meet</b> — your room link opens when the session starts.</p>
+    <p class="tz-note" style="margin-top:14px">Sessions open a <b>shared video room</b> — everyone who joins lands in the same place.</p>
     <label class="pledge">
       <input type="checkbox" id="pledge" checked>
       <span><b style="color:var(--ink)">The PeerFlow pledge:</b> when I book a seat, I show up. (Your show-up score starts at 100 — keep it there.)</span>
@@ -427,7 +427,22 @@
         try { alert(full); } catch(e){}   // make the exact reason impossible to miss
         return;
       }
-      go();                               // saved (or offline demo) → dashboard
+      /* Actually join the soonest real session on this track, then store it
+         so the dashboard shows a genuine booking with a real room. */
+      pf.joinFirstSession(state.track === 'unsure' ? null : state.track).then(function(sess){
+        if (sess) {
+          try {
+            localStorage.setItem('pf_booked', JSON.stringify({
+              id: sess.id,
+              when: sess.startsAt.toLocaleString([], { weekday:'short', hour:'2-digit', minute:'2-digit' }),
+              title: sess.title,
+              sub: (sess.track ? (pf.trackNames[sess.track] || sess.track) : 'All tracks') + ' · ' + sess.kind,
+              room: pf.roomUrl(sess)
+            }));
+          } catch(e){}
+        }
+        go();
+      });
     });
     /* Safety net if the network hangs — localStorage already holds the track. */
     setTimeout(function(){ if (!errored) go(); }, 8000);
