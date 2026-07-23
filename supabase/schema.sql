@@ -134,12 +134,20 @@ begin
   if not exists (select 1 from public.sessions where starts_at > now()) then
     for d in 0..6 loop
       base := date_trunc('day', now()) + (d || ' days')::interval;
+      -- all-tracks focus rooms (everyone welcome)
       insert into public.sessions (title, track_id, kind, starts_at, duration_min, capacity) values
-        ('Silent co-work · focus room',            null,            'silent',        base + interval '18 hours', 110, 8),
-        ('CTF night — web challenges',             'cybersecurity', 'collaborative', base + interval '19 hours',  90, 6),
-        ('Pair programming — React components',    'frontend',      'collaborative', base + interval '20 hours',  90, 4),
-        ('SQL practice — window functions',        'data',          'collaborative', base + interval '21 hours',  90, 6),
-        ('Late silent co-work · night owls',       null,            'silent',        base + interval '22 hours', 110, 8);
+        ('Silent co-work · focus room',      null, 'silent', base + interval '18 hours', 110, 8),
+        ('Late silent co-work · night owls', null, 'silent', base + interval '22 hours', 110, 8);
+      -- one collaborative session per career track
+      insert into public.sessions (title, track_id, kind, starts_at, duration_min, capacity) values
+        ('Pair programming — React components', 'frontend',      'collaborative', base + interval '20 hours', 90, 4),
+        ('API build night — auth from scratch', 'backend',       'collaborative', base + interval '20 hours', 90, 4),
+        ('CTF night — web challenges',          'cybersecurity', 'collaborative', base + interval '19 hours', 90, 6),
+        ('SQL practice — window functions',     'data',          'collaborative', base + interval '21 hours', 90, 6),
+        ('Build night — Flutter UI challenge',  'mobile',        'collaborative', base + interval '19 hours', 90, 4),
+        ('Deploy night — Docker from zero',     'devops',        'collaborative', base + interval '20 hours', 90, 4),
+        ('Kaggle night — first submission',     'aiml',          'collaborative', base + interval '21 hours', 90, 4),
+        ('Critique night — portfolio review',   'design',        'collaborative', base + interval '19 hours', 90, 5);
     end loop;
   end if;
 end $$;

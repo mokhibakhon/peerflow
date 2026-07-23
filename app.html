@@ -140,8 +140,10 @@
     pf.signOut();
   });
 
-  /* live sessions from the database (keeps demo board if unreachable) */
-  pf.liveBoard(document.getElementById('live-board'), 4);
+  /* live sessions from the database, filtered to this user's track
+     (plus all-tracks focus rooms). Keeps demo board if unreachable. */
+  var liveBoardEl = document.getElementById('live-board');
+  pf.liveBoard(liveBoardEl, 4, track);
 
   var h = new Date().getHours();
   var part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
@@ -169,6 +171,7 @@
         try { localStorage.setItem('pf_track', track); } catch(err) {}
         document.getElementById('nav-track').textContent = trackNames[track] || track;
         greet();
+        pf.liveBoard(liveBoardEl, 4, track);     // refresh board for the real track
         return;
       }
       /* No track on the profile. If they just finished onboarding (localStorage

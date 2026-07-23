@@ -37,12 +37,11 @@
       <h1>Session board</h1>
       <a class="btn primary" href="#" title="Prototype">+ Create a session</a>
     </div>
-    <div class="filters" aria-label="Filter sessions">
-      <span class="chip sel">All</span>
-      <span class="chip">My track</span>
-      <span class="chip">Silent co-work</span>
-      <span class="chip">Collaborative</span>
-      <span class="chip">My hours</span>
+    <div class="filters" id="filters" aria-label="Filter sessions">
+      <span class="chip sel" data-filter="mine">My track</span>
+      <span class="chip" data-filter="all">All tracks</span>
+      <span class="chip" data-filter="silent">Silent co-work</span>
+      <span class="chip" data-filter="collab">Collaborative</span>
     </div>
 
     <div class="board" id="main-board" style="max-width:none">
@@ -111,8 +110,54 @@
     pf.signOut();
   });
 
-  /* live sessions from the database (keeps demo board if unreachable) */
-  pf.liveBoard(document.getElementById('main-board'), 12);
+  /* Confirm the track from the real profile, then load + filter the board. */
+  pf.currentUser().then(function(user){
+    if (!user) return;
+    return pf.getProfile().then(function(p){
+      if (p && p.track_id) {
+        track = p.track_id;
+        document.getElementById('nav-track').textContent = trackNames[track] || track;
+        try { localStorage.setItem('pf_track', track); } catch(e){}
+      }
+    });
+  }).then(loadBoard, loadBoard);
+
+  var board = document.getElementById('main-board');
+  var filtersEl = document.getElementById('filters');
+  var allSessions = null;      // null → Supabase unreachable, keep demo board
+  var activeFilter = 'mine';
+
+  function apply(){
+    if (!allSessions) return;
+    var list = allSessions;
+    if (activeFilter === 'mine')        list = pf.forTrack(allSessions, track);
+    else if (activeFilter === 'silent') list = allSessions.filter(function(s){ return s.kind === 'silent'; });
+    else if (activeFilter === 'collab') list = allSessions.filter(function(s){ return s.kind === 'collaborative'; });
+    /* 'all' → everything */
+    if (!list.length) {
+      board.innerHTML = '<p class="board-note" style="padding:24px">No sessions match this filter yet. ' +
+        'Be the first — <a href="#" style="color:var(--green-dark);font-weight:600">create one</a>.</p>';
+      return;
+    }
+    pf.renderBoard(board, list);
+  }
+
+  function loadBoard(){
+    pf.fetchUpcomingSessions(60).then(function(sessions){
+      if (!sessions || !sessions.length) return;   // keep hardcoded demo board
+      allSessions = sessions;
+      apply();
+    });
+  }
+
+  filtersEl.addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if (!chip) return;
+    Array.prototype.forEach.call(filtersEl.querySelectorAll('.chip'), function(c){ c.classList.remove('sel'); });
+    chip.classList.add('sel');
+    activeFilter = chip.getAttribute('data-filter');
+    apply();
+  });
 })();
 </script>
 </body>

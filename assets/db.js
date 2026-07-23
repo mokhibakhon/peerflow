@@ -186,12 +186,21 @@ window.pf = (function(){
     });
   }
 
-  /* Replaces a board's demo content with live data when available. */
-  function liveBoard(el, limit){
+  /* Keep only sessions relevant to a track: that track's own sessions plus
+     the all-tracks focus rooms (track = null). No track → everything. */
+  function forTrack(sessions, track){
+    if (!track || track === 'unsure') return sessions;
+    return sessions.filter(function(s){ return !s.track || s.track === track; });
+  }
+
+  /* Replaces a board's demo content with live data when available.
+     Pass a track to show only that track's sessions + all-tracks rooms. */
+  function liveBoard(el, limit, track){
     if (!el) return;
-    fetchUpcomingSessions(limit).then(function(sessions){
-      if (sessions && sessions.length) renderBoard(el, sessions);
-      /* null → keep the hardcoded demo board */
+    fetchUpcomingSessions(60).then(function(sessions){
+      if (!sessions || !sessions.length) return;   // keep the hardcoded demo board
+      var list = forTrack(sessions, track).slice(0, limit || 8);
+      renderBoard(el, list.length ? list : sessions.slice(0, limit || 8));
     });
   }
 
@@ -206,6 +215,9 @@ window.pf = (function(){
     saveProfile: saveProfile,
     fetchUpcomingSessions: fetchUpcomingSessions,
     joinSession: joinSession,
+    renderBoard: renderBoard,
+    forTrack: forTrack,
+    trackNames: trackNames,
     liveBoard: liveBoard
   };
 })();
