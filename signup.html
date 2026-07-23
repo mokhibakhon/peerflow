@@ -421,7 +421,10 @@
       if (res && res.error) {
         errored = true;
         btn.disabled = false; btn.textContent = 'Reserve my seat';
+        var full = 'Could not save your profile:\n\n' + res.error + (res.detail ? '\n\n' + res.detail : '');
         suError('Could not save your profile: ' + res.error);
+        try { console.error('PeerFlow reserve failed:', res); } catch(e){}
+        try { alert(full); } catch(e){}   // make the exact reason impossible to miss
         return;
       }
       go();                               // saved (or offline demo) → dashboard

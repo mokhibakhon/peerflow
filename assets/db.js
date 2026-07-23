@@ -96,7 +96,11 @@ window.pf = (function(){
           if (r.error.code === '42P01' || /relation .* does not exist/i.test(msg)) {
             msg = 'The database tables are not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.';
           }
-          return { error: msg };
+          var detail = [];
+          if (r.error.code) detail.push('code: ' + r.error.code);
+          if (r.error.details) detail.push('details: ' + r.error.details);
+          if (r.error.hint) detail.push('hint: ' + r.error.hint);
+          return { error: msg, detail: detail.join('  ·  ') };
         }
         return { saved: true };
       });
