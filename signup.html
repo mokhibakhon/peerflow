@@ -237,6 +237,7 @@
   function suError(msg){
     var s = document.getElementById('su-status');
     s.textContent = msg; s.style.color = '#c0392b'; s.style.display = 'block';
+    try { s.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(e){}
   }
   function social(provider, mock){
     /* Offline demo only (opening the file directly): simulated picker. */

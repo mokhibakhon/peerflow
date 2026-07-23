@@ -90,9 +90,20 @@ window.pf = (function(){
         timezone: profile.timezone || null,
         availability: profile.availability || []
       }).then(function(r){
-        return r.error ? { error: r.error.message } : { saved: true };
+        if (r.error) {
+          try { console.error('PeerFlow saveProfile error:', r.error); } catch(e){}
+          var msg = r.error.message || 'Unknown error';
+          if (r.error.code === '42P01' || /relation .* does not exist/i.test(msg)) {
+            msg = 'The database tables are not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.';
+          }
+          return { error: msg };
+        }
+        return { saved: true };
       });
-    }).catch(function(){ return { demo: true }; });
+    }).catch(function(e){
+      try { console.error('PeerFlow saveProfile exception:', e); } catch(err){}
+      return { error: (e && e.message) || 'Network error while saving your profile.' };
+    });
   }
 
   /* ---------- sessions ---------- */
