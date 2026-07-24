@@ -484,12 +484,10 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .mp-timer span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px}
 
 /* ============ founder's note ============ */
-.founder{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:center;max-width:840px;margin:0 auto}
-.founder-photo{width:132px;height:132px;border-radius:16px;object-fit:cover;background:var(--green-tint);
-  border:1px solid var(--border);flex:none}
-.founder-body p{font-size:16.5px;color:var(--text)}
-.founder-sign{margin-top:16px;font-size:14.5px;color:var(--muted)}
-.founder-sign b{display:block;color:var(--ink);font-size:15.5px}
+.founder-body{max-width:640px;margin:0 auto}
+.founder-body p{font-size:16.5px;color:var(--text);margin-bottom:14px}
+.founder-body .founder-sign{margin:22px 0 0;font-size:14.5px;color:var(--muted)}
+.founder-body .founder-sign b{display:block;color:var(--ink);font-size:15.5px}
 
 /* ============ home: email capture forms ============ */
 .lead-form{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:640px;margin:40px auto 0}
@@ -509,7 +507,6 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .foot-links a:hover{color:#fff;text-decoration:underline}
 
 @media (max-width:640px){
-  .founder{grid-template-columns:1fr;gap:20px}
   .lead-form{flex-direction:column}
   .lead-form input,.lead-form .btn{width:100%}
 }
