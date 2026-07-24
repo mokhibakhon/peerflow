@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PeerFlow — Find your people. Learn IT together.</title>
+<title>PeerFlow — learn to code with one other person</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 26 26%27%3E%3Ccircle cx=%2710%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%230b8f66%27 stroke-width=%273%27/%3E%3Ccircle cx=%2717%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%2321323b%27 stroke-width=%273%27 opacity=%27.8%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -19,97 +19,119 @@
       peer<b>flow</b>
     </a>
     <nav class="nav-links" aria-label="Main">
-      <a href="how-it-works.html">How it works</a>
-      <a href="tracks.html">Career tracks</a>
-      <a href="sessions.html">Study sessions</a>
-      <a href="students.html">Students</a>
+      <a href="#how">How it works</a>
     </nav>
     <div class="nav-right">
       <a class="login" href="login.html">Log in</a>
-      <a class="btn primary" href="signup.html">Join for free</a>
+      <a class="btn primary" href="signup.html">Find a partner</a>
     </div>
   </div>
 </header>
 
 <main>
 
-<!-- ================= HERO ================= -->
+<!-- ================= 1. HERO ================= -->
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <h1>Learning IT alone is hard.<br>So <em>don't do it alone</em>.</h1>
-      <p class="lead">PeerFlow matches you with students chasing the same tech career — from frontend and cybersecurity to AI and DevOps — and puts you in live <strong>Study With Me</strong> sessions where the work actually gets done.</p>
+      <h1>Learn to code with <em>one other person</em>.</h1>
+      <p class="lead">Tell us what you're learning. We find someone learning the same thing. You meet on video and work through it together.</p>
       <div class="hero-ctas">
-        <a class="btn primary big" href="signup.html">Join for free</a>
-        <a class="btn ghost big" href="how-it-works.html">How it works</a>
+        <a class="btn primary big" href="signup.html">Find my partner</a>
       </div>
-      <div class="hero-facts">
-        <span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" stroke="#0b8f66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Free for students</span>
-        <span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" stroke="#0b8f66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>8 career tracks</span>
-        <span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" stroke="#0b8f66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Live sessions every day</span>
-      </div>
+      <p class="hero-note">Free · One partner, not a group · Starting with cybersecurity</p>
     </div>
 
-    <!-- the product, running: a mixed-track silent co-work room -->
-    <div class="session" aria-label="Example of a live PeerFlow study session">
-      <div class="session-head">
-        <span class="live"><i></i>LIVE</span>
-        <span>Study With Me session</span>
-        <span class="topic">focus-room/silent-cowork</span>
-      </div>
-      <div class="session-body">
-        <div class="timer">
-          <svg width="148" height="148" viewBox="0 0 148 148" aria-hidden="true">
-            <circle class="track" cx="74" cy="74" r="66"/>
-            <circle class="arc" id="arc" cx="74" cy="74" r="66" stroke-dasharray="414.7" stroke-dashoffset="70"/>
-          </svg>
-          <div class="readout">
-            <b id="clock" aria-live="off">42:17</b>
-            <span>focus time</span>
-          </div>
+    <!-- honest, wordless illustration: two people, same topic, one time. no badge, no timer, no goals. -->
+    <div class="hero-visual" aria-hidden="true">
+      <div class="pair-card">
+        <div class="pair-people">
+          <span class="pair-av you">you</span>
+          <span class="pair-av partner">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" stroke-width="2"/><path d="M4.5 20c.8-3.5 3.6-5.5 7.5-5.5s6.7 2 7.5 5.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
         </div>
-        <div class="peers">
-          <div class="peer"><span class="av" style="background:#8e6cc8">AZ<i></i></span><span class="who"><b>Aziza</b><span>Cybersecurity</span></span></div>
-          <div class="peer"><span class="av" style="background:#3d8fd1">TM<i></i></span><span class="who"><b>Timur</b><span>Frontend dev</span></span></div>
-          <div class="peer"><span class="av" style="background:#d1793d">DR<i></i></span><span class="who"><b>Diyor</b><span>Data analyst</span></span></div>
-          <div class="peer you"><span class="av" style="background:#0b8f66">YOU<i></i></span><span class="who"><b>You</b><span>Pick your track →</span></span></div>
+        <p class="pair-cap">You and one partner</p>
+        <div class="pair-rows">
+          <div class="pair-row"><span>Learning</span><b>the same thing</b></div>
+          <div class="pair-row"><span>Meeting</span><b>at the same time</b></div>
         </div>
-      </div>
-      <div class="goals">
-        <h4>Session goals — one each</h4>
-        <div class="goal done"><span class="box"><svg width="10" height="8" viewBox="0 0 10 8" aria-hidden="true"><path d="M1 4l2.6 2.6L9 1" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>Finish OverTheWire bandit levels 12–15<span class="name">Aziza</span></div>
-        <div class="goal done"><span class="box"><svg width="10" height="8" viewBox="0 0 10 8" aria-hidden="true"><path d="M1 4l2.6 2.6L9 1" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>Ship the navbar for my portfolio site<span class="name">Timur</span></div>
-        <div class="goal"><span class="box"></span>Clean the sales dataset in pandas<span class="name">Diyor</span></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ================= VALUE STRIP ================= -->
+<!-- ================= WHY ONE-ON-ONE ================= -->
 <div class="values">
   <div class="wrap row">
     <div class="value">
-      <span class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2l2.1 4.6 5 .5-3.8 3.4 1.1 4.9L10 12.9l-4.4 2.5 1.1-4.9L2.9 7.1l5-.5L10 2z" stroke="#0b8f66" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
-      <div><b>Career-first, not course-first</b><p>Pick the job you want. Your track decides what you study and who you meet.</p></div>
-    </div>
-    <div class="value">
       <span class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="7" cy="7.5" r="3" stroke="#0b8f66" stroke-width="1.8"/><circle cx="14" cy="9" r="2.4" stroke="#0b8f66" stroke-width="1.8"/><path d="M2.5 16.5c.6-2.6 2.3-4 4.5-4s3.9 1.4 4.5 4M12.6 14.7c1.7.1 3 1 3.6 2.6" stroke="#0b8f66" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-      <div><b>Peers at your level</b><p>Matched by track, level, and timezone — people awake and studying when you are.</p></div>
+      <div><b>One person, not a room</b><p>You get matched with a single partner. Small enough that showing up actually matters to someone.</p></div>
     </div>
     <div class="value">
-      <span class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.5" stroke="#0b8f66" stroke-width="1.8"/><path d="M10 6v4.2l2.8 1.8" stroke="#0b8f66" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-      <div><b>Live focus sessions</b><p>Declare a goal, start the timer, work beside your crew. 50 minutes at a time.</p></div>
+      <span class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 17h14M6 17v-5m4 5V6m4 11V9" stroke="#0b8f66" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <div><b>Someone at your stage</b><p>Matched by what you're learning and when you're free — not by who happens to be online.</p></div>
+    </div>
+    <div class="value">
+      <span class="ic"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="7" r="3" stroke="#0b8f66" stroke-width="1.8"/><path d="M4 16.5c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5" stroke="#0b8f66" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><b>No curriculum</b><p>You bring what you're learning. We bring the person. That's the whole product.</p></div>
     </div>
   </div>
 </div>
 
-<!-- ================= DEMO VIDEO ================= -->
-<section id="demo">
+<!-- ================= 2. FOUNDER'S NOTE ================= -->
+<!--
+  DRAFT founder's note — placeholder copy written for you, plus a placeholder
+  name, role, and photo. Please rewrite this whole block in your own words,
+  swap in your real name and role, and drop a real photo at assets/founder.jpg.
+-->
+<section class="band" id="founder">
+  <div class="wrap">
+    <div class="founder">
+      <img class="founder-photo" src="assets/founder.jpg" alt="Photo of the PeerFlow founder">
+      <div class="founder-body">
+        <p class="eyebrow">Why I built this</p>
+        <p>I grew up in a small town. I wanted to learn programming and there was nobody around me who wanted the same thing. Not one person.</p>
+        <p>I didn't need another course. There are thousands of those. I needed someone working on the same thing at the same time, who'd show up on Tuesday because I was expecting them.</p>
+        <p>That's all PeerFlow is.</p>
+        <p class="founder-sign"><b>Your name</b><span>Founder, PeerFlow</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3. HOW IT WORKS ================= -->
+<section id="how">
   <div class="wrap">
     <div class="center">
-      <p class="eyebrow">Watch the demo</p>
-      <h2>See PeerFlow in action</h2>
-      <p class="sub">Two minutes — from picking a track to finishing your first session with your crew.</p>
+      <p class="eyebrow">How it works</p>
+      <h2>How PeerFlow works</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="badge">1</span>
+        <h3>Tell us what you're learning</h3>
+        <p>The topic, roughly where you're at, and the hours you're actually free. One minute.</p>
+      </div>
+      <div class="step">
+        <span class="badge">2</span>
+        <h3>We find you one person</h3>
+        <p>Not a group. Not a room. One person learning the same thing, at a similar stage, awake when you are.</p>
+      </div>
+      <div class="step">
+        <span class="badge">3</span>
+        <h3>You meet and learn</h3>
+        <p>Video call. Decide what you're working on. Get on with it. Then again next week.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4. DEMO VIDEO ================= -->
+<section class="band" id="demo">
+  <div class="wrap">
+    <div class="center">
+      <p class="eyebrow">Demo</p>
     </div>
     <!--
       DEMO VIDEO GOES HERE.
@@ -128,182 +150,54 @@
       <span class="play" aria-hidden="true">
         <svg width="26" height="30" viewBox="0 0 26 30" fill="none"><path d="M24 13.3c1.3.75 1.3 2.65 0 3.4L3.5 28.5C2.2 29.26.5 28.3.5 26.8V3.2C.5 1.7 2.2.74 3.5 1.5L24 13.3z" fill="#fff"/></svg>
       </span>
-      <b>Demo video coming soon</b>
-      <p>A 2-minute walkthrough of PeerFlow is being recorded — it will live right here.</p>
+      <b>A short walkthrough is coming here.</b>
     </div>
   </div>
 </section>
 
-<!-- ================= HOW IT WORKS (teaser) ================= -->
-<section class="band">
+<!-- ================= 5. WHAT WE'RE STARTING WITH ================= -->
+<section id="starting">
   <div class="wrap">
     <div class="center">
-      <p class="eyebrow">How it works</p>
-      <h2>How PeerFlow works</h2>
-      <p class="sub">Three steps between you and a study crew that actually shows up.</p>
+      <p class="eyebrow">What we're starting with</p>
+      <h2>We're starting with cybersecurity</h2>
+      <p class="sub">One field, on purpose. Eight fields means eight fields where nobody finds a partner. Learning something else? Leave your email and we'll tell you when it opens.</p>
     </div>
-    <div class="steps">
-      <div class="step">
-        <span class="badge">1</span>
-        <h3>Pick your career track</h3>
-        <p>Eight careers, from frontend to AI. Not sure yet? Browse what each one actually studies day to day, and switch anytime.</p>
-      </div>
-      <div class="step">
-        <span class="badge">2</span>
-        <h3>Get matched with peers</h3>
-        <p>PeerFlow suggests study partners and small groups of 3–6 on your track, at your level, in your timezone — people who fit your real schedule.</p>
-      </div>
-      <div class="step">
-        <span class="badge">3</span>
-        <h3>Study with me, live</h3>
-        <p>Join a session, declare one goal, start the timer. Fifty minutes of focus beside people who want the same job you do, then a short break.</p>
-      </div>
-    </div>
-    <div class="section-cta">
-      <a class="btn ghost" href="how-it-works.html">More about how it works</a>
-    </div>
+    <form class="lead-form" id="track-form" novalidate>
+      <input type="email" id="track-email" placeholder="you@email.com" autocomplete="email" aria-label="Your email">
+      <input type="text" id="track-interest" placeholder="What you're learning" aria-label="What you're learning">
+      <button class="btn primary" type="submit">Tell me when</button>
+    </form>
+    <p class="form-note" id="track-note" role="status"></p>
   </div>
 </section>
 
-<!-- ================= TRACKS (teaser) ================= -->
-<section>
-  <div class="wrap">
-    <div class="center">
-      <p class="eyebrow">Career tracks</p>
-      <h2>Pick your career track</h2>
-      <p class="sub">A track is a shared direction — the topics you study, the peers you're matched with, and the sessions you'll see first.</p>
-    </div>
-    <div class="tracks">
-      <a class="track" href="tracks.html#frontend">
-        <div class="head">
-          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5" stroke="#0b8f66" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          <div><h3>Frontend Development</h3><span class="career">→ Frontend / web developer</span></div>
-        </div>
-        <p>Build the interfaces everyone uses every day, and ship portfolio projects with peers reviewing your code.</p>
-        <div class="chips"><span class="chip">JavaScript</span><span class="chip">HTML &amp; CSS</span><span class="chip">React</span></div>
-      </a>
-      <a class="track" href="tracks.html#backend">
-        <div class="head">
-          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="#0b8f66" stroke-width="2"/><path d="M5 6v12c0 1.66 3.13 3 7 3s7-1.34 7-3V6" stroke="#0b8f66" stroke-width="2"/><path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3" stroke="#0b8f66" stroke-width="2"/></svg></span>
-          <div><h3>Backend Development</h3><span class="career">→ Backend / software engineer</span></div>
-        </div>
-        <p>APIs, databases, and the systems behind the screen. Pair up on the parts tutorials always skip.</p>
-        <div class="chips"><span class="chip">Python</span><span class="chip">Node.js</span><span class="chip">SQL</span></div>
-      </a>
-      <a class="track" href="tracks.html#cybersecurity">
-        <div class="head">
-          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l8 3.5V11c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5.5L12 2z" stroke="#0b8f66" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.3 2.3L15.5 9.5" stroke="#0b8f66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          <div><h3>Cybersecurity</h3><span class="career">→ Security analyst / pentester</span></div>
-        </div>
-        <p>From Linux basics to CTF nights and cert prep — with a crew to solve boxes beside you.</p>
-        <div class="chips"><span class="chip">Networking</span><span class="chip">Linux</span><span class="chip">CTF practice</span></div>
-      </a>
-      <a class="track" href="tracks.html#data">
-        <div class="head">
-          <span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20h17M7 20v-8m5 8V5m5 15v-11" stroke="#0b8f66" stroke-width="2.2" stroke-linecap="round"/></svg></span>
-          <div><h3>Data &amp; Analytics</h3><span class="career">→ Data analyst</span></div>
-        </div>
-        <p>Wrangle messy datasets into answers people trust. Practice SQL and Python on real data, together.</p>
-        <div class="chips"><span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Pandas</span></div>
-      </a>
-    </div>
-    <div class="section-cta">
-      <a class="btn ghost" href="tracks.html">Explore all 8 tracks</a>
-    </div>
-  </div>
-</section>
-
-<!-- ================= VOICES (teaser) ================= -->
-<section class="band">
-  <div class="wrap">
-    <div class="center">
-      <p class="eyebrow">Student stories</p>
-      <h2>Studying alone was the hard part all along</h2>
-      <p class="sub">From students in the PeerFlow beta.</p>
-    </div>
-    <div class="voices">
-      <div class="voice">
-        <q>I'd been "learning JavaScript" for a year. Six weeks of evening sessions with my squad and I finally shipped a project I'm not embarrassed by.</q>
-        <div class="by"><span class="av" style="background:#3d8fd1">M</span><div><b>Malika</b><span>Frontend track · 41 sessions</span></div></div>
-      </div>
-      <div class="voice">
-        <q>CTF nights are the reason I stayed. Solving boxes alone at 1am felt pointless — solving them with three people in chat does not.</q>
-        <div class="by"><span class="av" style="background:#0b8f66">J</span><div><b>Javokhir</b><span>Cybersecurity track · 12-day streak</span></div></div>
-      </div>
-      <div class="voice">
-        <q>The goal check-out changed how I study. Saying "I didn't finish" to real people once was enough — now I set goals I can actually hit.</q>
-        <div class="by"><span class="av" style="background:#8e6cc8">S</span><div><b>Sevara</b><span>Data track · squad of 5</span></div></div>
-      </div>
-    </div>
-    <div class="section-cta">
-      <a class="btn ghost" href="students.html">More student stories</a>
-    </div>
-  </div>
-</section>
-
-<!-- ================= CTA ================= -->
-<section class="cta" id="join">
-  <div class="wrap">
-    <span id="next-session">Next session starts at the top of the hour</span>
-    <h2>Your future coworkers are studying right now</h2>
-    <p>Pick a track, meet your peers, and put in your first fifty minutes tonight. Free while PeerFlow is in beta.</p>
-    <a class="btn onGreen big" href="signup.html">Join PeerFlow for free</a>
-    <p class="fine">No credit card · no course upsell · just people who show up</p>
-  </div>
-</section>
 </main>
 
 <!-- ================= FOOTER ================= -->
 <footer>
   <div class="wrap">
-    <div class="foot-grid">
-      <div>
-        <div class="logo" style="display:flex;align-items:center;gap:9px;font-size:19px">
-          <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-            <circle cx="10" cy="13" r="7.5" stroke="#4fd6a4" stroke-width="2.5"/>
-            <circle cx="17" cy="13" r="7.5" stroke="#ffffff" stroke-width="2.5" opacity=".8"/>
-          </svg>
-          peer<b>flow</b>
-        </div>
-        <p style="max-width:26em">A peer-learning platform where students pick a tech career, find their people, and study together — live.</p>
+    <div class="foot-simple">
+      <div class="logo" style="display:flex;align-items:center;gap:9px;font-size:19px">
+        <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+          <circle cx="10" cy="13" r="7.5" stroke="#4fd6a4" stroke-width="2.5"/>
+          <circle cx="17" cy="13" r="7.5" stroke="#ffffff" stroke-width="2.5" opacity=".8"/>
+        </svg>
+        peer<b>flow</b>
       </div>
-      <div>
-        <h4>Tracks</h4>
-        <ul>
-          <li><a href="tracks.html#frontend">Frontend Development</a></li>
-          <li><a href="tracks.html#backend">Backend Development</a></li>
-          <li><a href="tracks.html#cybersecurity">Cybersecurity</a></li>
-          <li><a href="tracks.html#data">Data &amp; Analytics</a></li>
-          <li><a href="tracks.html#mobile">Mobile Development</a></li>
-          <li><a href="tracks.html#devops">DevOps &amp; Cloud</a></li>
-          <li><a href="tracks.html#aiml">AI &amp; Machine Learning</a></li>
-          <li><a href="tracks.html#design">UX/UI Design</a></li>
-        </ul>
+      <p>Find one person to learn with.</p>
+      <div class="foot-links">
+        <a href="conduct.html">Code of conduct</a>
+        <!-- Replace with your real contact address. -->
+        <a href="mailto:hello@peerflow.app">hello@peerflow.app</a>
       </div>
-      <div>
-        <h4>Platform</h4>
-        <ul>
-          <li><a href="how-it-works.html">How it works</a></li>
-          <li><a href="sessions.html">Study sessions</a></li>
-          <li><a href="index.html#demo">Watch the demo</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Community</h4>
-        <ul>
-          <li><a href="students.html">Student stories</a></li>
-          <li><a href="students.html#conduct">Code of conduct</a></li>
-          <li><a href="signup.html">Join the beta</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="foot-bottom">
-      <span>© 2026 PeerFlow — made by students, for students.</span>
-      <span>Study together. Get hired together.</span>
     </div>
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
 <script src="assets/site.js"></script>
 </body>
 </html>

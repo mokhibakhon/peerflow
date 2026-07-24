@@ -76,20 +76,23 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* Save the signed-in user's profile. Called from onboarding (track +
+     availability) and later from the app's optional "improve my match" prompt
+     (level, goal, detailed availability). Same columns either way. */
   function saveProfile(profile){
     if (!client) return Promise.resolve({ demo: true });
     return client.auth.getUser().then(function(res){
       var user = res.data && res.data.user;
       if (!user) return { demo: true };            // not signed in (e.g. awaiting email confirm)
-      return client.from('profiles').upsert({
-        id: user.id,
-        name: profile.name || '',
-        track_id: profile.track || null,
-        level: profile.level || null,
-        goal: profile.goal || null,
-        timezone: profile.timezone || null,
-        availability: profile.availability || []
-      }).then(function(r){
+      var row = { id: user.id };
+      if ('name' in profile)         row.name = profile.name || '';
+      if ('track' in profile)        row.track_id = profile.track || null;
+      if ('topic' in profile)        row.topic = profile.topic || null;
+      if ('level' in profile)        row.level = profile.level || null;
+      if ('goal' in profile)         row.goal = profile.goal || null;
+      if ('timezone' in profile)     row.timezone = profile.timezone || null;
+      if ('availability' in profile) row.availability = profile.availability || [];
+      return client.from('profiles').upsert(row).then(function(r){
         if (r.error) {
           try { console.error('PeerFlow saveProfile error:', r.error); } catch(e){}
           var msg = r.error.message || 'Unknown error';
@@ -110,180 +113,55 @@ window.pf = (function(){
     });
   }
 
-  /* ---------- sessions ---------- */
+  /* ---------- waitlist ---------- */
 
-  function fetchUpcomingSessions(limit){
-    if (!client) return Promise.resolve(null);
-    var since = new Date(Date.now() - 2 * 3600 * 1000).toISOString(); // include running ones
-    return client.from('sessions')
-      .select('id,title,track_id,kind,starts_at,duration_min,capacity,meet_url,session_members(user_id)')
-      .gte('starts_at', since)
-      .order('starts_at', { ascending: true })
-      .limit(limit || 8)
-      .then(function(res){
-        if (res.error || !res.data || !res.data.length) return null;
-        return res.data.map(function(s){
-          return {
-            id: s.id,
-            title: s.title,
-            track: s.track_id,
-            kind: s.kind,
-            startsAt: new Date(s.starts_at),
-            capacity: s.capacity,
-            taken: (s.session_members || []).length,
-            meetUrl: s.meet_url || 'https://meet.google.com/new',
-            live: new Date(s.starts_at) <= new Date()
-          };
-        });
-      }).catch(function(){ return null; });
-  }
-
-  function joinSession(sessionId, goalText){
+  /* Someone left their email on the home page. Writes one row to the waitlist
+     table. Returns { saved:true } only when the write really happened, so the
+     UI never tells anyone they're on the list when they aren't. */
+  function joinWaitlist(email, interest){
     if (!client) return Promise.resolve({ demo: true });
-    return client.auth.getUser().then(function(res){
-      var user = res.data && res.data.user;
-      if (!user) return { demo: true };
-      return client.from('session_members').upsert({
-        session_id: sessionId,
-        user_id: user.id,
-        goal_text: goalText || ''
-      }).then(function(r){
-        return r.error ? { error: r.error.message } : { joined: true };
-      });
-    }).catch(function(){ return { demo: true }; });
+    return client.from('waitlist').insert({
+      email: email,
+      interest: interest || null
+    }).then(function(r){
+      if (r.error) {
+        try { console.error('PeerFlow joinWaitlist error:', r.error); } catch(e){}
+        var msg = r.error.message || 'Something went wrong.';
+        if (r.error.code === '42P01' || /relation .* does not exist/i.test(msg)) {
+          msg = 'The waitlist table is not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.';
+        }
+        return { error: msg };
+      }
+      return { saved: true };
+    }).catch(function(e){
+      return { error: (e && e.message) || 'Network error — please try again.' };
+    });
   }
 
-  /* ---------- board rendering (shared by app pages) ---------- */
+  /* ---------- match (set by hand for now) ---------- */
+
+  /* The signed-in user's partner, or null if not matched yet. A row is created
+     by hand in Supabase when two people are paired: each person gets one row
+     pointing at the other, and both rows share the same room_url. */
+  function getMatch(){
+    if (!client) return Promise.resolve(null);
+    return client.auth.getUser().then(function(res){
+      var uid = res.data && res.data.user && res.data.user.id;
+      if (!uid) return null;
+      return client.from('matches')
+        .select('partner_name,partner_topic,partner_times,room_url')
+        .eq('user_id', uid).maybeSingle()
+        .then(function(r){ return r.data || null; });
+    }).catch(function(){ return null; });
+  }
+
+  /* ---------- track labels (for display in the app) ---------- */
 
   var trackNames = {
     frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity',
     data:'Data & Analytics', mobile:'Mobile', devops:'DevOps & Cloud',
     aiml:'AI & ML', design:'UX/UI Design'
   };
-
-  function esc(s){
-    return String(s).replace(/[&<>"']/g, function(c){
-      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
-    });
-  }
-
-  /* A STABLE video room per session so everyone who joins the same session
-     lands in the same room. Uses Jitsi (free, no API) keyed by session id.
-     Respects a custom meet_url if one was set (i.e. not the default). */
-  function roomUrl(s){
-    if (s && s.meetUrl && s.meetUrl.indexOf('meet.google.com/new') === -1) return s.meetUrl;
-    return 'https://meet.jit.si/PeerFlow-' + ((s && s.id) || 'lobby');
-  }
-
-  function renderBoard(el, sessions){
-    el.innerHTML = sessions.map(function(s){
-      var when = s.live ? 'now'
-        : s.startsAt.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-      var trackLabel = s.track ? (trackNames[s.track] || s.track) : 'All tracks';
-      var kindLabel = s.kind === 'silent' ? '2 × 50 min' : 'collaborative';
-      return '<div class="slot">' +
-        '<span class="when">' + esc(when) + '</span>' +
-        '<span class="what"><b>' + esc(s.title) + '</b><span>' + esc(trackLabel) + ' · ' + esc(kindLabel) + '</span></span>' +
-        '<span class="seats">' + s.taken + '/' + s.capacity + ' seats</span>' +
-        '<a class="btn primary" href="' + esc(roomUrl(s)) + '" target="_blank" rel="noopener" data-session="' + esc(s.id) + '">Join</a>' +
-        '</div>';
-    }).join('');
-    el.addEventListener('click', function(e){
-      var a = e.target.closest('[data-session]');
-      if (a) joinSession(a.getAttribute('data-session'), '');   // record attendance
-    });
-  }
-
-  /* ---------- real people & activity (replace hardcoded demo data) ---------- */
-
-  /* Other students on the same track (honest: may be empty in early days). */
-  function fetchPeers(track, limit){
-    if (!client || !track || track === 'unsure') return Promise.resolve(null);
-    return client.auth.getUser().then(function(res){
-      var uid = res.data && res.data.user && res.data.user.id;
-      var q = client.from('profiles').select('id,name,level,timezone').eq('track_id', track).limit(limit || 6);
-      if (uid) q = q.neq('id', uid);
-      return q.then(function(r){ return r.error ? null : (r.data || []); });
-    }).catch(function(){ return null; });
-  }
-
-  /* The signed-in user's real activity from their session memberships. */
-  function myActivity(){
-    if (!client) return Promise.resolve(null);
-    return client.auth.getUser().then(function(res){
-      var uid = res.data && res.data.user && res.data.user.id;
-      if (!uid) return null;
-      return client.from('session_members')
-        .select('goal_done, sessions(starts_at)')
-        .eq('user_id', uid)
-        .then(function(r){
-          if (r.error) return null;
-          var rows = r.data || [];
-          var now = Date.now();
-          var joined = rows.length;
-          var goalsDone = rows.filter(function(x){ return x.goal_done; }).length;
-          var upcoming = rows.filter(function(x){
-            return x.sessions && new Date(x.sessions.starts_at).getTime() > now;
-          }).length;
-          return { joined: joined, goalsDone: goalsDone, upcoming: upcoming };
-        });
-    }).catch(function(){ return null; });
-  }
-
-  /* The soonest upcoming session the user has joined (for the dashboard card). */
-  function myNextSession(){
-    if (!client) return Promise.resolve(null);
-    return client.auth.getUser().then(function(res){
-      var uid = res.data && res.data.user && res.data.user.id;
-      if (!uid) return null;
-      return client.from('session_members')
-        .select('sessions(id,title,track_id,kind,starts_at,capacity,meet_url)')
-        .eq('user_id', uid)
-        .then(function(r){
-          if (r.error || !r.data) return null;
-          var cutoff = Date.now() - 2 * 3600 * 1000;
-          var list = r.data.map(function(x){ return x.sessions; }).filter(Boolean)
-            .filter(function(s){ return new Date(s.starts_at).getTime() >= cutoff; })
-            .sort(function(a,b){ return new Date(a.starts_at) - new Date(b.starts_at); });
-          if (!list.length) return null;
-          var s = list[0];
-          return { id:s.id, title:s.title, track:s.track_id, kind:s.kind,
-                   startsAt:new Date(s.starts_at), capacity:s.capacity, meetUrl:s.meet_url };
-        });
-    }).catch(function(){ return null; });
-  }
-
-  /* At signup: actually join the soonest relevant session for this track,
-     preferring the track's own session over an all-tracks room. */
-  function joinFirstSession(track){
-    if (!client) return Promise.resolve(null);
-    return fetchUpcomingSessions(60).then(function(sessions){
-      if (!sessions || !sessions.length) return null;
-      var list = forTrack(sessions, track);
-      if (!list.length) return null;
-      var own = list.filter(function(s){ return s.track === track; });
-      var pick = own[0] || list[0];
-      return joinSession(pick.id, '').then(function(){ return pick; });
-    }).catch(function(){ return null; });
-  }
-
-  /* Keep only sessions relevant to a track: that track's own sessions plus
-     the all-tracks focus rooms (track = null). No track → everything. */
-  function forTrack(sessions, track){
-    if (!track || track === 'unsure') return sessions;
-    return sessions.filter(function(s){ return !s.track || s.track === track; });
-  }
-
-  /* Replaces a board's demo content with live data when available.
-     Pass a track to show only that track's sessions + all-tracks rooms. */
-  function liveBoard(el, limit, track){
-    if (!el) return;
-    fetchUpcomingSessions(60).then(function(sessions){
-      if (!sessions || !sessions.length) return;   // keep the hardcoded demo board
-      var list = forTrack(sessions, track).slice(0, limit || 8);
-      renderBoard(el, list.length ? list : sessions.slice(0, limit || 8));
-    });
-  }
 
   return {
     ready: ready,
@@ -294,16 +172,8 @@ window.pf = (function(){
     getProfile: getProfile,
     signOut: signOut,
     saveProfile: saveProfile,
-    fetchUpcomingSessions: fetchUpcomingSessions,
-    joinSession: joinSession,
-    joinFirstSession: joinFirstSession,
-    fetchPeers: fetchPeers,
-    myActivity: myActivity,
-    myNextSession: myNextSession,
-    roomUrl: roomUrl,
-    renderBoard: renderBoard,
-    forTrack: forTrack,
-    trackNames: trackNames,
-    liveBoard: liveBoard
+    joinWaitlist: joinWaitlist,
+    getMatch: getMatch,
+    trackNames: trackNames
   };
 })();

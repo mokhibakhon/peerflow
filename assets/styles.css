@@ -371,7 +371,6 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .stat+.stat{border-left:1px solid var(--border)}
 .stat b{display:block;font-size:26px;font-weight:800;color:var(--green-dark);font-variant-numeric:tabular-nums}
 .stat span{font-size:12.5px;color:var(--muted)}
-.streak-note{font-size:13.5px;color:var(--muted);margin-top:14px;text-align:center}
 
 .plist{list-style:none;display:flex;flex-direction:column;gap:12px}
 .plist li{display:flex;align-items:center;gap:12px;font-size:14.5px}
@@ -380,6 +379,7 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .plist span{font-size:12.5px;color:var(--muted)}
 .plist .btn{margin-left:auto;padding:7px 14px;font-size:13px}
 .empty-hint{font-size:13.5px;color:var(--muted);background:var(--band);border:1px dashed var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px}
+.mini-h{font-size:13.5px;color:var(--ink);font-weight:700;margin:22px 0 12px}
 
 .filters{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0 0}
 .filters .chip{cursor:pointer}
@@ -457,4 +457,54 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
   .choices{grid-template-columns:1fr}
   .avail-grid{grid-template-columns:44px repeat(4,1fr)}
   .app-head .date{display:none}
+}
+
+/* ============ home: single-column hero ============ */
+.hero-solo{max-width:760px}
+.hero-solo h1{max-width:15em}
+.hero-solo .lead{font-size:18.5px;margin:22px 0 30px;max-width:34em}
+.hero-note{margin-top:16px;font-size:13.5px;color:var(--muted)}
+
+/* ============ home: hero pairing illustration ============ */
+.hero-visual{display:flex;justify-content:center}
+.pair-card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 50px #21323b14;padding:30px 34px;width:100%;max-width:360px}
+.pair-people{display:flex;align-items:center;justify-content:center}
+.pair-av{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;border:3px solid #fff}
+.pair-av.you{background:var(--green)}
+.pair-av.partner{background:var(--ink);margin-left:-16px}
+.pair-cap{text-align:center;color:var(--ink);font-weight:700;margin-top:14px;font-size:16.5px}
+.pair-rows{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.pair-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--band);border:1px solid var(--border);border-radius:10px;padding:11px 15px;font-size:14.5px}
+.pair-row span{color:var(--muted)}
+.pair-row b{color:var(--green-dark)}
+
+/* ============ founder's note ============ */
+.founder{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:center;max-width:840px;margin:0 auto}
+.founder-photo{width:132px;height:132px;border-radius:16px;object-fit:cover;background:var(--green-tint);
+  border:1px solid var(--border);flex:none}
+.founder-body p{font-size:16.5px;color:var(--text)}
+.founder-sign{margin-top:16px;font-size:14.5px;color:var(--muted)}
+.founder-sign b{display:block;color:var(--ink);font-size:15.5px}
+
+/* ============ home: email capture forms ============ */
+.lead-form{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:640px;margin:40px auto 0}
+.lead-form input{flex:1 1 220px;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;
+  font-size:15.5px;font-family:inherit;color:var(--ink);background:#fff}
+.lead-form input:focus{outline:none;border-color:var(--green)}
+.lead-form .btn{flex:none}
+.form-note{text-align:center;font-size:13.5px;color:var(--muted);margin-top:14px;min-height:18px}
+.onGreen-form{margin-top:28px}
+.onGreen-form input{border-color:transparent}
+
+/* ============ simplified footer ============ */
+.foot-simple{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.foot-simple p{max-width:30em}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap;margin-top:4px}
+.foot-links a{color:#cddde2}
+.foot-links a:hover{color:#fff;text-decoration:underline}
+
+@media (max-width:640px){
+  .founder{grid-template-columns:1fr;gap:20px}
+  .lead-form{flex-direction:column}
+  .lead-form input,.lead-form .btn{width:100%}
 }

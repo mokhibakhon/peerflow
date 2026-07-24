@@ -5,6 +5,7 @@
 -- ============================================================
 
 -- ---------- tracks ----------
+-- We're starting with cybersecurity. Add more rows here as fields go live.
 create table if not exists public.tracks (
   id     text primary key,
   name   text not null,
@@ -13,10 +14,13 @@ create table if not exists public.tracks (
 );
 
 -- ---------- profiles (one per auth user) ----------
+-- track_id and availability are set at signup; level and goal are filled in
+-- later from the app's optional "improve my match" prompt.
 create table if not exists public.profiles (
   id           uuid primary key references auth.users(id) on delete cascade,
   name         text not null default '',
   track_id     text references public.tracks(id),
+  topic        text,
   level        text check (level in ('new','tutorials','builder','jobprep')),
   goal         text check (goal in ('job','studies','switch')),
   timezone     text,
@@ -24,28 +28,27 @@ create table if not exists public.profiles (
   created_at   timestamptz not null default now()
 );
 
--- ---------- sessions ----------
-create table if not exists public.sessions (
-  id           uuid primary key default gen_random_uuid(),
-  title        text not null,
-  track_id     text references public.tracks(id),      -- null = all tracks
-  kind         text not null default 'silent' check (kind in ('silent','collaborative')),
-  starts_at    timestamptz not null,
-  duration_min int  not null default 110,
-  capacity     int  not null default 8,
-  meet_url     text not null default 'https://meet.google.com/new',
-  host_id      uuid references public.profiles(id),
-  created_at   timestamptz not null default now()
+-- ---------- waitlist (home-page email captures) ----------
+-- Anyone can leave their email + what they want to learn. Insert-only:
+-- there is no read policy, so the list is private to the project owner.
+create table if not exists public.waitlist (
+  id         uuid primary key default gen_random_uuid(),
+  email      text not null,
+  interest   text,
+  created_at timestamptz not null default now()
 );
 
--- ---------- session membership ----------
-create table if not exists public.session_members (
-  session_id uuid references public.sessions(id) on delete cascade,
-  user_id    uuid references public.profiles(id) on delete cascade,
-  goal_text  text not null default '',
-  goal_done  boolean,
-  joined_at  timestamptz not null default now(),
-  primary key (session_id, user_id)
+-- ---------- matches (created by hand for now) ----------
+-- When you pair two people, insert one row per person: each row holds the
+-- OTHER person's details, and both rows share the same room_url. Users can
+-- read only their own row; you insert rows from the Supabase dashboard.
+create table if not exists public.matches (
+  user_id       uuid primary key references auth.users(id) on delete cascade,
+  partner_name  text not null,
+  partner_topic text,
+  partner_times text,
+  room_url      text,
+  created_at    timestamptz not null default now()
 );
 
 -- ---------- auto-create a profile on signup ----------
@@ -68,22 +71,17 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ---------- row level security ----------
-alter table public.tracks          enable row level security;
-alter table public.profiles        enable row level security;
-alter table public.sessions        enable row level security;
-alter table public.session_members enable row level security;
+alter table public.tracks   enable row level security;
+alter table public.profiles enable row level security;
+alter table public.waitlist enable row level security;
+alter table public.matches  enable row level security;
 
-drop policy if exists "tracks are public"            on public.tracks;
-drop policy if exists "profiles are viewable"        on public.profiles;
-drop policy if exists "insert own profile"           on public.profiles;
-drop policy if exists "update own profile"           on public.profiles;
-drop policy if exists "sessions are viewable"        on public.sessions;
-drop policy if exists "authed users create sessions" on public.sessions;
-drop policy if exists "host updates own session"     on public.sessions;
-drop policy if exists "members are viewable"         on public.session_members;
-drop policy if exists "join sessions as yourself"    on public.session_members;
-drop policy if exists "update own membership"        on public.session_members;
-drop policy if exists "leave sessions"               on public.session_members;
+drop policy if exists "tracks are public"          on public.tracks;
+drop policy if exists "profiles are viewable"       on public.profiles;
+drop policy if exists "insert own profile"          on public.profiles;
+drop policy if exists "update own profile"          on public.profiles;
+drop policy if exists "anyone can join the waitlist" on public.waitlist;
+drop policy if exists "read own match"              on public.matches;
 
 create policy "tracks are public"
   on public.tracks for select using (true);
@@ -95,59 +93,15 @@ create policy "insert own profile"
 create policy "update own profile"
   on public.profiles for update using (auth.uid() = id);
 
-create policy "sessions are viewable"
-  on public.sessions for select using (true);
-create policy "authed users create sessions"
-  on public.sessions for insert with check (auth.uid() = host_id);
-create policy "host updates own session"
-  on public.sessions for update using (auth.uid() = host_id);
+-- Insert-only: no select policy means the list stays private to the owner.
+create policy "anyone can join the waitlist"
+  on public.waitlist for insert with check (true);
 
-create policy "members are viewable"
-  on public.session_members for select using (true);
-create policy "join sessions as yourself"
-  on public.session_members for insert with check (auth.uid() = user_id);
-create policy "update own membership"
-  on public.session_members for update using (auth.uid() = user_id);
-create policy "leave sessions"
-  on public.session_members for delete using (auth.uid() = user_id);
+-- Users can read only their own match row (you insert rows as the owner).
+create policy "read own match"
+  on public.matches for select using (auth.uid() = user_id);
 
--- ---------- seed: the 8 tracks ----------
+-- ---------- seed: the live track ----------
 insert into public.tracks (id, name, career, sort) values
-  ('frontend',      'Frontend Development',   'Frontend / web developer',      1),
-  ('backend',       'Backend Development',    'Backend / software engineer',   2),
-  ('cybersecurity', 'Cybersecurity',          'Security analyst / pentester',  3),
-  ('data',          'Data & Analytics',       'Data analyst',                  4),
-  ('mobile',        'Mobile Development',     'Mobile developer',              5),
-  ('devops',        'DevOps & Cloud',         'DevOps / cloud engineer',       6),
-  ('aiml',          'AI & Machine Learning',  'ML / AI engineer',              7),
-  ('design',        'UX/UI Design',           'Product / UX designer',         8)
+  ('cybersecurity', 'Cybersecurity', 'Security analyst / pentester', 1)
 on conflict (id) do update set name = excluded.name, career = excluded.career, sort = excluded.sort;
-
--- ---------- seed: a first week of sessions ----------
--- Creates sessions for tonight and the next 6 evenings so the board is
--- never empty. Re-running only adds sessions if none exist in the future.
-do $$
-declare
-  d int;
-  base timestamptz;
-begin
-  if not exists (select 1 from public.sessions where starts_at > now()) then
-    for d in 0..6 loop
-      base := date_trunc('day', now()) + (d || ' days')::interval;
-      -- all-tracks focus rooms (everyone welcome)
-      insert into public.sessions (title, track_id, kind, starts_at, duration_min, capacity) values
-        ('Silent co-work · focus room',      null, 'silent', base + interval '18 hours', 110, 8),
-        ('Late silent co-work · night owls', null, 'silent', base + interval '22 hours', 110, 8);
-      -- one collaborative session per career track
-      insert into public.sessions (title, track_id, kind, starts_at, duration_min, capacity) values
-        ('Pair programming — React components', 'frontend',      'collaborative', base + interval '20 hours', 90, 4),
-        ('API build night — auth from scratch', 'backend',       'collaborative', base + interval '20 hours', 90, 4),
-        ('CTF night — web challenges',          'cybersecurity', 'collaborative', base + interval '19 hours', 90, 6),
-        ('SQL practice — window functions',     'data',          'collaborative', base + interval '21 hours', 90, 6),
-        ('Build night — Flutter UI challenge',  'mobile',        'collaborative', base + interval '19 hours', 90, 4),
-        ('Deploy night — Docker from zero',     'devops',        'collaborative', base + interval '20 hours', 90, 4),
-        ('Kaggle night — first submission',     'aiml',          'collaborative', base + interval '21 hours', 90, 4),
-        ('Critique night — portfolio review',   'design',        'collaborative', base + interval '19 hours', 90, 5);
-    end loop;
-  end if;
-end $$;

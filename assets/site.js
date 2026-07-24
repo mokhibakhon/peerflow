@@ -1,27 +1,36 @@
 (function(){
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ticking focus timer in the home-page session mockup */
-  var clock = document.getElementById('clock');
-  var arc = document.getElementById('arc');
-  if (clock && arc) {
-    var total = 50*60, left = 42*60+17;
-    var C = 414.7; /* 2πr, r=66 */
-    var paint = function(){
-      var m = Math.floor(left/60), s = left%60;
-      clock.textContent = (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
-      arc.style.strokeDashoffset = (C*(1-left/total)).toFixed(1);
-    };
-    paint();
-    if (!reduced) {
-      setInterval(function(){ left = left>0 ? left-1 : total; paint(); }, 1000);
-    }
+  /* Home-page email captures (the "what we're starting with" form and the
+     bottom call-to-action). Both write to the waitlist via the data layer.
+     We only tell someone they're on the list when the write actually succeeds. */
+  function wire(formId, emailId, interestId, noteId, okText){
+    var form = document.getElementById(formId);
+    if (!form || !window.pf) return;
+    var note = document.getElementById(noteId);
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var email = (document.getElementById(emailId).value || '').trim();
+      var interest = (document.getElementById(interestId).value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+        note.textContent = 'Please enter a valid email address.';
+        return;
+      }
+      var btn = form.querySelector('button');
+      var label = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Sending…';
+      pf.joinWaitlist(email, interest).then(function(res){
+        btn.disabled = false; btn.textContent = label;
+        if (res && res.saved) {
+          form.reset();
+          note.textContent = okText;
+        } else if (res && res.demo) {
+          note.textContent = 'This preview isn’t connected to the server, so nothing was sent.';
+        } else {
+          note.textContent = (res && res.error) || 'Something went wrong — please try again.';
+        }
+      });
+    });
   }
 
-  /* honest "next session" line — top of the real hour */
-  var ns = document.getElementById('next-session');
-  if (ns) {
-    var mins = 60 - new Date().getMinutes();
-    ns.textContent = 'Next session starts in ' + mins + ' min — at the top of the hour';
-  }
+  wire('track-form', 'track-email', 'track-interest', 'track-note',
+       'Thanks — we’ll email you when it opens.');
 })();

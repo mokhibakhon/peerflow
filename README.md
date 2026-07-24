@@ -1,61 +1,63 @@
 # PeerFlow
 
-**Pick your career. Find your people. Study together.**
+**Learning to code alone is hard. So don't.**
 
-PeerFlow is a peer-learning platform where students learning IT and
-cybersecurity pick a career track, get matched with peers at their level and
-timezone, and study together in live **Study With Me** sessions.
+PeerFlow matches one student learning programming with one other student
+learning the same thing. You meet one-on-one on video — cameras on, talking —
+and learn it together. We're starting with cybersecurity.
 
-This repository contains the PeerFlow website and clickable product prototype —
-a fully static site with no build step.
+This repository contains the PeerFlow website and the signed-in app — a fully
+static site with no build step.
 
 ## Pages
 
 | File | What it is |
 |---|---|
-| `index.html` | Landing page (hero, demo video slot, tracks, stories) |
-| `how-it-works.html` | The method: 3 steps + session ritual |
-| `tracks.html` | All 8 career tracks |
-| `sessions.html` | Study With Me formats + session board preview |
-| `students.html` | Student stories + code of conduct |
-| `signup.html` | 5-step onboarding wizard (simulated Google/GitHub sign-in) |
+| `index.html` | Landing page (hero, founder's note, how it works, demo slot, what we're starting with, signup) |
+| `conduct.html` | Code of conduct |
+| `signup.html` | 2-step signup: create account, then what you're learning + when you're free |
 | `login.html` | Log-in page |
-| `app.html` | Logged-in "Today" dashboard (prototype) |
-| `app-sessions.html` | Logged-in session board (prototype) |
+| `app.html` | Signed-in "Today" dashboard (match status + optional "improve my match") |
+| `app-sessions.html` | "My partner" — your match and the button to start the call |
 | `assets/` | Shared stylesheet and scripts |
 
 ## Run it locally
 
 No tooling needed — clone and open `index.html` in a browser. Everything is
-plain HTML/CSS/JS with zero dependencies.
+plain HTML/CSS/JS with zero dependencies. Opening the files directly (file://)
+runs in offline demo mode; the real auth and database need the deployed site.
 
 ## Deploy
 
 Import this repo into [Vercel](https://vercel.com) or Netlify as-is (static
 site, no build command). See `SETUP_GUIDE.md` for the step-by-step, including
-Supabase and OAuth setup for when the prototype becomes dynamic.
+Supabase and OAuth setup.
 
 ## Backend (Supabase)
 
-The site connects to Supabase for real email auth, profiles, and the session
-board. Everything degrades gracefully: if Supabase is unreachable (offline,
-file://, schema not created yet), pages fall back to demo data automatically.
+The site connects to Supabase for real email/Google auth, profiles, and the
+home-page waitlist. Everything degrades gracefully: if Supabase is unreachable
+(offline, file://, schema not created yet), pages fall back to a safe state
+rather than breaking.
 
 - `supabase/schema.sql` — paste into Supabase → SQL Editor → Run. Creates
-  tables (`tracks`, `profiles`, `sessions`, `session_members`), row-level
-  security, a signup trigger, and seeds the 8 tracks plus a week of sessions.
+  tables (`tracks`, `profiles`, `waitlist`, `matches`), row-level security, and
+  a signup trigger, and seeds the cybersecurity track.
 - `assets/supabase-config.js` — project URL + publishable key (public by
-  design). Set `realOAuth: true` after configuring Google/GitHub providers
-  in Supabase (see `SETUP_GUIDE.md` steps 5–6); until then those buttons run
-  a clearly-labelled simulated flow.
-- `assets/db.js` — the data layer: auth, profile upsert, session board.
+  design). `realOAuth: true` enables real Google sign-in; the GitHub button is
+  hidden until that provider is configured.
+- `assets/db.js` — the data layer: auth, profile upsert, waitlist insert, and
+  reading your match.
 
-For instant sign-ins during beta, disable "Confirm email" in
+For instant sign-ins, disable "Confirm email" in
 Supabase → Authentication → Sign In / Providers → Email.
 
 ## Status
 
-Beta scaffolding. Email signup/login and the session board are wired to
-Supabase; Google/GitHub sign-in is simulated until OAuth apps are configured;
-streaks, squads, and matching are still prototype UI. The product plan, data
-model, and roadmap live in `PEERFLOW_OVERVIEW.md`.
+Early. Email and Google sign-in are live; the GitHub button is hidden until
+that OAuth app is configured. Matching is done by hand for now — there is no
+automatic matching engine yet. Until you pair someone, the app shows an honest
+"finding your partner" state instead of a fabricated match. To pair two people,
+insert a row per person into the `matches` table (each row holds the other
+person's name, topic, free times, and a shared `room_url`); they'll then see
+their partner and a button to start the call.

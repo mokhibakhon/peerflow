@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Join PeerFlow — free for students</title>
+<title>Join PeerFlow — free while we're getting started</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 26 26%27%3E%3Ccircle cx=%2710%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%230b8f66%27 stroke-width=%273%27/%3E%3Ccircle cx=%2717%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%2321323b%27 stroke-width=%273%27 opacity=%27.8%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -27,13 +27,13 @@
 
 <main class="onb">
   <div class="onb-progress" aria-hidden="true">
-    <i class="on"></i><i></i><i></i><i></i><i></i>
+    <i class="on"></i><i></i>
   </div>
 
   <!-- ============ STEP 1 — account ============ -->
   <section class="onb-step on" data-step="1">
-    <h1>Join PeerFlow</h1>
-    <p class="lead">Free for students. Two minutes from here to your first booked session.</p>
+    <h1>Start with PeerFlow</h1>
+    <p class="lead">Free. Two steps.</p>
     <div class="auth-btns">
       <button class="auth-btn" id="btn-google">
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M17.6 9.2c0-.6-.1-1.2-.2-1.8H9v3.4h4.8a4.1 4.1 0 01-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.5z" fill="#4285F4"/><path d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.9.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.9v2.3A9 9 0 009 18z" fill="#34A853"/><path d="M3.9 10.7a5.4 5.4 0 010-3.4V5H.9a9 9 0 000 8l3-2.3z" fill="#FBBC05"/><path d="M9 3.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 00.9 5l3 2.3C4.6 5.1 6.6 3.6 9 3.6z" fill="#EA4335"/></svg>
@@ -48,7 +48,7 @@
     <div class="field" id="f-name">
       <label for="su-name">What should we call you?</label>
       <input id="su-name" type="text" placeholder="e.g. Mokhi" autocomplete="given-name">
-      <span class="err">Please tell us your name — your peers will see it in sessions.</span>
+      <span class="err">Please tell us your name — your partner will see it.</span>
     </div>
     <div class="field" id="f-email">
       <label for="su-email">Email</label>
@@ -72,127 +72,34 @@
     <p id="su-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px;max-width:430px"></p>
   </section>
 
-  <!-- ============ STEP 2 — track ============ -->
+  <!-- ============ STEP 2 — what are you learning + when are you free ============ -->
   <section class="onb-step" data-step="2">
     <div class="auth-chip" id="auth-chip" hidden>
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" stroke="#0b8f66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span id="auth-chip-text">Signed in</span>
       <a href="#" id="auth-switch">switch</a>
     </div>
-    <h1>Which career are you chasing?</h1>
-    <p class="lead">This decides what you study and who you meet. You can switch anytime — nothing is locked.</p>
-    <div class="choices" id="track-choices">
-      <button class="choice" data-track="frontend">
-        <span class="ci"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5" stroke="#0b8f66" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <span><b>Frontend Development</b><span>JavaScript · React · web developer</span></span>
-      </button>
-      <button class="choice" data-track="backend">
-        <span class="ci"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="#0b8f66" stroke-width="2"/><path d="M5 6v12c0 1.66 3.13 3 7 3s7-1.34 7-3V6" stroke="#0b8f66" stroke-width="2"/><path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3" stroke="#0b8f66" stroke-width="2"/></svg></span>
-        <span><b>Backend Development</b><span>Python · SQL · software engineer</span></span>
-      </button>
-      <button class="choice" data-track="cybersecurity">
-        <span class="ci"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l8 3.5V11c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5.5L12 2z" stroke="#0b8f66" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.3 2.3L15.5 9.5" stroke="#0b8f66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <span><b>Cybersecurity</b><span>Linux · CTFs · security analyst</span></span>
-      </button>
-      <button class="choice" data-track="data">
-        <span class="ci"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20h17M7 20v-8m5 8V5m5 15v-11" stroke="#0b8f66" stroke-width="2.2" stroke-linecap="round"/></svg></span>
-        <span><b>Data &amp; Analytics</b><span>SQL · pandas · data analyst</span></span>
-      </button>
-      <button class="choice" data-track="mobile">
-        <span class="ci"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5" stroke="#0b8f66" stroke-width="2"/><path d="M10.5 18.5h3" stroke="#0b8f66" stroke-width="2" stroke-linecap="round"/></svg></span>
-        <span><b>Mobile Development</b><span>Flutter · React Native · mobile dev</span></span>
-      </button>
-      <button class="choice" data-track="devops">
-        <span class="ci"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 18a4.5 4.5 0 01-.4-9A6 6 0 0118 8.5 4 4 0 0117.5 18H7z" stroke="#0b8f66" stroke-width="2" stroke-linejoin="round"/></svg></span>
-        <span><b>DevOps &amp; Cloud</b><span>Linux · Docker · AWS · DevOps engineer</span></span>
-      </button>
-      <button class="choice" data-track="aiml">
-        <span class="ci"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="2.5" stroke="#0b8f66" stroke-width="2"/><circle cx="4.5" cy="7" r="2" stroke="#0b8f66" stroke-width="2"/><circle cx="19.5" cy="7" r="2" stroke="#0b8f66" stroke-width="2"/><circle cx="4.5" cy="17" r="2" stroke="#0b8f66" stroke-width="2"/><circle cx="19.5" cy="17" r="2" stroke="#0b8f66" stroke-width="2"/><path d="M6.3 7.9L9.8 10.5M17.7 7.9l-3.5 2.6M6.3 16.1l3.5-2.6M17.7 16.1l-3.5-2.6" stroke="#0b8f66" stroke-width="1.8"/></svg></span>
-        <span><b>AI &amp; Machine Learning</b><span>Python · PyTorch · ML engineer</span></span>
-      </button>
-      <button class="choice" data-track="design">
-        <span class="ci"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#0b8f66" stroke-width="2"/><circle cx="9" cy="9" r="2.2" stroke="#0b8f66" stroke-width="2"/><path d="M13.5 15.5L16 10l2.5 5.5M7 15.5h4" stroke="#0b8f66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <span><b>UX/UI Design</b><span>Figma · design systems · product designer</span></span>
-      </button>
-      <button class="choice full" data-track="unsure">
-        <span class="ci"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.2 7.2a2.8 2.8 0 115.3 1.3c-.5 1-1.6 1.4-2.1 2.3-.2.3-.3.7-.3 1.2" stroke="#0b8f66" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="15.2" r="1.1" fill="#0b8f66"/></svg></span>
-        <span><b>Not sure yet</b><span>Start in the all-tracks focus rooms, meet people from every path, then commit</span></span>
-      </button>
+    <h1>What are you learning?</h1>
+    <p class="lead">Be specific if you can — “Linux basics” matches better than “cybersecurity.”</p>
+    <div class="field" id="f-topic">
+      <input id="su-topic" type="text" placeholder="e.g. Linux basics, or Security+ prep" autocomplete="off">
     </div>
+    <h2 class="q">When are you usually free?</h2>
+    <p class="lead" style="margin:0 0 16px">Pick the times you’d actually show up, not the times you wish you would.</p>
+    <div class="chiprow" id="free-choices">
+      <button class="choice" data-free="weekday-morning">Weekday mornings</button>
+      <button class="choice" data-free="weekday-afternoon">Weekday afternoons</button>
+      <button class="choice" data-free="weekday-evening">Weekday evenings</button>
+      <button class="choice" data-free="weekend">Weekends</button>
+      <button class="choice" data-free="late-night">Late nights</button>
+    </div>
+    <p class="tz-note">Your timezone: <b id="tz">detecting…</b> — detected automatically.</p>
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
-      <button class="btn primary big" data-next disabled id="track-next">Continue</button>
+      <button class="btn primary big" id="finish" disabled>Done</button>
     </div>
+    <p id="su2-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px;max-width:430px"></p>
   </section>
-
-  <!-- ============ STEP 3 — level + goal ============ -->
-  <section class="onb-step" data-step="3">
-    <h1>Where are you right now?</h1>
-    <p class="lead">Honest answers get you better matches — there's no wrong stage.</p>
-    <div class="choices one" id="level-choices">
-      <button class="choice" data-level="new"><span><b>I haven't really started</b><span>Curious, motivated, zero code written so far</span></span></button>
-      <button class="choice" data-level="tutorials"><span><b>I've done tutorials</b><span>Courses and videos — but little on my own yet</span></span></button>
-      <button class="choice" data-level="builder"><span><b>I build small things myself</b><span>Own projects, CTF rooms, or practice datasets</span></span></button>
-      <button class="choice" data-level="jobprep"><span><b>I'm preparing for the job hunt</b><span>Portfolio, certs, interviews — the last mile</span></span></button>
-    </div>
-    <h2 class="q">And what's driving you? <span style="font-weight:400;color:var(--muted)">(optional)</span></h2>
-    <div class="chiprow" id="goal-choices">
-      <button class="choice" data-goal="job">Get my first job</button>
-      <button class="choice" data-goal="studies">Do better in my studies</button>
-      <button class="choice" data-goal="switch">Switch careers</button>
-    </div>
-    <div class="onb-nav">
-      <button class="back" data-back>← Back</button>
-      <button class="btn primary big" data-next disabled id="level-next">Continue</button>
-    </div>
-  </section>
-
-  <!-- ============ STEP 4 — availability ============ -->
-  <section class="onb-step" data-step="4">
-    <h1>When do you usually study?</h1>
-    <p class="lead">Tap the blocks that fit your real week — this is how we find peers awake when you are.</p>
-    <div class="avail-grid" id="avail">
-      <span></span><span class="hd">Morning</span><span class="hd">Afternoon</span><span class="hd">Evening</span><span class="hd">Night</span>
-      <span class="day">Mon</span><button class="cell" aria-label="Monday morning"></button><button class="cell" aria-label="Monday afternoon"></button><button class="cell" aria-label="Monday evening"></button><button class="cell" aria-label="Monday night"></button>
-      <span class="day">Tue</span><button class="cell" aria-label="Tuesday morning"></button><button class="cell" aria-label="Tuesday afternoon"></button><button class="cell" aria-label="Tuesday evening"></button><button class="cell" aria-label="Tuesday night"></button>
-      <span class="day">Wed</span><button class="cell" aria-label="Wednesday morning"></button><button class="cell" aria-label="Wednesday afternoon"></button><button class="cell" aria-label="Wednesday evening"></button><button class="cell" aria-label="Wednesday night"></button>
-      <span class="day">Thu</span><button class="cell" aria-label="Thursday morning"></button><button class="cell" aria-label="Thursday afternoon"></button><button class="cell" aria-label="Thursday evening"></button><button class="cell" aria-label="Thursday night"></button>
-      <span class="day">Fri</span><button class="cell" aria-label="Friday morning"></button><button class="cell" aria-label="Friday afternoon"></button><button class="cell" aria-label="Friday evening"></button><button class="cell" aria-label="Friday night"></button>
-      <span class="day">Sat</span><button class="cell" aria-label="Saturday morning"></button><button class="cell" aria-label="Saturday afternoon"></button><button class="cell" aria-label="Saturday evening"></button><button class="cell" aria-label="Saturday night"></button>
-      <span class="day">Sun</span><button class="cell" aria-label="Sunday morning"></button><button class="cell" aria-label="Sunday afternoon"></button><button class="cell" aria-label="Sunday evening"></button><button class="cell" aria-label="Sunday night"></button>
-    </div>
-    <p class="tz-note">Your timezone: <b id="tz">detecting…</b> — detected automatically, sessions show in your local time.</p>
-    <div class="onb-nav">
-      <button class="back" data-back>← Back</button>
-      <a class="skip" href="#" data-next>Skip for now</a>
-      <button class="btn primary big" data-next>Continue</button>
-    </div>
-  </section>
-
-  <!-- ============ STEP 5 — first session ============ -->
-  <section class="onb-step" data-step="5">
-    <h1 id="final-title">Your first session is ready</h1>
-    <p class="lead">The best predictor of making it isn't talent — it's having a seat saved next to people who expect you.</p>
-    <div class="first-session">
-      <div class="slot">
-        <span class="when" id="fs-when">Tue 19:00</span>
-        <span class="what"><b id="fs-title">Silent co-work · focus room</b><span id="fs-sub">All tracks · 2 × 50 min</span></span>
-        <span class="seats" id="fs-with">with Aziza +2</span>
-      </div>
-    </div>
-    <p class="tz-note" style="margin-top:14px">Sessions open a <b>shared video room</b> — everyone who joins lands in the same place.</p>
-    <label class="pledge">
-      <input type="checkbox" id="pledge" checked>
-      <span><b style="color:var(--ink)">The PeerFlow pledge:</b> when I book a seat, I show up. (Your show-up score starts at 100 — keep it there.)</span>
-    </label>
-    <div class="onb-nav">
-      <button class="back" data-back>← Back</button>
-      <a class="skip" href="app.html">Skip — take me to the app</a>
-      <button class="btn primary big" id="reserve">Reserve my seat</button>
-    </div>
-  </section>
-
-  <p class="onb-note">Prototype — no real account is created and nothing leaves your computer.</p>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -201,7 +108,7 @@
 <script src="assets/auth.js"></script>
 <script>
 (function(){
-  var state = { track:null, level:null, goal:null, name:'', email:'', provider:'email' };
+  var state = { topic:'', name:'', email:'', provider:'email' };
   var steps = Array.prototype.slice.call(document.querySelectorAll('.onb-step'));
   var dots = Array.prototype.slice.call(document.querySelectorAll('.onb-progress i'));
   var cur = 0;
@@ -211,12 +118,9 @@
     steps.forEach(function(s,idx){ s.classList.toggle('on', idx===cur); });
     dots.forEach(function(d,idx){ d.classList.toggle('on', idx<=cur); });
     window.scrollTo(0,0);
-    if (cur === steps.length-1) prepareFinal();
   }
 
   document.addEventListener('click', function(e){
-    var t = e.target.closest('[data-next]');
-    if (t) { e.preventDefault(); show(cur+1); return; }
     var b = e.target.closest('[data-back]');
     if (b) { e.preventDefault(); show(cur-1); return; }
   });
@@ -261,7 +165,7 @@
   }
 
   /* If we just came back from an OAuth redirect, the user is signed in —
-     skip account creation and resume onboarding at "pick your track". */
+     skip account creation and resume onboarding at "what are you learning". */
   pf.currentUser().then(function(user){
     if (!user) return;
     var meta = user.user_metadata || {};
@@ -341,24 +245,17 @@
     });
   });
 
-  /* ---------- single-select groups ---------- */
-  function pickable(containerId, attr, onPick){
-    var box = document.getElementById(containerId);
-    box.addEventListener('click', function(e){
-      var c = e.target.closest('.choice');
-      if (!c) return;
-      Array.prototype.forEach.call(box.querySelectorAll('.choice'), function(x){ x.classList.remove('sel'); });
-      c.classList.add('sel');
-      onPick(c.getAttribute(attr));
-    });
-  }
-  pickable('track-choices','data-track', function(v){ state.track=v; document.getElementById('track-next').disabled=false; });
-  pickable('level-choices','data-level', function(v){ state.level=v; document.getElementById('level-next').disabled=false; });
-  pickable('goal-choices','data-goal', function(v){ state.goal=v; });
+  /* ---------- step 2: what are you learning (free text) ---------- */
+  var finishBtn = document.getElementById('finish');
+  var topicI = document.getElementById('su-topic');
+  topicI.addEventListener('input', function(){
+    state.topic = topicI.value.trim();
+    finishBtn.disabled = state.topic.length === 0;
+  });
 
-  /* ---------- availability grid ---------- */
-  document.getElementById('avail').addEventListener('click', function(e){
-    var c = e.target.closest('.cell');
+  /* ---------- step 2: multi-select "when are you free" ---------- */
+  document.getElementById('free-choices').addEventListener('click', function(e){
+    var c = e.target.closest('.choice');
     if (c) c.classList.toggle('sel');
   });
 
@@ -369,80 +266,53 @@
     document.getElementById('tz').textContent = 'your local time';
   }
 
-  /* ---------- final step — personalized first session ---------- */
-  var firstSessions = {
-    frontend:      { title:'Pair programming — React components', sub:'Frontend · collaborative',        with:'with Malika +1' },
-    backend:       { title:'API build night — auth from scratch', sub:'Backend · collaborative',         with:'with Bekzod +2' },
-    cybersecurity: { title:'CTF night — web challenges',          sub:'Cybersecurity · collaborative',   with:'with Aziza +2' },
-    data:          { title:'SQL practice — window functions',     sub:'Data & Analytics · collaborative', with:'with Sevara +3' },
-    mobile:        { title:'Build night — Flutter UI challenge',  sub:'Mobile · collaborative',           with:'with Timur +2' },
-    devops:        { title:'Deploy night — Docker from zero',     sub:'DevOps & Cloud · collaborative',   with:'with Bekzod +1' },
-    aiml:          { title:'Kaggle night — first submission',     sub:'AI & ML · collaborative',          with:'with Sevara +2' },
-    design:        { title:'Critique night — portfolio review',   sub:'UX/UI Design · collaborative',     with:'with Malika +2' },
-    unsure:        { title:'Silent co-work · focus room',         sub:'All tracks · 2 × 50 min',         with:'4/8 seats' }
-  };
-  function prepareFinal(){
-    var s = firstSessions[state.track] || firstSessions.unsure;
-    document.getElementById('fs-title').textContent = s.title;
-    document.getElementById('fs-sub').textContent = s.sub;
-    document.getElementById('fs-with').textContent = s.with;
-    document.getElementById('fs-when').textContent = 'Tue 19:00';
-    var first = (state.name || '').split(' ')[0];
-    if (first) document.getElementById('final-title').textContent = first + ', your first session is ready';
-  }
-
-  /* ---------- reserve → save profile + go to app ---------- */
-  document.getElementById('reserve').addEventListener('click', function(){
-    var s = firstSessions[state.track] || firstSessions.unsure;
-    try {
-      localStorage.setItem('pf_name', state.name || '');
-      localStorage.setItem('pf_email', state.email || '');
-      localStorage.setItem('pf_track', state.track || 'unsure');
-      localStorage.setItem('pf_booked', JSON.stringify({ when:'Tue 19:00', title:s.title, sub:s.sub, with:s.with }));
-    } catch(err) {}
+  /* ---------- finish → save profile + go to app ---------- */
+  var su2Status = document.getElementById('su2-status');
+  finishBtn.addEventListener('click', function(){
+    if (!state.topic) return;
+    su2Status.style.display = 'none';
 
     var availability = Array.prototype.map.call(
-      document.querySelectorAll('#avail .cell.sel'),
-      function(c){ return c.getAttribute('aria-label'); });
+      document.querySelectorAll('#free-choices .choice.sel'),
+      function(c){ return c.getAttribute('data-free'); });
     var tz = '';
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(err) {}
 
-    var btn = this;
-    btn.disabled = true; btn.textContent = 'Reserving your seat…';
-    var done = false, errored = false;
-    function go(){ if (done || errored) return; done = true; window.location.href = 'app.html'; }
+    try {
+      localStorage.setItem('pf_name', state.name || '');
+      localStorage.setItem('pf_email', state.email || '');
+      localStorage.setItem('pf_track', 'cybersecurity');
+      localStorage.setItem('pf_topic', state.topic || '');
+    } catch(err) {}
 
-    /* Wait for the profile to actually save before leaving, so the dashboard
-       sees the track and doesn't send us back to onboarding. */
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Saving…';
+    var left = false, errored = false;
+    function go(){ if (left || errored) return; left = true; window.location.href = 'app.html'; }
+
+    /* Wait for the profile to save before leaving, so the dashboard sees the
+       track and doesn't send us back to onboarding. We're launching with
+       cybersecurity, so every signup is on that track; the free-text topic is
+       what they're specifically learning. Level and goal are collected later
+       in the app as an optional "improve my match". */
     pf.saveProfile({
-      name: state.name, track: state.track === 'unsure' ? null : state.track,
-      level: state.level, goal: state.goal, timezone: tz, availability: availability
+      name: state.name,
+      track: 'cybersecurity',
+      topic: state.topic,
+      timezone: tz,
+      availability: availability
     }).then(function(res){
       if (res && res.error) {
         errored = true;
-        btn.disabled = false; btn.textContent = 'Reserve my seat';
+        btn.disabled = false; btn.textContent = 'Finish and go to the app';
         var full = 'Could not save your profile:\n\n' + res.error + (res.detail ? '\n\n' + res.detail : '');
-        suError('Could not save your profile: ' + res.error);
-        try { console.error('PeerFlow reserve failed:', res); } catch(e){}
-        try { alert(full); } catch(e){}   // make the exact reason impossible to miss
+        su2Status.textContent = 'Could not save your profile: ' + res.error;
+        su2Status.style.display = 'block';
+        try { console.error('PeerFlow finish failed:', res); } catch(e){}
+        try { alert(full); } catch(e){}
         return;
       }
-      /* Actually join the soonest real session on this track, then store it
-         so the dashboard shows a genuine booking with a real room. */
-      pf.joinFirstSession(state.track === 'unsure' ? null : state.track).then(function(sess){
-        if (sess) {
-          try {
-            localStorage.setItem('pf_booked', JSON.stringify({
-              id: sess.id,
-              when: sess.startsAt.toLocaleString([], { weekday:'short', hour:'2-digit', minute:'2-digit' }),
-              title: sess.title,
-              sub: (sess.track ? (pf.trackNames[sess.track] || sess.track) : 'All tracks') + ' · ' + sess.kind,
-              room: pf.roomUrl(sess)
-            }));
-          } catch(e){}
-        }
-        go();
-      });
+      go();
     });
     /* Safety net if the network hangs — localStorage already holds the track. */
     setTimeout(function(){ if (!errored) go(); }, 8000);

@@ -20,12 +20,11 @@
     </a>
     <nav class="nav-links" aria-label="App">
       <a href="app.html" class="active">Today</a>
-      <a href="app-sessions.html">Sessions</a>
-      <a href="#" title="Squads unlock after you study with the same people 3 times">My squad</a>
+      <a href="app-sessions.html">My partner</a>
     </nav>
     <div class="nav-right">
-      <span class="track-chip" id="nav-track">Cybersecurity</span>
-      <a href="index.html" class="login" id="logout" title="Log out of the demo">Log out</a>
+      <span class="track-chip" id="nav-track">Getting set up</span>
+      <a href="index.html" class="login" id="logout" title="Log out">Log out</a>
       <span class="av-nav" id="nav-av" title="Your profile">S</span>
     </div>
   </div>
@@ -43,67 +42,59 @@
       <div class="app-col">
 
         <div class="card next-card">
-          <div class="when-big" id="nx-when">YOUR NEXT SESSION</div>
-          <h2 id="nx-title">No session booked yet</h2>
-          <p id="nx-sub">Pick one from the board to reserve your seat.</p>
+          <div class="when-big" id="match-status">YOUR LEARNING PARTNER</div>
+          <h2 id="match-title">We're finding your partner</h2>
+          <p id="match-sub">Right now we do this by hand, so give us a day or two. You'll get an email when you're matched.</p>
           <div class="row">
-            <span style="font-size:13.5px;color:var(--muted)" id="nx-with"></span>
-            <a class="btn primary" id="nx-open" href="app-sessions.html" style="margin-left:auto">Browse sessions</a>
+            <a class="btn primary" id="match-cta" href="app-sessions.html" style="margin-left:auto">See match status</a>
           </div>
         </div>
 
         <div class="card">
-          <h3>Live right now
-            <a class="grow" href="app-sessions.html">Full board →</a>
-          </h3>
-          <div class="board" id="live-board" style="margin:0;max-width:none">
-            <div class="slot">
-              <span class="when">now</span>
-              <span class="what"><b>Silent co-work · focus room</b><span>All tracks · 31 min left in this block</span></span>
-              <span class="seats">5/8 seats</span>
-              <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
-            </div>
-            <div class="slot">
-              <span class="when">now</span>
-              <span class="what"><b>Security+ study group — domain 2</b><span>Cybersecurity · collaborative</span></span>
-              <span class="seats">3/6 seats</span>
-              <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
-            </div>
-          </div>
-        </div>
+          <h3>Improve my match <span class="grow" style="color:var(--muted);font-weight:400">optional</span></h3>
+          <p class="empty-hint">The more you tell us, the closer a partner we can find. You can change these anytime.</p>
 
-        <div class="card">
-          <h3>Peers on your track
-            <a class="grow" href="app-sessions.html">Sessions →</a>
-          </h3>
-          <p class="empty-hint">Study with the same person 3 times and you can form a squad — a recurring crew with its own sessions.</p>
-          <ul class="plist" id="peers-list">
-            <li style="color:var(--muted);font-size:14px">Finding peers on your track…</li>
-          </ul>
+          <h4 class="mini-h">Where are you right now?</h4>
+          <div class="choices one" id="level-choices">
+            <button class="choice" data-level="new"><span><b>I haven't really started</b><span>Curious, motivated, little code written so far</span></span></button>
+            <button class="choice" data-level="tutorials"><span><b>I've done tutorials</b><span>Courses and videos, but little on my own yet</span></span></button>
+            <button class="choice" data-level="builder"><span><b>I build small things myself</b><span>Own projects, CTF rooms, or practice datasets</span></span></button>
+            <button class="choice" data-level="jobprep"><span><b>I'm preparing for the job hunt</b><span>Portfolio, certs, interviews — the last mile</span></span></button>
+          </div>
+
+          <h4 class="mini-h">What's driving you?</h4>
+          <div class="chiprow" id="goal-choices">
+            <button class="choice" data-goal="job">Get my first job</button>
+            <button class="choice" data-goal="studies">Do better in my studies</button>
+            <button class="choice" data-goal="switch">Switch careers</button>
+          </div>
+
+          <h4 class="mini-h">When are you usually free?</h4>
+          <div class="chiprow" id="free-choices">
+            <button class="choice" data-free="weekday-morning">Weekday mornings</button>
+            <button class="choice" data-free="weekday-afternoon">Weekday afternoons</button>
+            <button class="choice" data-free="weekday-evening">Weekday evenings</button>
+            <button class="choice" data-free="weekend">Weekends</button>
+            <button class="choice" data-free="late-night">Late nights</button>
+          </div>
+
+          <div style="margin-top:20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <button class="btn primary" id="save-match">Save</button>
+            <span id="save-note" style="font-size:13.5px;color:var(--muted)"></span>
+          </div>
         </div>
       </div>
 
       <!-- ============ side column ============ -->
       <div class="app-col">
         <div class="card">
-          <h3>Your activity</h3>
-          <div class="stat-row">
-            <div class="stat"><b id="st-sessions">0</b><span>sessions</span></div>
-            <div class="stat"><b id="st-goals">0</b><span>goals done</span></div>
-            <div class="stat"><b id="st-upcoming">0</b><span>upcoming</span></div>
-          </div>
-          <p class="streak-note" id="activity-note">Join your first session to start building a streak.</p>
+          <h3>How matching works right now</h3>
+          <p style="font-size:14.5px">PeerFlow is just getting started, so I'm pairing people by hand. When there's someone learning the same thing as you, I'll match you and it shows up under <a href="app-sessions.html" style="color:var(--green-dark);font-weight:600">My partner</a>. Filling in the box on the left helps me find a closer fit.</p>
         </div>
 
         <div class="card">
-          <h3>Your squad</h3>
-          <p class="empty-hint">No squad yet — that's normal early on. Keep sitting with the same people and PeerFlow will suggest forming one.</p>
-        </div>
-
-        <div class="card">
-          <h3>Next step</h3>
-          <p style="font-size:14.5px" id="next-step">Book a session that fits your week and put in your first fifty focused minutes.</p>
-          <a class="btn ghost" href="app-sessions.html" style="margin-top:14px">Browse sessions</a>
+          <h3>Before your first call</h3>
+          <p style="font-size:14.5px">A good session is simple: cameras on, say what you're each working on, and keep each other company while you do it. Please read the <a href="conduct.html" style="color:var(--green-dark);font-weight:600">code of conduct</a> first.</p>
         </div>
       </div>
     </div>
@@ -113,29 +104,29 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
-<script src="assets/site.js"></script>
 <script>
 (function(){
-  /* personalize from onboarding (falls back to demo data) */
-  var name='', track='cybersecurity', booked=null;
+  var name='', track='';
   try {
     name = localStorage.getItem('pf_name') || '';
-    track = localStorage.getItem('pf_track') || 'cybersecurity';
-    booked = JSON.parse(localStorage.getItem('pf_booked') || 'null');
+    track = localStorage.getItem('pf_track') || '';
   } catch(err) {}
 
-  var trackNames = { frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity', data:'Data & Analytics', mobile:'Mobile', devops:'DevOps & Cloud', aiml:'AI & ML', design:'UX/UI Design', unsure:'Exploring tracks' };
-  document.getElementById('nav-track').textContent = trackNames[track] || 'Cybersecurity';
+  var trackNames = { cybersecurity:'Cybersecurity', unsure:'Exploring' };
+
+  function setTrackChip(t){
+    var el = document.getElementById('nav-track');
+    if (t === 'cybersecurity') el.textContent = 'Cybersecurity';
+    else if (t) el.textContent = 'On the list';
+    else el.textContent = 'Getting set up';
+  }
+  setTrackChip(track);
   document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
+
   document.getElementById('logout').addEventListener('click', function(){
     try { ['pf_name','pf_email','pf_track','pf_booked'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
     pf.signOut();
   });
-
-  /* live sessions from the database, filtered to this user's track
-     (plus all-tracks focus rooms). Keeps demo board if unreachable. */
-  var liveBoardEl = document.getElementById('live-board');
-  pf.liveBoard(liveBoardEl, 4, track);
 
   var h = new Date().getHours();
   var part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
@@ -145,8 +136,75 @@
   }
   greet();
 
-  /* Signed-in users: load their real profile. Anyone without a track still
-     needs onboarding, so send them to finish it. */
+  try {
+    document.getElementById('today-date').textContent =
+      new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  } catch(err) {}
+
+  /* ----- honest match card, from the real track ----- */
+  function renderMatch(t){
+    var status = document.getElementById('match-status');
+    var title = document.getElementById('match-title');
+    var sub = document.getElementById('match-sub');
+    if (t === 'cybersecurity') {
+      status.textContent = 'YOUR LEARNING PARTNER';
+      title.textContent = 'We’re finding your partner';
+      sub.textContent = 'Right now we do this by hand, so give us a day or two. You’ll get an email when you’re matched.';
+    } else if (t) {
+      status.textContent = 'YOU’RE ON THE LIST';
+      title.textContent = 'Your field isn’t live yet';
+      sub.textContent = 'PeerFlow is starting with cybersecurity. You’re on the list for your field, and we’ll reach out when it opens.';
+    } else {
+      status.textContent = 'ALMOST THERE';
+      title.textContent = 'Tell us what you’re learning';
+      sub.textContent = 'Finish setting up so we can start looking for your partner.';
+    }
+  }
+  renderMatch(track);
+
+  /* If a match exists (created by hand), show the partner instead of waiting. */
+  function showMatchedToday(m){
+    document.getElementById('match-status').textContent = 'YOUR PARTNER';
+    var title = m.partner_name || 'Your partner';
+    if (m.partner_topic) title += ' — learning ' + m.partner_topic;
+    document.getElementById('match-title').textContent = title;
+    document.getElementById('match-sub').textContent =
+      m.partner_times ? 'Free: ' + m.partner_times : 'Open My partner to start the call.';
+    var cta = document.getElementById('match-cta');
+    if (m.room_url) { cta.textContent = 'Start the call'; cta.href = m.room_url; cta.target = '_blank'; cta.rel = 'noopener'; }
+    else { cta.textContent = 'See my partner'; }
+  }
+
+  /* ----- selections for "improve my match" ----- */
+  var levelBox = document.getElementById('level-choices');
+  var goalBox = document.getElementById('goal-choices');
+  var freeBox = document.getElementById('free-choices');
+  function makeSingle(box){
+    box.addEventListener('click', function(e){
+      var c = e.target.closest('.choice');
+      if (!c) return;
+      Array.prototype.forEach.call(box.querySelectorAll('.choice'), function(x){ x.classList.remove('sel'); });
+      c.classList.add('sel');
+    });
+  }
+  function selectedValue(box, attr){
+    var s = box.querySelector('.choice.sel');
+    return s ? s.getAttribute(attr) : null;
+  }
+  makeSingle(levelBox);
+  makeSingle(goalBox);
+  freeBox.addEventListener('click', function(e){
+    var c = e.target.closest('.choice');
+    if (c) c.classList.toggle('sel');
+  });
+
+  function markSel(box, attr, value){
+    if (!value) return;
+    var c = box.querySelector('[' + attr + '="' + value + '"]');
+    if (c) c.classList.add('sel');
+  }
+
+  /* Signed-in users: load their real profile, prefill, and confirm the track. */
   pf.currentUser().then(function(user){
     if (!user) return;                         // demo mode / not signed in
     var meta = user.user_metadata || {};
@@ -157,85 +215,43 @@
     } catch(err) {}
     greet();
     pf.getProfile().then(function(profile){
-      if (profile && profile.track_id) {         // fully onboarded
-        name = profile.name || name;
-        track = profile.track_id;
-        try { localStorage.setItem('pf_track', track); } catch(err) {}
-        document.getElementById('nav-track').textContent = trackNames[track] || track;
-        greet();
-        pf.liveBoard(liveBoardEl, 4, track);     // refresh board for the real track
-        return;
+      if (profile && (profile.track_id || profile.level || (profile.availability && profile.availability.length))) {
+        track = profile.track_id || track;
+        try { if (track) localStorage.setItem('pf_track', track); } catch(err){}
+        setTrackChip(track);
+        renderMatch(track);
+        markSel(levelBox, 'data-level', profile.level);
+        markSel(goalBox, 'data-goal', profile.goal);
+        (profile.availability || []).forEach(function(v){ markSel(freeBox, 'data-free', v); });
+      } else {
+        /* Genuinely new user with nothing saved and nothing in localStorage:
+           send them to finish onboarding. */
+        var ls = '';
+        try { ls = localStorage.getItem('pf_track') || ''; } catch(err) {}
+        if (!ls) { window.location.replace('signup.html'); return; }
       }
-      /* No track on the profile. If they just finished onboarding (localStorage
-         has a track, including "unsure"), trust it and stay — don't loop.
-         Only a genuinely new user with nothing gets sent to onboarding. */
-      var ls = '';
-      try { ls = localStorage.getItem('pf_track') || ''; } catch(err) {}
-      if (!ls) window.location.replace('signup.html');
+      /* If they've been matched by hand, the partner wins over the waiting state. */
+      pf.getMatch().then(function(m){ if (m) showMatchedToday(m); });
     });
   });
 
-  try {
-    document.getElementById('today-date').textContent =
-      new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
-  } catch(err) {}
+  /* ----- save "improve my match" ----- */
+  document.getElementById('save-match').addEventListener('click', function(){
+    var note = document.getElementById('save-note');
+    var level = selectedValue(levelBox, 'data-level');
+    var goal = selectedValue(goalBox, 'data-goal');
+    var availability = Array.prototype.map.call(
+      freeBox.querySelectorAll('.choice.sel'), function(c){ return c.getAttribute('data-free'); });
 
-  /* ----- next session card: prefer a real booked session, else localStorage ----- */
-  function showNext(when, title, sub, room){
-    document.getElementById('nx-when').textContent = (when ? when.toUpperCase() + ' · ' : '') + 'YOUR NEXT SESSION';
-    document.getElementById('nx-title').textContent = title;
-    document.getElementById('nx-sub').textContent = sub;
-    var open = document.getElementById('nx-open');
-    if (room) {
-      open.textContent = 'Open session room';
-      open.href = room; open.target = '_blank'; open.rel = 'noopener';
-      document.getElementById('nx-with').textContent = 'Your seat is reserved';
-    }
-  }
-  if (booked && booked.title) {
-    showNext(booked.when, booked.title, booked.sub || '', booked.room || '');
-  }
-  pf.myNextSession().then(function(s){
-    if (!s) return;
-    var when = s.startsAt.toLocaleString([], { weekday:'short', hour:'2-digit', minute:'2-digit' });
-    var sub = (s.track ? (trackNames[s.track] || s.track) : 'All tracks') + ' · ' + s.kind;
-    showNext(when, s.title, sub, pf.roomUrl(s));
-  });
-
-  /* ----- real peers on this track (honest empty state) ----- */
-  var palette = ['#8e6cc8','#3d8fd1','#d1793d','#5a9e6f','#c2568e','#0b8f66'];
-  var levelLabel = { new:'Just starting', tutorials:'Doing tutorials', builder:'Builds projects', jobprep:'Job-hunt prep' };
-  pf.fetchPeers(track, 5).then(function(peers){
-    var el = document.getElementById('peers-list');
-    if (!el) return;
-    if (peers === null || !peers.length) {      // no peers yet (or offline) — be honest, never stuck
-      el.innerHTML = '<li style="color:var(--muted);font-size:14px">You’re early on this track — no peers yet. ' +
-        'Join a session and invite a friend to be the first crew.</li>';
-      return;
-    }
-    el.innerHTML = peers.map(function(p, i){
-      var nm = p.name || 'Student';
-      var initials = nm.trim().charAt(0).toUpperCase();
-      var meta = [levelLabel[p.level] || 'On your track', p.timezone || ''].filter(Boolean).join(' · ');
-      return '<li><span class="av" style="background:' + palette[i % palette.length] + '">' + initials +
-        '</span><span><b>' + nm + '</b><span>' + meta + '</span></span>' +
-        '<a class="btn ghost" href="app-sessions.html">Study together</a></li>';
-    }).join('');
-  });
-
-  /* ----- real activity stats ----- */
-  pf.myActivity().then(function(a){
-    if (!a) return;
-    document.getElementById('st-sessions').textContent = a.joined;
-    document.getElementById('st-goals').textContent = a.goalsDone;
-    document.getElementById('st-upcoming').textContent = a.upcoming;
-    if (a.joined > 0) {
-      document.getElementById('activity-note').textContent =
-        a.upcoming > 0 ? 'You have ' + a.upcoming + ' session' + (a.upcoming>1?'s':'') + ' coming up. Show up to keep it going.'
-                       : 'Book your next session to keep the momentum.';
-      document.getElementById('next-step').textContent =
-        'You’ve joined ' + a.joined + ' session' + (a.joined>1?'s':'') + '. Keep a steady rhythm — a couple a week beats a burst.';
-    }
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Saving…';
+    note.textContent = '';
+    pf.saveProfile({ level: level, goal: goal, availability: availability }).then(function(res){
+      btn.disabled = false; btn.textContent = 'Save';
+      if (res && res.saved) { note.style.color = 'var(--green-dark)'; note.textContent = 'Saved.'; }
+      else if (res && res.demo) { note.style.color = 'var(--muted)'; note.textContent = 'Sign in on the live site to save this.'; }
+      else { note.style.color = '#c0392b'; note.textContent = (res && res.error) || 'Could not save — please try again.'; }
+    });
   });
 })();
 </script>

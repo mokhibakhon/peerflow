@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sessions — PeerFlow</title>
+<title>My partner — PeerFlow</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 26 26%27%3E%3Ccircle cx=%2710%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%230b8f66%27 stroke-width=%273%27/%3E%3Ccircle cx=%2717%27 cy=%2713%27 r=%277.5%27 fill=%27none%27 stroke=%27%2321323b%27 stroke-width=%273%27 opacity=%27.8%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -20,12 +20,11 @@
     </a>
     <nav class="nav-links" aria-label="App">
       <a href="app.html">Today</a>
-      <a href="app-sessions.html" class="active">Sessions</a>
-      <a href="#" title="Squads unlock after you study with the same people 3 times">My squad</a>
+      <a href="app-sessions.html" class="active">My partner</a>
     </nav>
     <div class="nav-right">
-      <span class="track-chip" id="nav-track">Cybersecurity</span>
-      <a href="index.html" class="login" id="logout" title="Log out of the demo">Log out</a>
+      <span class="track-chip" id="nav-track">Getting set up</span>
+      <a href="index.html" class="login" id="logout" title="Log out">Log out</a>
       <span class="av-nav" id="nav-av" title="Your profile">S</span>
     </div>
   </div>
@@ -33,62 +32,20 @@
 
 <main class="app-main">
   <div class="wrap">
-    <div class="app-head board-head">
-      <h1>Session board</h1>
-      <a class="btn primary" href="#" title="Prototype">+ Create a session</a>
-    </div>
-    <div class="filters" id="filters" aria-label="Filter sessions">
-      <span class="chip sel" data-filter="mine">My track</span>
-      <span class="chip" data-filter="all">All tracks</span>
-      <span class="chip" data-filter="silent">Silent co-work</span>
-      <span class="chip" data-filter="collab">Collaborative</span>
+    <div class="app-head">
+      <h1>My partner</h1>
     </div>
 
-    <div class="board" id="main-board" style="max-width:none">
-      <div class="slot">
-        <span class="when">now</span>
-        <span class="what"><b>Silent co-work · focus room</b><span>All tracks · 31 min left in this block</span></span>
-        <span class="seats">5/8 seats</span>
-        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
-      </div>
-      <div class="slot">
-        <span class="when">now</span>
-        <span class="what"><b>Security+ study group — domain 2</b><span>Cybersecurity · collaborative</span></span>
-        <span class="seats">3/6 seats</span>
-        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
-      </div>
-      <div class="slot">
-        <span class="when">18:00</span>
-        <span class="what"><b>Silent co-work · focus room</b><span>All tracks · 2 × 50 min</span></span>
-        <span class="seats">4/8 seats</span>
-        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
-      </div>
-      <div class="slot">
-        <span class="when">19:00</span>
-        <span class="what"><b>CTF night — web challenges</b><span>Cybersecurity · collaborative</span></span>
-        <span class="seats">3/6 seats</span>
-        <span class="btn ghost">Reserved ✓</span>
-      </div>
-      <div class="slot">
-        <span class="when">20:00</span>
-        <span class="what"><b>Pair programming — React components</b><span>Frontend · collaborative</span></span>
-        <span class="seats">2/4 seats</span>
-        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
-      </div>
-      <div class="slot">
-        <span class="when">21:00</span>
-        <span class="what"><b>SQL practice — window functions</b><span>Data &amp; Analytics · collaborative</span></span>
-        <span class="seats">5/6 seats</span>
-        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
-      </div>
-      <div class="slot">
-        <span class="when">22:00</span>
-        <span class="what"><b>Late silent co-work · night owls</b><span>All tracks · 2 × 50 min</span></span>
-        <span class="seats">6/8 seats</span>
-        <a class="btn primary" href="https://meet.google.com/new" target="_blank" rel="noopener">Join</a>
+    <div class="card next-card" style="max-width:640px">
+      <div class="when-big" id="match-status">FINDING YOUR PARTNER</div>
+      <h2 id="match-title">We're finding your partner</h2>
+      <p id="match-sub">Right now we do this by hand, so give us a day or two. You'll get an email when you're matched.</p>
+      <div class="row" id="match-actions" style="display:none">
+        <a class="btn primary" id="call-link" href="#" target="_blank" rel="noopener" style="margin-left:auto">Start the call</a>
       </div>
     </div>
-    <p class="board-note">Join opens the session's shared video room — everyone who joins lands in the same place. Nothing fits? <a href="#" style="color:var(--green-dark);font-weight:600" title="Prototype">Create your own session</a> — PeerFlow invites peers on your track who are free at that time.</p>
+
+    <p class="board-note" id="board-note">When you're matched, your partner and a button to start your video call will show up here. You'll meet on video — cameras on — and learn together.</p>
   </div>
 </main>
 
@@ -97,66 +54,73 @@
 <script src="assets/db.js"></script>
 <script>
 (function(){
-  var track = 'cybersecurity', name = '';
+  var name='', track='';
   try {
-    track = localStorage.getItem('pf_track') || track;
     name = localStorage.getItem('pf_name') || '';
+    track = localStorage.getItem('pf_track') || '';
   } catch(err) {}
-  var trackNames = { frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity', data:'Data & Analytics', mobile:'Mobile', devops:'DevOps & Cloud', aiml:'AI & ML', design:'UX/UI Design', unsure:'Exploring tracks' };
-  document.getElementById('nav-track').textContent = trackNames[track] || 'Cybersecurity';
+
+  function setTrackChip(t){
+    var el = document.getElementById('nav-track');
+    if (t === 'cybersecurity') el.textContent = 'Cybersecurity';
+    else if (t) el.textContent = 'On the list';
+    else el.textContent = 'Getting set up';
+  }
+  setTrackChip(track);
   document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
+
   document.getElementById('logout').addEventListener('click', function(){
     try { ['pf_name','pf_email','pf_track','pf_booked'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
     pf.signOut();
   });
 
-  /* Confirm the track from the real profile, then load + filter the board. */
+  /* Honest state: there's no automatic matching engine yet, so we never show a
+     fabricated partner. The message reflects the user's real track. */
+  function render(t){
+    var status = document.getElementById('match-status');
+    var title = document.getElementById('match-title');
+    var sub = document.getElementById('match-sub');
+    if (t === 'cybersecurity') {
+      status.textContent = 'FINDING YOUR PARTNER';
+      title.textContent = 'We’re finding your partner';
+      sub.textContent = 'Right now we do this by hand, so give us a day or two. You’ll get an email when you’re matched.';
+    } else if (t) {
+      status.textContent = 'YOU’RE ON THE LIST';
+      title.textContent = 'Your field isn’t live yet';
+      sub.textContent = 'PeerFlow is starting with cybersecurity. You’re on the list for your field, and we’ll reach out when it opens.';
+    } else {
+      status.textContent = 'ALMOST THERE';
+      title.textContent = 'Finish setting up first';
+      sub.textContent = 'Tell us what you’re learning so we can start finding your partner.';
+    }
+  }
+  render(track);
+
+  /* Matched (a row exists in the matches table, created by hand). */
+  function showMatched(m){
+    document.getElementById('match-status').textContent = 'YOUR PARTNER';
+    var title = m.partner_name || 'Your partner';
+    if (m.partner_topic) title += ' — learning ' + m.partner_topic;
+    document.getElementById('match-title').textContent = title;
+    document.getElementById('match-sub').textContent = m.partner_times ? 'Free: ' + m.partner_times : '';
+    var actions = document.getElementById('match-actions');
+    var link = document.getElementById('call-link');
+    if (m.room_url) { link.href = m.room_url; actions.style.display = 'flex'; }
+    document.getElementById('board-note').textContent =
+      'First time? Say hi, tell them what you’re stuck on, and agree when you’re meeting next.';
+  }
+
   pf.currentUser().then(function(user){
     if (!user) return;
-    return pf.getProfile().then(function(p){
-      if (p && p.track_id) {
-        track = p.track_id;
-        document.getElementById('nav-track').textContent = trackNames[track] || track;
+    pf.getProfile().then(function(profile){
+      if (profile && profile.track_id) {
+        track = profile.track_id;
         try { localStorage.setItem('pf_track', track); } catch(e){}
+        setTrackChip(track);
+        render(track);
       }
+      pf.getMatch().then(function(m){ if (m) showMatched(m); });
     });
-  }).then(loadBoard, loadBoard);
-
-  var board = document.getElementById('main-board');
-  var filtersEl = document.getElementById('filters');
-  var allSessions = null;      // null → Supabase unreachable, keep demo board
-  var activeFilter = 'mine';
-
-  function apply(){
-    if (!allSessions) return;
-    var list = allSessions;
-    if (activeFilter === 'mine')        list = pf.forTrack(allSessions, track);
-    else if (activeFilter === 'silent') list = allSessions.filter(function(s){ return s.kind === 'silent'; });
-    else if (activeFilter === 'collab') list = allSessions.filter(function(s){ return s.kind === 'collaborative'; });
-    /* 'all' → everything */
-    if (!list.length) {
-      board.innerHTML = '<p class="board-note" style="padding:24px">No sessions match this filter yet. ' +
-        'Be the first — <a href="#" style="color:var(--green-dark);font-weight:600">create one</a>.</p>';
-      return;
-    }
-    pf.renderBoard(board, list);
-  }
-
-  function loadBoard(){
-    pf.fetchUpcomingSessions(60).then(function(sessions){
-      if (!sessions || !sessions.length) return;   // keep hardcoded demo board
-      allSessions = sessions;
-      apply();
-    });
-  }
-
-  filtersEl.addEventListener('click', function(e){
-    var chip = e.target.closest('.chip');
-    if (!chip) return;
-    Array.prototype.forEach.call(filtersEl.querySelectorAll('.chip'), function(c){ c.classList.remove('sel'); });
-    chip.classList.add('sel');
-    activeFilter = chip.getAttribute('data-filter');
-    apply();
   });
 })();
 </script>
