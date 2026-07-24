@@ -479,7 +479,8 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .mp-name{position:absolute;left:9px;bottom:8px;font-size:12px;font-weight:600;color:var(--ink);background:#ffffffd9;border-radius:6px;padding:2px 8px}
 .mp-topic{margin:14px 0 0;font-size:14.5px;color:var(--text);text-align:center}
 .mp-topic b{color:var(--ink)}
-.mp-call{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--green);color:#fff;font-weight:600;font-size:14.5px;border-radius:10px;padding:11px}
+.mp-foot{margin-top:14px;padding-top:13px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;color:var(--muted)}
+.mp-foot svg{flex:none}
 
 /* ============ founder's note ============ */
 .founder{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:center;max-width:840px;margin:0 auto}
