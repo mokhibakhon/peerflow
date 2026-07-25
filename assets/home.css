@@ -85,44 +85,46 @@ h1 em{font-style:normal;color:var(--live)}
 }
 .live b{width:6px;height:6px;border-radius:50%;background:var(--live);display:block}
 
-/* Two camera tiles side by side — theirs plain, yours in the brand green. */
+/* Two camera tiles side by side — theirs plain, yours in the brand green.
+   16:10 rather than 4:3 keeps the card from towering over the headline. */
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tile{
-  position:relative;aspect-ratio:4/3;border-radius:12px;display:flex;
+  position:relative;aspect-ratio:16/10;border-radius:12px;display:flex;
   align-items:center;justify-content:center;background:#EDECF2;border:1px solid var(--line);
 }
 .tile.you{background:var(--live-soft);border-color:#BFE6D5}
 .tav{
-  width:50px;height:50px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;color:#fff;font-weight:500;font-size:15px;letter-spacing:0.02em;
+  width:46px;height:46px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;color:#fff;font-weight:500;font-size:14px;letter-spacing:0.02em;
 }
 .tname{
   position:absolute;left:9px;bottom:8px;font-family:var(--mono);font-size:11px;
   color:var(--ink);background:#FFFFFFD9;border-radius:6px;padding:2px 8px;
 }
 
-.topic{margin:16px 0 0;font-size:14px;color:var(--ink-soft);text-align:center}
-.topic b{font-weight:500;color:var(--ink)}
+/* Same label/value row as the rest of the site. */
+.rows{margin-top:16px;display:grid;gap:11px;font-size:14px}
+.row{display:flex;justify-content:space-between;align-items:center}
+.row span{color:var(--ink-soft)}
+.row b{font-weight:500}
 
-/* Pomodoro ring. The arc is drawn by home.js via stroke-dashoffset;
-   276.46 is the circumference of an r=44 circle. */
-.pom{position:relative;width:132px;height:132px;margin:18px auto 2px}
-.pom svg{width:100%;height:100%;display:block;transform:rotate(-90deg)}
-.pom circle{fill:none;stroke-width:7;stroke-linecap:round}
-.pom-track{stroke:#EDECF2}
-.pom-arc{stroke:var(--live);stroke-dasharray:276.46;stroke-dashoffset:0}
-.pom-mid{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:2px;
+/* Pomodoro: a small dial beside the time, not a big ring floating in space.
+   home.js drives the arc via stroke-dashoffset; 270.18 is the circumference
+   of the r=43 circle in the SVG. */
+.pom{
+  display:flex;align-items:center;gap:14px;
+  margin-top:16px;padding-top:16px;border-top:1px solid var(--line);
 }
-.pom-mid b{
-  font-family:var(--mono);font-size:26px;font-weight:500;color:var(--ink);
-  font-variant-numeric:tabular-nums;letter-spacing:0.02em;
+.pom-ring{width:52px;height:52px;flex:0 0 auto}
+.pom-ring svg{width:100%;height:100%;display:block;transform:rotate(-90deg)}
+.pom-ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.pom-track{stroke:var(--live-soft)}
+.pom-arc{stroke:var(--live);stroke-dasharray:270.18;stroke-dashoffset:0}
+.pom-txt b{
+  display:block;font-family:var(--mono);font-size:22px;font-weight:500;color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:0.02em;line-height:1.15;
 }
-.pom-mid span{
-  font-family:var(--mono);font-size:10px;letter-spacing:0.1em;
-  text-transform:uppercase;color:var(--ink-faint);
-}
+.pom-txt span{font-size:13px;color:var(--ink-soft)}
 
 /* ---------- steps ---------- */
 /* The 1px gap over a --line background is what draws the dividers. */

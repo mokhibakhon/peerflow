@@ -8,7 +8,7 @@
   if (!el) return;
 
   var TOTAL = 25 * 60;
-  var RING = 276.46;  /* circumference of the r=44 circle in the SVG */
+  var RING = 270.18;  /* circumference of the r=43 circle in the SVG */
 
   function paint(){
     var left = TOTAL - (Math.floor(Date.now() / 1000) % TOTAL);
