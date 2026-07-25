@@ -47,19 +47,4 @@
   wire('track-form', 'track-email', 'track-interest', 'track-note',
        'Thanks — we’ll email you when it opens.');
 
-  /* Hero preview: a pomodoro-style session timer, ticking down 25:00 → 00:00
-     and looping. Purely illustrative — the card is example data. */
-  (function(){
-    var el = document.getElementById('mp-count');
-    if (!el) return;
-    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var TOTAL = 25 * 60;
-    function paint(){
-      var left = TOTAL - (Math.floor(Date.now() / 1000) % TOTAL);
-      var m = Math.floor(left / 60), s = left % 60;
-      el.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-    }
-    paint();
-    if (!reduced) setInterval(paint, 1000);
-  })();
 })();
