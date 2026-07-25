@@ -601,6 +601,9 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 
 /* ============ simplified footer ============ */
 .foot-simple{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+/* the wordmark sits on the dark footer, so it needs light ink */
+.foot-simple .logo{color:#fff}
+.foot-simple .logo b{color:#4fd6a4}
 .foot-simple p{max-width:30em}
 .foot-links{display:flex;gap:22px;flex-wrap:wrap;margin-top:4px}
 .foot-links a{color:#cddde2}
