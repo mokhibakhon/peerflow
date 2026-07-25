@@ -100,7 +100,6 @@
             <dt>Timezone</dt><dd id="p-tz">—</dd>
             <dt>Joined</dt><dd id="p-joined">—</dd>
           </dl>
-          <a class="btn ghost" href="index.html" id="logout2" style="margin-top:16px">Log out</a>
         </div>
 
         <div class="card">
@@ -134,13 +133,6 @@
     nameI.value = localStorage.getItem('pf_name') || '';
     topicI.value = localStorage.getItem('pf_topic') || '';
   } catch(err) {}
-
-  function doLogout(){
-    try { ['pf_name','pf_email','pf_track','pf_topic','pf_pending'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
-    pf.signOut();
-  }
-  /* The header account menu also offers this; keep the one in the card too. */
-  document.getElementById('logout2').addEventListener('click', doLogout);
 
   levelBox.addEventListener('click', function(e){
     var c = e.target.closest('.choice');
