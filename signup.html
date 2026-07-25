@@ -24,13 +24,13 @@
 
 <main class="onb">
   <div class="onb-progress" aria-hidden="true">
-    <i class="on"></i><i></i>
+    <i class="on"></i><i></i><i></i><i></i>
   </div>
 
   <!-- ============ STEP 1 — account ============ -->
   <section class="onb-step on" data-step="1">
     <h1>Start with PeerFlow</h1>
-    <p class="lead">Free. Two steps.</p>
+    <p class="lead">Free. Takes a minute.</p>
     <div class="auth-btns">
       <button class="auth-btn" id="btn-google">
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M17.6 9.2c0-.6-.1-1.2-.2-1.8H9v3.4h4.8a4.1 4.1 0 01-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.5z" fill="#4285F4"/><path d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.9.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.9v2.3A9 9 0 009 18z" fill="#34A853"/><path d="M3.9 10.7a5.4 5.4 0 010-3.4V5H.9a9 9 0 000 8l3-2.3z" fill="#FBBC05"/><path d="M9 3.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 00.9 5l3 2.3C4.6 5.1 6.6 3.6 9 3.6z" fill="#EA4335"/></svg>
@@ -80,20 +80,50 @@
     <p class="lead">Be specific if you can — “Linux basics” matches better than “cybersecurity.”</p>
     <div class="field" id="f-topic">
       <input id="su-topic" type="text" placeholder="e.g. Linux basics, or Security+ prep" autocomplete="off">
+      <span class="err">Tell us what you're learning so we can find someone learning it too.</span>
     </div>
-    <h2 class="q">When are you usually free?</h2>
-    <p class="lead" style="margin:0 0 16px">Pick the times you’d actually show up, not the times you wish you would.</p>
-    <div class="chiprow" id="free-choices">
-      <button class="choice" data-free="weekday-morning">Weekday mornings</button>
-      <button class="choice" data-free="weekday-afternoon">Weekday afternoons</button>
-      <button class="choice" data-free="weekday-evening">Weekday evenings</button>
-      <button class="choice" data-free="weekend">Weekends</button>
-      <button class="choice" data-free="late-night">Late nights</button>
+    <div class="onb-nav">
+      <button class="back" data-back>← Back</button>
+      <button class="btn primary big" id="topic-next">Continue</button>
     </div>
+  </section>
+
+  <!-- ============ STEP 3 — level ============ -->
+  <section class="onb-step" data-step="3">
+    <h1>Where are you right now?</h1>
+    <p class="lead">So we pair you with someone at a similar stage.</p>
+    <div class="choices one" id="level-choices">
+      <button class="choice" data-level="new"><span><b>I haven't really started</b><span>Curious, motivated, little code written so far</span></span></button>
+      <button class="choice" data-level="tutorials"><span><b>I've done tutorials</b><span>Courses and videos, but little on my own yet</span></span></button>
+      <button class="choice" data-level="builder"><span><b>I build small things myself</b><span>Own projects, CTF rooms, or practice datasets</span></span></button>
+      <button class="choice" data-level="jobprep"><span><b>I'm preparing for the job hunt</b><span>Portfolio, certs, interviews — the last mile</span></span></button>
+    </div>
+    <p class="step-err" id="level-err" hidden>Pick the one that fits you best.</p>
+    <div class="onb-nav">
+      <button class="back" data-back>← Back</button>
+      <button class="btn primary big" id="level-next">Continue</button>
+    </div>
+  </section>
+
+  <!-- ============ STEP 4 — availability ============ -->
+  <section class="onb-step" data-step="4">
+    <h1>When are you usually free?</h1>
+    <p class="lead">Pick the times you'd actually show up, not the times you wish you would.</p>
+    <div class="avail-grid" id="avail">
+      <span></span><span class="hd">Morning</span><span class="hd">Afternoon</span><span class="hd">Evening</span><span class="hd">Night</span>
+      <span class="day">Mon</span><button class="cell" data-slot="mon-morning" aria-label="Monday morning"></button><button class="cell" data-slot="mon-afternoon" aria-label="Monday afternoon"></button><button class="cell" data-slot="mon-evening" aria-label="Monday evening"></button><button class="cell" data-slot="mon-night" aria-label="Monday night"></button>
+      <span class="day">Tue</span><button class="cell" data-slot="tue-morning" aria-label="Tuesday morning"></button><button class="cell" data-slot="tue-afternoon" aria-label="Tuesday afternoon"></button><button class="cell" data-slot="tue-evening" aria-label="Tuesday evening"></button><button class="cell" data-slot="tue-night" aria-label="Tuesday night"></button>
+      <span class="day">Wed</span><button class="cell" data-slot="wed-morning" aria-label="Wednesday morning"></button><button class="cell" data-slot="wed-afternoon" aria-label="Wednesday afternoon"></button><button class="cell" data-slot="wed-evening" aria-label="Wednesday evening"></button><button class="cell" data-slot="wed-night" aria-label="Wednesday night"></button>
+      <span class="day">Thu</span><button class="cell" data-slot="thu-morning" aria-label="Thursday morning"></button><button class="cell" data-slot="thu-afternoon" aria-label="Thursday afternoon"></button><button class="cell" data-slot="thu-evening" aria-label="Thursday evening"></button><button class="cell" data-slot="thu-night" aria-label="Thursday night"></button>
+      <span class="day">Fri</span><button class="cell" data-slot="fri-morning" aria-label="Friday morning"></button><button class="cell" data-slot="fri-afternoon" aria-label="Friday afternoon"></button><button class="cell" data-slot="fri-evening" aria-label="Friday evening"></button><button class="cell" data-slot="fri-night" aria-label="Friday night"></button>
+      <span class="day">Sat</span><button class="cell" data-slot="sat-morning" aria-label="Saturday morning"></button><button class="cell" data-slot="sat-afternoon" aria-label="Saturday afternoon"></button><button class="cell" data-slot="sat-evening" aria-label="Saturday evening"></button><button class="cell" data-slot="sat-night" aria-label="Saturday night"></button>
+      <span class="day">Sun</span><button class="cell" data-slot="sun-morning" aria-label="Sunday morning"></button><button class="cell" data-slot="sun-afternoon" aria-label="Sunday afternoon"></button><button class="cell" data-slot="sun-evening" aria-label="Sunday evening"></button><button class="cell" data-slot="sun-night" aria-label="Sunday night"></button>
+    </div>
+    <p class="step-err" id="avail-err" hidden>Pick at least one time you're free.</p>
     <p class="tz-note">Your timezone: <b id="tz">detecting…</b> — detected automatically.</p>
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
-      <button class="btn primary big" id="finish" disabled>Done</button>
+      <button class="btn primary big" id="finish">Done</button>
     </div>
     <p id="su2-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px;max-width:430px"></p>
   </section>
@@ -104,7 +134,7 @@
 <script src="assets/db.js"></script>
 <script>
 (function(){
-  var state = { topic:'', name:'', email:'', provider:'email' };
+  var state = { topic:'', level:null, name:'', email:'', provider:'email' };
   var steps = Array.prototype.slice.call(document.querySelectorAll('.onb-step'));
   var dots = Array.prototype.slice.call(document.querySelectorAll('.onb-progress i'));
   var cur = 0;
@@ -231,18 +261,41 @@
     });
   });
 
-  /* ---------- step 2: what are you learning (free text) ---------- */
+  /* ---------- step 2: what are you learning (required) ---------- */
   var finishBtn = document.getElementById('finish');
   var topicI = document.getElementById('su-topic');
-  topicI.addEventListener('input', function(){
+  var topicF = document.getElementById('f-topic');
+  topicI.addEventListener('input', function(){ topicF.classList.remove('bad'); });
+  document.getElementById('topic-next').addEventListener('click', function(){
     state.topic = topicI.value.trim();
-    finishBtn.disabled = state.topic.length === 0;
+    if (!state.topic) { topicF.classList.add('bad'); topicI.focus(); return; }
+    show(2);
   });
 
-  /* ---------- step 2: multi-select "when are you free" ---------- */
-  document.getElementById('free-choices').addEventListener('click', function(e){
+  /* ---------- step 3: level (required) ---------- */
+  var levelBox = document.getElementById('level-choices');
+  var levelErr = document.getElementById('level-err');
+  levelBox.addEventListener('click', function(e){
     var c = e.target.closest('.choice');
-    if (c) c.classList.toggle('sel');
+    if (!c) return;
+    Array.prototype.forEach.call(levelBox.querySelectorAll('.choice'), function(x){ x.classList.remove('sel'); });
+    c.classList.add('sel');
+    state.level = c.getAttribute('data-level');
+    levelErr.hidden = true;
+  });
+  document.getElementById('level-next').addEventListener('click', function(){
+    if (!state.level) { levelErr.hidden = false; return; }
+    show(3);
+  });
+
+  /* ---------- step 4: availability grid (required) ---------- */
+  var availBox = document.getElementById('avail');
+  var availErr = document.getElementById('avail-err');
+  availBox.addEventListener('click', function(e){
+    var c = e.target.closest('.cell');
+    if (!c) return;
+    c.classList.toggle('sel');
+    availErr.hidden = true;
   });
 
   /* ---------- timezone ---------- */
@@ -255,12 +308,12 @@
   /* ---------- finish → save profile + go to app ---------- */
   var su2Status = document.getElementById('su2-status');
   finishBtn.addEventListener('click', function(){
-    if (!state.topic) return;
+    var availability = Array.prototype.map.call(
+      availBox.querySelectorAll('.cell.sel'),
+      function(c){ return c.getAttribute('data-slot'); });
+    if (!availability.length) { availErr.hidden = false; return; }
     su2Status.style.display = 'none';
 
-    var availability = Array.prototype.map.call(
-      document.querySelectorAll('#free-choices .choice.sel'),
-      function(c){ return c.getAttribute('data-free'); });
     var tz = '';
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(err) {}
 
@@ -271,6 +324,7 @@
       name: state.name,
       track: 'cybersecurity',
       topic: state.topic,
+      level: state.level,
       timezone: tz,
       availability: availability
     };

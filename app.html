@@ -70,20 +70,16 @@
             <button class="choice" data-level="jobprep"><span><b>I'm preparing for the job hunt</b><span>Portfolio, certs, interviews — the last mile</span></span></button>
           </div>
 
-          <h4 class="mini-h">What's driving you?</h4>
-          <div class="chiprow" id="goal-choices">
-            <button class="choice" data-goal="job">Get my first job</button>
-            <button class="choice" data-goal="studies">Do better in my studies</button>
-            <button class="choice" data-goal="switch">Switch careers</button>
-          </div>
-
           <h4 class="mini-h">When are you usually free?</h4>
-          <div class="chiprow" id="free-choices">
-            <button class="choice" data-free="weekday-morning">Weekday mornings</button>
-            <button class="choice" data-free="weekday-afternoon">Weekday afternoons</button>
-            <button class="choice" data-free="weekday-evening">Weekday evenings</button>
-            <button class="choice" data-free="weekend">Weekends</button>
-            <button class="choice" data-free="late-night">Late nights</button>
+          <div class="avail-grid" id="avail">
+            <span></span><span class="hd">Morning</span><span class="hd">Afternoon</span><span class="hd">Evening</span><span class="hd">Night</span>
+            <span class="day">Mon</span><button class="cell" data-slot="mon-morning" aria-label="Monday morning"></button><button class="cell" data-slot="mon-afternoon" aria-label="Monday afternoon"></button><button class="cell" data-slot="mon-evening" aria-label="Monday evening"></button><button class="cell" data-slot="mon-night" aria-label="Monday night"></button>
+            <span class="day">Tue</span><button class="cell" data-slot="tue-morning" aria-label="Tuesday morning"></button><button class="cell" data-slot="tue-afternoon" aria-label="Tuesday afternoon"></button><button class="cell" data-slot="tue-evening" aria-label="Tuesday evening"></button><button class="cell" data-slot="tue-night" aria-label="Tuesday night"></button>
+            <span class="day">Wed</span><button class="cell" data-slot="wed-morning" aria-label="Wednesday morning"></button><button class="cell" data-slot="wed-afternoon" aria-label="Wednesday afternoon"></button><button class="cell" data-slot="wed-evening" aria-label="Wednesday evening"></button><button class="cell" data-slot="wed-night" aria-label="Wednesday night"></button>
+            <span class="day">Thu</span><button class="cell" data-slot="thu-morning" aria-label="Thursday morning"></button><button class="cell" data-slot="thu-afternoon" aria-label="Thursday afternoon"></button><button class="cell" data-slot="thu-evening" aria-label="Thursday evening"></button><button class="cell" data-slot="thu-night" aria-label="Thursday night"></button>
+            <span class="day">Fri</span><button class="cell" data-slot="fri-morning" aria-label="Friday morning"></button><button class="cell" data-slot="fri-afternoon" aria-label="Friday afternoon"></button><button class="cell" data-slot="fri-evening" aria-label="Friday evening"></button><button class="cell" data-slot="fri-night" aria-label="Friday night"></button>
+            <span class="day">Sat</span><button class="cell" data-slot="sat-morning" aria-label="Saturday morning"></button><button class="cell" data-slot="sat-afternoon" aria-label="Saturday afternoon"></button><button class="cell" data-slot="sat-evening" aria-label="Saturday evening"></button><button class="cell" data-slot="sat-night" aria-label="Saturday night"></button>
+            <span class="day">Sun</span><button class="cell" data-slot="sun-morning" aria-label="Sunday morning"></button><button class="cell" data-slot="sun-afternoon" aria-label="Sunday afternoon"></button><button class="cell" data-slot="sun-evening" aria-label="Sunday evening"></button><button class="cell" data-slot="sun-night" aria-label="Sunday night"></button>
           </div>
 
           <div style="margin-top:20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
@@ -181,8 +177,7 @@
 
   /* ----- selections for "improve my match" ----- */
   var levelBox = document.getElementById('level-choices');
-  var goalBox = document.getElementById('goal-choices');
-  var freeBox = document.getElementById('free-choices');
+  var availBox = document.getElementById('avail');
   var topicInput = document.getElementById('topic-input');
 
   /* Show what they typed at signup straight away, before the profile loads. */
@@ -200,9 +195,8 @@
     return s ? s.getAttribute(attr) : null;
   }
   makeSingle(levelBox);
-  makeSingle(goalBox);
-  freeBox.addEventListener('click', function(e){
-    var c = e.target.closest('.choice');
+  availBox.addEventListener('click', function(e){
+    var c = e.target.closest('.cell');
     if (c) c.classList.toggle('sel');
   });
 
@@ -256,8 +250,7 @@
           try { localStorage.setItem('pf_topic', profile.topic); } catch(err) {}
         }
         markSel(levelBox, 'data-level', profile.level);
-        markSel(goalBox, 'data-goal', profile.goal);
-        (profile.availability || []).forEach(function(v){ markSel(freeBox, 'data-free', v); });
+        (profile.availability || []).forEach(function(v){ markSel(availBox, 'data-slot', v); });
       } else {
         /* Genuinely new user with nothing saved and nothing in localStorage:
            send them to finish onboarding. */
@@ -274,9 +267,8 @@
   document.getElementById('save-match').addEventListener('click', function(){
     var note = document.getElementById('save-note');
     var level = selectedValue(levelBox, 'data-level');
-    var goal = selectedValue(goalBox, 'data-goal');
     var availability = Array.prototype.map.call(
-      freeBox.querySelectorAll('.choice.sel'), function(c){ return c.getAttribute('data-free'); });
+      availBox.querySelectorAll('.cell.sel'), function(c){ return c.getAttribute('data-slot'); });
     var topic = (topicInput.value || '').trim();
 
     /* Only send what the user actually filled in. Sending an empty value
@@ -284,7 +276,6 @@
     var payload = {};
     if (topic) payload.topic = topic;
     if (level) payload.level = level;
-    if (goal) payload.goal = goal;
     if (availability.length) payload.availability = availability;
 
     if (!Object.keys(payload).length) {
