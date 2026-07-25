@@ -54,6 +54,25 @@ create table if not exists public.matches (
   created_at    timestamptz not null default now()
 );
 
+-- ---------- drop the legacy group-session tables ----------
+-- Earlier versions of PeerFlow had a group "sessions" table (host_id, capacity,
+-- kind) plus session_members. The one-to-one model replaces it with a per-person
+-- sessions table keyed by user_id. Only drop when the old shape is present, so
+-- re-running this file never destroys real scheduled sessions.
+do $$
+begin
+  if exists (
+        select 1 from information_schema.tables
+        where table_schema = 'public' and table_name = 'sessions')
+     and not exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'sessions' and column_name = 'user_id')
+  then
+    drop table if exists public.session_members cascade;
+    drop table if exists public.sessions cascade;
+  end if;
+end $$;
+
 -- ---------- sessions (scheduled meetings, created by hand for now) ----------
 -- One row per person per meeting: when two partners agree a time, insert a row
 -- for each of them with the same starts_at and room_url. Each person can only
