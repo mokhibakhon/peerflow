@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="173" height="171"
+     viewBox="0 0 173 171"
+     role="img"
+     aria-labelledby="title desc">
+  <title id="title">Vector logo</title>
+  <desc id="desc">Clean, scalable geometric recreation of the supplied turquoise logo on a transparent background.</desc>
+
+  <g fill="#18B48D" shape-rendering="geometricPrecision">
+    <!-- Cardinal blocks -->
+    <rect x="79" y="0" width="13" height="15"/>
+    <rect x="0" y="81" width="15" height="13"/>
+    <rect x="158" y="81" width="14" height="13"/>
+    <rect x="79" y="156" width="13" height="15"/>
+
+    <!-- Top motif -->
+    <path d="M52 24H116V39H99V56H83V70H67V39H52Z"/>
+
+    <!-- Left motif -->
+    <path d="M24 57H39V74H56V89H70V106H39V121H24Z"/>
+
+    <!-- Right motif -->
+    <path d="M134 53H149V118H134V101H117V85H103V69H134Z"/>
+
+    <!-- Bottom motif -->
+    <path d="M119 147H55V132H72V115H88V101H104V132H119Z"/>
+  </g>
+</svg>
