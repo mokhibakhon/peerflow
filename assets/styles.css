@@ -74,7 +74,10 @@ header{
 .hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:60px;align-items:center}
 h1{font-size:clamp(34px,4.6vw,50px);line-height:1.15;font-weight:800}
 h1 em{font-style:normal;color:var(--green-dark)}
-.hero p.lead{font-size:18.5px;margin:22px 0 30px;max-width:32em}
+/* the headline is a full sentence, so it needs a smaller size than a
+   short punchy one to keep the call to action above the fold */
+.hero h1{font-size:clamp(28px,3.3vw,38px);line-height:1.2}
+.hero p.lead{font-size:17.5px;margin:20px 0 28px;max-width:34em}
 .hero-ctas{display:flex;gap:14px;flex-wrap:wrap}
 .hero-facts{display:flex;gap:22px;flex-wrap:wrap;margin-top:26px;font-size:14.5px;color:var(--muted)}
 .hero-facts span{display:flex;align-items:center;gap:8px}
@@ -162,6 +165,7 @@ section{padding:88px 0}
 .step .badge{width:34px;height:34px;border-radius:50%;background:var(--green);color:#fff;font-weight:700;font-size:15px;
   display:flex;align-items:center;justify-content:center;margin-bottom:16px}
 .step h3{font-size:20px;margin-bottom:8px}
+.step h3:only-of-type{margin-bottom:0}
 .step p{font-size:15.5px}
 
 /* ============ tracks ============ */
@@ -594,8 +598,7 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 /* ============ founder's note ============ */
 .founder-body{max-width:640px;margin:0 auto}
 .founder-body p{font-size:16.5px;color:var(--text);margin-bottom:14px}
-.founder-body .founder-sign{margin:22px 0 0;font-size:14.5px;color:var(--muted)}
-.founder-body .founder-sign b{display:block;color:var(--ink);font-size:15.5px}
+.founder-body .founder-sign{margin:22px 0 0;font-size:15.5px;color:var(--ink);font-weight:600}
 
 /* ============ home: email capture forms ============ */
 .lead-form{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:640px;margin:40px auto 0}
