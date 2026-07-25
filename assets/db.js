@@ -284,6 +284,49 @@ window.pf = (function(){
     });
   }
 
+  /* ---------- badge inputs ---------- */
+
+  /* Everything the badge rules need, all counted from real rows: finished
+     sessions, partners you actually agreed with, and where you came in the
+     signup order. Returns null when signed out or unreachable. */
+  function badgeStats(){
+    if (!client) return Promise.resolve(null);
+    return getProfile().then(function(profile){
+      if (!profile) return null;
+      var rank = client.from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .lt('created_at', profile.created_at);
+      return Promise.all([fetchSessions(), acceptedPartners(), rank]).then(function(r){
+        var sessions = r[0] || [];
+        var partners = r[1] || [];
+        var earlier  = (r[2] && r[2].count) || 0;
+        var now = Date.now();
+
+        var past = sessions.filter(function(s){
+          return s.startsAt.getTime() + s.durationMin * 60000 <= now;
+        });
+
+        /* How many finished sessions with the single most frequent partner. */
+        var byPartner = {}, mostWithOne = 0;
+        past.forEach(function(s){
+          var k = (s.partnerName || '').trim().toLowerCase();
+          if (!k) return;
+          byPartner[k] = (byPartner[k] || 0) + 1;
+          if (byPartner[k] > mostWithOne) mostWithOne = byPartner[k];
+        });
+
+        return {
+          pastSessions: past.length,
+          partners: partners.length,
+          mostWithOnePartner: mostWithOne,
+          profileComplete: !!(profile.name && profile.topic && profile.level &&
+                              (profile.availability || []).length),
+          joinRank: earlier + 1
+        };
+      });
+    }).catch(function(){ return null; });
+  }
+
   /* ---------- other learners (real rows only) ---------- */
 
   /* Everyone else who has signed up, newest first. Never invents anyone:
@@ -338,6 +381,7 @@ window.pf = (function(){
     respondToRequest: respondToRequest,
     markRequestsSeen: markRequestsSeen,
     acceptedPartners: acceptedPartners,
+    badgeStats: badgeStats,
     fetchPeers: fetchPeers,
     learnerStats: learnerStats,
     trackNames: trackNames
