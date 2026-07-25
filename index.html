@@ -45,36 +45,43 @@
       <h1>Nobody near you is learning this. <em>Someone online is.</em></h1>
       <p class="lede">We find you one partner on the same path, and you meet every week — face to face.</p>
       <a class="btn" href="signup.html">Find my partner</a>
-      <p class="hero-note">Free · one person, never a group</p>
     </div>
 
     <!--
-      This card illustrates what a match looks like once you have one.
-      Aigerim is not a real user, which is why the card is labelled
-      "Example match" instead of being dressed up as live data.
+      An illustration of a session in progress: two people, cameras on, one
+      pomodoro running. Nobody here is a real user, so the whole card is
+      hidden from screen readers rather than announced as live data.
+      The clock is driven by home.js.
     -->
-    <aside class="match" aria-label="Example of what a match looks like">
-      <div class="match-head">
-        <span class="mono">Example match</span>
-        <span class="live"><b></b>Online</span>
+    <aside class="session" aria-hidden="true">
+      <div class="session-head">
+        <span class="live"><b></b>In session</span>
+        <span class="mono">cameras on</span>
       </div>
-      <div class="person">
-        <div class="ava" aria-hidden="true">AK</div>
-        <div>
-          <p class="nm">Aigerim K.</p>
-          <p class="sub">Backend · week 7 of 12</p>
+
+      <div class="tiles">
+        <div class="tile">
+          <span class="tav" style="background:#3C3489">AM</span>
+          <span class="tname">Amir</span>
+        </div>
+        <div class="tile you">
+          <span class="tav" style="background:#0FA36B">YOU</span>
+          <span class="tname">You</span>
         </div>
       </div>
-      <!-- Twelve weeks: six done (one missed), this week dark, the rest ahead. -->
-      <div class="strip" role="img" aria-label="Five of the first six weekly sessions kept, week seven of twelve in progress">
-        <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i class="now"></i><i></i><i></i><i></i><i></i><i></i>
+
+      <p class="topic">Both learning <b>Linux basics</b></p>
+
+      <div class="pom">
+        <svg viewBox="0 0 100 100">
+          <circle class="pom-track" cx="50" cy="50" r="44"/>
+          <circle class="pom-arc" id="pf-arc" cx="50" cy="50" r="44"/>
+        </svg>
+        <div class="pom-mid">
+          <b id="pf-count">25:00</b>
+          <span>left</span>
+        </div>
       </div>
-      <div class="rows">
-        <div class="row"><span>Next session</span><b>Tue 19:00</b></div>
-        <div class="row"><span>Together for</span><b>7 weeks</b></div>
-        <div class="row"><span>Sessions kept</span><b>5 / 6</b></div>
-      </div>
-      <a class="join" href="signup.html" style="margin-top:18px">Join session</a>
     </aside>
   </header>
 

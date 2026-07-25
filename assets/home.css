@@ -74,42 +74,54 @@ h1{
 }
 h1 em{font-style:normal;color:var(--live)}
 .lede{font-size:18px;color:var(--ink-soft);margin:0 0 30px;max-width:30ch}
-.hero-note{
-  font-family:var(--mono);font-size:12px;color:var(--ink-faint);
-  margin:16px 0 0;letter-spacing:0.03em;
-}
 
-/* ---------- example match card ---------- */
-.match{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px}
-.match-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+/* ---------- session card ---------- */
+.session{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px}
+.session-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
 .live{
   display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
   letter-spacing:0.08em;text-transform:uppercase;color:var(--live-deep);
   background:var(--live-soft);padding:5px 10px;border-radius:999px;
 }
 .live b{width:6px;height:6px;border-radius:50%;background:var(--live);display:block}
-.person{display:flex;align-items:center;gap:13px;margin-bottom:20px}
-.ava{
-  width:46px;height:46px;border-radius:50%;background:#E8E7F0;color:#4A4E68;
-  display:flex;align-items:center;justify-content:center;font-weight:500;font-size:15px;flex:0 0 auto;
+
+/* Two camera tiles side by side — theirs plain, yours in the brand green. */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{
+  position:relative;aspect-ratio:4/3;border-radius:12px;display:flex;
+  align-items:center;justify-content:center;background:#EDECF2;border:1px solid var(--line);
 }
-.person p{margin:0}
-.person .nm{font-weight:500;font-size:16px}
-.person .sub{font-size:13.5px;color:var(--ink-soft)}
-.rows{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:11px;font-size:14px}
-.row{display:flex;justify-content:space-between;align-items:center}
-.row span{color:var(--ink-soft)}
-.row b{font-weight:500;font-family:var(--mono);font-size:13px}
+.tile.you{background:var(--live-soft);border-color:#BFE6D5}
+.tav{
+  width:50px;height:50px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;color:#fff;font-weight:500;font-size:15px;letter-spacing:0.02em;
+}
+.tname{
+  position:absolute;left:9px;bottom:8px;font-family:var(--mono);font-size:11px;
+  color:var(--ink);background:#FFFFFFD9;border-radius:6px;padding:2px 8px;
+}
 
-/* One block per week: filled = kept, empty = missed, dark = this week. */
-.strip{display:flex;gap:4px;margin:18px 0 16px}
-.strip i{flex:1;height:22px;border-radius:4px;background:#EDECF2;display:block}
-.strip i.on{background:var(--live)}
-.strip i.now{background:var(--ink)}
+.topic{margin:16px 0 0;font-size:14px;color:var(--ink-soft);text-align:center}
+.topic b{font-weight:500;color:var(--ink)}
 
-.join{
-  display:block;width:100%;text-align:center;background:var(--live);color:#fff;
-  padding:11px;border-radius:10px;font-size:14px;font-weight:500;
+/* Pomodoro ring. The arc is drawn by home.js via stroke-dashoffset;
+   276.46 is the circumference of an r=44 circle. */
+.pom{position:relative;width:132px;height:132px;margin:18px auto 2px}
+.pom svg{width:100%;height:100%;display:block;transform:rotate(-90deg)}
+.pom circle{fill:none;stroke-width:7;stroke-linecap:round}
+.pom-track{stroke:#EDECF2}
+.pom-arc{stroke:var(--live);stroke-dasharray:276.46;stroke-dashoffset:0}
+.pom-mid{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;
+}
+.pom-mid b{
+  font-family:var(--mono);font-size:26px;font-weight:500;color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:0.02em;
+}
+.pom-mid span{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--ink-faint);
 }
 
 /* ---------- steps ---------- */
