@@ -380,6 +380,9 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .plist .btn{margin-left:auto;padding:7px 14px;font-size:13px}
 .empty-hint{font-size:13.5px;color:var(--muted);background:var(--band);border:1px dashed var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px}
 .mini-h{font-size:13.5px;color:var(--ink);font-weight:700;margin:22px 0 12px}
+.signedout-note{background:#fdf3e7;border:1px solid #f0d3a8;color:#8a5a17;border-radius:10px;
+  padding:13px 16px;font-size:14px;margin-bottom:22px}
+.signedout-note a{color:#7a4d10;font-weight:700;text-decoration:underline}
 
 .filters{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0 0}
 .filters .chip{cursor:pointer}

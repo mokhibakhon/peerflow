@@ -34,6 +34,12 @@
       <span class="date" id="today-date"></span>
     </div>
 
+    <p class="signedout-note" id="signedout" hidden>
+      You're not signed in, so nothing here is saved to your account yet.
+      <a href="login.html">Log in</a> to save it — or
+      <a href="signup.html">finish signing up</a> if you're new.
+    </p>
+
     <div class="app-grid">
       <!-- ============ main column ============ -->
       <div class="app-col">
@@ -206,9 +212,32 @@
     if (c) c.classList.add('sel');
   }
 
+  /* No Supabase session: everything on this page is only in this browser, so
+     say so plainly rather than showing what looks like a saved account. */
+  function signedOut(){
+    var note = document.getElementById('signedout');
+    if (note) note.hidden = false;
+    var save = document.getElementById('save-match');
+    if (save) save.disabled = true;
+  }
+
+  /* Answers from signup that never reached the database (no session at the
+     time, e.g. email confirmation was on). Save them now that we're signed in. */
+  function flushPending(){
+    var raw = '';
+    try { raw = localStorage.getItem('pf_pending') || ''; } catch(err) { return; }
+    if (!raw) return;
+    var profile;
+    try { profile = JSON.parse(raw); } catch(err) { return; }
+    pf.saveProfile(profile).then(function(res){
+      if (res && res.saved) { try { localStorage.removeItem('pf_pending'); } catch(e){} }
+    });
+  }
+
   /* Signed-in users: load their real profile, prefill, and confirm the track. */
   pf.currentUser().then(function(user){
-    if (!user) return;                         // demo mode / not signed in
+    if (!user) { signedOut(); return; }
+    flushPending();
     var meta = user.user_metadata || {};
     if (!name) { name = meta.name || meta.full_name || (user.email || '').split('@')[0]; }
     try {
@@ -270,7 +299,7 @@
     pf.saveProfile(payload).then(function(res){
       btn.disabled = false; btn.textContent = 'Save';
       if (res && res.saved) { note.style.color = 'var(--green-dark)'; note.textContent = 'Saved.'; }
-      else if (res && res.demo) { note.style.color = 'var(--muted)'; note.textContent = 'Sign in on the live site to save this.'; }
+      else if (res && res.demo) { note.style.color = '#c0392b'; note.textContent = 'You’re not signed in — log in and this will save.'; }
       else { note.style.color = '#c0392b'; note.textContent = (res && res.error) || 'Could not save — please try again.'; }
     });
   });

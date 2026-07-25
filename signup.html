@@ -264,11 +264,26 @@
     var tz = '';
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(err) {}
 
+    /* We're launching with cybersecurity, so every signup is on that track;
+       the free-text topic is what they're specifically learning. Level and
+       goal are collected later in the app as "improve my match". */
+    var profile = {
+      name: state.name,
+      track: 'cybersecurity',
+      topic: state.topic,
+      timezone: tz,
+      availability: availability
+    };
+
     try {
       localStorage.setItem('pf_name', state.name || '');
       localStorage.setItem('pf_email', state.email || '');
       localStorage.setItem('pf_track', 'cybersecurity');
       localStorage.setItem('pf_topic', state.topic || '');
+      /* Keep the answers until they are known to be in the database. If email
+         confirmation is on there is no session yet, so the save can't happen
+         here — the app retries it as soon as the user is signed in. */
+      localStorage.setItem('pf_pending', JSON.stringify(profile));
     } catch(err) {}
 
     var btn = this;
@@ -276,21 +291,10 @@
     var left = false, errored = false;
     function go(){ if (left || errored) return; left = true; window.location.href = 'app.html'; }
 
-    /* Wait for the profile to save before leaving, so the dashboard sees the
-       track and doesn't send us back to onboarding. We're launching with
-       cybersecurity, so every signup is on that track; the free-text topic is
-       what they're specifically learning. Level and goal are collected later
-       in the app as an optional "improve my match". */
-    pf.saveProfile({
-      name: state.name,
-      track: 'cybersecurity',
-      topic: state.topic,
-      timezone: tz,
-      availability: availability
-    }).then(function(res){
+    pf.saveProfile(profile).then(function(res){
       if (res && res.error) {
         errored = true;
-        btn.disabled = false; btn.textContent = 'Finish and go to the app';
+        btn.disabled = false; btn.textContent = 'Done';
         var full = 'Could not save your profile:\n\n' + res.error + (res.detail ? '\n\n' + res.detail : '');
         su2Status.textContent = 'Could not save your profile: ' + res.error;
         su2Status.style.display = 'block';
@@ -298,9 +302,12 @@
         try { alert(full); } catch(e){}
         return;
       }
+      if (res && res.saved) {
+        try { localStorage.removeItem('pf_pending'); } catch(e){}
+      }
       go();
     });
-    /* Safety net if the network hangs — localStorage already holds the track. */
+    /* Safety net if the network hangs — localStorage already holds the answers. */
     setTimeout(function(){ if (!errored) go(); }, 8000);
   });
 })();
