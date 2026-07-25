@@ -27,6 +27,10 @@ create table if not exists public.profiles (
   created_at   timestamptz not null default now()
 );
 
+-- Adds newer columns when profiles already exists from an earlier run
+-- (create table if not exists would skip them).
+alter table public.profiles add column if not exists topic text;
+
 -- ---------- waitlist (home-page email captures) ----------
 -- Anyone can leave their email + what they want to learn. Insert-only:
 -- there is no read policy, so the list is private to the project owner.
