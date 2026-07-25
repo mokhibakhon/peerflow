@@ -138,10 +138,25 @@
         try { localStorage.setItem('pf_track', track); } catch(e){}
         render(track);
       }
-      pf.getMatch().then(function(m){ if (m) showMatched(m); });
+      /* A partner you agreed with through a request wins over the waiting
+         state; a hand-arranged match still works as a fallback. */
+      pf.acceptedPartners().then(function(list){
+        if (list && list.length) {
+          var p = list[0];
+          showMatched({
+            partner_name: p.profile.name,
+            partner_topic: p.profile.topic,
+            partner_times: '',
+            room_url: p.roomUrl
+          });
+          return;
+        }
+        pf.getMatch().then(function(m){ if (m) showMatched(m); });
+      });
     });
   });
 })();
 </script>
+<script src="assets/notify.js"></script>
 </body>
 </html>

@@ -83,7 +83,26 @@
 
   var list = document.getElementById('people');
 
-  pf.fetchPeers(24).then(function(people){
+  /* What's already been asked, so nobody is offered a duplicate request. */
+  var reqByUser = {};
+
+  function actionFor(userId){
+    var r = reqByUser[userId];
+    if (!r) return '<button class="btn ghost ask" data-ask="' + esc(userId) + '">Ask to partner</button>';
+    if (r.status === 'accepted') return '<span class="ask-state ok">Partners</span>';
+    if (r.status === 'declined') return '<span class="ask-state">Declined</span>';
+    return r.direction === 'out'
+      ? '<span class="ask-state">Request sent</span>'
+      : '<span class="ask-state">Asked you — check the bell</span>';
+  }
+
+  pf.myRequests().then(function(r){
+    if (r) {
+      r.outgoing.forEach(function(x){ reqByUser[x.to_user]   = { status: x.status, direction: 'out' }; });
+      r.incoming.forEach(function(x){ reqByUser[x.from_user] = { status: x.status, direction: 'in'  }; });
+    }
+    return pf.fetchPeers(24);
+  }).then(function(people){
     if (people === null) {
       list.innerHTML = '<li style="color:var(--muted);font-size:14px">Could not load people — check your connection and refresh.</li>';
       return;
@@ -103,8 +122,30 @@
         '<span class="av" style="background:' + palette[i % palette.length] + '">' + esc(nm.trim().charAt(0).toUpperCase()) + '</span>' +
         '<span><b>' + esc(nm) + (same ? ' <span class="same-tag">same topic</span>' : '') + '</b>' +
         '<span>' + esc(meta) + '</span></span>' +
+        actionFor(p.id) +
         '</li>';
     }).join('');
+  });
+
+  /* Send a request. */
+  list.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-ask]');
+    if (!btn) return;
+    var id = btn.getAttribute('data-ask');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    pf.sendPartnerRequest(id, '').then(function(res){
+      if (res && res.sent) {
+        reqByUser[id] = { status: 'pending', direction: 'out' };
+        btn.outerHTML = '<span class="ask-state">Request sent</span>';
+        return;
+      }
+      btn.disabled = false;
+      btn.textContent = 'Ask to partner';
+      alert(res && res.demo
+        ? 'You need to be signed in to send a request.'
+        : (res && res.error) || 'Could not send the request — please try again.');
+    });
   });
 
   pf.learnerStats(myTopic).then(function(s){
@@ -114,5 +155,6 @@
   });
 })();
 </script>
+<script src="assets/notify.js"></script>
 </body>
 </html>

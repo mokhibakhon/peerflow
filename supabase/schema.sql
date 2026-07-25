@@ -54,6 +54,46 @@ create table if not exists public.matches (
   created_at    timestamptz not null default now()
 );
 
+-- ---------- partner requests ----------
+-- One person asks another to be their learning partner. The recipient accepts
+-- or declines. Both sides also track whether they've seen the latest state,
+-- which is what drives the unread count on the bell.
+create table if not exists public.partner_requests (
+  id           uuid primary key default gen_random_uuid(),
+  from_user    uuid not null references auth.users(id) on delete cascade,
+  to_user      uuid not null references auth.users(id) on delete cascade,
+  message      text,
+  status       text not null default 'pending' check (status in ('pending','accepted','declined')),
+  to_seen_at   timestamptz,   -- recipient has seen the request
+  from_seen_at timestamptz,   -- sender has seen the answer
+  created_at   timestamptz not null default now(),
+  constraint no_self_request check (from_user <> to_user),
+  unique (from_user, to_user)
+);
+create index if not exists partner_requests_to   on public.partner_requests (to_user, status);
+create index if not exists partner_requests_from on public.partner_requests (from_user, status);
+
+-- Only the recipient may change the status. The sender can still update the
+-- row (to mark the answer as seen), so enforce the rule here rather than in RLS.
+create or replace function public.guard_partner_request()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if auth.uid() = old.from_user and auth.uid() <> old.to_user
+     and new.status is distinct from old.status then
+    raise exception 'only the recipient can answer a partner request';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists partner_request_guard on public.partner_requests;
+create trigger partner_request_guard
+  before update on public.partner_requests
+  for each row execute function public.guard_partner_request();
+
 -- ---------- drop the legacy group-session tables ----------
 -- Earlier versions of PeerFlow had a group "sessions" table (host_id, capacity,
 -- kind) plus session_members. The one-to-one model replaces it with a per-person
@@ -114,6 +154,7 @@ alter table public.profiles enable row level security;
 alter table public.waitlist enable row level security;
 alter table public.matches  enable row level security;
 alter table public.sessions enable row level security;
+alter table public.partner_requests enable row level security;
 
 drop policy if exists "tracks are public"          on public.tracks;
 drop policy if exists "profiles are viewable"       on public.profiles;
@@ -122,6 +163,9 @@ drop policy if exists "update own profile"          on public.profiles;
 drop policy if exists "anyone can join the waitlist" on public.waitlist;
 drop policy if exists "read own match"              on public.matches;
 drop policy if exists "read own sessions"           on public.sessions;
+drop policy if exists "read own requests"           on public.partner_requests;
+drop policy if exists "send requests as yourself"   on public.partner_requests;
+drop policy if exists "answer or mark seen"         on public.partner_requests;
 
 create policy "tracks are public"
   on public.tracks for select using (true);
@@ -144,6 +188,19 @@ create policy "read own match"
 -- Same for sessions: you only ever see your own scheduled meetings.
 create policy "read own sessions"
   on public.sessions for select using (auth.uid() = user_id);
+
+-- Partner requests: visible to the two people involved, and only they can act.
+create policy "read own requests"
+  on public.partner_requests for select
+  using (auth.uid() = from_user or auth.uid() = to_user);
+create policy "send requests as yourself"
+  on public.partner_requests for insert
+  with check (auth.uid() = from_user);
+-- Either side may update (recipient answers, sender marks the answer seen);
+-- the guard trigger stops the sender from answering on their own behalf.
+create policy "answer or mark seen"
+  on public.partner_requests for update
+  using (auth.uid() = from_user or auth.uid() = to_user);
 
 -- ---------- seed: the paths ----------
 insert into public.tracks (id, name, career, sort) values

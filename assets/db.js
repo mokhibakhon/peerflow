@@ -186,6 +186,104 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* ---------- partner requests ---------- */
+
+  /* Ask someone to be your learning partner. */
+  function sendPartnerRequest(toUserId, message){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.auth.getUser().then(function(res){
+      var uid = res.data && res.data.user && res.data.user.id;
+      if (!uid) return { demo: true };
+      if (uid === toUserId) return { error: 'You can’t send a request to yourself.' };
+      return client.from('partner_requests')
+        .insert({ from_user: uid, to_user: toUserId, message: message || null })
+        .then(function(r){
+          if (r.error) {
+            if (r.error.code === '23505') return { error: 'You’ve already sent them a request.' };
+            return { error: r.error.message || 'Could not send the request.' };
+          }
+          return { sent: true };
+        });
+    }).catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+  }
+
+  /* Every request involving the signed-in user, with the other person's
+     profile attached. Returns { incoming: [], outgoing: [], me: uid }. */
+  function myRequests(){
+    if (!client) return Promise.resolve(null);
+    return client.auth.getUser().then(function(res){
+      var uid = res.data && res.data.user && res.data.user.id;
+      if (!uid) return null;
+      return client.from('partner_requests')
+        .select('id,from_user,to_user,message,status,to_seen_at,from_seen_at,created_at')
+        .or('from_user.eq.' + uid + ',to_user.eq.' + uid)
+        .order('created_at', { ascending: false })
+        .then(function(r){
+          if (r.error) return null;
+          var rows = r.data || [];
+          var others = rows.map(function(x){ return x.from_user === uid ? x.to_user : x.from_user; });
+          if (!others.length) return { incoming: [], outgoing: [], me: uid };
+          return client.from('profiles')
+            .select('id,name,track_id,topic,level,timezone')
+            .in('id', others)
+            .then(function(p){
+              var byId = {};
+              (p.data || []).forEach(function(x){ byId[x.id] = x; });
+              var incoming = [], outgoing = [];
+              rows.forEach(function(x){
+                var otherId = x.from_user === uid ? x.to_user : x.from_user;
+                x.other = byId[otherId] || { id: otherId, name: 'Someone' };
+                (x.to_user === uid ? incoming : outgoing).push(x);
+              });
+              return { incoming: incoming, outgoing: outgoing, me: uid };
+            });
+        });
+    }).catch(function(){ return null; });
+  }
+
+  /* Accept or decline a request sent to you. */
+  function respondToRequest(id, status){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.from('partner_requests')
+      .update({ status: status, to_seen_at: new Date().toISOString() })
+      .eq('id', id)
+      .then(function(r){
+        return r.error ? { error: r.error.message } : { saved: true };
+      }).catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+  }
+
+  /* Mark notifications read: incoming requests you've looked at, and answers
+     to your own requests you've now seen. */
+  function markRequestsSeen(incomingIds, outgoingIds){
+    if (!client) return Promise.resolve({ demo: true });
+    var now = new Date().toISOString(), jobs = [];
+    if (incomingIds && incomingIds.length) {
+      jobs.push(client.from('partner_requests').update({ to_seen_at: now }).in('id', incomingIds));
+    }
+    if (outgoingIds && outgoingIds.length) {
+      jobs.push(client.from('partner_requests').update({ from_seen_at: now }).in('id', outgoingIds));
+    }
+    if (!jobs.length) return Promise.resolve({ saved: true });
+    return Promise.all(jobs).then(function(){ return { saved: true }; })
+      .catch(function(){ return { error: 'Could not update.' }; });
+  }
+
+  /* People you're actually partnered with: any accepted request, either way. */
+  function acceptedPartners(){
+    return myRequests().then(function(r){
+      if (!r) return null;
+      return r.incoming.concat(r.outgoing)
+        .filter(function(x){ return x.status === 'accepted'; })
+        .map(function(x){
+          return {
+            requestId: x.id,
+            profile: x.other,
+            roomUrl: 'https://meet.jit.si/PeerFlow-' + x.id
+          };
+        });
+    });
+  }
+
   /* ---------- other learners (real rows only) ---------- */
 
   /* Everyone else who has signed up, newest first. Never invents anyone:
@@ -235,6 +333,11 @@ window.pf = (function(){
     joinWaitlist: joinWaitlist,
     getMatch: getMatch,
     fetchSessions: fetchSessions,
+    sendPartnerRequest: sendPartnerRequest,
+    myRequests: myRequests,
+    respondToRequest: respondToRequest,
+    markRequestsSeen: markRequestsSeen,
+    acceptedPartners: acceptedPartners,
     fetchPeers: fetchPeers,
     learnerStats: learnerStats,
     trackNames: trackNames
