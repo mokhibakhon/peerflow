@@ -5,7 +5,7 @@
 -- ============================================================
 
 -- ---------- tracks ----------
--- We're starting with cybersecurity. Add more rows here as fields go live.
+-- The paths people can pick from at signup.
 create table if not exists public.tracks (
   id     text primary key,
   name   text not null,
@@ -14,8 +14,7 @@ create table if not exists public.tracks (
 );
 
 -- ---------- profiles (one per auth user) ----------
--- track_id and availability are set at signup; level and goal are filled in
--- later from the app's optional "improve my match" prompt.
+-- Set at signup; editable later from the Profile page.
 create table if not exists public.profiles (
   id           uuid primary key references auth.users(id) on delete cascade,
   name         text not null default '',
@@ -51,6 +50,22 @@ create table if not exists public.matches (
   created_at    timestamptz not null default now()
 );
 
+-- ---------- sessions (scheduled meetings, created by hand for now) ----------
+-- One row per person per meeting: when two partners agree a time, insert a row
+-- for each of them with the same starts_at and room_url. Each person can only
+-- read their own rows.
+create table if not exists public.sessions (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid not null references auth.users(id) on delete cascade,
+  partner_name text,
+  topic        text,
+  starts_at    timestamptz not null,
+  duration_min int not null default 50,
+  room_url     text,
+  created_at   timestamptz not null default now()
+);
+create index if not exists sessions_user_starts on public.sessions (user_id, starts_at);
+
 -- ---------- auto-create a profile on signup ----------
 create or replace function public.handle_new_user()
 returns trigger
@@ -75,6 +90,7 @@ alter table public.tracks   enable row level security;
 alter table public.profiles enable row level security;
 alter table public.waitlist enable row level security;
 alter table public.matches  enable row level security;
+alter table public.sessions enable row level security;
 
 drop policy if exists "tracks are public"          on public.tracks;
 drop policy if exists "profiles are viewable"       on public.profiles;
@@ -82,6 +98,7 @@ drop policy if exists "insert own profile"          on public.profiles;
 drop policy if exists "update own profile"          on public.profiles;
 drop policy if exists "anyone can join the waitlist" on public.waitlist;
 drop policy if exists "read own match"              on public.matches;
+drop policy if exists "read own sessions"           on public.sessions;
 
 create policy "tracks are public"
   on public.tracks for select using (true);
@@ -100,6 +117,10 @@ create policy "anyone can join the waitlist"
 -- Users can read only their own match row (you insert rows as the owner).
 create policy "read own match"
   on public.matches for select using (auth.uid() = user_id);
+
+-- Same for sessions: you only ever see your own scheduled meetings.
+create policy "read own sessions"
+  on public.sessions for select using (auth.uid() = user_id);
 
 -- ---------- seed: the paths ----------
 insert into public.tracks (id, name, career, sort) values

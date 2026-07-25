@@ -155,6 +155,35 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* ---------- scheduled sessions ---------- */
+
+  /* Every session booked for the signed-in user, soonest first. Rows are
+     created when two partners agree a time; nothing is generated. */
+  function fetchSessions(){
+    if (!client) return Promise.resolve(null);
+    return client.auth.getUser().then(function(res){
+      var uid = res.data && res.data.user && res.data.user.id;
+      if (!uid) return null;
+      return client.from('sessions')
+        .select('id,partner_name,topic,starts_at,duration_min,room_url')
+        .eq('user_id', uid)
+        .order('starts_at', { ascending: true })
+        .then(function(r){
+          if (r.error) return null;
+          return (r.data || []).map(function(s){
+            return {
+              id: s.id,
+              partnerName: s.partner_name,
+              topic: s.topic,
+              startsAt: new Date(s.starts_at),
+              durationMin: s.duration_min || 50,
+              roomUrl: s.room_url
+            };
+          });
+        });
+    }).catch(function(){ return null; });
+  }
+
   /* ---------- other learners (real rows only) ---------- */
 
   /* Everyone else who has signed up, newest first. Never invents anyone:
@@ -203,6 +232,7 @@ window.pf = (function(){
     saveProfile: saveProfile,
     joinWaitlist: joinWaitlist,
     getMatch: getMatch,
+    fetchSessions: fetchSessions,
     fetchPeers: fetchPeers,
     learnerStats: learnerStats,
     trackNames: trackNames
