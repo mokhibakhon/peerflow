@@ -302,8 +302,8 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .divider::before,.divider::after{content:"";height:1px;background:var(--border);flex:1}
 .field{margin-bottom:14px;max-width:420px}
 .field label{display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
-.field input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:15.5px;font-family:inherit;color:var(--ink);background:#fff}
-.field input:focus{outline:none;border-color:var(--green)}
+.field input,.field select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:15.5px;font-family:inherit;color:var(--ink);background:#fff}
+.field input:focus,.field select:focus{outline:none;border-color:var(--green)}
 
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .choices.one{grid-template-columns:1fr}
@@ -518,6 +518,11 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .form-note.ok{color:var(--green-dark);font-weight:600}
 .onGreen-form{margin-top:28px}
 .onGreen-form input{border-color:transparent}
+
+/* ============ paths row ============ */
+.paths{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:40px}
+.path{background:#fff;border:1.5px solid var(--border);border-radius:999px;padding:10px 22px;
+  font-size:15px;font-weight:600;color:var(--ink)}
 
 /* ============ simplified footer ============ */
 .foot-simple{display:flex;flex-direction:column;gap:12px;align-items:flex-start}

@@ -49,6 +49,21 @@
             <input id="p-name" type="text" placeholder="What should we call you?" autocomplete="given-name">
           </div>
 
+          <h4 class="mini-h">Your path</h4>
+          <div class="field" style="max-width:none">
+            <select id="p-track">
+              <option value="">Pick a path</option>
+              <option value="frontend">Frontend</option>
+              <option value="backend">Backend</option>
+              <option value="cybersecurity">Cybersecurity</option>
+              <option value="data">Data &amp; analytics</option>
+              <option value="mobile">Mobile</option>
+              <option value="devops">DevOps &amp; cloud</option>
+              <option value="aiml">AI &amp; machine learning</option>
+              <option value="design">UX/UI design</option>
+            </select>
+          </div>
+
           <h4 class="mini-h">What you're learning</h4>
           <div class="field" style="max-width:none">
             <input id="p-topic" type="text" placeholder="e.g. Linux basics" autocomplete="off">
@@ -108,6 +123,7 @@
 (function(){
   var nameI = document.getElementById('p-name');
   var topicI = document.getElementById('p-topic');
+  var trackSel = document.getElementById('p-track');
   var levelBox = document.getElementById('p-level');
   var availBox = document.getElementById('p-avail');
   var note = document.getElementById('p-note');
@@ -149,6 +165,7 @@
       if (!p) return;
       if (p.name) nameI.value = p.name;
       if (p.topic) topicI.value = p.topic;
+      if (p.track_id) trackSel.value = p.track_id;
       markSel(levelBox, 'data-level', p.level);
       (p.availability || []).forEach(function(v){ markSel(availBox, 'data-slot', v); });
       document.getElementById('p-tz').textContent = p.timezone || '—';
@@ -171,6 +188,7 @@
 
     if (nm) payload.name = nm;
     if (tp) payload.topic = tp;
+    if (trackSel.value) payload.track = trackSel.value;
     if (sel) payload.level = sel.getAttribute('data-level');
     if (avail.length) payload.availability = avail;
 

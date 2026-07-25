@@ -164,7 +164,7 @@ window.pf = (function(){
     return client.auth.getUser().then(function(res){
       var uid = res.data && res.data.user && res.data.user.id;
       var q = client.from('profiles')
-        .select('id,name,topic,level,timezone,created_at')
+        .select('id,name,track_id,topic,level,timezone,created_at')
         .order('created_at', { ascending: false })
         .limit(limit || 24);
       if (uid) q = q.neq('id', uid);

@@ -76,9 +76,23 @@
       <span id="auth-chip-text">Signed in</span>
       <a href="#" id="auth-switch">switch</a>
     </div>
-    <h1>What are you learning?</h1>
-    <p class="lead">Be specific if you can — “Linux basics” matches better than “cybersecurity.”</p>
-    <div class="field" id="f-topic">
+    <h1>Which path are you on?</h1>
+    <p class="lead">This is the broad direction. You'll say what you're working on specifically next.</p>
+    <div class="choices" id="track-choices">
+      <button class="choice" data-track="frontend"><span><b>Frontend</b><span>JavaScript, React, web</span></span></button>
+      <button class="choice" data-track="backend"><span><b>Backend</b><span>Python, SQL, APIs</span></span></button>
+      <button class="choice" data-track="cybersecurity"><span><b>Cybersecurity</b><span>Linux, networking, CTFs</span></span></button>
+      <button class="choice" data-track="data"><span><b>Data &amp; analytics</b><span>SQL, pandas, dashboards</span></span></button>
+      <button class="choice" data-track="mobile"><span><b>Mobile</b><span>Flutter, React Native</span></span></button>
+      <button class="choice" data-track="devops"><span><b>DevOps &amp; cloud</b><span>Linux, Docker, AWS</span></span></button>
+      <button class="choice" data-track="aiml"><span><b>AI &amp; machine learning</b><span>Python, PyTorch</span></span></button>
+      <button class="choice" data-track="design"><span><b>UX/UI design</b><span>Figma, design systems</span></span></button>
+    </div>
+    <p class="step-err" id="track-err" hidden>Pick the path closest to what you're learning.</p>
+
+    <h2 class="q">What are you working on right now?</h2>
+    <p class="lead" style="margin:0 0 14px">Be specific if you can — “Linux basics” matches better than “cybersecurity.”</p>
+    <div class="field" id="f-topic" style="max-width:none">
       <input id="su-topic" type="text" placeholder="e.g. Linux basics, or Security+ prep" autocomplete="off">
       <span class="err">Tell us what you're learning so we can find someone learning it too.</span>
     </div>
@@ -133,7 +147,7 @@
 <script src="assets/db.js"></script>
 <script>
 (function(){
-  var state = { topic:'', level:null, name:'', email:'', provider:'email' };
+  var state = { track:null, topic:'', level:null, name:'', email:'', provider:'email' };
   var steps = Array.prototype.slice.call(document.querySelectorAll('.onb-step'));
   var dots = Array.prototype.slice.call(document.querySelectorAll('.onb-progress i'));
   var cur = 0;
@@ -260,12 +274,24 @@
     });
   });
 
-  /* ---------- step 2: what are you learning (required) ---------- */
+  /* ---------- step 2: path + what you're working on (both required) ---------- */
   var finishBtn = document.getElementById('finish');
   var topicI = document.getElementById('su-topic');
   var topicF = document.getElementById('f-topic');
+  var trackBox = document.getElementById('track-choices');
+  var trackErr = document.getElementById('track-err');
+
+  trackBox.addEventListener('click', function(e){
+    var c = e.target.closest('.choice');
+    if (!c) return;
+    Array.prototype.forEach.call(trackBox.querySelectorAll('.choice'), function(x){ x.classList.remove('sel'); });
+    c.classList.add('sel');
+    state.track = c.getAttribute('data-track');
+    trackErr.hidden = true;
+  });
   topicI.addEventListener('input', function(){ topicF.classList.remove('bad'); });
   document.getElementById('topic-next').addEventListener('click', function(){
+    if (!state.track) { trackErr.hidden = false; return; }
     state.topic = topicI.value.trim();
     if (!state.topic) { topicF.classList.add('bad'); topicI.focus(); return; }
     show(2);
@@ -316,12 +342,11 @@
     var tz = '';
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(err) {}
 
-    /* We're launching with cybersecurity, so every signup is on that track;
-       the free-text topic is what they're specifically learning. Level and
-       goal are collected later in the app as "improve my match". */
+    /* The path is the broad direction; the free-text topic is what they're
+       actually working on. Both drive matching. */
     var profile = {
       name: state.name,
-      track: 'cybersecurity',
+      track: state.track,
       topic: state.topic,
       level: state.level,
       timezone: tz,
@@ -331,7 +356,7 @@
     try {
       localStorage.setItem('pf_name', state.name || '');
       localStorage.setItem('pf_email', state.email || '');
-      localStorage.setItem('pf_track', 'cybersecurity');
+      localStorage.setItem('pf_track', state.track || '');
       localStorage.setItem('pf_topic', state.topic || '');
       /* Keep the answers until they are known to be in the database. If email
          confirmation is on there is no session yet, so the save can't happen

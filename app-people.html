@@ -66,6 +66,7 @@
     pf.signOut();
   });
 
+  var pathLabel = { frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity', data:'Data & analytics', mobile:'Mobile', devops:'DevOps & cloud', aiml:'AI & ML', design:'UX/UI design' };
   var levelLabel = { new:'Just starting', tutorials:'Doing tutorials', jobprep:'Job-hunt prep', builder:'Builds projects' };
   var palette = ['#0b8f66','#3d8fd1','#8e6cc8','#d1793d','#c2568e','#5a9e6f'];
 
@@ -95,7 +96,7 @@
     }
     list.innerHTML = people.map(function(p, i){
       var nm = p.name || 'Someone';
-      var meta = [p.topic ? 'Learning ' + p.topic : '', levelLabel[p.level] || '', p.timezone || '', since(p.created_at)]
+      var meta = [pathLabel[p.track_id] || '', p.topic ? 'Learning ' + p.topic : '', levelLabel[p.level] || '', p.timezone || '', since(p.created_at)]
         .filter(Boolean).join(' · ');
       var same = myTopic && p.topic && p.topic.toLowerCase() === myTopic.toLowerCase();
       return '<li>' +
