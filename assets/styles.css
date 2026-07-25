@@ -496,6 +496,8 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .lead-form input:focus{outline:none;border-color:var(--green)}
 .lead-form .btn{flex:none}
 .form-note{text-align:center;font-size:13.5px;color:var(--muted);margin-top:14px;min-height:18px}
+.form-note.bad{color:#c0392b;font-weight:600}
+.form-note.ok{color:var(--green-dark);font-weight:600}
 .onGreen-form{margin-top:28px}
 .onGreen-form input{border-color:transparent}
 

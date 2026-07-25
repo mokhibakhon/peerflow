@@ -6,12 +6,25 @@
     var form = document.getElementById(formId);
     if (!form || !window.pf) return;
     var note = document.getElementById(noteId);
+    var emailEl = document.getElementById(emailId);
+
+    /* Errors read red, confirmations read green. */
+    function say(text, kind){
+      note.textContent = text;
+      note.className = 'form-note' + (kind ? ' ' + kind : '');
+    }
+    /* Clear the warning as soon as they start fixing it. */
+    emailEl.addEventListener('input', function(){
+      if (note.classList.contains('bad')) say('', '');
+    });
+
     form.addEventListener('submit', function(e){
       e.preventDefault();
-      var email = (document.getElementById(emailId).value || '').trim();
+      var email = (emailEl.value || '').trim();
       var interest = (document.getElementById(interestId).value || '').trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-        note.textContent = 'Please enter a valid email address.';
+        say('Please enter a valid email address.', 'bad');
+        emailEl.focus();
         return;
       }
       var btn = form.querySelector('button');
@@ -21,11 +34,11 @@
         btn.disabled = false; btn.textContent = label;
         if (res && res.saved) {
           form.reset();
-          note.textContent = okText;
+          say(okText, 'ok');
         } else if (res && res.demo) {
-          note.textContent = 'This preview isn’t connected to the server, so nothing was sent.';
+          say('This preview isn’t connected to the server, so nothing was sent.', 'bad');
         } else {
-          note.textContent = (res && res.error) || 'Something went wrong — please try again.';
+          say((res && res.error) || 'Something went wrong — please try again.', 'bad');
         }
       });
     });
