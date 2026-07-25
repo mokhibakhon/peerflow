@@ -19,11 +19,8 @@
       <a href="app.html">Sessions</a>
       <a href="app-sessions.html" class="active">My partner</a>
       <a href="app-people.html">People</a>
-      <a href="app-profile.html">Profile</a>
     </nav>
     <div class="nav-right">
-      <a href="index.html" class="login" id="logout" title="Log out">Log out</a>
-      <span class="av-nav" id="nav-av" title="Your profile">S</span>
     </div>
   </div>
 </header>
@@ -68,13 +65,6 @@
     name = localStorage.getItem('pf_name') || '';
     track = localStorage.getItem('pf_track') || '';
   } catch(err) {}
-
-  document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
-
-  document.getElementById('logout').addEventListener('click', function(){
-    try { ['pf_name','pf_email','pf_track','pf_booked'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
-    pf.signOut();
-  });
 
   /* Honest state: there's no automatic matching engine yet, so we never show a
      fabricated partner. The message reflects the user's real track. */
@@ -157,6 +147,7 @@
   });
 })();
 </script>
+<script src="assets/usermenu.js"></script>
 <script src="assets/notify.js"></script>
 </body>
 </html>

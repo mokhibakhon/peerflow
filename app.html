@@ -19,11 +19,8 @@
       <a href="app.html" class="active">Sessions</a>
       <a href="app-sessions.html">My partner</a>
       <a href="app-people.html">People</a>
-      <a href="app-profile.html">Profile</a>
     </nav>
     <div class="nav-right">
-      <a href="index.html" class="login" id="logout" title="Log out">Log out</a>
-      <span class="av-nav" id="nav-av" title="Your profile">S</span>
     </div>
   </div>
 </header>
@@ -75,17 +72,11 @@
 (function(){
   var name = '';
   try { name = localStorage.getItem('pf_name') || ''; } catch(err) {}
-  document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
-  document.getElementById('logout').addEventListener('click', function(){
-    try { ['pf_name','pf_email','pf_track','pf_topic','pf_pending'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
-    pf.signOut();
-  });
 
   var h = new Date().getHours();
   var part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
   function greet(){
     document.getElementById('greeting').textContent = part + (name ? ', ' + name : '');
-    document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
   }
   greet();
   try {
@@ -217,6 +208,7 @@
   });
 })();
 </script>
+<script src="assets/usermenu.js"></script>
 <script src="assets/notify.js"></script>
 </body>
 </html>

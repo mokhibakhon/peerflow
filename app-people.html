@@ -19,11 +19,8 @@
       <a href="app.html">Sessions</a>
       <a href="app-sessions.html">My partner</a>
       <a href="app-people.html" class="active">People</a>
-      <a href="app-profile.html">Profile</a>
     </nav>
     <div class="nav-right">
-      <a href="index.html" class="login" id="logout" title="Log out">Log out</a>
-      <span class="av-nav" id="nav-av" title="Your profile">S</span>
     </div>
   </div>
 </header>
@@ -60,11 +57,6 @@
     name = localStorage.getItem('pf_name') || '';
     myTopic = localStorage.getItem('pf_topic') || '';
   } catch(err) {}
-  document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
-  document.getElementById('logout').addEventListener('click', function(){
-    try { ['pf_name','pf_email','pf_track','pf_topic','pf_pending'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
-    pf.signOut();
-  });
 
   var pathLabel = { frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity', data:'Data & analytics', mobile:'Mobile', devops:'DevOps & cloud', aiml:'AI & ML', design:'UX/UI design' };
   var levelLabel = { new:'Just starting', tutorials:'Doing tutorials', jobprep:'Job-hunt prep', builder:'Builds projects' };
@@ -155,6 +147,7 @@
   });
 })();
 </script>
+<script src="assets/usermenu.js"></script>
 <script src="assets/notify.js"></script>
 </body>
 </html>

@@ -65,6 +65,16 @@ window.pf = (function(){
     if (client) client.auth.signOut();
   }
 
+  /* Change the signed-in user's password. Supabase requires a live session,
+     so this only works while logged in. */
+  function changePassword(newPassword){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.auth.updateUser({ password: newPassword }).then(function(r){
+      if (r.error) return { error: r.error.message };
+      return { saved: true };
+    }).catch(function(e){ return { error: (e && e.message) || 'Could not change your password.' }; });
+  }
+
   /* ---------- profile ---------- */
 
   /* The signed-in user's profile row, or null (signed out / no row yet). */
@@ -372,6 +382,7 @@ window.pf = (function(){
     currentUser: currentUser,
     getProfile: getProfile,
     signOut: signOut,
+    changePassword: changePassword,
     saveProfile: saveProfile,
     joinWaitlist: joinWaitlist,
     getMatch: getMatch,

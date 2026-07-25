@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20110%20110%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2250%22%20y%3D%220%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%2220%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2220%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%2220%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2230%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2280%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2230%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2270%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2280%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%22100%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2260%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2260%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2280%22%20y%3D%2260%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2270%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%2280%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2280%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%2280%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%22100%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="app.html" aria-label="PeerFlow — Sessions">
+      <svg width="26" height="26" viewBox="0 0 110 110" fill="#0b8f66" aria-hidden="true"><rect x="50" y="0" width="10" height="10"/><rect x="40" y="20" width="10" height="10"/><rect x="50" y="20" width="10" height="10"/><rect x="60" y="20" width="10" height="10"/><rect x="50" y="30" width="10" height="10"/><rect x="20" y="40" width="10" height="10"/><rect x="50" y="40" width="10" height="10"/><rect x="80" y="40" width="10" height="10"/><rect x="0" y="50" width="10" height="10"/><rect x="20" y="50" width="10" height="10"/><rect x="30" y="50" width="10" height="10"/><rect x="40" y="50" width="10" height="10"/><rect x="50" y="50" width="10" height="10"/><rect x="60" y="50" width="10" height="10"/><rect x="70" y="50" width="10" height="10"/><rect x="80" y="50" width="10" height="10"/><rect x="100" y="50" width="10" height="10"/><rect x="20" y="60" width="10" height="10"/><rect x="50" y="60" width="10" height="10"/><rect x="80" y="60" width="10" height="10"/><rect x="50" y="70" width="10" height="10"/><rect x="40" y="80" width="10" height="10"/><rect x="50" y="80" width="10" height="10"/><rect x="60" y="80" width="10" height="10"/><rect x="50" y="100" width="10" height="10"/></svg>
+      <span>peer<b>flow</b></span>
+    </a>
+    <nav class="nav-links" aria-label="App">
+      <a href="app.html">Sessions</a>
+      <a href="app-sessions.html">My partner</a>
+      <a href="app-people.html">People</a>
+    </nav>
+    <div class="nav-right">
+    </div>
+  </div>
+</header>
+
+<main class="app-main">
+  <div class="wrap">
+    <div class="app-head">
+      <h1>Settings</h1>
+    </div>
+
+    <p class="signedout-note" id="signedout" hidden>
+      You're not signed in. <a href="login.html">Log in</a> to change your settings.
+    </p>
+
+    <div class="app-grid">
+      <div class="app-col">
+
+        <div class="card">
+          <h3>Account</h3>
+          <dl class="kv">
+            <dt>Email</dt><dd id="s-email">—</dd>
+            <dt>Signed in with</dt><dd id="s-provider">—</dd>
+            <dt>Joined</dt><dd id="s-joined">—</dd>
+          </dl>
+          <p style="font-size:13.5px;color:var(--muted);margin-top:14px">
+            Your email is how we reach you about a match. It's never shown to other members.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Change password</h3>
+          <div class="field" style="max-width:none">
+            <label for="s-pass">New password</label>
+            <div class="pw-wrap">
+              <input id="s-pass" type="password" placeholder="8+ characters" autocomplete="new-password">
+              <button type="button" class="pw-toggle" id="s-toggle" aria-label="Show password">Show</button>
+            </div>
+          </div>
+          <div class="field" style="max-width:none">
+            <label for="s-pass2">Repeat it</label>
+            <input id="s-pass2" type="password" placeholder="Same again" autocomplete="new-password">
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:6px">
+            <button class="btn primary" id="s-save-pass">Change password</button>
+            <span id="s-pass-note" style="font-size:13.5px;color:var(--muted)"></span>
+          </div>
+          <p style="font-size:13px;color:var(--muted);margin-top:14px" id="s-oauth-note" hidden>
+            You signed in with Google, so you don't have a PeerFlow password to change.
+          </p>
+        </div>
+      </div>
+
+      <div class="app-col">
+        <div class="card">
+          <h3>Timezone</h3>
+          <p style="font-size:14.5px">Session times are shown in your timezone, and we use it to
+            suggest partners awake when you are.</p>
+          <dl class="kv" style="margin-top:14px">
+            <dt>Saved</dt><dd id="s-tz-saved">—</dd>
+            <dt>Detected now</dt><dd id="s-tz-now">—</dd>
+          </dl>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px">
+            <button class="btn ghost" id="s-tz-update">Use my current timezone</button>
+            <span id="s-tz-note" style="font-size:13.5px;color:var(--muted)"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Your profile</h3>
+          <p style="font-size:14.5px">Your name, path, topic, stage and free times live on your
+            profile — that's what your partner sees.</p>
+          <a class="btn ghost" href="app-profile.html" style="margin-top:14px">Edit profile</a>
+        </div>
+
+        <div class="card">
+          <h3>Delete your account</h3>
+          <p style="font-size:14.5px">Email <a href="mailto:hello@peerflow.dev" style="color:var(--green-dark);font-weight:600">hello@peerflow.dev</a>
+            from the address you signed up with and your account and profile are removed. No forms, no delay.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script>
+(function(){
+  var passI  = document.getElementById('s-pass');
+  var passI2 = document.getElementById('s-pass2');
+  var passNote = document.getElementById('s-pass-note');
+  var tzNote = document.getElementById('s-tz-note');
+
+  var detected = '';
+  try { detected = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(err) {}
+  document.getElementById('s-tz-now').textContent = detected || 'unknown';
+
+  document.getElementById('s-toggle').addEventListener('click', function(){
+    var showing = passI.type === 'text';
+    passI.type = showing ? 'password' : 'text';
+    this.textContent = showing ? 'Show' : 'Hide';
+  });
+
+  pf.currentUser().then(function(user){
+    if (!user) {
+      document.getElementById('signedout').hidden = false;
+      document.getElementById('s-save-pass').disabled = true;
+      document.getElementById('s-tz-update').disabled = true;
+      return;
+    }
+    document.getElementById('s-email').textContent = user.email || '—';
+
+    /* Google accounts have no PeerFlow password to change. */
+    var provider = (user.app_metadata && user.app_metadata.provider) || 'email';
+    document.getElementById('s-provider').textContent =
+      provider === 'email' ? 'Email and password' : provider.charAt(0).toUpperCase() + provider.slice(1);
+    if (provider !== 'email') {
+      document.getElementById('s-oauth-note').hidden = false;
+      document.getElementById('s-save-pass').disabled = true;
+      passI.disabled = true; passI2.disabled = true;
+    }
+
+    pf.getProfile().then(function(p){
+      if (!p) return;
+      document.getElementById('s-tz-saved').textContent = p.timezone || 'not set';
+      if (p.created_at) {
+        try {
+          document.getElementById('s-joined').textContent =
+            new Date(p.created_at).toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
+        } catch(e){}
+      }
+    });
+  });
+
+  document.getElementById('s-save-pass').addEventListener('click', function(){
+    var a = passI.value, b = passI2.value;
+    passNote.style.color = '#c0392b';
+    if (a.length < 8) { passNote.textContent = 'Use at least 8 characters.'; passI.focus(); return; }
+    if (a !== b)      { passNote.textContent = 'The two passwords don’t match.'; passI2.focus(); return; }
+
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Changing…';
+    passNote.textContent = '';
+    pf.changePassword(a).then(function(res){
+      btn.disabled = false; btn.textContent = 'Change password';
+      if (res && res.saved) {
+        passI.value = ''; passI2.value = '';
+        passNote.style.color = 'var(--green-dark)';
+        passNote.textContent = 'Password changed.';
+      } else if (res && res.demo) {
+        passNote.textContent = 'You’re not signed in.';
+      } else {
+        passNote.textContent = (res && res.error) || 'Could not change your password.';
+      }
+    });
+  });
+
+  document.getElementById('s-tz-update').addEventListener('click', function(){
+    if (!detected) { tzNote.textContent = 'Could not detect your timezone.'; return; }
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Saving…';
+    tzNote.textContent = '';
+    pf.saveProfile({ timezone: detected }).then(function(res){
+      btn.disabled = false; btn.textContent = 'Use my current timezone';
+      if (res && res.saved) {
+        document.getElementById('s-tz-saved').textContent = detected;
+        tzNote.style.color = 'var(--green-dark)';
+        tzNote.textContent = 'Saved.';
+      } else {
+        tzNote.style.color = '#c0392b';
+        tzNote.textContent = (res && res.error) || 'Could not save that.';
+      }
+    });
+  });
+})();
+</script>
+<script src="assets/usermenu.js"></script>
+<script src="assets/notify.js"></script>
+</body>
+</html>

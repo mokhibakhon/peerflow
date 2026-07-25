@@ -19,11 +19,8 @@
       <a href="app.html">Sessions</a>
       <a href="app-sessions.html">My partner</a>
       <a href="app-people.html">People</a>
-      <a href="app-profile.html" class="active">Profile</a>
     </nav>
     <div class="nav-right">
-      <a href="index.html" class="login" id="logout" title="Log out">Log out</a>
-      <span class="av-nav" id="nav-av" title="Your profile">S</span>
     </div>
   </div>
 </header>
@@ -137,13 +134,12 @@
     nameI.value = localStorage.getItem('pf_name') || '';
     topicI.value = localStorage.getItem('pf_topic') || '';
   } catch(err) {}
-  document.getElementById('nav-av').textContent = (nameI.value || 'S').charAt(0).toUpperCase();
 
   function doLogout(){
     try { ['pf_name','pf_email','pf_track','pf_topic','pf_pending'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
     pf.signOut();
   }
-  document.getElementById('logout').addEventListener('click', doLogout);
+  /* The header account menu also offers this; keep the one in the card too. */
   document.getElementById('logout2').addEventListener('click', doLogout);
 
   levelBox.addEventListener('click', function(e){
@@ -187,7 +183,6 @@
             new Date(p.created_at).toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
         } catch(e){}
       }
-      document.getElementById('nav-av').textContent = (nameI.value || 'S').charAt(0).toUpperCase();
     });
   });
 
@@ -222,7 +217,6 @@
           if (nm) localStorage.setItem('pf_name', nm);
           if (tp) localStorage.setItem('pf_topic', tp);
         } catch(err) {}
-        document.getElementById('nav-av').textContent = (nm || 'S').charAt(0).toUpperCase();
       } else if (res && res.demo) {
         note.style.color = '#c0392b';
         note.textContent = 'You’re not signed in — log in and this will save.';
@@ -235,6 +229,7 @@
 })();
 </script>
 <script src="assets/badges.js"></script>
+<script src="assets/usermenu.js"></script>
 <script src="assets/notify.js"></script>
 </body>
 </html>

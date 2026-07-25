@@ -487,6 +487,31 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .av-nav{width:34px;height:34px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;
   justify-content:center;font-weight:700;font-size:14px;flex:none}
 
+/* ============ account menu ============ */
+.um-wrap{position:relative;display:flex;align-items:center}
+.um-btn{border:2px solid transparent;cursor:pointer;font-family:inherit;padding:0;
+  transition:border-color .15s,box-shadow .15s}
+.um-btn:hover{border-color:#b5dfcd;box-shadow:0 0 0 3px #0b8f6614}
+.um-btn[aria-expanded="true"]{border-color:var(--green);box-shadow:0 0 0 3px #0b8f661f}
+
+.um-menu{position:absolute;top:46px;right:0;width:248px;background:#fff;border:1px solid var(--border);
+  border-radius:12px;box-shadow:0 18px 50px #21323b26;z-index:80;overflow:hidden;padding:6px}
+.um-head{padding:11px 12px 12px;border-bottom:1px solid var(--border);margin:-6px -6px 6px}
+.um-name{display:block;font-size:14.5px;font-weight:700;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.um-mail{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.um-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;
+  font-size:14.5px;color:var(--text);background:none;border:0;cursor:pointer;font-family:inherit;
+  text-align:left;transition:background .12s,color .12s}
+.um-item svg{flex:none;color:var(--muted)}
+.um-item:hover{background:var(--band);color:var(--ink)}
+.um-item:hover svg{color:var(--green-dark)}
+.um-item.danger{color:#c0392b}
+.um-item.danger svg{color:#c0392b}
+.um-item.danger:hover{background:#fdeeec;color:#a53125}
+.um-sep{height:1px;background:var(--border);margin:6px 4px}
+
 /* ============ notification bell ============ */
 .bell-wrap{position:relative;display:flex;align-items:center}
 .bell{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid transparent;background:none;
