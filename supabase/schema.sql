@@ -163,6 +163,8 @@ drop policy if exists "update own profile"          on public.profiles;
 drop policy if exists "anyone can join the waitlist" on public.waitlist;
 drop policy if exists "read own match"              on public.matches;
 drop policy if exists "read own sessions"           on public.sessions;
+drop policy if exists "book with your partner"      on public.sessions;
+drop policy if exists "cancel a session"            on public.sessions;
 drop policy if exists "read own requests"           on public.partner_requests;
 drop policy if exists "send requests as yourself"   on public.partner_requests;
 drop policy if exists "answer or mark seen"         on public.partner_requests;
@@ -188,6 +190,31 @@ create policy "read own match"
 -- Same for sessions: you only ever see your own scheduled meetings.
 create policy "read own sessions"
   on public.sessions for select using (auth.uid() = user_id);
+
+-- Booking writes one row for each person, so you may insert a row for
+-- yourself or for someone you have an accepted partner request with.
+create policy "book with your partner"
+  on public.sessions for insert with check (
+    auth.uid() = user_id
+    or exists (
+      select 1 from public.partner_requests r
+      where r.status = 'accepted'
+        and ((r.from_user = auth.uid() and r.to_user = sessions.user_id)
+          or (r.to_user   = auth.uid() and r.from_user = sessions.user_id))
+    )
+  );
+
+-- Cancelling removes both rows, so the same rule applies.
+create policy "cancel a session"
+  on public.sessions for delete using (
+    auth.uid() = user_id
+    or exists (
+      select 1 from public.partner_requests r
+      where r.status = 'accepted'
+        and ((r.from_user = auth.uid() and r.to_user = sessions.user_id)
+          or (r.to_user   = auth.uid() and r.from_user = sessions.user_id))
+    )
+  );
 
 -- Partner requests: visible to the two people involved, and only they can act.
 create policy "read own requests"

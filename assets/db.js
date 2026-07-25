@@ -196,6 +196,46 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* Book a session with a partner. Writes one row for each of you, sharing a
+     start time and room, so both see it on their own Sessions page. */
+  function bookSession(opts){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.auth.getUser().then(function(res){
+      var me = res.data && res.data.user;
+      if (!me) return { demo: true };
+      var myName = opts.myName || (me.email || '').split('@')[0];
+      var room = opts.roomUrl || ('https://meet.jit.si/PeerFlow-' + (opts.pairId || me.id));
+      var rows = [
+        { user_id: me.id,             partner_name: opts.partnerName || null,
+          topic: opts.topic || null,  starts_at: opts.startsAt,
+          duration_min: opts.durationMin || 50, room_url: room },
+        { user_id: opts.partnerId,    partner_name: myName,
+          topic: opts.topic || null,  starts_at: opts.startsAt,
+          duration_min: opts.durationMin || 50, room_url: room }
+      ];
+      return client.from('sessions').insert(rows).then(function(r){
+        if (r.error) {
+          try { console.error('PeerFlow bookSession error:', r.error); } catch(e){}
+          var msg = r.error.message || 'Could not book that session.';
+          if (r.error.code === '42P01') {
+            msg = 'The sessions table is not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.';
+          }
+          return { error: msg };
+        }
+        return { saved: true };
+      });
+    }).catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+  }
+
+  /* Cancel a session for both people (matched on the shared start + room). */
+  function cancelSession(startsAt, roomUrl){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.from('sessions').delete()
+      .eq('starts_at', startsAt).eq('room_url', roomUrl)
+      .then(function(r){ return r.error ? { error: r.error.message } : { saved: true }; })
+      .catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+  }
+
   /* ---------- partner requests ---------- */
 
   /* Ask someone to be your learning partner. */
@@ -387,6 +427,8 @@ window.pf = (function(){
     joinWaitlist: joinWaitlist,
     getMatch: getMatch,
     fetchSessions: fetchSessions,
+    bookSession: bookSession,
+    cancelSession: cancelSession,
     sendPartnerRequest: sendPartnerRequest,
     myRequests: myRequests,
     respondToRequest: respondToRequest,

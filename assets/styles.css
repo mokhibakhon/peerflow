@@ -382,6 +382,21 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .empty-hint{font-size:13.5px;color:var(--muted);background:var(--band);border:1px dashed var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px}
 .mini-h{font-size:13.5px;color:var(--ink);font-weight:700;margin:22px 0 12px}
 .list-h{font-size:15px;color:var(--ink);margin:34px 0 14px}
+.book-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px}
+
+/* ============ getting-started checklist ============ */
+.steps-list{list-style:none;display:flex;flex-direction:column;gap:2px;margin:0}
+.steps-list li{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--border)}
+.steps-list li:last-child{border-bottom:0}
+.steps-list .tick{width:22px;height:22px;border-radius:50%;flex:none;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;background:#fff}
+.steps-list li.done .tick{background:var(--green);border-color:var(--green)}
+.steps-list .step-body{min-width:0;flex:1}
+.steps-list b{display:block;font-size:15px;color:var(--ink)}
+.steps-list li.done b{color:var(--muted);text-decoration:line-through}
+.steps-list .step-body span{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.steps-list .btn{flex:none;padding:7px 14px;font-size:13.5px}
+@media (max-width:560px){ .book-row{grid-template-columns:1fr} }
 .signedout-note{background:#fdf3e7;border:1px solid #f0d3a8;color:#8a5a17;border-radius:10px;
   padding:13px 16px;font-size:14px;margin-bottom:22px}
 .signedout-note a{color:#7a4d10;font-weight:700;text-decoration:underline}

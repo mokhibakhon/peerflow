@@ -40,6 +40,36 @@
       </div>
     </div>
 
+    <!-- Booking, shown once you actually have a partner. -->
+    <div class="card" id="book-card" hidden style="max-width:640px;margin-top:24px">
+      <h3>Book a session</h3>
+      <p style="font-size:14.5px;color:var(--muted);margin-bottom:16px">
+        Pick a time you've both agreed on. It shows up on both your Sessions pages with the same call link.
+      </p>
+      <div class="book-row">
+        <div class="field" style="margin:0">
+          <label for="bk-date">Date</label>
+          <input id="bk-date" type="date">
+        </div>
+        <div class="field" style="margin:0">
+          <label for="bk-time">Time</label>
+          <input id="bk-time" type="time" value="19:00">
+        </div>
+        <div class="field" style="margin:0">
+          <label for="bk-len">Length</label>
+          <select id="bk-len">
+            <option value="25">25 min</option>
+            <option value="50" selected>50 min</option>
+            <option value="80">80 min</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
+        <button class="btn primary" id="bk-save">Book it</button>
+        <span id="bk-note" style="font-size:13.5px;color:var(--muted)"></span>
+      </div>
+    </div>
+
     <!-- Real numbers from the database, so the wait isn't a black box. -->
     <div class="card" id="queue-card" style="max-width:640px;margin-top:24px">
       <h3>Where things stand</h3>
@@ -84,8 +114,12 @@
   }
   render(track);
 
-  /* Matched (a row exists in the matches table, created by hand). */
-  function showMatched(m){
+  /* Who we're paired with, when it came from an accepted request. Booking
+     needs their user id, so a hand-arranged match can't use it. */
+  var partner = null;
+
+  function showMatched(m, p){
+    partner = p || null;
     document.getElementById('match-status').textContent = 'YOUR PARTNER';
     var title = m.partner_name || 'Your partner';
     if (m.partner_topic) title += ' — learning ' + m.partner_topic;
@@ -96,7 +130,49 @@
     if (m.room_url) { link.href = m.room_url; actions.style.display = 'flex'; }
     document.getElementById('board-note').textContent =
       'First time? Say hi, tell them what you’re stuck on, and agree when you’re meeting next.';
+    if (partner && partner.id) {
+      document.getElementById('book-card').hidden = false;
+      var d = new Date(Date.now() + 86400000);   // default to tomorrow
+      document.getElementById('bk-date').value =
+        d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
   }
+
+  /* ----- booking ----- */
+  document.getElementById('bk-save').addEventListener('click', function(){
+    var note = document.getElementById('bk-note');
+    note.style.color = '#c0392b';
+    if (!partner || !partner.id) { note.textContent = 'You need a partner first.'; return; }
+    var date = document.getElementById('bk-date').value;
+    var time = document.getElementById('bk-time').value;
+    if (!date || !time) { note.textContent = 'Pick a date and a time.'; return; }
+    var when = new Date(date + 'T' + time);
+    if (isNaN(when.getTime())) { note.textContent = 'That date and time didn’t parse.'; return; }
+    if (when.getTime() < Date.now()) { note.textContent = 'That’s in the past — pick a future time.'; return; }
+
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Booking…';
+    note.textContent = '';
+    pf.bookSession({
+      partnerId: partner.id,
+      partnerName: partner.name,
+      myName: name,
+      topic: partner.topic || '',
+      startsAt: when.toISOString(),
+      durationMin: parseInt(document.getElementById('bk-len').value, 10) || 50,
+      roomUrl: partner.roomUrl,
+      pairId: partner.requestId
+    }).then(function(res){
+      btn.disabled = false; btn.textContent = 'Book it';
+      if (res && res.saved) {
+        note.style.color = 'var(--green-dark)';
+        note.textContent = 'Booked — taking you to your sessions…';
+        setTimeout(function(){ window.location.href = 'app.html'; }, 800);
+      } else {
+        note.textContent = (res && res.error) || 'Could not book that — please try again.';
+      }
+    });
+  });
 
   /* Real signup numbers, so waiting isn't a black box. */
   function loadQueue(topic){
@@ -138,6 +214,12 @@
             partner_topic: p.profile.topic,
             partner_times: '',
             room_url: p.roomUrl
+          }, {
+            id: p.profile.id,
+            name: p.profile.name,
+            topic: p.profile.topic,
+            roomUrl: p.roomUrl,
+            requestId: p.requestId
           });
           return;
         }

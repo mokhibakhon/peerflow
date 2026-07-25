@@ -57,6 +57,12 @@
       <a class="btn ghost" href="app-sessions.html" style="margin-top:16px">See my partner</a>
     </div>
 
+    <!-- What's actually left to do, ticked off from real rows. -->
+    <div class="card" id="steps-card" hidden style="max-width:660px;margin-top:24px">
+      <h3>Getting started</h3>
+      <ol class="steps-list" id="steps-list"></ol>
+    </div>
+
     <h3 class="list-h" id="upcoming-h" hidden>Coming up</h3>
     <div class="board" id="upcoming" style="margin:0;max-width:660px"></div>
 
@@ -162,6 +168,40 @@
     }
   }
 
+  /* A short checklist of what's genuinely left to do, each item ticked from a
+     real row. Hidden entirely once every step is done. */
+  function showSteps(profile, sessionCount){
+    pf.acceptedPartners().then(function(partners){
+      var hasPartner = !!(partners && partners.length);
+      var complete = !!(profile && profile.name && profile.topic && profile.level &&
+                        (profile.availability || []).length);
+      var steps = [
+        { done: complete, label: 'Finish your profile',
+          hint: 'Your topic, stage and free times are what we match on.',
+          href: 'app-profile.html', cta: 'Complete it' },
+        { done: hasPartner, label: 'Find a partner',
+          hint: 'Browse everyone here and ask someone learning the same thing.',
+          href: 'app-people.html', cta: 'See people' },
+        { done: sessionCount > 0, label: 'Book your first session',
+          hint: 'Agree a time and it lands on both your calendars.',
+          href: 'app-sessions.html', cta: 'Book it' }
+      ];
+      if (steps.every(function(s){ return s.done; })) return;   // nothing left to nag about
+
+      document.getElementById('steps-card').hidden = false;
+      document.getElementById('steps-list').innerHTML = steps.map(function(s){
+        return '<li class="' + (s.done ? 'done' : '') + '">' +
+          '<span class="tick" aria-hidden="true">' + (s.done ?
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.4 4.4L19 7.5" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
+          '</span>' +
+          '<span class="step-body"><b>' + esc(s.label) + '</b>' +
+            (s.done ? '' : '<span>' + esc(s.hint) + '</span>') + '</span>' +
+          (s.done ? '' : '<a class="btn ghost" href="' + s.href + '">' + esc(s.cta) + '</a>') +
+        '</li>';
+      }).join('');
+    });
+  }
+
   /* Answers from signup that never reached the database (no session at the
      time, e.g. email confirmation was on). Save them now that we're signed in. */
   function flushPending(){
@@ -200,9 +240,11 @@
       pf.fetchSessions().then(function(sessions){
         if (!sessions || !sessions.length) {
           document.getElementById('empty-card').hidden = false;
+          showSteps(profile, 0);
           return;
         }
         render(sessions);
+        showSteps(profile, sessions.length);
       });
     });
   });
