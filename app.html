@@ -18,9 +18,10 @@
     <nav class="nav-links" aria-label="App">
       <a href="app.html" class="active">Today</a>
       <a href="app-sessions.html">My partner</a>
+      <a href="app-people.html">People</a>
+      <a href="app-profile.html">Profile</a>
     </nav>
     <div class="nav-right">
-      <span class="track-chip" id="nav-track">Getting set up</span>
       <a href="index.html" class="login" id="logout" title="Log out">Log out</a>
       <span class="av-nav" id="nav-av" title="Your profile">S</span>
     </div>
@@ -116,13 +117,6 @@
 
   var trackNames = { cybersecurity:'Cybersecurity', unsure:'Exploring' };
 
-  function setTrackChip(t){
-    var el = document.getElementById('nav-track');
-    if (t === 'cybersecurity') el.textContent = 'Cybersecurity';
-    else if (t) el.textContent = 'On the list';
-    else el.textContent = 'Getting set up';
-  }
-  setTrackChip(track);
   document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
 
   document.getElementById('logout').addEventListener('click', function(){
@@ -241,7 +235,6 @@
       if (profile && (profile.track_id || profile.level || (profile.availability && profile.availability.length))) {
         track = profile.track_id || track;
         try { if (track) localStorage.setItem('pf_track', track); } catch(err){}
-        setTrackChip(track);
         renderMatch(track);
         if (profile.topic) {
           topicInput.value = profile.topic;

@@ -18,9 +18,10 @@
     <nav class="nav-links" aria-label="App">
       <a href="app.html">Today</a>
       <a href="app-sessions.html" class="active">My partner</a>
+      <a href="app-people.html">People</a>
+      <a href="app-profile.html">Profile</a>
     </nav>
     <div class="nav-right">
-      <span class="track-chip" id="nav-track">Getting set up</span>
       <a href="index.html" class="login" id="logout" title="Log out">Log out</a>
       <span class="av-nav" id="nav-av" title="Your profile">S</span>
     </div>
@@ -42,6 +43,17 @@
       </div>
     </div>
 
+    <!-- Real numbers from the database, so the wait isn't a black box. -->
+    <div class="card" id="queue-card" style="max-width:640px;margin-top:24px">
+      <h3>Where things stand</h3>
+      <div class="stat-row">
+        <div class="stat"><b id="q-total">—</b><span>people signed up</span></div>
+        <div class="stat"><b id="q-same">—</b><span>learning your topic</span></div>
+      </div>
+      <p class="queue-note" id="q-note">Checking…</p>
+      <a class="btn ghost" href="app-people.html" style="margin-top:16px">See who's here</a>
+    </div>
+
     <p class="board-note" id="board-note">When you're matched, your partner and a button to start your video call will show up here. You'll meet on video — cameras on — and learn together.</p>
   </div>
 </main>
@@ -57,13 +69,6 @@
     track = localStorage.getItem('pf_track') || '';
   } catch(err) {}
 
-  function setTrackChip(t){
-    var el = document.getElementById('nav-track');
-    if (t === 'cybersecurity') el.textContent = 'Cybersecurity';
-    else if (t) el.textContent = 'On the list';
-    else el.textContent = 'Getting set up';
-  }
-  setTrackChip(track);
   document.getElementById('nav-av').textContent = (name || 'S').charAt(0).toUpperCase();
 
   document.getElementById('logout').addEventListener('click', function(){
@@ -103,13 +108,34 @@
       'First time? Say hi, tell them what you’re stuck on, and agree when you’re meeting next.';
   }
 
+  /* Real signup numbers, so waiting isn't a black box. */
+  function loadQueue(topic){
+    pf.learnerStats(topic).then(function(s){
+      var note = document.getElementById('q-note');
+      if (!s) { note.textContent = 'Could not load numbers right now.'; return; }
+      document.getElementById('q-total').textContent = s.total;
+      document.getElementById('q-same').textContent = s.sameTopic;
+      if (s.sameTopic > 0) {
+        note.textContent = s.sameTopic === 1
+          ? 'One other person is learning the same thing as you. That’s your likely partner.'
+          : s.sameTopic + ' other people are learning the same thing as you.';
+      } else if (s.total > 0) {
+        note.textContent = 'Nobody has put down your exact topic yet. Broadening it on your profile ' +
+          '(say "Linux" instead of "Linux kernel modules") usually finds a partner faster.';
+      } else {
+        note.textContent = 'You’re the first person here. Share PeerFlow with one person learning ' +
+          'the same thing and you have your pair immediately.';
+      }
+    });
+  }
+
   pf.currentUser().then(function(user){
     if (!user) return;
     pf.getProfile().then(function(profile){
+      loadQueue(profile && profile.topic);
       if (profile && profile.track_id) {
         track = profile.track_id;
         try { localStorage.setItem('pf_track', track); } catch(e){}
-        setTrackChip(track);
         render(track);
       }
       pf.getMatch().then(function(m){ if (m) showMatched(m); });

@@ -155,6 +155,35 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* ---------- other learners (real rows only) ---------- */
+
+  /* Everyone else who has signed up, newest first. Never invents anyone:
+     an empty list means the site genuinely has no one else yet. */
+  function fetchPeers(limit){
+    if (!client) return Promise.resolve(null);
+    return client.auth.getUser().then(function(res){
+      var uid = res.data && res.data.user && res.data.user.id;
+      var q = client.from('profiles')
+        .select('id,name,topic,level,timezone,created_at')
+        .order('created_at', { ascending: false })
+        .limit(limit || 24);
+      if (uid) q = q.neq('id', uid);
+      return q.then(function(r){ return r.error ? null : (r.data || []); });
+    }).catch(function(){ return null; });
+  }
+
+  /* How many people have signed up, and how many share your topic. */
+  function learnerStats(topic){
+    if (!client) return Promise.resolve(null);
+    var total = client.from('profiles').select('id', { count: 'exact', head: true });
+    var same = topic
+      ? client.from('profiles').select('id', { count: 'exact', head: true }).ilike('topic', topic)
+      : Promise.resolve({ count: 0 });
+    return Promise.all([total, same]).then(function(r){
+      return { total: (r[0] && r[0].count) || 0, sameTopic: (r[1] && r[1].count) || 0 };
+    }).catch(function(){ return null; });
+  }
+
   /* ---------- track labels (for display in the app) ---------- */
 
   var trackNames = {
@@ -174,6 +203,8 @@ window.pf = (function(){
     saveProfile: saveProfile,
     joinWaitlist: joinWaitlist,
     getMatch: getMatch,
+    fetchPeers: fetchPeers,
+    learnerStats: learnerStats,
     trackNames: trackNames
   };
 })();

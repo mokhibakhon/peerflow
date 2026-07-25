@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20110%20110%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2250%22%20y%3D%220%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%2220%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2220%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%2220%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2230%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2280%22%20y%3D%2240%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2230%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2270%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2280%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%22100%22%20y%3D%2250%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2260%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2260%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2280%22%20y%3D%2260%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2270%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%2280%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2280%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%2280%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%22100%22%20width%3D%2210%22%20height%3D%2210%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="app.html" aria-label="PeerFlow — Today">
+      <svg width="26" height="26" viewBox="0 0 110 110" fill="#0b8f66" aria-hidden="true"><rect x="50" y="0" width="10" height="10"/><rect x="40" y="20" width="10" height="10"/><rect x="50" y="20" width="10" height="10"/><rect x="60" y="20" width="10" height="10"/><rect x="50" y="30" width="10" height="10"/><rect x="20" y="40" width="10" height="10"/><rect x="50" y="40" width="10" height="10"/><rect x="80" y="40" width="10" height="10"/><rect x="0" y="50" width="10" height="10"/><rect x="20" y="50" width="10" height="10"/><rect x="30" y="50" width="10" height="10"/><rect x="40" y="50" width="10" height="10"/><rect x="50" y="50" width="10" height="10"/><rect x="60" y="50" width="10" height="10"/><rect x="70" y="50" width="10" height="10"/><rect x="80" y="50" width="10" height="10"/><rect x="100" y="50" width="10" height="10"/><rect x="20" y="60" width="10" height="10"/><rect x="50" y="60" width="10" height="10"/><rect x="80" y="60" width="10" height="10"/><rect x="50" y="70" width="10" height="10"/><rect x="40" y="80" width="10" height="10"/><rect x="50" y="80" width="10" height="10"/><rect x="60" y="80" width="10" height="10"/><rect x="50" y="100" width="10" height="10"/></svg>
+      <span>peer<b>flow</b></span>
+    </a>
+    <nav class="nav-links" aria-label="App">
+      <a href="app.html">Today</a>
+      <a href="app-sessions.html">My partner</a>
+      <a href="app-people.html">People</a>
+      <a href="app-profile.html" class="active">Profile</a>
+    </nav>
+    <div class="nav-right">
+      <a href="index.html" class="login" id="logout" title="Log out">Log out</a>
+      <span class="av-nav" id="nav-av" title="Your profile">S</span>
+    </div>
+  </div>
+</header>
+
+<main class="app-main">
+  <div class="wrap">
+    <div class="app-head">
+      <h1>Your profile</h1>
+    </div>
+
+    <p class="signedout-note" id="signedout" hidden>
+      You're not signed in, so nothing here is saved to your account.
+      <a href="login.html">Log in</a> to save it.
+    </p>
+
+    <div class="app-grid">
+      <div class="app-col">
+        <div class="card">
+          <h3>What your partner sees</h3>
+
+          <h4 class="mini-h">Your name</h4>
+          <div class="field" style="max-width:none">
+            <input id="p-name" type="text" placeholder="What should we call you?" autocomplete="given-name">
+          </div>
+
+          <h4 class="mini-h">What you're learning</h4>
+          <div class="field" style="max-width:none">
+            <input id="p-topic" type="text" placeholder="e.g. Linux basics" autocomplete="off">
+          </div>
+
+          <h4 class="mini-h">Where you're at</h4>
+          <div class="choices one" id="p-level">
+            <button class="choice" data-level="new"><span><b>I haven't really started</b><span>Curious, motivated, little code written so far</span></span></button>
+            <button class="choice" data-level="tutorials"><span><b>I've done tutorials</b><span>Courses and videos, but little on my own yet</span></span></button>
+            <button class="choice" data-level="jobprep"><span><b>I'm preparing for the job hunt</b><span>Portfolio, certs, interviews — the last mile</span></span></button>
+          </div>
+
+          <h4 class="mini-h">When you're free</h4>
+          <div class="avail-grid" id="p-avail">
+            <span></span><span class="hd">Morning</span><span class="hd">Afternoon</span><span class="hd">Evening</span><span class="hd">Night</span>
+            <span class="day">Mon</span><button class="cell" data-slot="mon-morning" aria-label="Monday morning"></button><button class="cell" data-slot="mon-afternoon" aria-label="Monday afternoon"></button><button class="cell" data-slot="mon-evening" aria-label="Monday evening"></button><button class="cell" data-slot="mon-night" aria-label="Monday night"></button>
+            <span class="day">Tue</span><button class="cell" data-slot="tue-morning" aria-label="Tuesday morning"></button><button class="cell" data-slot="tue-afternoon" aria-label="Tuesday afternoon"></button><button class="cell" data-slot="tue-evening" aria-label="Tuesday evening"></button><button class="cell" data-slot="tue-night" aria-label="Tuesday night"></button>
+            <span class="day">Wed</span><button class="cell" data-slot="wed-morning" aria-label="Wednesday morning"></button><button class="cell" data-slot="wed-afternoon" aria-label="Wednesday afternoon"></button><button class="cell" data-slot="wed-evening" aria-label="Wednesday evening"></button><button class="cell" data-slot="wed-night" aria-label="Wednesday night"></button>
+            <span class="day">Thu</span><button class="cell" data-slot="thu-morning" aria-label="Thursday morning"></button><button class="cell" data-slot="thu-afternoon" aria-label="Thursday afternoon"></button><button class="cell" data-slot="thu-evening" aria-label="Thursday evening"></button><button class="cell" data-slot="thu-night" aria-label="Thursday night"></button>
+            <span class="day">Fri</span><button class="cell" data-slot="fri-morning" aria-label="Friday morning"></button><button class="cell" data-slot="fri-afternoon" aria-label="Friday afternoon"></button><button class="cell" data-slot="fri-evening" aria-label="Friday evening"></button><button class="cell" data-slot="fri-night" aria-label="Friday night"></button>
+            <span class="day">Sat</span><button class="cell" data-slot="sat-morning" aria-label="Saturday morning"></button><button class="cell" data-slot="sat-afternoon" aria-label="Saturday afternoon"></button><button class="cell" data-slot="sat-evening" aria-label="Saturday evening"></button><button class="cell" data-slot="sat-night" aria-label="Saturday night"></button>
+            <span class="day">Sun</span><button class="cell" data-slot="sun-morning" aria-label="Sunday morning"></button><button class="cell" data-slot="sun-afternoon" aria-label="Sunday afternoon"></button><button class="cell" data-slot="sun-evening" aria-label="Sunday evening"></button><button class="cell" data-slot="sun-night" aria-label="Sunday night"></button>
+          </div>
+
+          <div style="margin-top:22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <button class="btn primary" id="p-save">Save changes</button>
+            <span id="p-note" style="font-size:13.5px;color:var(--muted)"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-col">
+        <div class="card">
+          <h3>Account</h3>
+          <dl class="kv">
+            <dt>Email</dt><dd id="p-email">—</dd>
+            <dt>Timezone</dt><dd id="p-tz">—</dd>
+            <dt>Joined</dt><dd id="p-joined">—</dd>
+          </dl>
+          <a class="btn ghost" href="index.html" id="logout2" style="margin-top:16px">Log out</a>
+        </div>
+
+        <div class="card">
+          <h3>Your data</h3>
+          <p style="font-size:14.5px">Your name, what you're learning, your stage and your free times are visible to other signed-in members on the <a href="app-people.html" style="color:var(--green-dark);font-weight:600">People</a> page. Your email address is never shown to anyone.</p>
+          <p style="font-size:14.5px;margin-top:12px">Want your account deleted? Email <a href="mailto:hello@peerflow.dev" style="color:var(--green-dark);font-weight:600">hello@peerflow.dev</a> and it's gone.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script>
+(function(){
+  var nameI = document.getElementById('p-name');
+  var topicI = document.getElementById('p-topic');
+  var levelBox = document.getElementById('p-level');
+  var availBox = document.getElementById('p-avail');
+  var note = document.getElementById('p-note');
+
+  try {
+    nameI.value = localStorage.getItem('pf_name') || '';
+    topicI.value = localStorage.getItem('pf_topic') || '';
+  } catch(err) {}
+  document.getElementById('nav-av').textContent = (nameI.value || 'S').charAt(0).toUpperCase();
+
+  function doLogout(){
+    try { ['pf_name','pf_email','pf_track','pf_topic','pf_pending'].forEach(function(k){ localStorage.removeItem(k); }); } catch(err) {}
+    pf.signOut();
+  }
+  document.getElementById('logout').addEventListener('click', doLogout);
+  document.getElementById('logout2').addEventListener('click', doLogout);
+
+  levelBox.addEventListener('click', function(e){
+    var c = e.target.closest('.choice');
+    if (!c) return;
+    Array.prototype.forEach.call(levelBox.querySelectorAll('.choice'), function(x){ x.classList.remove('sel'); });
+    c.classList.add('sel');
+  });
+  availBox.addEventListener('click', function(e){
+    var c = e.target.closest('.cell');
+    if (c) c.classList.toggle('sel');
+  });
+
+  function markSel(box, attr, value){
+    if (!value) return;
+    var c = box.querySelector('[' + attr + '="' + value + '"]');
+    if (c) c.classList.add('sel');
+  }
+
+  pf.currentUser().then(function(user){
+    if (!user) { var s = document.getElementById('signedout'); if (s) s.hidden = false; return; }
+    document.getElementById('p-email').textContent = user.email || '—';
+    pf.getProfile().then(function(p){
+      if (!p) return;
+      if (p.name) nameI.value = p.name;
+      if (p.topic) topicI.value = p.topic;
+      markSel(levelBox, 'data-level', p.level);
+      (p.availability || []).forEach(function(v){ markSel(availBox, 'data-slot', v); });
+      document.getElementById('p-tz').textContent = p.timezone || '—';
+      if (p.created_at) {
+        try {
+          document.getElementById('p-joined').textContent =
+            new Date(p.created_at).toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
+        } catch(e){}
+      }
+      document.getElementById('nav-av').textContent = (nameI.value || 'S').charAt(0).toUpperCase();
+    });
+  });
+
+  document.getElementById('p-save').addEventListener('click', function(){
+    var payload = {};
+    var nm = nameI.value.trim(), tp = topicI.value.trim();
+    var sel = levelBox.querySelector('.choice.sel');
+    var avail = Array.prototype.map.call(availBox.querySelectorAll('.cell.sel'),
+      function(c){ return c.getAttribute('data-slot'); });
+
+    if (nm) payload.name = nm;
+    if (tp) payload.topic = tp;
+    if (sel) payload.level = sel.getAttribute('data-level');
+    if (avail.length) payload.availability = avail;
+
+    if (!Object.keys(payload).length) {
+      note.style.color = 'var(--muted)';
+      note.textContent = 'Nothing to save yet.';
+      return;
+    }
+
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Saving…';
+    note.textContent = '';
+    pf.saveProfile(payload).then(function(res){
+      btn.disabled = false; btn.textContent = 'Save changes';
+      if (res && res.saved) {
+        note.style.color = 'var(--green-dark)';
+        note.textContent = 'Saved.';
+        try {
+          if (nm) localStorage.setItem('pf_name', nm);
+          if (tp) localStorage.setItem('pf_topic', tp);
+        } catch(err) {}
+        document.getElementById('nav-av').textContent = (nm || 'S').charAt(0).toUpperCase();
+      } else if (res && res.demo) {
+        note.style.color = '#c0392b';
+        note.textContent = 'You’re not signed in — log in and this will save.';
+      } else {
+        note.style.color = '#c0392b';
+        note.textContent = (res && res.error) || 'Could not save — please try again.';
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

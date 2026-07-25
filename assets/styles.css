@@ -384,6 +384,20 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .signedout-note{background:#fdf3e7;border:1px solid #f0d3a8;color:#8a5a17;border-radius:10px;
   padding:13px 16px;font-size:14px;margin-bottom:22px}
 .signedout-note a{color:#7a4d10;font-weight:700;text-decoration:underline}
+.queue-note{font-size:13.5px;color:var(--muted);margin-top:16px;text-align:center;line-height:1.55}
+
+/* ============ people list ============ */
+.people-list{gap:2px}
+.people-list li{padding:12px 4px;border-bottom:1px solid var(--border);align-items:flex-start}
+.people-list li:last-child{border-bottom:0}
+.same-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  color:var(--green-dark);background:var(--green-tint);border:1px solid #cfe9dd;border-radius:999px;
+  padding:1px 9px;margin-left:7px;vertical-align:1px}
+
+/* ============ key/value list (profile) ============ */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:14.5px}
+.kv dt{color:var(--muted)}
+.kv dd{color:var(--ink);word-break:break-word}
 
 .filters{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0 0}
 .filters .chip{cursor:pointer}
