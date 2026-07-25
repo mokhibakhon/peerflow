@@ -42,7 +42,9 @@ window.pf = (function(){
     if (!client || !cfg.realOAuth) return Promise.resolve({ demo: true });
     var base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
     return client.auth.signInWithOAuth({
-      provider: provider,
+      /* Supabase expects the provider id in lower case ("google", not "Google");
+         callers pass a display name for use in error messages. */
+      provider: String(provider).toLowerCase(),
       options: { redirectTo: base + (redirectPath || 'app.html') }
     }).then(function(res){
       return res.error ? { error: res.error.message } : { redirecting: true };
