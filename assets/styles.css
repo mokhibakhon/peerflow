@@ -399,16 +399,18 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .ask-state.ok{color:var(--green-dark);font-weight:700}
 
 /* ============ achievement badges ============ */
-.badge-count{font-size:13px;color:var(--muted);margin-bottom:14px}
-.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
-.badge-tile{border:1px solid var(--border);border-radius:12px;padding:14px 12px;text-align:center;
-  background:var(--band);opacity:.62}
-.badge-tile.earned{background:#fff;border-color:#cfe9dd;opacity:1;box-shadow:0 2px 10px #0b8f6614}
-.badge-ic{width:42px;height:42px;border-radius:50%;background:#e7ecea;color:#8b9a96;display:flex;
-  align-items:center;justify-content:center;margin:0 auto 10px}
-.badge-tile.earned .badge-ic{background:var(--green-tint);color:var(--green-dark)}
+.badge-count{font-size:13px;color:var(--muted);margin-bottom:16px}
+.badge-count b{color:var(--ink);font-size:15px}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:14px}
+.badge-tile{border:1px solid var(--border);border-radius:14px;padding:16px 12px 14px;text-align:center;
+  background:var(--band);transition:transform .15s,box-shadow .15s,border-color .15s}
+.badge-tile .medal{display:block;margin:0 auto 10px;filter:grayscale(.55) opacity(.75)}
+.badge-tile.earned{background:#fff;border-color:#d7e3de;box-shadow:0 3px 14px #21323b12}
+.badge-tile.earned .medal{filter:drop-shadow(0 3px 6px rgba(33,50,59,.22))}
+.badge-tile.earned:hover{transform:translateY(-2px);box-shadow:0 10px 26px #21323b1f}
 .badge-tile b{display:block;font-size:13.5px;color:var(--ink);line-height:1.3}
-.badge-tile span{display:block;font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.4}
+.badge-tile:not(.earned) b{color:var(--muted)}
+.badge-tile span{display:block;font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.4}
 .badge-tile.earned span{color:var(--green-dark);font-weight:600}
 
 /* ============ key/value list (profile) ============ */
