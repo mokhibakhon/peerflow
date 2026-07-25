@@ -286,9 +286,16 @@
     btn.disabled = true; btn.textContent = 'Saving…';
     note.textContent = '';
     pf.saveProfile(payload).then(function(res){
+      if (res && res.saved) {
+        /* Confirm, then take them to the page that shows their match. */
+        note.style.color = 'var(--green-dark)';
+        note.textContent = 'Saved — taking you to your partner…';
+        try { if (topic) localStorage.setItem('pf_topic', topic); } catch(err) {}
+        setTimeout(function(){ window.location.href = 'app-sessions.html'; }, 700);
+        return;
+      }
       btn.disabled = false; btn.textContent = 'Save';
-      if (res && res.saved) { note.style.color = 'var(--green-dark)'; note.textContent = 'Saved.'; }
-      else if (res && res.demo) { note.style.color = '#c0392b'; note.textContent = 'You’re not signed in — log in and this will save.'; }
+      if (res && res.demo) { note.style.color = '#c0392b'; note.textContent = 'You’re not signed in — log in and this will save.'; }
       else { note.style.color = '#c0392b'; note.textContent = (res && res.error) || 'Could not save — please try again.'; }
     });
   });
