@@ -289,6 +289,18 @@
     state.track = c.getAttribute('data-track');
     trackErr.hidden = true;
   });
+  /* Arriving from a path card on the landing page (signup.html?path=backend)
+     preselects that path, so the choice they already made isn't asked twice.
+     An unknown or missing value just leaves nothing selected. */
+  (function(){
+    var want = new URLSearchParams(location.search).get('path');
+    if (!want) return;
+    var c = trackBox.querySelector('.choice[data-track="' + CSS.escape(want) + '"]');
+    if (!c) return;
+    c.classList.add('sel');
+    state.track = want;
+  })();
+
   topicI.addEventListener('input', function(){ topicF.classList.remove('bad'); });
   document.getElementById('topic-next').addEventListener('click', function(){
     if (!state.track) { trackErr.hidden = false; return; }

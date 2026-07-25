@@ -1,173 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PeerFlow — stop learning alone</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
-<meta name="description" content="Find one committed study partner learning the same thing as you, and actually stick with it.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PeerFlow — find one person to learn with</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230FA36B%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<meta name="description" content="We find you one partner on the same path, and you meet every week — face to face.">
 <link rel="canonical" href="https://peerflow.dev/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PeerFlow">
-<meta property="og:title" content="PeerFlow — stop learning alone">
-<meta property="og:description" content="Find one committed study partner learning the same thing as you, and actually stick with it.">
+<meta property="og:title" content="PeerFlow — find one person to learn with">
+<meta property="og:description" content="We find you one partner on the same path, and you meet every week — face to face.">
 <meta property="og:url" content="https://peerflow.dev/">
 <meta property="og:image" content="https://peerflow.dev/assets/social.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PeerFlow — stop learning alone">
-<meta name="twitter:description" content="Find one committed study partner learning the same thing as you, and actually stick with it.">
+<meta name="twitter:title" content="PeerFlow — find one person to learn with">
+<meta name="twitter:description" content="We find you one partner on the same path, and you meet every week — face to face.">
 <meta name="twitter:image" content="https://peerflow.dev/assets/social.png">
-<meta name="theme-color" content="#0b8f66">
-<link rel="stylesheet" href="assets/styles.css">
+<meta name="theme-color" content="#0FA36B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600&family=Schibsted+Grotesk:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/home.css">
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
+<div class="wrap">
+
+  <nav class="nav">
     <a class="logo" href="index.html" aria-label="PeerFlow home">
-      <svg width="30" height="30" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-      <span>peer<b>flow</b></span>
+      <svg width="26" height="26" viewBox="0 0 173 171" fill="#171A2E" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
+      peerflow
     </a>
-    <nav class="nav-links" aria-label="Main">
-      <a href="#how">How it works</a>
-    </nav>
     <div class="nav-right">
-      <a class="login" href="login.html">Log in</a>
-      <a class="btn primary" href="signup.html">Sign up</a>
+      <a href="#how">How it works</a>
+      <a href="login.html">Log in</a>
+      <a class="btn btn-sm" href="signup.html">Find a partner</a>
     </div>
-  </div>
-</header>
+  </nav>
 
-<main>
-
-<!-- ================= 1. HERO ================= -->
-<section class="hero">
-  <div class="wrap hero-solo">
-    <h1>Stop learning <em>alone</em>.</h1>
-    <p class="lead">Find one committed study partner learning the same thing as you, and actually stick with it.</p>
-    <div class="hero-ctas">
-      <a class="btn primary big" href="signup.html">Find My Study Partner</a>
+  <!-- ================= HERO ================= -->
+  <header class="hero">
+    <div>
+      <h1>Nobody near you is learning this. <em>Someone online is.</em></h1>
+      <p class="lede">We find you one partner on the same path, and you meet every week — face to face.</p>
+      <a class="btn" href="signup.html">Find my partner</a>
+      <p class="hero-note">Free · one person, never a group</p>
     </div>
-    <p class="hero-note">Free · One partner, not a group · Eight paths</p>
-  </div>
-</section>
 
-
-<!-- ================= HOW IT WORKS ================= -->
-<section id="how">
-  <div class="wrap">
-    <div class="center">
-      <p class="eyebrow">How it works</p>
-      <h2>How PeerFlow works</h2>
-    </div>
-    <div class="steps">
-      <div class="step">
-        <span class="badge">1</span>
-        <h3>Choose your path</h3>
-      </div>
-      <div class="step">
-        <span class="badge">2</span>
-        <h3>Get matched</h3>
-      </div>
-      <div class="step">
-        <span class="badge">3</span>
-        <h3>Start learning</h3>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= 4. DEMO VIDEO ================= -->
-<section class="band" id="demo">
-  <div class="wrap">
-    <div class="center">
-      <p class="eyebrow">Demo</p>
-    </div>
     <!--
-      Temporary demo: a YouTube video is embedded for now. When your own
-      recording is ready, replace the <iframe> below with your file, e.g.:
-
-        <video controls poster="assets/demo-poster.jpg">
-          <source src="assets/demo.mp4" type="video/mp4">
-        </video>
-
-      (Put demo.mp4 — and optionally a demo-poster.jpg thumbnail — in assets/.)
+      This card illustrates what a match looks like once you have one.
+      Aigerim is not a real user, which is why the card is labelled
+      "Example match" instead of being dressed up as live data.
     -->
-    <div class="video-box" style="border-style:solid;background:#000">
-      <iframe src="https://www.youtube.com/embed/6l4fNlPlxJ0" title="PeerFlow demo"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>
-    </div>
-  </div>
-</section>
-
-<!-- ================= 5. WHAT WE'RE STARTING WITH ================= -->
-<section id="starting">
-  <div class="wrap">
-    <div class="center">
-      <p class="eyebrow">Paths</p>
-      <h2>Pick the path you're on</h2>
-      <p class="sub">Whatever you're learning, your partner is someone learning the same thing.</p>
-    </div>
-    <div class="paths">
-      <span class="path">Frontend</span>
-      <span class="path">Backend</span>
-      <span class="path">Cybersecurity</span>
-      <span class="path">Data &amp; analytics</span>
-      <span class="path">Mobile</span>
-      <span class="path">DevOps &amp; cloud</span>
-      <span class="path">AI &amp; machine learning</span>
-      <span class="path">UX/UI design</span>
-    </div>
-    <p class="sub center" style="margin-top:30px">Learning something that isn't here? Tell us and we'll look for your partner too.</p>
-    <form class="lead-form" id="track-form" novalidate>
-      <input type="email" id="track-email" placeholder="you@email.com" autocomplete="email" aria-label="Your email">
-      <input type="text" id="track-interest" placeholder="What you're learning" aria-label="What you're learning">
-      <button class="btn primary" type="submit">Tell me when</button>
-    </form>
-    <p class="form-note" id="track-note" role="status"></p>
-  </div>
-</section>
-
-<!-- ================= FOUNDER'S NOTE ================= -->
-<!--
-  DRAFT founder's note — placeholder copy plus a placeholder name and role.
-  Please rewrite this in your own words and swap in your real name and role.
--->
-<section class="band" id="founder">
-  <div class="wrap">
-    <div class="founder-body">
-      <p class="eyebrow">Why I built this</p>
-      <p>I grew up in a small town. I wanted to learn programming and there was nobody around me who wanted the same thing. Not one person.</p>
-      <p>I didn't need another course. There are thousands of those. I needed someone working on the same thing at the same time, who'd show up on Tuesday because I was expecting them.</p>
-      <p>That's all PeerFlow is.</p>
-      <p class="founder-sign">— Mohibakhon</p>
-    </div>
-  </div>
-</section>
-
-</main>
-
-<!-- ================= FOOTER ================= -->
-<footer>
-  <div class="wrap">
-    <div class="foot-simple">
-      <div class="logo" style="display:flex;align-items:center;gap:9px;font-size:19px">
-        <svg width="28" height="28" viewBox="0 0 173 171" fill="#4fd6a4" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-        <span>peer<b>flow</b></span>
+    <aside class="match" aria-label="Example of what a match looks like">
+      <div class="match-head">
+        <span class="mono">Example match</span>
+        <span class="live"><b></b>Online</span>
       </div>
-      <p>Find one person to learn with.</p>
-      <div class="foot-links">
-        <a href="conduct.html">Code of conduct</a>
-        <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a>
+      <div class="person">
+        <div class="ava" aria-hidden="true">AK</div>
+        <div>
+          <p class="nm">Aigerim K.</p>
+          <p class="sub">Backend · week 7 of 12</p>
+        </div>
       </div>
+      <!-- Twelve weeks: six done (one missed), this week dark, the rest ahead. -->
+      <div class="strip" role="img" aria-label="Five of the first six weekly sessions kept, week seven of twelve in progress">
+        <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i class="now"></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="rows">
+        <div class="row"><span>Next session</span><b>Tue 19:00</b></div>
+        <div class="row"><span>Together for</span><b>7 weeks</b></div>
+        <div class="row"><span>Sessions kept</span><b>5 / 6</b></div>
+      </div>
+      <a class="join" href="signup.html" style="margin-top:18px">Join session</a>
+    </aside>
+  </header>
+
+  <!-- ================= HOW IT WORKS ================= -->
+  <section id="how" class="steps">
+    <div class="step"><span class="mono">Step one</span><h3>Pick a path</h3><p>Eight to choose from.</p></div>
+    <div class="step"><span class="mono">Step two</span><h3>Meet your person</h3><p>We match you with someone on the same path.</p></div>
+    <div class="step"><span class="mono">Step three</span><h3>Show up weekly</h3><p>Same time, same two people.</p></div>
+  </section>
+
+  <!-- ================= PATHS ================= -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="mono">Eight paths</span>
+      <h2>Pick where you're headed</h2>
+      <p>Your partner is on the same path, at roughly the same point.</p>
     </div>
-  </div>
-</footer>
+
+    <!-- Each .waiting is filled in by home.js from the real number of people
+         signed up to that path. data-track matches the ids in signup.html. -->
+    <div class="grid">
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Frontend">
+          <rect width="200" height="130" fill="#3C3489"/>
+          <ellipse cx="98" cy="110" rx="56" ry="8" fill="#26215C"/>
+          <rect x="26" y="20" width="16" height="16" rx="4" fill="#534AB7"/>
+          <rect x="156" y="90" width="12" height="12" rx="3" fill="#534AB7"/>
+          <rect x="72" y="22" width="86" height="62" rx="7" fill="#534AB7"/>
+          <rect x="44" y="32" width="92" height="70" rx="7" fill="#EEEDFE"/>
+          <path d="M44 39a7 7 0 0 1 7-7h78a7 7 0 0 1 7 7v8H44Z" fill="#CECBF6"/>
+          <circle cx="53" cy="39" r="2.4" fill="#7F77DD"/><circle cx="62" cy="39" r="2.4" fill="#7F77DD"/><circle cx="71" cy="39" r="2.4" fill="#7F77DD"/>
+          <rect x="52" y="56" width="26" height="38" rx="4" fill="#AFA9EC"/>
+          <rect x="86" y="56" width="42" height="9" rx="3" fill="#CECBF6"/>
+          <rect x="86" y="70" width="42" height="9" rx="3" fill="#CECBF6"/>
+          <rect x="86" y="84" width="26" height="9" rx="3" fill="#AFA9EC"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="frontend"><b></b><span></span></span>
+          <h3>Frontend</h3>
+          <a class="cta" href="signup.html?path=frontend">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Backend">
+          <rect width="200" height="130" fill="#0F6E56"/>
+          <ellipse cx="100" cy="112" rx="52" ry="8" fill="#085041"/>
+          <circle cx="32" cy="30" r="7" fill="#1D9E75"/>
+          <rect x="158" y="94" width="12" height="12" rx="3" fill="#1D9E75"/>
+          <rect x="61" y="27" width="84" height="22" rx="5" fill="#04342C"/>
+          <rect x="58" y="24" width="84" height="22" rx="5" fill="#E1F5EE"/>
+          <circle cx="69" cy="35" r="3.4" fill="#1D9E75"/>
+          <rect x="80" y="31" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="38" width="22" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="124" y="30" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="30" width="4" height="12" rx="2" fill="#5DCAA5"/>
+          <rect x="61" y="55" width="84" height="22" rx="5" fill="#04342C"/>
+          <rect x="58" y="52" width="84" height="22" rx="5" fill="#E1F5EE"/>
+          <circle cx="69" cy="63" r="3.4" fill="#1D9E75"/>
+          <rect x="80" y="59" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="66" width="22" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="124" y="58" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="58" width="4" height="12" rx="2" fill="#5DCAA5"/>
+          <rect x="61" y="83" width="84" height="22" rx="5" fill="#04342C"/>
+          <rect x="58" y="80" width="84" height="22" rx="5" fill="#E1F5EE"/>
+          <circle cx="69" cy="91" r="3.4" fill="#1D9E75"/>
+          <rect x="80" y="87" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="94" width="22" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="124" y="86" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="86" width="4" height="12" rx="2" fill="#5DCAA5"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="backend"><b></b><span></span></span>
+          <h3>Backend</h3>
+          <a class="cta" href="signup.html?path=backend">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Cybersecurity">
+          <rect width="200" height="130" fill="#993C1D"/>
+          <ellipse cx="100" cy="112" rx="44" ry="8" fill="#712B13"/>
+          <circle cx="32" cy="34" r="6" fill="#D85A30"/>
+          <rect x="158" y="86" width="13" height="13" rx="3" fill="#D85A30"/>
+          <path d="M103 20l43 17v31c0 20-18 33-43 42-25-9-43-22-43-42V37Z" fill="#D85A30"/>
+          <path d="M100 20l43 17v31c0 20-18 33-43 42-25-9-43-22-43-42V37Z" fill="#FAECE7"/>
+          <path d="M100 31l33 13v24c0 15-14 25-33 32-19-7-33-17-33-32V44Z" fill="#F5C4B3"/>
+          <circle cx="100" cy="62" r="9" fill="#993C1D"/>
+          <path d="M95.5 67h9l-2 15h-5Z" fill="#993C1D"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="cybersecurity"><b></b><span></span></span>
+          <h3>Cybersecurity</h3>
+          <a class="cta" href="signup.html?path=cybersecurity">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Data and analytics">
+          <rect width="200" height="130" fill="#185FA5"/>
+          <ellipse cx="100" cy="112" rx="54" ry="8" fill="#0C447C"/>
+          <circle cx="30" cy="32" r="7" fill="#378ADD"/>
+          <rect x="160" y="92" width="12" height="12" rx="3" fill="#378ADD"/>
+          <rect x="51" y="27" width="104" height="76" rx="8" fill="#0C447C"/>
+          <rect x="48" y="24" width="104" height="76" rx="8" fill="#E6F1FB"/>
+          <rect x="62" y="66" width="15" height="20" rx="3" fill="#85B7EB"/>
+          <rect x="83" y="56" width="15" height="30" rx="3" fill="#85B7EB"/>
+          <rect x="104" y="62" width="15" height="24" rx="3" fill="#378ADD"/>
+          <rect x="125" y="44" width="15" height="42" rx="3" fill="#378ADD"/>
+          <path d="M69 60 90 50l21 6 21-14" fill="none" stroke="#185FA5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="132" cy="42" r="4.5" fill="#185FA5"/>
+          <rect x="62" y="34" width="30" height="5" rx="2.5" fill="#B5D4F4"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="data"><b></b><span></span></span>
+          <h3>Data &amp; analytics</h3>
+          <a class="cta" href="signup.html?path=data">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Mobile">
+          <rect width="200" height="130" fill="#993556"/>
+          <ellipse cx="100" cy="112" rx="46" ry="8" fill="#72243E"/>
+          <circle cx="34" cy="36" r="6" fill="#D4537E"/>
+          <rect x="77" y="21" width="52" height="86" rx="11" fill="#72243E"/>
+          <rect x="74" y="18" width="52" height="86" rx="11" fill="#FBEAF0"/>
+          <rect x="80" y="30" width="40" height="62" rx="6" fill="#F4C0D1"/>
+          <rect x="90" y="23" width="20" height="4" rx="2" fill="#F4C0D1"/>
+          <rect x="86" y="38" width="28" height="16" rx="4" fill="#D4537E"/>
+          <rect x="86" y="60" width="28" height="5" rx="2.5" fill="#ED93B1"/>
+          <rect x="86" y="70" width="18" height="5" rx="2.5" fill="#ED93B1"/>
+          <rect x="90" y="96" width="20" height="3" rx="1.5" fill="#F4C0D1"/>
+          <rect x="130" y="44" width="40" height="20" rx="6" fill="#D4537E"/>
+          <circle cx="140" cy="54" r="3" fill="#FBEAF0"/><rect x="147" y="52" width="16" height="4" rx="2" fill="#FBEAF0"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="mobile"><b></b><span></span></span>
+          <h3>Mobile</h3>
+          <a class="cta" href="signup.html?path=mobile">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="DevOps and cloud">
+          <rect width="200" height="130" fill="#35414F"/>
+          <ellipse cx="100" cy="112" rx="48" ry="8" fill="#232C36"/>
+          <circle cx="32" cy="88" r="6" fill="#6C7C8E"/>
+          <rect x="160" y="28" width="12" height="12" rx="3" fill="#6C7C8E"/>
+          <path d="M78 55a17 17 0 0 1 33-6 13 13 0 0 1 19 12 12 12 0 0 1-4 23H80a17 17 0 0 1-2-29Z" fill="#232C36" transform="translate(3,3)"/>
+          <path d="M78 55a17 17 0 0 1 33-6 13 13 0 0 1 19 12 12 12 0 0 1-4 23H80a17 17 0 0 1-2-29Z" fill="#EDF0F3"/>
+          <path d="M76 92a26 26 0 0 0 48 0" fill="none" stroke="#9EAAB8" stroke-width="4" stroke-linecap="round"/>
+          <path d="M124 86l6 8-11 1Z" fill="#9EAAB8"/>
+          <rect x="88" y="60" width="24" height="4" rx="2" fill="#9EAAB8"/>
+          <rect x="88" y="69" width="16" height="4" rx="2" fill="#9EAAB8"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="devops"><b></b><span></span></span>
+          <h3>DevOps &amp; cloud</h3>
+          <a class="cta" href="signup.html?path=devops">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="AI and machine learning">
+          <rect width="200" height="130" fill="#58256B"/>
+          <ellipse cx="100" cy="112" rx="46" ry="8" fill="#3C1749"/>
+          <circle cx="32" cy="32" r="6" fill="#9B5BB4"/>
+          <rect x="158" y="92" width="12" height="12" rx="3" fill="#9B5BB4"/>
+          <rect x="76" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="97" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="118" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/>
+          <rect x="76" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="97" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="118" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/>
+          <rect x="58" y="52" width="14" height="6" rx="3" fill="#9B5BB4"/><rect x="58" y="72" width="14" height="6" rx="3" fill="#9B5BB4"/>
+          <rect x="128" y="52" width="14" height="6" rx="3" fill="#9B5BB4"/><rect x="128" y="72" width="14" height="6" rx="3" fill="#9B5BB4"/>
+          <rect x="73" y="39" width="58" height="58" rx="12" fill="#3C1749"/>
+          <rect x="70" y="36" width="58" height="58" rx="12" fill="#F5EAF8"/>
+          <rect x="82" y="48" width="34" height="34" rx="8" fill="#C594D6"/>
+          <circle cx="99" cy="65" r="6" fill="#58256B"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="aiml"><b></b><span></span></span>
+          <h3>AI &amp; machine learning</h3>
+          <a class="cta" href="signup.html?path=aiml">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="UX and UI design">
+          <rect width="200" height="130" fill="#854F0B"/>
+          <ellipse cx="100" cy="112" rx="52" ry="8" fill="#633806"/>
+          <circle cx="30" cy="92" r="6" fill="#EF9F27"/>
+          <rect x="160" y="26" width="12" height="12" rx="3" fill="#EF9F27"/>
+          <rect x="52" y="24" width="74" height="54" rx="7" fill="#EF9F27"/>
+          <rect x="77" y="47" width="74" height="54" rx="7" fill="#633806"/>
+          <rect x="74" y="44" width="74" height="54" rx="7" fill="#FAEEDA"/>
+          <rect x="84" y="54" width="26" height="26" rx="5" fill="#FAC775"/>
+          <rect x="118" y="54" width="22" height="5" rx="2.5" fill="#FAC775"/>
+          <rect x="118" y="64" width="22" height="5" rx="2.5" fill="#FAC775"/>
+          <rect x="118" y="74" width="14" height="5" rx="2.5" fill="#FAC775"/>
+          <path d="M113 78l22 9-9 3-3 9Z" fill="#633806"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="design"><b></b><span></span></span>
+          <h3>UX/UI design</h3>
+          <a class="cta" href="signup.html?path=design">Find my partner</a>
+        </div>
+      </article>
+
+    </div>
+
+    <p class="other">Learning something that isn't here? <a href="mailto:hello@peerflow.dev">Tell us</a> and we'll look for your partner too.</p>
+  </section>
+
+  <!-- ================= FOUNDER ================= -->
+  <section class="founder">
+    <blockquote>I grew up in a small town. I didn't need another course — I needed someone who'd show up on Tuesday because I was expecting them.</blockquote>
+    <cite>Mohibakhon, founder</cite>
+  </section>
+
+  <footer>
+    <span>peerflow — find one person to learn with</span>
+    <span><a href="conduct.html">Code of conduct</a> · <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a></span>
+  </footer>
+
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
-<script src="assets/site.js"></script>
+<script src="assets/home.js"></script>
 </body>
 </html>

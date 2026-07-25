@@ -1,0 +1,188 @@
+/* ============================================================
+   PeerFlow — landing page only.
+
+   This file styles index.html and nothing else. The rest of the
+   site (signup, login, the app pages) still uses styles.css.
+   Keeping them apart means changing the landing page can't break
+   the signup flow, and vice versa.
+   ============================================================ */
+
+:root{
+  --ink:#171A2E;
+  --ink-soft:#4A4E68;
+  --ink-faint:#82869C;
+  --paper:#F3F2F6;
+  --card:#FFFFFF;
+  --line:#E2E1E9;
+  --live:#0FA36B;
+  --live-soft:#E3F4EC;
+  --live-deep:#0A7350;
+  --display:"Bricolage Grotesque",Georgia,serif;
+  --body:"Schibsted Grotesk",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+a{color:inherit;text-decoration:none}
+
+/* Keyboard users need to see where they are. */
+a:focus-visible,button:focus-visible{
+  outline:2px solid var(--live-deep);
+  outline-offset:3px;
+  border-radius:4px;
+}
+
+.mono{
+  font-family:var(--mono);font-size:12px;letter-spacing:0.06em;
+  text-transform:uppercase;color:var(--ink-faint);
+}
+
+/* ---------- nav ---------- */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+.logo{display:flex;align-items:center;gap:9px;font-weight:500;font-size:17px;letter-spacing:-0.01em}
+.logo svg{display:block;flex:0 0 auto}
+.nav-right{display:flex;align-items:center;gap:22px;font-size:14px;color:var(--ink-soft)}
+
+.btn{
+  display:inline-block;background:var(--ink);color:#fff;padding:11px 20px;
+  border-radius:10px;font-size:14px;font-weight:500;border:0;cursor:pointer;
+  font-family:var(--body);transition:transform .15s ease,background .15s ease;
+}
+.btn:hover{background:#0D0F1E;transform:translateY(-1px)}
+.btn-sm{padding:8px 15px;font-size:13.5px}
+
+/* ---------- hero ---------- */
+.hero{
+  display:grid;grid-template-columns:1.05fr .95fr;gap:56px;
+  align-items:center;padding:64px 0 72px;
+}
+h1{
+  font-family:var(--display);font-size:clamp(38px,5.2vw,60px);line-height:1.02;
+  letter-spacing:-0.03em;font-weight:600;margin:0 0 20px;
+}
+h1 em{font-style:normal;color:var(--live)}
+.lede{font-size:18px;color:var(--ink-soft);margin:0 0 30px;max-width:30ch}
+.hero-note{
+  font-family:var(--mono);font-size:12px;color:var(--ink-faint);
+  margin:16px 0 0;letter-spacing:0.03em;
+}
+
+/* ---------- example match card ---------- */
+.match{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px}
+.match-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.live{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+  letter-spacing:0.08em;text-transform:uppercase;color:var(--live-deep);
+  background:var(--live-soft);padding:5px 10px;border-radius:999px;
+}
+.live b{width:6px;height:6px;border-radius:50%;background:var(--live);display:block}
+.person{display:flex;align-items:center;gap:13px;margin-bottom:20px}
+.ava{
+  width:46px;height:46px;border-radius:50%;background:#E8E7F0;color:#4A4E68;
+  display:flex;align-items:center;justify-content:center;font-weight:500;font-size:15px;flex:0 0 auto;
+}
+.person p{margin:0}
+.person .nm{font-weight:500;font-size:16px}
+.person .sub{font-size:13.5px;color:var(--ink-soft)}
+.rows{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:11px;font-size:14px}
+.row{display:flex;justify-content:space-between;align-items:center}
+.row span{color:var(--ink-soft)}
+.row b{font-weight:500;font-family:var(--mono);font-size:13px}
+
+/* One block per week: filled = kept, empty = missed, dark = this week. */
+.strip{display:flex;gap:4px;margin:18px 0 16px}
+.strip i{flex:1;height:22px;border-radius:4px;background:#EDECF2;display:block}
+.strip i.on{background:var(--live)}
+.strip i.now{background:var(--ink)}
+
+.join{
+  display:block;width:100%;text-align:center;background:var(--live);color:#fff;
+  padding:11px;border-radius:10px;font-size:14px;font-weight:500;
+}
+
+/* ---------- steps ---------- */
+/* The 1px gap over a --line background is what draws the dividers. */
+.steps{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:16px;overflow:hidden;
+}
+.step{background:var(--paper);padding:24px 26px}
+.step h3{margin:8px 0 4px;font-size:16px;font-weight:500;letter-spacing:-0.01em}
+.step p{margin:0;font-size:14px;color:var(--ink-soft)}
+
+/* ---------- paths ---------- */
+.sec{padding:80px 0 0}
+.sec-head{margin-bottom:26px}
+.sec-head h2{font-family:var(--display);font-size:34px;letter-spacing:-0.025em;font-weight:600;margin:8px 0 6px}
+.sec-head p{margin:0;color:var(--ink-soft);font-size:16px}
+
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.path{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  display:flex;flex-direction:column;transition:transform .18s ease,box-shadow .18s ease;
+}
+.path:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(23,26,46,.09)}
+.path svg{width:100%;display:block}
+.path-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
+.path h3{margin:0;font-size:17px;font-weight:500;letter-spacing:-0.015em}
+.path .cta{
+  margin-top:auto;text-align:center;border:1px solid var(--ink);border-radius:9px;
+  padding:8px;font-size:13.5px;font-weight:500;transition:background .15s ease,color .15s ease;
+}
+.path:hover .cta{background:var(--ink);color:#fff}
+
+/* How many people are on this path right now. Filled in by home.js from
+   real sign-ups — it stays invisible (but keeps its space, so the cards
+   don't jump) until we actually know the number. */
+.waiting{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:0.05em;color:var(--live-deep);
+  display:flex;align-items:center;gap:6px;min-height:17px;visibility:hidden;
+}
+.waiting.shown{visibility:visible}
+.waiting b{width:6px;height:6px;border-radius:50%;background:var(--live);display:block;flex:0 0 auto}
+.waiting.none{color:var(--ink-faint)}
+.waiting.none b{background:#C9CBD6}
+
+.other{margin-top:18px;font-size:14px;color:var(--ink-soft)}
+.other a{border-bottom:1px solid var(--ink-faint)}
+
+/* ---------- founder ---------- */
+.founder{padding:88px 0 72px;max-width:640px}
+.founder blockquote{
+  margin:0;font-family:var(--display);font-size:23px;line-height:1.45;
+  letter-spacing:-0.015em;font-weight:500;
+}
+.founder cite{
+  display:block;margin-top:14px;font-style:normal;font-size:14px;
+  color:var(--ink-faint);font-family:var(--mono);
+}
+
+/* ---------- footer ---------- */
+footer{
+  border-top:1px solid var(--line);padding:26px 0 40px;display:flex;
+  justify-content:space-between;font-size:13.5px;color:var(--ink-faint);
+  flex-wrap:wrap;gap:10px;
+}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:36px;padding:40px 0 52px}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .grid{grid-template-columns:1fr}
+  .nav-right a:not(.btn){display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

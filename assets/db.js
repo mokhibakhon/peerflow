@@ -406,6 +406,23 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* How many people have signed up to each path. One request, tallied here,
+     rather than eight count queries. Returns an object keyed by track id
+     ({frontend: 2, backend: 0, ...}) or null if we can't reach the server —
+     null and zero mean different things, so the caller can tell them apart. */
+  function trackCounts(){
+    if (!client) return Promise.resolve(null);
+    return client.from('profiles').select('track_id').then(function(r){
+      if (r.error) return null;
+      var out = {};
+      Object.keys(trackNames).forEach(function(id){ out[id] = 0; });
+      (r.data || []).forEach(function(row){
+        if (row.track_id && out.hasOwnProperty(row.track_id)) out[row.track_id]++;
+      });
+      return out;
+    }).catch(function(){ return null; });
+  }
+
   /* ---------- track labels (for display in the app) ---------- */
 
   var trackNames = {
@@ -437,6 +454,7 @@ window.pf = (function(){
     badgeStats: badgeStats,
     fetchPeers: fetchPeers,
     learnerStats: learnerStats,
+    trackCounts: trackCounts,
     trackNames: trackNames
   };
 })();
