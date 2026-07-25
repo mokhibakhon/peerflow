@@ -51,8 +51,11 @@ a:focus-visible,button:focus-visible{
 
 /* ---------- nav ---------- */
 .nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
-.logo{display:flex;align-items:center;gap:9px;font-weight:500;font-size:17px;letter-spacing:-0.01em}
+/* The wordmark keeps its own greens (#0b8f66 mark, #097a57 "flow") rather
+   than the page's --live — it's the brand, not an accent. */
+.logo{display:flex;align-items:center;gap:9px;font-weight:400;font-size:17px;letter-spacing:-0.01em}
 .logo svg{display:block;flex:0 0 auto}
+.logo b{font-weight:700;color:#097a57}
 .nav-right{display:flex;align-items:center;gap:22px;font-size:14px;color:var(--ink-soft)}
 
 .btn{
