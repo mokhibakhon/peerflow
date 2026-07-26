@@ -135,18 +135,18 @@ h1 em{font-style:normal;color:var(--live)}
 .pom-txt span{font-size:13px;color:var(--ink-soft)}
 
 /* ---------- steps ---------- */
-/* A green band, so this reads as its own beat instead of more of the same
-   page. Dividers are white hairlines — the grey --line disappears on colour. */
+/* A pale green tint — enough of a surface change to make this its own beat,
+   without turning the section into a block of colour. Text stays dark. */
 .steps{
   display:grid;grid-template-columns:repeat(3,1fr);
-  background:var(--live-deep);border-radius:18px;overflow:hidden;
+  background:var(--live-soft);border:1px solid #C9E6D8;border-radius:18px;overflow:hidden;
   margin-top:8px;
 }
 .step{padding:28px 28px 30px}
-.step + .step{border-left:1px solid rgba(255,255,255,.16)}
-.step .mono{color:rgba(255,255,255,.88)}  /* 4.9:1 on the green — .80 fell short */
-.step h3{margin:8px 0 4px;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#fff}
-.step p{margin:0;font-size:14px;color:rgba(255,255,255,.86)}
+.step + .step{border-left:1px solid #C9E6D8}
+.step .mono{color:var(--live-deep)}
+.step h3{margin:8px 0 4px;font-size:16px;font-weight:600;letter-spacing:-0.01em}
+.step p{margin:0;font-size:14px;color:var(--ink-soft)}
 
 /* ---------- paths ---------- */
 .sec{padding:80px 0 0}
@@ -206,7 +206,7 @@ footer{
   .hero{grid-template-columns:1fr;gap:36px;padding:40px 0 52px}
   .grid{grid-template-columns:repeat(2,1fr)}
   .steps{grid-template-columns:1fr}
-  .step + .step{border-left:0;border-top:1px solid rgba(255,255,255,.16)}
+  .step + .step{border-left:0;border-top:1px solid #C9E6D8}
 }
 @media (max-width:520px){
   .grid{grid-template-columns:1fr}
