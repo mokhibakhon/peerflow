@@ -91,10 +91,9 @@
     <p class="step-err" id="track-err" hidden>Pick the path closest to what you're learning.</p>
 
     <h2 class="q">What are you working on right now?</h2>
-    <p class="lead" style="margin:0 0 14px">Be specific if you can — “Linux basics” matches better than “cybersecurity.”</p>
+    <p class="lead" style="margin:0 0 14px">Be specific if you can — “Linux basics” matches better than “cybersecurity.” Not sure yet? Leave it blank and add it from your profile later.</p>
     <div class="field" id="f-topic" style="max-width:none">
       <input id="su-topic" type="text" placeholder="e.g. Linux basics, or Security+ prep" autocomplete="off">
-      <span class="err">Tell us what you're learning so we can find someone learning it too.</span>
     </div>
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
@@ -277,7 +276,6 @@
   /* ---------- step 2: path + what you're working on (both required) ---------- */
   var finishBtn = document.getElementById('finish');
   var topicI = document.getElementById('su-topic');
-  var topicF = document.getElementById('f-topic');
   var trackBox = document.getElementById('track-choices');
   var trackErr = document.getElementById('track-err');
 
@@ -301,11 +299,14 @@
     state.track = want;
   })();
 
-  topicI.addEventListener('input', function(){ topicF.classList.remove('bad'); });
+  /* The path is required — it's what puts someone on a list at all. The topic
+     is not: plenty of people signing up don't yet know what to call the thing
+     they're learning, and it's editable from the profile page afterwards. An
+     empty topic is stored as null, and the checklist on the app home nudges
+     them to fill it in once they've had a look around. */
   document.getElementById('topic-next').addEventListener('click', function(){
     if (!state.track) { trackErr.hidden = false; return; }
     state.topic = topicI.value.trim();
-    if (!state.topic) { topicF.classList.add('bad'); topicI.focus(); return; }
     show(2);
   });
 
