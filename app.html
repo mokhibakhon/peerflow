@@ -1,106 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sessions — PeerFlow</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
-<link rel="stylesheet" href="assets/styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
-    <a class="logo" href="app.html" aria-label="PeerFlow — Sessions">
-      <svg width="30" height="30" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-      <span>peer<b>flow</b></span>
-    </a>
-    <nav class="nav-links" aria-label="App">
-      <a href="app.html" class="active">Sessions</a>
-      <a href="app-sessions.html">My partner</a>
-      <a href="app-people.html">People</a>
-    </nav>
-    <div class="nav-right">
-    </div>
-  </div>
-</header>
+<main>
 
-<main class="app-main">
-  <div class="wrap">
-    <div class="app-head">
-      <h1 id="greeting">Your sessions</h1>
-      <span class="date" id="today-date"></span>
-    </div>
+  <p class="signedout" id="signedout" hidden>
+    You're not signed in, so we can't load your sessions.
+    <a href="login.html">Log in</a> to see them — or
+    <a href="signup.html">finish signing up</a> if you're new.
+  </p>
 
-    <p class="signedout-note" id="signedout" hidden>
-      You're not signed in, so we can't load your sessions.
-      <a href="login.html">Log in</a> to see them — or
-      <a href="signup.html">finish signing up</a> if you're new.
-    </p>
-
-    <!-- the soonest session, front and centre -->
-    <div class="card next-card" id="next-card" hidden style="max-width:660px">
-      <div class="when-big" id="next-when">NEXT SESSION</div>
-      <h2 id="next-title">—</h2>
-      <p id="next-sub"></p>
-      <div class="row">
-        <span style="font-size:13.5px;color:var(--muted)" id="next-note"></span>
-        <a class="btn primary" id="next-join" href="#" target="_blank" rel="noopener" style="margin-left:auto">Join the call</a>
+  <!-- ============ hero: where you are right now ============ -->
+  <section class="hero">
+    <div class="txt">
+      <div class="pair">
+        <div class="ava a1" id="me-av" aria-hidden="true">·</div>
+        <div class="ava a2 pending" id="pt-av" aria-hidden="true">?</div>
       </div>
+      <h1 id="state">Loading your sessions…</h1>
+      <p class="sub" id="sub"></p>
+      <div class="acts" id="acts"></div>
+      <p class="agenda" id="agenda" hidden></p>
     </div>
-
-    <div class="card" id="empty-card" hidden style="max-width:660px">
-      <h3>No sessions booked yet</h3>
-      <p style="font-size:14.5px">
-        Once you and your partner agree a time, it shows up here with a link to the call.
-      </p>
-      <a class="btn ghost" href="app-sessions.html" style="margin-top:16px">See my partner</a>
+    <div class="art" aria-hidden="true">
+      <svg viewBox="0 0 210 190" xmlns="http://www.w3.org/2000/svg">
+        <rect width="210" height="190" fill="#0F6E56"/>
+        <circle cx="30" cy="30" r="7" fill="#1D9E75"/>
+        <rect x="176" y="24" width="12" height="12" rx="3" fill="#1D9E75"/>
+        <ellipse cx="105" cy="170" rx="78" ry="9" fill="#04342C"/>
+        <path d="M36 74c0-13 9-22 20-22s20 9 20 22" fill="#5DCAA5"/>
+        <circle cx="56" cy="44" r="13" fill="#9FE1CB"/>
+        <!-- The second figure is drawn solid once a partner exists and left
+             as a dashed outline while you're still looking. -->
+        <g id="mate">
+          <path d="M116 74c0-13 9-22 20-22s20 9 20 22" fill="#5DCAA5"/>
+          <circle cx="136" cy="44" r="13" fill="#9FE1CB"/>
+        </g>
+        <g id="mate-ghost" hidden>
+          <path d="M116 74c0-13 9-22 20-22s20 9 20 22" fill="none" stroke="#1D9E75" stroke-width="2" stroke-dasharray="4 5"/>
+          <circle cx="136" cy="44" r="13" fill="none" stroke="#1D9E75" stroke-width="2" stroke-dasharray="4 5"/>
+        </g>
+        <path id="link" d="M78 86q27-16 54 0" fill="none" stroke="#5DCAA5" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>
+        <circle id="knot" cx="105" cy="79" r="4" fill="#E1F5EE"/>
+        <rect x="20" y="92" width="70" height="46" rx="5" fill="#E1F5EE"/>
+        <rect x="26" y="98" width="58" height="34" rx="3" fill="#1D9E75"/>
+        <rect x="32" y="106" width="30" height="4" rx="2" fill="#9FE1CB"/>
+        <rect x="32" y="114" width="40" height="4" rx="2" fill="#9FE1CB"/>
+        <rect x="32" y="122" width="22" height="4" rx="2" fill="#5DCAA5"/>
+        <rect x="49" y="138" width="12" height="8" fill="#9FE1CB"/>
+        <rect x="36" y="146" width="38" height="5" rx="2.5" fill="#E1F5EE"/>
+        <g id="screen2">
+          <rect x="120" y="92" width="70" height="46" rx="5" fill="#E1F5EE"/>
+          <rect x="126" y="98" width="58" height="34" rx="3" fill="#1D9E75"/>
+          <rect x="132" y="106" width="38" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="132" y="114" width="26" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="132" y="122" width="34" height="4" rx="2" fill="#5DCAA5"/>
+          <rect x="149" y="138" width="12" height="8" fill="#9FE1CB"/>
+          <rect x="136" y="146" width="38" height="5" rx="2.5" fill="#E1F5EE"/>
+        </g>
+        <g id="screen2-ghost" hidden>
+          <rect x="120" y="92" width="70" height="46" rx="5" fill="none" stroke="#1D9E75" stroke-width="2" stroke-dasharray="5 6"/>
+          <rect x="149" y="138" width="12" height="8" fill="none" stroke="#1D9E75" stroke-width="2"/>
+          <rect x="136" y="146" width="38" height="5" rx="2.5" fill="none" stroke="#1D9E75" stroke-width="2"/>
+        </g>
+      </svg>
     </div>
+    <div class="topicline" id="topicline" hidden>
+      <span id="topictext"></span>
+      <a class="change" href="app-profile.html">change topic</a>
+    </div>
+  </section>
 
-    <!-- What's actually left to do, ticked off from real rows. -->
-    <div class="card" id="steps-card" hidden style="max-width:660px;margin-top:24px">
-      <h3>Getting started</h3>
+  <div class="grid">
+
+    <!-- ============ getting started ============ -->
+    <section class="b wide" id="steps-card" hidden>
+      <div class="bh">
+        <span class="gl" style="background:#EEEDFE">
+          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="#AFA9EC"/><path d="M7 11.2l3 3L15.5 8" fill="none" stroke="#3C3489" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <div><span class="mono" style="color:#5A51B5">Getting started</span><h2>What's left to do</h2></div>
+      </div>
       <ol class="steps-list" id="steps-list"></ol>
-    </div>
+    </section>
 
-    <h3 class="list-h" id="upcoming-h" hidden>Coming up</h3>
-    <div class="board" id="upcoming" style="margin:0;max-width:660px"></div>
+    <!-- ============ sessions ============ -->
+    <section class="b" id="sess-card">
+      <div class="bh">
+        <span class="gl" style="background:var(--p0)">
+          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><rect x="6" y="11" width="4" height="4" rx="1" fill="#0F6E56"/><path d="M7 2v3M15 2v3" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        <div><span class="mono" style="color:var(--p6)">Booked</span><h2 id="sess-h">Coming up</h2></div>
+      </div>
+      <div id="upcoming"></div>
+      <div class="empty" id="sess-empty" hidden>
+        <p>Nothing booked. Once you and your partner agree a time it lands here with a link to the call.</p>
+      </div>
+    </section>
 
-    <h3 class="list-h" id="past-h" hidden>Past sessions</h3>
-    <div class="board" id="past" style="margin:0;max-width:660px"></div>
+    <!-- ============ people on your path ============ -->
+    <section class="b room" id="room-card">
+      <div class="bh">
+        <span class="gl" style="background:#FBEAF0">
+          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><circle cx="8" cy="8" r="4" fill="#D4537E"/><circle cx="15" cy="9.5" r="3.2" fill="#ED93B1"/><path d="M2 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" fill="#D4537E"/><path d="M14 19c0-2.6 1.6-4.4 4-4.4s3 1.8 3 4.4" fill="#ED93B1"/></svg>
+        </span>
+        <div><span class="mono" style="color:#A94168">Also here</span><h2 id="room-h">Other people</h2></div>
+      </div>
+      <p class="n" id="room-n">Loading…</p>
+      <div id="room" style="margin-top:12px"></div>
+      <div class="row-acts" id="room-acts" hidden>
+        <a class="small" href="app-people.html">See everyone</a>
+      </div>
+    </section>
+
+    <!-- ============ your rhythm ============ -->
+    <section class="b wide">
+      <div class="calhead">
+        <div><span class="mono" style="color:var(--p6)">Your rhythm</span><p class="big" id="total">No sessions yet</p></div>
+        <span class="mono" id="longest"></span>
+      </div>
+
+      <div id="cal-real" hidden>
+        <div class="months" id="months"></div>
+        <div class="cal">
+          <div class="dlabels"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div>
+          <div class="cells" id="cells" role="img" aria-label="Your sessions over the last year"></div>
+        </div>
+        <div class="calfoot">
+          <span class="mono">Nobody set you a schedule. This is the one you kept.</span>
+          <span class="scale">less<i style="background:#EAE9EF"></i><i style="background:var(--p1)"></i><i style="background:var(--p2)"></i><i style="background:var(--p4)"></i><i style="background:var(--p6)"></i>more</span>
+        </div>
+        <div class="logs" id="logs"></div>
+      </div>
+
+      <div class="empty" id="cal-empty">
+        <div class="emptycal" id="ec" aria-hidden="true"></div>
+        <p>Your first session lands in the top left. After that this fills in on its own.</p>
+      </div>
+    </section>
+
+    <!-- ============ invite ============ -->
+    <section class="b wide inv">
+      <div class="row">
+        <p><b>Know someone else learning this?</b> Send them in — more people on your path means better partners for both of you.</p>
+        <button class="small" id="copy-invite">Copy invite link</button>
+      </div>
+    </section>
+
   </div>
 </main>
+
+<div class="mfoot">
+  <a href="conduct.html">Code of conduct</a>
+  <a href="mailto:hello@peerflow.dev">Report a problem</a>
+  <span>peerflow</span>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
+<script src="assets/appshell.js"></script>
 <script>
 (function(){
-  var name = '';
-  try { name = localStorage.getItem('pf_name') || ''; } catch(err) {}
-
-  var h = new Date().getHours();
-  var part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-  function greet(){
-    document.getElementById('greeting').textContent = part + (name ? ', ' + name : '');
-  }
-  greet();
-  try {
-    document.getElementById('today-date').textContent =
-      new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
-  } catch(err) {}
+  var $ = function(id){ return document.getElementById(id); };
 
   function esc(s){
     return String(s).replace(/[&<>"']/g, function(c){
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
   }
+  function initial(s){ return (String(s || '').trim()[0] || '·').toUpperCase(); }
   function when(d){
-    try {
-      return d.toLocaleString(undefined, { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
-    } catch(e){ return String(d); }
+    try { return d.toLocaleString(undefined, { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); }
+    catch(e){ return String(d); }
   }
-  /* "in 3 days" / "in 2 hours" / "in 20 minutes" / "now" */
   function relative(d){
     var mins = Math.round((d.getTime() - Date.now()) / 60000);
     if (mins <= 0) return 'now';
@@ -116,90 +199,164 @@
     return now >= start - 15 * 60000 && now <= start + s.durationMin * 60000;
   }
 
-  function row(s, past){
+  /* ---------- hero ---------- */
+  /* Four honest states. Nothing here is written until we know which one
+     you're in, so the page never claims a partner you don't have. */
+  function hero(opts){
+    $('state').innerHTML = opts.h;
+    $('sub').textContent = opts.s;
+    $('acts').innerHTML = opts.a || '';
+    $('agenda').textContent = opts.ag || '';
+    $('agenda').hidden = !opts.ag;
+
+    var paired = !!opts.paired;
+    $('mate').hidden = !paired;
+    $('screen2').hidden = !paired;
+    $('mate-ghost').hidden = paired;
+    $('screen2-ghost').hidden = paired;
+    $('link').setAttribute('stroke', paired ? '#5DCAA5' : '#0F6E56');
+    $('knot').setAttribute('opacity', paired ? '1' : '0');
+    $('pt-av').className = 'ava a2' + (paired ? '' : ' pending');
+    $('pt-av').textContent = paired ? initial(opts.partner) : '?';
+  }
+
+  /* ---------- sessions list ---------- */
+  function slot(s, past){
     var label = [s.partnerName ? 'with ' + s.partnerName : '', s.topic || ''].filter(Boolean).join(' · ');
-    var action = '';
-    if (!past) {
-      action = (s.roomUrl && isOpen(s))
-        ? '<a class="btn primary" href="' + esc(s.roomUrl) + '" target="_blank" rel="noopener">Join</a>'
-        : '<span class="seats">' + esc(relative(s.startsAt)) + '</span>';
-    }
+    var right = past ? ''
+      : (s.roomUrl && isOpen(s))
+        ? '<a class="btn" href="' + esc(s.roomUrl) + '" target="_blank" rel="noopener">Join</a>'
+        : '<span class="rel">' + esc(relative(s.startsAt)) + '</span>';
     return '<div class="slot">' +
       '<span class="when">' + esc(when(s.startsAt)) + '</span>' +
-      '<span class="what"><b>' + esc(label || 'Session') + '</b>' +
-        '<span>' + s.durationMin + ' min</span></span>' +
-      action +
-      '</div>';
+      '<span class="what">' + esc(label || 'Session') + '<span>' + s.durationMin + ' min</span></span>' +
+      right + '</div>';
   }
 
-  function render(sessions){
-    var now = Date.now();
-    var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
-    var past = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 <= now; }).reverse();
+  /* ---------- calendar ---------- */
+  /* One cell per day for the last year, shaded by how long you sat that day.
+     Built from real rows only — an empty history shows the empty grid. */
+  var MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-    if (upcoming.length) {
-      var next = upcoming[0];
-      document.getElementById('next-card').hidden = false;
-      document.getElementById('next-when').textContent = 'NEXT SESSION · ' + relative(next.startsAt).toUpperCase();
-      document.getElementById('next-title').textContent =
-        (next.partnerName ? 'With ' + next.partnerName : 'Your session') + (next.topic ? ' — ' + next.topic : '');
-      document.getElementById('next-sub').textContent = when(next.startsAt) + ' · ' + next.durationMin + ' minutes';
-      var join = document.getElementById('next-join');
-      if (next.roomUrl && isOpen(next)) {
-        join.href = next.roomUrl;
-        document.getElementById('next-note').textContent = 'The room is open.';
-      } else {
-        join.hidden = true;
-        document.getElementById('next-note').textContent =
-          next.roomUrl ? 'The call link opens 15 minutes before you start.' : 'No call link yet.';
-      }
-      if (upcoming.length > 1) {
-        document.getElementById('upcoming-h').hidden = false;
-        document.getElementById('upcoming').innerHTML =
-          upcoming.slice(1).map(function(s){ return row(s, false); }).join('');
-      }
-    } else {
-      document.getElementById('empty-card').hidden = false;
-    }
-
-    if (past.length) {
-      document.getElementById('past-h').hidden = false;
-      document.getElementById('past').innerHTML = past.map(function(s){ return row(s, true); }).join('');
+  function emptyCal(){
+    var ec = $('ec');
+    for (var k = 0; k < 28; k++){
+      var c = document.createElement('i');
+      if (k === 0) c.className = 'first';
+      ec.appendChild(c);
     }
   }
 
-  /* A short checklist of what's genuinely left to do, each item ticked from a
-     real row. Hidden entirely once every step is done. */
-  function showSteps(profile, sessionCount){
-    pf.acceptedPartners().then(function(partners){
-      var hasPartner = !!(partners && partners.length);
-      var complete = !!(profile && profile.name && profile.topic && profile.level &&
-                        (profile.availability || []).length);
-      var steps = [
-        { done: complete, label: 'Finish your profile',
-          hint: 'Your topic, stage and free times are what we match on.',
-          href: 'app-profile.html', cta: 'Complete it' },
-        { done: hasPartner, label: 'Find a partner',
-          hint: 'Browse everyone here and ask someone learning the same thing.',
-          href: 'app-people.html', cta: 'See people' },
-        { done: sessionCount > 0, label: 'Book your first session',
-          hint: 'Agree a time and it lands on both your calendars.',
-          href: 'app-sessions.html', cta: 'Book it' }
-      ];
-      if (steps.every(function(s){ return s.done; })) return;   // nothing left to nag about
-
-      document.getElementById('steps-card').hidden = false;
-      document.getElementById('steps-list').innerHTML = steps.map(function(s){
-        return '<li class="' + (s.done ? 'done' : '') + '">' +
-          '<span class="tick" aria-hidden="true">' + (s.done ?
-            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.4 4.4L19 7.5" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
-          '</span>' +
-          '<span class="step-body"><b>' + esc(s.label) + '</b>' +
-            (s.done ? '' : '<span>' + esc(s.hint) + '</span>') + '</span>' +
-          (s.done ? '' : '<a class="btn ghost" href="' + s.href + '">' + esc(s.cta) + '</a>') +
-        '</li>';
-      }).join('');
+  function buildCal(past){
+    var byDay = {}, minutes = {};
+    past.forEach(function(s){
+      var d = s.startsAt, key = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+      byDay[key] = (byDay[key] || 0) + 1;
+      minutes[key] = (minutes[key] || 0) + (s.durationMin || 0);
     });
+
+    var today = new Date(); today.setHours(0,0,0,0);
+    var end = new Date(today); end.setDate(end.getDate() + (6 - end.getDay()));
+    var start = new Date(end); start.setDate(start.getDate() - 363);
+
+    var months = $('months'), cells = $('cells'), lastM = -1;
+    for (var w = 0; w < 52; w++){
+      var md = new Date(start); md.setDate(md.getDate() + w * 7);
+      if (md.getMonth() !== lastM && md.getDate() <= 7){
+        var sp = document.createElement('span');
+        sp.textContent = MN[md.getMonth()];
+        sp.style.gridColumn = (w + 1) + ' / span 4';
+        months.appendChild(sp);
+        lastM = md.getMonth();
+      }
+    }
+
+    var streak = 0, best = 0, lastWeek = -1;
+    for (var k = 0; k < 364; k++){
+      var day = new Date(start); day.setDate(day.getDate() + k);
+      var key = day.getFullYear() + '-' + day.getMonth() + '-' + day.getDate();
+      var mins = minutes[key] || 0;
+      var v = mins === 0 ? 0 : mins < 40 ? 1 : mins < 70 ? 2 : mins < 100 ? 3 : 4;
+      var c = document.createElement('i');
+      if (v && day <= today) c.className = 'v' + v;
+      c.title = (mins ? mins + ' min' : 'no session') + ' · ' + day.getDate() + ' ' + MN[day.getMonth()];
+      cells.appendChild(c);
+
+      /* Longest run of consecutive weeks with at least one session. */
+      var wk = Math.floor(k / 7);
+      if (mins > 0 && day <= today){
+        if (wk !== lastWeek){ streak = (wk === lastWeek + 1) ? streak + 1 : 1; lastWeek = wk; }
+        if (streak > best) best = streak;
+      }
+    }
+
+    $('total').textContent = past.length + ' session' + (past.length === 1 ? '' : 's') + ' in the last year';
+    $('longest').textContent = best > 1 ? 'longest run · ' + best + ' weeks' : '';
+
+    $('logs').innerHTML = past.slice(0, 6).map(function(s){
+      var d = s.startsAt, lbl = [s.partnerName || '', s.topic || ''].filter(Boolean).join(' — ');
+      return '<div class="l">' +
+        '<span class="d">' + esc(d.toLocaleDateString(undefined, { weekday:'short', day:'numeric' })) + '</span>' +
+        '<span class="t">' + esc(lbl || 'Session') + '</span>' +
+        '<span class="m">' + s.durationMin + 'm</span></div>';
+    }).join('');
+
+    $('cal-empty').hidden = true;
+    $('cal-real').hidden = false;
+  }
+
+  /* ---------- checklist ---------- */
+  function showSteps(profile, hasPartner, sessionCount){
+    var complete = !!(profile && profile.name && profile.topic && profile.level &&
+                      (profile.availability || []).length);
+    var steps = [
+      { done: complete, label:'Finish your profile',
+        hint:'Your topic, stage and free times are what we match on.',
+        href:'app-profile.html', cta:'Complete it' },
+      { done: hasPartner, label:'Find a partner',
+        hint:'Browse everyone here and ask someone learning the same thing.',
+        href:'app-people.html', cta:'See people' },
+      { done: sessionCount > 0, label:'Book your first session',
+        hint:'Agree a time and it lands on both your calendars.',
+        href:'app-sessions.html', cta:'Book it' }
+    ];
+    if (steps.every(function(s){ return s.done; })) return;   // nothing left to nag about
+
+    $('steps-card').hidden = false;
+    $('steps-list').innerHTML = steps.map(function(s){
+      return '<li class="' + (s.done ? 'done' : '') + '">' +
+        '<span class="tick" aria-hidden="true">' + (s.done ?
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.4 4.4L19 7.5" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
+        '</span>' +
+        '<span class="step-body"><b>' + esc(s.label) + '</b>' +
+          (s.done ? '' : '<span>' + esc(s.hint) + '</span>') + '</span>' +
+        (s.done ? '' : '<a class="small" href="' + s.href + '">' + esc(s.cta) + '</a>') +
+      '</li>';
+    }).join('');
+  }
+
+  /* ---------- other people ---------- */
+  function showRoom(peers, myTopic){
+    if (!peers){ $('room-n').textContent = 'We couldn’t reach the server, so this list is empty.'; return; }
+    if (!peers.length){
+      $('room-h').textContent = 'Nobody else yet';
+      $('room-n').textContent = 'You’re the first one here. When somebody else signs up they show up in this list.';
+      return;
+    }
+    var names = (window.pf && pf.trackNames) || {};
+    $('room-h').textContent = peers.length + ' other ' + (peers.length === 1 ? 'person' : 'people') + ' here';
+    $('room-n').textContent = 'Not partners — just everyone else who has signed up. Ask anyone learning what you’re learning.';
+    $('room').innerHTML = peers.slice(0, 4).map(function(p){
+      var same = myTopic && p.topic && p.topic.toLowerCase() === myTopic.toLowerCase();
+      var meta = [names[p.track_id] || '', p.topic || '', p.timezone || ''].filter(Boolean).join(' · ');
+      return '<div class="r">' +
+        '<div class="a" style="background:#EEEDFE;color:#3C3489" aria-hidden="true">' + esc(initial(p.name)) + '</div>' +
+        '<div class="b2"><p class="nm">' + esc(p.name || 'Someone') +
+          (same ? '<span class="same-tag">same topic</span>' : '') + '</p>' +
+          (meta ? '<p class="mt">' + esc(meta) + '</p>' : '') + '</div>' +
+        '</div>';
+    }).join('');
+    $('room-acts').hidden = false;
   }
 
   /* Answers from signup that never reached the database (no session at the
@@ -215,37 +372,96 @@
     });
   }
 
+  $('copy-invite').addEventListener('click', function(){
+    var btn = this;
+    var url = location.origin + '/signup.html';
+    function done(ok){ btn.textContent = ok ? 'Copied' : url; setTimeout(function(){ btn.textContent = 'Copy invite link'; }, 2200); }
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function(){ done(true); }, function(){ done(false); });
+    else done(false);
+  });
+
+  emptyCal();
+
+  /* ---------- load ---------- */
   pf.currentUser().then(function(user){
-    if (!user) {
-      document.getElementById('signedout').hidden = false;
-      document.getElementById('empty-card').hidden = false;
+    if (!user){
+      $('signedout').hidden = false;
+      hero({ h:'You’re signed out.', s:'Log in and your partner, sessions and history come back exactly as you left them.',
+             a:'<a class="btn" href="login.html">Log in</a><a class="ghost" href="signup.html">Sign up</a>' });
+      $('sess-card').hidden = true;
+      $('room-card').hidden = true;
       return;
     }
     flushPending();
+
+    var name = '';
+    try { name = localStorage.getItem('pf_name') || ''; } catch(err){}
     var meta = user.user_metadata || {};
-    if (!name) {
-      name = meta.name || meta.full_name || (user.email || '').split('@')[0];
-      try { if (name) localStorage.setItem('pf_name', name); } catch(err) {}
-      greet();
-    }
+    if (!name) name = meta.name || meta.full_name || (user.email || '').split('@')[0];
+    $('me-av').textContent = initial(name);
 
     pf.getProfile().then(function(profile){
       /* Genuinely new user with nothing saved anywhere: finish onboarding. */
       var onboarded = profile && (profile.track_id || profile.topic);
-      if (!onboarded) {
+      if (!onboarded){
         var ls = '';
-        try { ls = localStorage.getItem('pf_track') || ''; } catch(err) {}
-        if (!ls) { window.location.replace('signup.html'); return; }
+        try { ls = localStorage.getItem('pf_track') || ''; } catch(err){}
+        if (!ls){ window.location.replace('signup.html'); return; }
       }
-      pf.fetchSessions().then(function(sessions){
-        if (!sessions || !sessions.length) {
-          document.getElementById('empty-card').hidden = false;
-          showSteps(profile, 0);
-          return;
-        }
-        render(sessions);
-        showSteps(profile, sessions.length);
-      });
+
+      var topic = (profile && profile.topic) || '';
+      if (topic){
+        $('topictext').innerHTML = 'You’re on <b>' + esc(topic) + '</b>';
+        $('topicline').hidden = false;
+      }
+
+      Promise.all([pf.acceptedPartners(), pf.fetchSessions(), pf.fetchPeers(12)])
+        .then(function(r){
+          var partners = r[0] || [], sessions = r[1] || [], peers = r[2];
+          var now = Date.now();
+          var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
+          var past = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 <= now; }).reverse();
+          var partner = partners[0] || null;
+          var pname = partner && (partner.name || partner.partner_name);
+
+          if (upcoming.length){
+            var next = upcoming[0];
+            hero({
+              paired:true, partner: next.partnerName || pname,
+              h: 'Next session <span class="g">' + esc(relative(next.startsAt)) + '</span>.',
+              s: when(next.startsAt) + ' · ' + next.durationMin + ' minutes' +
+                 (next.partnerName ? ' with ' + next.partnerName : ''),
+              a: (next.roomUrl && isOpen(next))
+                   ? '<a class="btn" href="' + esc(next.roomUrl) + '" target="_blank" rel="noopener">Join the call</a><a class="ghost" href="app-sessions.html">All sessions</a>'
+                   : '<a class="btn" href="app-sessions.html">See the booking</a>',
+              ag: next.roomUrl && !isOpen(next) ? 'The call link opens 15 minutes before you start.' : ''
+            });
+          } else if (partner){
+            hero({
+              paired:true, partner:pname,
+              h: 'You’re paired with <span class="g">' + esc(pname || 'your partner') + '</span>.',
+              s: 'Nothing booked yet. Agree a time and it lands on both your calendars with a link to the call.',
+              a: '<a class="btn" href="app-sessions.html">Book a session</a>'
+            });
+          } else {
+            hero({
+              paired:false,
+              h: 'No partner yet.',
+              s: 'Look through everyone who has signed up and ask someone learning what you’re learning. They get a notification and can accept.',
+              a: '<a class="btn" href="app-people.html">Find someone</a>'
+            });
+          }
+
+          if (upcoming.length){
+            $('upcoming').innerHTML = upcoming.map(function(s){ return slot(s, false); }).join('');
+          } else {
+            $('sess-empty').hidden = false;
+          }
+          if (past.length) buildCal(past);
+
+          showRoom(peers, topic);
+          showSteps(profile, !!partner, sessions.length);
+        });
     });
   });
 })();
