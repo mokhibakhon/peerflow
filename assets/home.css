@@ -17,9 +17,10 @@
   --live:#0FA36B;
   --live-soft:#E3F4EC;
   --live-deep:#0A7350;
-  --display:"Bricolage Grotesque",Georgia,serif;
-  --body:"Schibsted Grotesk",system-ui,sans-serif;
-  --mono:"JetBrains Mono",ui-monospace,monospace;
+  /* Same two stacks styles.css uses, so the landing page and the app read
+     as one product — and nothing is fetched from Google. */
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
 }
 
 *{box-sizing:border-box}
@@ -60,7 +61,7 @@ a:focus-visible,button:focus-visible{
 
 .btn{
   display:inline-block;background:var(--ink);color:#fff;padding:11px 20px;
-  border-radius:10px;font-size:14px;font-weight:500;border:0;cursor:pointer;
+  border-radius:10px;font-size:14px;font-weight:600;border:0;cursor:pointer;
   font-family:var(--body);transition:transform .15s ease,background .15s ease;
 }
 .btn:hover{background:#0D0F1E;transform:translateY(-1px)}
@@ -71,9 +72,12 @@ a:focus-visible,button:focus-visible{
   display:grid;grid-template-columns:1.05fr .95fr;gap:56px;
   align-items:center;padding:64px 0 72px;
 }
+/* Heavier and tighter than the old display face needed — a system sans wants
+   the extra weight to carry a headline this size. */
 h1{
-  font-family:var(--display);font-size:clamp(38px,5.2vw,60px);line-height:1.02;
-  letter-spacing:-0.03em;font-weight:600;margin:0 0 20px;
+  font-size:clamp(36px,4.8vw,54px);line-height:1.08;
+  letter-spacing:-0.022em;font-weight:800;margin:0 0 20px;
+  text-wrap:balance;
 }
 h1 em{font-style:normal;color:var(--live)}
 .lede{font-size:18px;color:var(--ink-soft);margin:0 0 30px;max-width:30ch}
@@ -109,7 +113,7 @@ h1 em{font-style:normal;color:var(--live)}
 .rows{margin-top:16px;display:grid;gap:11px;font-size:14px}
 .row{display:flex;justify-content:space-between;align-items:center}
 .row span{color:var(--ink-soft)}
-.row b{font-weight:500}
+.row b{font-weight:600}
 
 /* Pomodoro: a small dial beside the time, not a big ring floating in space.
    home.js drives the arc via stroke-dashoffset; 270.18 is the circumference
@@ -124,7 +128,7 @@ h1 em{font-style:normal;color:var(--live)}
 .pom-track{stroke:var(--live-soft)}
 .pom-arc{stroke:var(--live);stroke-dasharray:270.18;stroke-dashoffset:0}
 .pom-txt b{
-  display:block;font-family:var(--mono);font-size:22px;font-weight:500;color:var(--ink);
+  display:block;font-family:var(--mono);font-size:22px;font-weight:600;color:var(--ink);
   font-variant-numeric:tabular-nums;letter-spacing:0.02em;line-height:1.15;
 }
 .pom-txt span{font-size:13px;color:var(--ink-soft)}
@@ -136,13 +140,13 @@ h1 em{font-style:normal;color:var(--live)}
   border:1px solid var(--line);border-radius:16px;overflow:hidden;
 }
 .step{background:var(--paper);padding:24px 26px}
-.step h3{margin:8px 0 4px;font-size:16px;font-weight:500;letter-spacing:-0.01em}
+.step h3{margin:8px 0 4px;font-size:16px;font-weight:600;letter-spacing:-0.01em}
 .step p{margin:0;font-size:14px;color:var(--ink-soft)}
 
 /* ---------- paths ---------- */
 .sec{padding:80px 0 0}
 .sec-head{margin-bottom:26px}
-.sec-head h2{font-family:var(--display);font-size:34px;letter-spacing:-0.025em;font-weight:600;margin:8px 0 6px}
+.sec-head h2{text-wrap:balance;font-size:clamp(27px,3.2vw,34px);letter-spacing:-0.02em;font-weight:700;margin:8px 0 6px}
 .sec-head p{margin:0;color:var(--ink-soft);font-size:16px}
 
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
@@ -153,10 +157,10 @@ h1 em{font-style:normal;color:var(--live)}
 .path:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(23,26,46,.09)}
 .path svg{width:100%;display:block}
 .path-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
-.path h3{margin:0;font-size:17px;font-weight:500;letter-spacing:-0.015em}
+.path h3{margin:0;font-size:17px;font-weight:600;letter-spacing:-0.012em}
 .path .cta{
   margin-top:auto;text-align:center;border:1px solid var(--ink);border-radius:9px;
-  padding:8px;font-size:13.5px;font-weight:500;transition:background .15s ease,color .15s ease;
+  padding:8px;font-size:13.5px;font-weight:600;transition:background .15s ease,color .15s ease;
 }
 .path:hover .cta{background:var(--ink);color:#fff}
 
@@ -178,8 +182,8 @@ h1 em{font-style:normal;color:var(--live)}
 /* ---------- founder ---------- */
 .founder{padding:88px 0 72px;max-width:640px}
 .founder blockquote{
-  margin:0;font-family:var(--display);font-size:23px;line-height:1.45;
-  letter-spacing:-0.015em;font-weight:500;
+  margin:0;font-size:21px;line-height:1.5;
+  letter-spacing:-0.01em;font-weight:500;
 }
 .founder cite{
   display:block;margin-top:14px;font-style:normal;font-size:14px;
