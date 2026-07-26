@@ -17,11 +17,10 @@
   --live:#0FA36B;
   --live-soft:#E3F4EC;
   --live-deep:#0A7350;
-  /* One typeface for the whole page. Inter is near enough to a system sans
-     that the landing page and the app still read as one product, but it
-     renders identically on every device instead of whatever the OS picks.
+  /* One typeface for the whole page. Loaded as a variable font over the
+     400-700 range, so headings and body copy come from a single file.
      The fallback is the same stack styles.css uses. */
-  --body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --body:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
 }
 
@@ -74,10 +73,11 @@ a:focus-visible,button:focus-visible{
   display:grid;grid-template-columns:1.05fr .95fr;gap:56px;
   align-items:center;padding:64px 0 72px;
 }
-/* Inter wants weight and tight tracking to carry a headline this size. */
+/* Bricolage carries a headline at 600 — it doesn't need the extra weight
+   a neutral sans does at this size. */
 h1{
-  font-size:clamp(36px,4.8vw,53px);line-height:1.06;
-  letter-spacing:-0.032em;font-weight:800;margin:0 0 20px;
+  font-size:clamp(38px,5.2vw,60px);line-height:1.02;
+  letter-spacing:-0.03em;font-weight:600;margin:0 0 20px;
   text-wrap:balance;
 }
 h1 em{font-style:normal;color:var(--live)}
@@ -147,7 +147,7 @@ h1 em{font-style:normal;color:var(--live)}
 /* ---------- paths ---------- */
 .sec{padding:80px 0 0}
 .sec-head{margin-bottom:26px}
-.sec-head h2{font-size:clamp(27px,3.2vw,32px);letter-spacing:-0.026em;font-weight:700;margin:8px 0 6px;text-wrap:balance}
+.sec-head h2{font-size:clamp(27px,3.2vw,34px);letter-spacing:-0.025em;font-weight:600;margin:8px 0 6px;text-wrap:balance}
 .sec-head p{margin:0;color:var(--ink-soft);font-size:16px}
 
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
@@ -183,8 +183,8 @@ h1 em{font-style:normal;color:var(--live)}
 /* ---------- founder ---------- */
 .founder{padding:88px 0 72px;max-width:640px}
 .founder blockquote{
-  margin:0;font-size:21px;line-height:1.5;
-  letter-spacing:-0.016em;font-weight:500;
+  margin:0;font-size:23px;line-height:1.45;
+  letter-spacing:-0.015em;font-weight:500;
 }
 .founder cite{
   display:block;margin-top:14px;font-style:normal;font-size:14px;
