@@ -17,8 +17,10 @@
   --live:#0FA36B;
   --live-soft:#E3F4EC;
   --live-deep:#0A7350;
-  /* Same two stacks styles.css uses, so the landing page and the app read
-     as one product — and nothing is fetched from Google. */
+  /* Body and mono are the same stacks styles.css uses, so the landing page
+     and the app read as one product. Only the headlines get a webfont, and
+     it falls back to the body stack rather than a serif if it doesn't load. */
+  --display:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
 }
@@ -72,11 +74,9 @@ a:focus-visible,button:focus-visible{
   display:grid;grid-template-columns:1.05fr .95fr;gap:56px;
   align-items:center;padding:64px 0 72px;
 }
-/* Heavier and tighter than the old display face needed — a system sans wants
-   the extra weight to carry a headline this size. */
 h1{
-  font-size:clamp(36px,4.8vw,54px);line-height:1.08;
-  letter-spacing:-0.022em;font-weight:800;margin:0 0 20px;
+  font-family:var(--display);font-size:clamp(38px,5.2vw,60px);line-height:1.02;
+  letter-spacing:-0.03em;font-weight:600;margin:0 0 20px;
   text-wrap:balance;
 }
 h1 em{font-style:normal;color:var(--live)}
@@ -146,7 +146,7 @@ h1 em{font-style:normal;color:var(--live)}
 /* ---------- paths ---------- */
 .sec{padding:80px 0 0}
 .sec-head{margin-bottom:26px}
-.sec-head h2{text-wrap:balance;font-size:clamp(27px,3.2vw,34px);letter-spacing:-0.02em;font-weight:700;margin:8px 0 6px}
+.sec-head h2{font-family:var(--display);font-size:34px;letter-spacing:-0.025em;font-weight:600;margin:8px 0 6px;text-wrap:balance}
 .sec-head p{margin:0;color:var(--ink-soft);font-size:16px}
 
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
@@ -182,8 +182,8 @@ h1 em{font-style:normal;color:var(--live)}
 /* ---------- founder ---------- */
 .founder{padding:88px 0 72px;max-width:640px}
 .founder blockquote{
-  margin:0;font-size:21px;line-height:1.5;
-  letter-spacing:-0.01em;font-weight:500;
+  margin:0;font-family:var(--display);font-size:23px;line-height:1.45;
+  letter-spacing:-0.015em;font-weight:500;
 }
 .founder cite{
   display:block;margin-top:14px;font-style:normal;font-size:14px;
