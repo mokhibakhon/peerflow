@@ -1,19 +1,25 @@
 (function(){
-  /* The landing page sells PeerFlow to people who don't have it yet. Once
-     you're signed in it has nothing left to say, so it isn't your home any
-     more — the app is. Signed-in visitors go straight there.
+  /* Signed in, the landing page stays readable — people do come back to it
+     to re-read the pitch, check the code of conduct, or see what a friend
+     will see before sending the link. Bouncing them to the app would make
+     the page unreachable to everyone who has an account, including you.
 
-     This is why there's no "go to dashboard" button anywhere on this page:
-     the two surfaces are separate, and you're only ever on one of them.
-
-     Add ?stay to the URL to look at the landing page while signed in
-     (useful when editing the copy). */
+     What changes is the nav: the two auth buttons are no use to someone who
+     already has an account, so they become one way into the app plus the
+     same account chip the app uses. The hero and path buttons are left
+     pointing at signup.html, which sends a finished account straight
+     through to the app on its own. */
 
   if (!window.pf || !pf.currentUser) return;
-  if (/[?&]stay\b/.test(location.search)) return;
 
   pf.currentUser().then(function(user){
-    if (user) location.replace('app.html');
+    if (!user) return;
+
+    var login = document.querySelector('.nav-right a[href="login.html"]');
+    if (login) login.remove();
+
+    var cta = document.querySelector('.nav-right a[href="signup.html"]');
+    if (cta) { cta.href = 'app.html'; cta.textContent = 'Open app'; }
   });
 })();
 

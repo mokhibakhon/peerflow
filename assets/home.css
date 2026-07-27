@@ -213,3 +213,55 @@ footer{
   .nav-right a:not(.btn){display:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ============================================================
+   Account chip — only appears once you're signed in, and matches
+   the one in the app so the two surfaces feel like one product.
+   Injected by usermenu.js.
+   ============================================================ */
+
+.um-wrap{position:relative;display:flex;align-items:center}
+.um-btn{display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:var(--card);
+  border-radius:999px;padding:4px 11px 4px 4px;font-family:inherit;cursor:pointer;
+  transition:border-color .15s,box-shadow .15s}
+.um-btn:hover{border-color:#C6C5D0;box-shadow:0 1px 3px rgba(23,26,46,.07)}
+.um-btn[aria-expanded="true"]{border-color:var(--live);box-shadow:0 0 0 3px rgba(15,163,107,.15)}
+.um-btn[aria-expanded="true"] .um-chev{transform:rotate(180deg)}
+.um-face,.um-bigface{display:flex;align-items:center;justify-content:center;border-radius:50%;
+  overflow:hidden;flex:0 0 auto;font-weight:700}
+.um-face{width:30px;height:30px;font-size:12.5px}
+.um-bigface{width:38px;height:38px;font-size:15px}
+.um-face img,.um-bigface img{width:100%;height:100%;object-fit:cover;display:block}
+.um-label{font-size:13.5px;font-weight:600;color:var(--ink);max-width:130px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.um-chev{color:var(--ink-faint);flex:0 0 auto;transition:transform .15s}
+
+.um-menu{position:absolute;top:48px;right:0;width:248px;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;padding:6px;z-index:40;
+  box-shadow:0 12px 34px rgba(23,26,46,.13)}
+.um-head{display:flex;align-items:center;gap:11px;padding:11px 12px 12px;
+  border-bottom:1px solid var(--line);margin:-6px -6px 6px}
+.um-who{min-width:0}
+.um-name{display:block;font-size:14.5px;font-weight:700;color:var(--ink);
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.um-mail{display:block;font-size:12.5px;color:var(--ink-faint);margin-top:1px;
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.um-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;
+  font-size:14px;color:var(--ink-soft);background:none;border:0;font-family:inherit;
+  cursor:pointer;text-align:left}
+.um-item svg{flex:none;color:var(--ink-faint)}
+.um-item:hover{background:#EDECF2;color:var(--ink)}
+.um-item:hover svg{color:var(--live-deep)}
+.um-item.danger{color:#C0392B}
+.um-item.danger svg{color:#C0392B}
+.um-item.danger:hover{background:#FDEEEC;color:#A53125}
+.um-sep{height:1px;background:var(--line);margin:6px 4px}
+
+@media (max-width:820px){
+  .um-label,.um-chev{display:none}
+  .um-btn{padding:4px}
+}
+/* The nav hides plain links this narrow; the chip has to survive it. */
+@media (max-width:520px){
+  .nav-right .um-wrap{display:flex}
+}
