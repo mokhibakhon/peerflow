@@ -416,10 +416,25 @@ window.pf = (function(){
           if (byPartner[k] > mostWithOne) mostWithOne = byPartner[k];
         });
 
+        /* Total time actually sat, and the longest run of consecutive weeks
+           with at least one session in them. Both come straight off the
+           session rows — nothing here is awarded for an intention. */
+        var minutes = past.reduce(function(a, s){ return a + (s.durationMin || 0); }, 0);
+        var weeks = {}, WEEK = 7 * 864e5;
+        past.forEach(function(s){ weeks[Math.floor(s.startsAt.getTime() / WEEK)] = true; });
+        var idx = Object.keys(weeks).map(Number).sort(function(a, b){ return a - b; });
+        var run = idx.length ? 1 : 0, best = run;
+        for (var i = 1; i < idx.length; i++){
+          run = (idx[i] === idx[i-1] + 1) ? run + 1 : 1;
+          if (run > best) best = run;
+        }
+
         return {
           pastSessions: past.length,
           partners: partners.length,
           mostWithOnePartner: mostWithOne,
+          totalMinutes: minutes,
+          longestWeekStreak: best,
           profileComplete: !!(profile.name && profile.topic && profile.level &&
                               (profile.availability || []).length),
           joinRank: earlier + 1
