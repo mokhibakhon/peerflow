@@ -1,29 +1,19 @@
 (function(){
-  /* If you're already signed in, the home page shouldn't be selling you a
-     sign-up. Swap the two auth links for one way back into the app, and
-     retarget every "find my partner" button at the app rather than at the
-     onboarding questions you've already answered. */
+  /* The landing page sells PeerFlow to people who don't have it yet. Once
+     you're signed in it has nothing left to say, so it isn't your home any
+     more — the app is. Signed-in visitors go straight there.
+
+     This is why there's no "go to dashboard" button anywhere on this page:
+     the two surfaces are separate, and you're only ever on one of them.
+
+     Add ?stay to the URL to look at the landing page while signed in
+     (useful when editing the copy). */
 
   if (!window.pf || !pf.currentUser) return;
+  if (/[?&]stay\b/.test(location.search)) return;
 
   pf.currentUser().then(function(user){
-    if (!user) return;
-
-    var login = document.querySelector('.nav-right a[href="login.html"]');
-    if (login) login.remove();
-
-    var navBtn = document.querySelector('.nav-right a[href="signup.html"]');
-    if (navBtn) { navBtn.href = 'app.html'; navBtn.textContent = 'Go to my dashboard'; }
-
-    var heroBtn = document.querySelector('.hero .btn[href="signup.html"]');
-    if (heroBtn) { heroBtn.href = 'app.html'; heroBtn.textContent = 'Go to my dashboard'; }
-
-    /* Path cards: you already have a path, so send these to the people list
-       instead of asking you to pick one again. */
-    Array.prototype.forEach.call(document.querySelectorAll('.path .cta'), function(a){
-      a.href = 'app-people.html';
-      a.textContent = 'Find a partner';
-    });
+    if (user) location.replace('app.html');
   });
 })();
 

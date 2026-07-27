@@ -8,6 +8,30 @@ window.pfUserMenu = (function(){
   function initial(name){
     return (String(name || '').trim().charAt(0) || 'S').toUpperCase();
   }
+
+  /* A stable colour per person, so your own avatar looks like *yours* rather
+     than like a generic grey placeholder. Same name always lands on the same
+     pair, and every pair is dark-on-light enough to read at 12px. */
+  var TONES = [
+    ['#EEEDFE','#3C3489'], ['#E1F5EE','#0F6E56'], ['#FBEAF0','#A94168'],
+    ['#E6F1FB','#185FA5'], ['#FAEEDA','#854F0B'], ['#FAECE7','#993C1D'],
+    ['#F5EAF8','#58256B'], ['#EDF0F3','#35414F']
+  ];
+  function tone(name){
+    var s = String(name || '?'), h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return TONES[h % TONES.length];
+  }
+
+  /* A real picture when the account has one (Google hands us one on sign-in),
+     otherwise the initial on its colour. */
+  function face(name, url, cls){
+    var t = tone(name);
+    var inner = url
+      ? '<img src="' + esc(url) + '" alt="" referrerpolicy="no-referrer">'
+      : esc(initial(name));
+    return '<span class="' + cls + '" style="background:' + t[0] + ';color:' + t[1] + '">' + inner + '</span>';
+  }
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
@@ -27,13 +51,19 @@ window.pfUserMenu = (function(){
     wrap = document.createElement('div');
     wrap.className = 'um-wrap';
     wrap.innerHTML =
-      '<button class="av-nav um-btn" id="nav-av" aria-haspopup="true" aria-expanded="false" title="Your account">' +
-        esc(initial(name)) +
+      '<button class="um-btn" id="nav-av" aria-haspopup="true" aria-expanded="false" aria-label="Your account">' +
+        '<span id="um-face">' + face(name, '', 'um-face') + '</span>' +
+        '<span class="um-label" id="um-label">' + esc(name || 'Account') + '</span>' +
+        '<svg class="um-chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">' +
+          '<path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
       '</button>' +
       '<div class="um-menu" id="um-menu" hidden role="menu">' +
         '<div class="um-head">' +
-          '<span class="um-name" id="um-name">' + esc(name || 'Your account') + '</span>' +
-          '<span class="um-mail" id="um-mail">' + esc(email) + '</span>' +
+          '<span id="um-bigface">' + face(name, '', 'um-bigface') + '</span>' +
+          '<span class="um-who">' +
+            '<span class="um-name" id="um-name">' + esc(name || 'Your account') + '</span>' +
+            '<span class="um-mail" id="um-mail">' + esc(email) + '</span>' +
+          '</span>' +
         '</div>' +
         '<a class="um-item" role="menuitem" href="app-profile.html">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
@@ -95,10 +125,15 @@ window.pfUserMenu = (function(){
   }
 
   /* Pages call this once they know the real name/email from the profile. */
-  function setUser(name, email){
+  function setUser(name, email, avatarUrl){
     if (!btn) return;
     if (name) {
-      btn.textContent = initial(name);
+      var f = document.getElementById('um-face');
+      var bf = document.getElementById('um-bigface');
+      if (f)  f.innerHTML  = face(name, avatarUrl, 'um-face');
+      if (bf) bf.innerHTML = face(name, avatarUrl, 'um-bigface');
+      var lab = document.getElementById('um-label');
+      if (lab) lab.textContent = name;
       if (nameEl) nameEl.textContent = name;
     }
     if (email && mailEl) mailEl.textContent = email;
@@ -113,7 +148,8 @@ window.pfUserMenu = (function(){
       var meta = user.user_metadata || {};
       var nm = '';
       try { nm = localStorage.getItem('pf_name') || ''; } catch(e){}
-      setUser(nm || meta.name || meta.full_name || (user.email || '').split('@')[0], user.email);
+      setUser(nm || meta.name || meta.full_name || (user.email || '').split('@')[0],
+              user.email, meta.avatar_url || meta.picture || '');
     });
   }
 

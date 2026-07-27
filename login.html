@@ -72,18 +72,28 @@
       if (account && account.name) localStorage.setItem('pf_name', account.name);
       if (account && account.email) localStorage.setItem('pf_email', account.email);
     } catch(err) {}
-    window.location.href = 'app.html';
+    window.location.href = dest();
+  }
+
+  /* Where to land afterwards. authgate.js puts the page you were trying to
+     reach in ?next=, so logging in takes you there rather than dumping you
+     on the dashboard. Only same-site paths are accepted — an absolute URL
+     here would be an open redirect. */
+  function dest(){
+    var next = '';
+    try { next = new URLSearchParams(location.search).get('next') || ''; } catch(e){}
+    return /^[A-Za-z0-9_.-]+\.html(\?[^#]*)?$/.test(next) ? next : 'app.html';
   }
 
   /* Already signed in? There's nothing to log into. Straight through. */
   pf.currentUser().then(function(user){
-    if (user) window.location.replace('app.html');
+    if (user) window.location.replace(dest());
   });
 
   function social(provider){
     var s = document.getElementById('li-status');
     if (!pf.ready()) { s.textContent = 'Sign-in is temporarily unavailable — check your connection and try again.'; s.style.display='block'; return; }
-    pf.signInOAuth(provider, 'app.html').then(function(res){
+    pf.signInOAuth(provider, dest()).then(function(res){
       if (res.redirecting) return;                   // browser navigates to the provider
       s.textContent = res.error || ('Could not reach ' + provider + ' sign-in. Please try again.');
       s.style.display = 'block';
