@@ -75,11 +75,7 @@
 
   <!-- ============ STEP 2 — what are you learning + when are you free ============ -->
   <section class="onb-step" data-step="2">
-    <div class="auth-chip" id="auth-chip" hidden>
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" stroke="#0b8f66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span id="auth-chip-text">Signed in</span>
-      <a href="#" id="auth-switch">switch</a>
-    </div>
+    <p class="greet" id="greet" hidden></p>
     <h1>Which path are you on?</h1>
     <p class="lead">This is the broad direction. You'll say what you're working on specifically next.</p>
     <div class="choices" id="track-choices">
@@ -168,10 +164,15 @@
   });
 
   /* ---------- step 1: social sign-in ---------- */
-  function showSignedIn(email, provider){
-    document.getElementById('auth-chip-text').textContent =
-      'Signed in' + (provider ? ' with ' + provider : '') + (email ? ' as ' + email : '') + ' ·';
-    document.getElementById('auth-chip').hidden = false;
+  /* Once we know who they are, greet them. The old chip read back the
+     email address they had just typed and offered to "switch" — account
+     plumbing, at the moment someone is deciding whether to keep going.
+     Back on this step already returns them to the account screen. */
+  function showSignedIn(){
+    var el = document.getElementById('greet');
+    if (!state.first) return;
+    el.textContent = 'Hello, ' + state.first + '.';
+    el.hidden = false;
   }
   function suError(msg){
     var s = document.getElementById('su-status');
@@ -214,16 +215,11 @@
       state.last  = parts.join(' ');
       state.email = user.email || '';
       state.provider = 'oauth';
-      showSignedIn(state.email, null);
+      showSignedIn();
       if (cur === 0) show(1);
     });
   });
-  document.getElementById('auth-switch').addEventListener('click', function(e){
-    e.preventDefault();
-    document.getElementById('auth-chip').hidden = true;
-    state.provider = 'email'; state.email = '';
-    show(0);
-  });
+
 
   /* ---------- step 1: email form with validation ---------- */
   var nameF = document.getElementById('f-name'), nameI = document.getElementById('su-name');
@@ -269,7 +265,6 @@
     state.name = [state.first, state.last].filter(Boolean).join(' ');
     state.email = mailI.value.trim();
     state.provider = 'email';
-    document.getElementById('auth-chip').hidden = true;
     suStatus.style.display = 'none';
 
     createBtn.disabled = true;
@@ -286,9 +281,10 @@
         suStatus.style.color = '#0b8f66';
         suStatus.textContent = 'Account created — check your inbox to confirm your email. Meanwhile, let’s finish setting you up.';
         suStatus.style.display = 'block';
-        setTimeout(function(){ show(1); }, 1600);
+        setTimeout(function(){ showSignedIn(); show(1); }, 1600);
         return;
       }
+      showSignedIn();
       show(1);
     });
   });
