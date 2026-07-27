@@ -274,15 +274,18 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 }
 
 /* ============ onboarding wizard ============ */
-.onb{max-width:660px;margin:0 auto;padding:52px 28px 90px}
-.onb-progress{display:flex;gap:6px;margin-bottom:40px}
+.onb{max-width:660px;margin:0 auto;padding:28px 28px 64px}
+.onb-progress{display:flex;gap:6px;flex:1}
 .onb-progress i{height:6px;flex:1;border-radius:4px;background:#e0ece7;transition:background .3s}
 .onb-progress i.on{background:var(--green)}
 .onb h1{font-size:clamp(25px,3.4vw,33px);margin-bottom:8px}
-.onb .lead{color:var(--muted);margin-bottom:30px;font-size:16.5px}
-.onb-step{display:none}
+.onb .lead{color:var(--muted);margin-bottom:22px;font-size:16.5px}
+/* section{padding:88px 0} is for the marketing pages; on a form step it
+   pushed the heading a third of the way down the viewport and put the
+   Continue button under the fold. */
+.onb-step{display:none;padding:0}
 .onb-step.on{display:block}
-.onb h2.q{font-size:17px;color:var(--ink);margin:28px 0 12px}
+.onb h2.q{font-size:17px;color:var(--ink);margin:24px 0 10px}
 
 .auth-btns{display:flex;flex-direction:column;gap:12px;max-width:420px}
 .auth-btn{display:flex;align-items:center;gap:12px;justify-content:center;border:1.5px solid var(--border);
@@ -326,7 +329,7 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
   border-radius:10px;padding:14px 16px;margin-top:20px;font-size:14.5px;cursor:pointer}
 .pledge input{margin-top:4px;accent-color:var(--green);width:16px;height:16px}
 
-.onb-nav{display:flex;justify-content:space-between;align-items:center;margin-top:36px;gap:14px}
+.onb-nav{display:flex;justify-content:space-between;align-items:center;margin-top:26px;gap:14px}
 .onb-nav .back{color:var(--muted);font-size:14.5px;background:none;border:none;cursor:pointer;font-family:inherit;padding:6px}
 .onb-nav .back:hover{color:var(--ink)}
 .onb-nav .skip{color:var(--muted);font-size:14px;margin-right:auto;margin-left:18px}
@@ -601,4 +604,44 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 .greet{
   font-size:14.5px;font-weight:700;color:var(--green-dark);
   margin:0 0 10px;letter-spacing:-.01em;
+}
+
+/* ============ onboarding: step counter, topic chips, availability ============ */
+
+/* The bar floated on its own with nothing saying where you were. */
+.onb-head{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.onb-count{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);white-space:nowrap}
+
+/* Suggested topics. Selecting one fills the text box underneath — they are
+   one field, so there is never a chip and a conflicting typed answer. */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{border:1.5px solid var(--border);background:#fff;border-radius:999px;
+  padding:8px 14px;font-size:14px;font-family:inherit;color:var(--text);cursor:pointer;
+  transition:border-color .12s,background .12s,color .12s}
+.chip:hover{border-color:var(--green);color:var(--ink)}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+
+/* The cells looked like empty inputs. A tinted face and a tick make it
+   obvious they're buttons and which ones are pressed. */
+.avail-grid .hd b{display:block;font-weight:400;font-size:10.5px;color:var(--muted);
+  font-family:var(--mono);letter-spacing:.02em}
+.cell{background:var(--band);position:relative}
+.cell:hover{border-color:var(--green);background:var(--green-tint)}
+.cell.sel::after{content:"";position:absolute;left:50%;top:50%;width:11px;height:6px;
+  border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;
+  transform:translate(-50%,-70%) rotate(-45deg)}
+
+.avail-count{font-size:13.5px;color:var(--muted);margin:12px 0 0}
+.avail-count.warn{color:#9a6410}
+.avail-count.good{color:var(--green-dark);font-weight:600}
+
+/* 7x4 of anything is tight on a phone: shrink the gutter, not the tap target. */
+@media (max-width:560px){
+  .avail-grid{grid-template-columns:38px repeat(4,1fr);gap:4px}
+  .avail-grid .hd{font-size:11px}
+  .avail-grid .hd b{font-size:9.5px}
+  .cell{height:40px}
+  .chip{padding:7px 12px;font-size:13.5px}
+  .onb{padding:20px 18px 56px}
 }

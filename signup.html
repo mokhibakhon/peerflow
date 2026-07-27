@@ -23,8 +23,11 @@
 </header>
 
 <main class="onb">
-  <div class="onb-progress" aria-hidden="true">
-    <i class="on"></i><i></i><i></i><i></i>
+  <div class="onb-head">
+    <div class="onb-progress" aria-hidden="true">
+      <i class="on"></i><i></i><i></i><i></i>
+    </div>
+    <span class="onb-count" id="onb-count">Step 1 of 4</span>
   </div>
 
   <!-- ============ STEP 1 — account ============ -->
@@ -91,9 +94,10 @@
     <p class="step-err" id="track-err" hidden>Pick the path closest to what you're learning.</p>
 
     <h2 class="q">What are you working on right now?</h2>
-    <p class="lead" style="margin:0 0 14px">Be specific if you can — “Linux basics” matches better than “cybersecurity.” Not sure yet? Leave it blank and add it from your profile later.</p>
+    <p class="lead" style="margin:0 0 12px">This is what actually pairs you with someone. Pick the closest one — you can change it any time.</p>
+    <div class="chips" id="topic-chips" hidden></div>
     <div class="field" id="f-topic" style="max-width:none">
-      <input id="su-topic" type="text" placeholder="e.g. Linux basics, or Security+ prep" autocomplete="off">
+      <input id="su-topic" type="text" placeholder="Or type something else — e.g. Security+ prep" autocomplete="off">
     </div>
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
@@ -120,22 +124,25 @@
   <!-- ============ STEP 4 — availability ============ -->
   <section class="onb-step" data-step="4">
     <h1>When are you usually free?</h1>
-    <p class="lead">Pick the times you'd actually show up, not the times you wish you would.</p>
+    <p class="lead">Tap any block you could actually show up in — not the ones you wish you would.</p>
     <div class="avail-grid" id="avail">
-      <span></span><span class="hd">Morning</span><span class="hd">Afternoon</span><span class="hd">Evening</span><span class="hd">Night</span>
-      <span class="day">Mon</span><button class="cell" data-slot="mon-morning" aria-label="Monday morning"></button><button class="cell" data-slot="mon-afternoon" aria-label="Monday afternoon"></button><button class="cell" data-slot="mon-evening" aria-label="Monday evening"></button><button class="cell" data-slot="mon-night" aria-label="Monday night"></button>
-      <span class="day">Tue</span><button class="cell" data-slot="tue-morning" aria-label="Tuesday morning"></button><button class="cell" data-slot="tue-afternoon" aria-label="Tuesday afternoon"></button><button class="cell" data-slot="tue-evening" aria-label="Tuesday evening"></button><button class="cell" data-slot="tue-night" aria-label="Tuesday night"></button>
-      <span class="day">Wed</span><button class="cell" data-slot="wed-morning" aria-label="Wednesday morning"></button><button class="cell" data-slot="wed-afternoon" aria-label="Wednesday afternoon"></button><button class="cell" data-slot="wed-evening" aria-label="Wednesday evening"></button><button class="cell" data-slot="wed-night" aria-label="Wednesday night"></button>
-      <span class="day">Thu</span><button class="cell" data-slot="thu-morning" aria-label="Thursday morning"></button><button class="cell" data-slot="thu-afternoon" aria-label="Thursday afternoon"></button><button class="cell" data-slot="thu-evening" aria-label="Thursday evening"></button><button class="cell" data-slot="thu-night" aria-label="Thursday night"></button>
-      <span class="day">Fri</span><button class="cell" data-slot="fri-morning" aria-label="Friday morning"></button><button class="cell" data-slot="fri-afternoon" aria-label="Friday afternoon"></button><button class="cell" data-slot="fri-evening" aria-label="Friday evening"></button><button class="cell" data-slot="fri-night" aria-label="Friday night"></button>
-      <span class="day">Sat</span><button class="cell" data-slot="sat-morning" aria-label="Saturday morning"></button><button class="cell" data-slot="sat-afternoon" aria-label="Saturday afternoon"></button><button class="cell" data-slot="sat-evening" aria-label="Saturday evening"></button><button class="cell" data-slot="sat-night" aria-label="Saturday night"></button>
-      <span class="day">Sun</span><button class="cell" data-slot="sun-morning" aria-label="Sunday morning"></button><button class="cell" data-slot="sun-afternoon" aria-label="Sunday afternoon"></button><button class="cell" data-slot="sun-evening" aria-label="Sunday evening"></button><button class="cell" data-slot="sun-night" aria-label="Sunday night"></button>
+      <span></span>
+      <span class="hd">Morning<b>6–12</b></span><span class="hd">Afternoon<b>12–17</b></span><span class="hd">Evening<b>17–22</b></span><span class="hd">Night<b>22–02</b></span>
+      <span class="day">Mon</span><button class="cell" aria-pressed="false" data-slot="mon-morning" aria-label="Monday morning"></button><button class="cell" aria-pressed="false" data-slot="mon-afternoon" aria-label="Monday afternoon"></button><button class="cell" aria-pressed="false" data-slot="mon-evening" aria-label="Monday evening"></button><button class="cell" aria-pressed="false" data-slot="mon-night" aria-label="Monday night"></button>
+      <span class="day">Tue</span><button class="cell" aria-pressed="false" data-slot="tue-morning" aria-label="Tuesday morning"></button><button class="cell" aria-pressed="false" data-slot="tue-afternoon" aria-label="Tuesday afternoon"></button><button class="cell" aria-pressed="false" data-slot="tue-evening" aria-label="Tuesday evening"></button><button class="cell" aria-pressed="false" data-slot="tue-night" aria-label="Tuesday night"></button>
+      <span class="day">Wed</span><button class="cell" aria-pressed="false" data-slot="wed-morning" aria-label="Wednesday morning"></button><button class="cell" aria-pressed="false" data-slot="wed-afternoon" aria-label="Wednesday afternoon"></button><button class="cell" aria-pressed="false" data-slot="wed-evening" aria-label="Wednesday evening"></button><button class="cell" aria-pressed="false" data-slot="wed-night" aria-label="Wednesday night"></button>
+      <span class="day">Thu</span><button class="cell" aria-pressed="false" data-slot="thu-morning" aria-label="Thursday morning"></button><button class="cell" aria-pressed="false" data-slot="thu-afternoon" aria-label="Thursday afternoon"></button><button class="cell" aria-pressed="false" data-slot="thu-evening" aria-label="Thursday evening"></button><button class="cell" aria-pressed="false" data-slot="thu-night" aria-label="Thursday night"></button>
+      <span class="day">Fri</span><button class="cell" aria-pressed="false" data-slot="fri-morning" aria-label="Friday morning"></button><button class="cell" aria-pressed="false" data-slot="fri-afternoon" aria-label="Friday afternoon"></button><button class="cell" aria-pressed="false" data-slot="fri-evening" aria-label="Friday evening"></button><button class="cell" aria-pressed="false" data-slot="fri-night" aria-label="Friday night"></button>
+      <span class="day">Sat</span><button class="cell" aria-pressed="false" data-slot="sat-morning" aria-label="Saturday morning"></button><button class="cell" aria-pressed="false" data-slot="sat-afternoon" aria-label="Saturday afternoon"></button><button class="cell" aria-pressed="false" data-slot="sat-evening" aria-label="Saturday evening"></button><button class="cell" aria-pressed="false" data-slot="sat-night" aria-label="Saturday night"></button>
+      <span class="day">Sun</span><button class="cell" aria-pressed="false" data-slot="sun-morning" aria-label="Sunday morning"></button><button class="cell" aria-pressed="false" data-slot="sun-afternoon" aria-label="Sunday afternoon"></button><button class="cell" aria-pressed="false" data-slot="sun-evening" aria-label="Sunday evening"></button><button class="cell" aria-pressed="false" data-slot="sun-night" aria-label="Sunday night"></button>
     </div>
-    <p class="step-err" id="avail-err" hidden>Pick at least one time you're free.</p>
-    <p class="tz-note">Your timezone: <b id="tz">detecting…</b> — detected automatically.</p>
+    <p class="avail-count" id="avail-count">Nothing picked yet.</p>
+    <p class="step-err" id="avail-err" hidden>Pick at least two blocks — one is very hard to pair.</p>
+    <p class="tz-note">Your timezone: <b id="tz">detecting…</b> — detected automatically.
+      Hours are shown in your own time, and your partner sees theirs.</p>
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
-      <button class="btn primary big" id="finish">Done</button>
+      <button class="btn primary big" id="finish">Find my partner</button>
     </div>
     <p id="su2-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px;max-width:430px"></p>
   </section>
@@ -155,6 +162,7 @@
     cur = Math.max(0, Math.min(steps.length-1, i));
     steps.forEach(function(s,idx){ s.classList.toggle('on', idx===cur); });
     dots.forEach(function(d,idx){ d.classList.toggle('on', idx<=cur); });
+    document.getElementById('onb-count').textContent = 'Step ' + (cur+1) + ' of ' + steps.length;
     window.scrollTo(0,0);
   }
 
@@ -321,8 +329,54 @@
     Array.prototype.forEach.call(trackBox.querySelectorAll('.choice'), function(x){ x.classList.remove('sel'); });
     c.classList.add('sel');
     state.track = c.getAttribute('data-track');
+    paintChips(state.track);
     trackErr.hidden = true;
   });
+
+  /* Suggested topics per path. These exist to give everyone the same words
+     for the same thing: left to free text alone you get "linux", "Linux
+     basics", "linux fundamentals" and "THM Linux" — four rooms with one
+     person in each. Typing still works for anything off this list. */
+  var TOPICS = {
+    frontend:      ['HTML and CSS','JavaScript basics','React','TypeScript','Responsive layout','State management','Accessibility','Interview prep'],
+    backend:       ['Python basics','SQL and databases','REST APIs','Authentication','Node.js','Django','Testing','System design'],
+    cybersecurity: ['Linux basics','Networking fundamentals','Web app security','TryHackMe rooms','Security+ prep','Blue team / SOC','Penetration testing','Cryptography'],
+    data:          ['SQL joins','Pandas','Data cleaning','Statistics','Dashboards','Excel to SQL','Data visualisation','Interview prep'],
+    mobile:        ['Flutter basics','React Native','Swift and iOS','Kotlin and Android','Navigation','App state','Publishing an app','UI animation'],
+    devops:        ['Linux command line','Docker','Git and GitHub','CI/CD pipelines','AWS fundamentals','Kubernetes','Terraform','Monitoring'],
+    aiml:          ['Python for ML','NumPy and Pandas','Scikit-learn','Neural networks','PyTorch','Prompt engineering','Computer vision','Maths for ML'],
+    design:        ['Figma basics','Design systems','Wireframing','User research','Prototyping','Typography','Portfolio case study','UI patterns']
+  };
+
+  var chipBox = document.getElementById('topic-chips');
+  function paintChips(track){
+    var list = TOPICS[track];
+    if (!list) { chipBox.hidden = true; return; }
+    chipBox.innerHTML = list.map(function(t){
+      return '<button type="button" class="chip" aria-pressed="false">' + t + '</button>';
+    }).join('');
+    chipBox.hidden = false;
+    syncChips();
+  }
+  /* The chips and the text box are one field. Whatever is in the box is the
+     answer; a chip just fills it in, and clicking the active one clears it. */
+  function syncChips(){
+    var val = topicI.value.trim().toLowerCase();
+    Array.prototype.forEach.call(chipBox.querySelectorAll('.chip'), function(c){
+      var on = c.textContent.toLowerCase() === val;
+      c.classList.toggle('on', on);
+      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  chipBox.addEventListener('click', function(e){
+    var c = e.target.closest('.chip');
+    if (!c) return;
+    topicI.value = c.classList.contains('on') ? '' : c.textContent;
+    syncChips();
+  });
+
+  topicI.addEventListener('input', syncChips);
+
   /* Arriving from a path card on the landing page (signup.html?path=backend)
      preselects that path, so the choice they already made isn't asked twice.
      An unknown or missing value just leaves nothing selected. */
@@ -333,6 +387,7 @@
     if (!c) return;
     c.classList.add('sel');
     state.track = want;
+    paintChips(want);
   })();
 
   /* The path is required — it's what puts someone on a list at all. The topic
@@ -362,14 +417,30 @@
     show(3);
   });
 
-  /* ---------- step 4: availability grid (required) ---------- */
+  /* ---------- step 4: availability grid (at least two blocks) ---------- */
   var availBox = document.getElementById('avail');
   var availErr = document.getElementById('avail-err');
+  var availCount = document.getElementById('avail-count');
+
+  /* A running count, because the grid gives no other feedback that you've
+     done enough. More blocks means more overlap with more people — with one
+     block you can only ever pair with someone free at that exact hour. */
+  function countAvail(){
+    var n = availBox.querySelectorAll('.cell.sel').length;
+    availCount.textContent = n === 0 ? 'Nothing picked yet.'
+      : n === 1 ? '1 block — add at least one more, one is very hard to pair.'
+      : n < 3   ? n + ' blocks. Three or more makes you much easier to pair.'
+      :           n + ' blocks — plenty to work with.';
+    availCount.className = 'avail-count' + (n >= 3 ? ' good' : n >= 1 ? ' warn' : '');
+    return n;
+  }
   availBox.addEventListener('click', function(e){
     var c = e.target.closest('.cell');
     if (!c) return;
     c.classList.toggle('sel');
+    c.setAttribute('aria-pressed', c.classList.contains('sel') ? 'true' : 'false');
     availErr.hidden = true;
+    countAvail();
   });
 
   /* ---------- timezone ---------- */
@@ -385,7 +456,7 @@
     var availability = Array.prototype.map.call(
       availBox.querySelectorAll('.cell.sel'),
       function(c){ return c.getAttribute('data-slot'); });
-    if (!availability.length) { availErr.hidden = false; return; }
+    if (availability.length < 2) { availErr.hidden = false; return; }
     su2Status.style.display = 'none';
 
     var tz = '';
