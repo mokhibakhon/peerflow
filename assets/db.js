@@ -398,6 +398,11 @@ window.pf = (function(){
       var uid = res.data && res.data.user && res.data.user.id;
       var q = client.from('profiles')
         .select('id,name,track_id,topic,level,timezone,created_at')
+        /* Signing in with Google creates the row before any question is
+           answered. Until a path is picked there is nothing to match on, so
+           those half-finished rows stay out of the list — showing them would
+           offer people a partner who never actually joined. */
+        .not('track_id', 'is', null)
         .order('created_at', { ascending: false })
         .limit(limit || 24);
       if (uid) q = q.neq('id', uid);
@@ -408,9 +413,12 @@ window.pf = (function(){
   /* How many people have signed up, and how many share your topic. */
   function learnerStats(topic){
     if (!client) return Promise.resolve(null);
-    var total = client.from('profiles').select('id', { count: 'exact', head: true });
+    /* Same rule as fetchPeers: only people who finished signing up count. */
+    var total = client.from('profiles').select('id', { count: 'exact', head: true })
+      .not('track_id', 'is', null);
     var same = topic
-      ? client.from('profiles').select('id', { count: 'exact', head: true }).ilike('topic', topic)
+      ? client.from('profiles').select('id', { count: 'exact', head: true })
+          .not('track_id', 'is', null).ilike('topic', topic)
       : Promise.resolve({ count: 0 });
     return Promise.all([total, same]).then(function(r){
       return { total: (r[0] && r[0].count) || 0, sameTopic: (r[1] && r[1].count) || 0 };
@@ -423,7 +431,7 @@ window.pf = (function(){
      null and zero mean different things, so the caller can tell them apart. */
   function trackCounts(){
     if (!client) return Promise.resolve(null);
-    return client.from('profiles').select('track_id').then(function(r){
+    return client.from('profiles').select('track_id').not('track_id', 'is', null).then(function(r){
       if (r.error) return null;
       var out = {};
       Object.keys(trackNames).forEach(function(id){ out[id] = 0; });

@@ -160,7 +160,19 @@
 
   document.addEventListener('click', function(e){
     var b = e.target.closest('[data-back]');
-    if (b) { e.preventDefault(); show(cur-1); return; }
+    if (!b) return;
+    e.preventDefault();
+    /* Going back to the account step means "I want to redo this". Signing in
+       with Google has already created the account by then, so stay signed in
+       and the email form on that step would be filling in a session that
+       already exists. Sign out first, and the step means what it says. */
+    if (cur === 1 && state.email && window.pf && pf.signOut) {
+      state.email = ''; state.name = ''; state.first = ''; state.last = '';
+      document.getElementById('greet').hidden = true;
+      pf.signOut().then(function(){ show(0); }, function(){ show(0); });
+      return;
+    }
+    show(cur - 1);
   });
 
   /* ---------- step 1: social sign-in ---------- */
