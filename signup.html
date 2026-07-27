@@ -221,10 +221,18 @@
     pf.getProfile().then(function(profile){
       if (profile && profile.track_id) { window.location.replace('app.html'); return; }
       var meta = user.user_metadata || {};
+      /* Google already hands the name over split — given_name and family_name.
+         Use those rather than guessing where a first name ends, which gets
+         double-barrelled and multi-word surnames wrong. Splitting on the
+         first space is only the fallback for providers that don't. */
       state.name = meta.name || meta.full_name || (user.email || '').split('@')[0];
-      var parts = state.name.trim().split(/\s+/);
-      state.first = parts.shift() || '';
-      state.last  = parts.join(' ');
+      state.first = meta.given_name || meta.first_name || '';
+      state.last  = meta.family_name || meta.last_name || '';
+      if (!state.first) {
+        var parts = String(state.name).trim().split(/\s+/);
+        state.first = parts.shift() || '';
+        state.last  = parts.join(' ');
+      }
       state.email = user.email || '';
       state.provider = 'oauth';
       showSignedIn();

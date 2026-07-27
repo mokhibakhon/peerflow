@@ -116,6 +116,23 @@ window.pf = (function(){
       if ('timezone' in profile)     row.timezone = profile.timezone || null;
       if ('availability' in profile) row.availability = profile.availability || [];
       return client.from('profiles').upsert(row).then(function(r){
+        /* PGRST204: the column isn't in this database yet, i.e. schema.sql
+           hasn't been re-run since first_name/last_name were added. Losing
+           somebody's whole profile over a column they never asked for would
+           be absurd — drop the two new fields and save the rest. `name`
+           still carries the full name, so nothing visible is lost. */
+        if (r.error && r.error.code === 'PGRST204' &&
+            /first_name|last_name/.test(r.error.message || '') &&
+            ('first_name' in row || 'last_name' in row)) {
+          delete row.first_name; delete row.last_name;
+          try {
+            console.warn('PeerFlow: profiles.first_name/last_name are missing. ' +
+                         'Re-run supabase/schema.sql to store names split.');
+          } catch(e){}
+          return client.from('profiles').upsert(row).then(function(r2){
+            return r2.error ? { error: r2.error.message } : { saved: true };
+          });
+        }
         if (r.error) {
           try { console.error('PeerFlow saveProfile error:', r.error); } catch(e){}
           var msg = r.error.message || 'Unknown error';
