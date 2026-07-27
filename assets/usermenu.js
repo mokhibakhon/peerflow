@@ -128,7 +128,7 @@ window.pfUserMenu = (function(){
       var btn = this;
       btn.disabled = true;
       try {
-        ['pf_name','pf_email','pf_track','pf_topic','pf_pending']
+        ['pf_name','pf_email','pf_track','pf_topic','pf_pending','pf_uid']
           .forEach(function(k){ localStorage.removeItem(k); });
       } catch(err) {}
 
@@ -172,11 +172,19 @@ window.pfUserMenu = (function(){
     pf.currentUser().then(function(user){
       if (!user) return;                       // stays hidden
       wrap.hidden = false;
+      /* The signed-in account decides whose name this is. localStorage was
+         being read first, so signing in as somebody else still showed the
+         previous person's name until that cache happened to be rewritten.
+         Cache is now only a fallback, and gets corrected from the session. */
       var meta = user.user_metadata || {};
-      var nm = '';
-      try { nm = localStorage.getItem('pf_name') || ''; } catch(e){}
-      setUser(nm || meta.name || meta.full_name || (user.email || '').split('@')[0],
-              user.email, meta.avatar_url || meta.picture || '');
+      var cached = '';
+      try { cached = localStorage.getItem('pf_name') || ''; } catch(e){}
+      var nm = meta.name || meta.full_name || cached || (user.email || '').split('@')[0];
+      setUser(nm, user.email, meta.avatar_url || meta.picture || '');
+      try {
+        if (nm && nm !== cached) localStorage.setItem('pf_name', nm);
+        if (user.email) localStorage.setItem('pf_email', user.email);
+      } catch(e){}
     });
   }
 

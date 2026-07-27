@@ -13,6 +13,29 @@ window.pf = (function(){
 
   function ready(){ return !!client; }
 
+  /* ---------- cached identity guard ---------- */
+  /* A few things live in localStorage for first paint: your name, path and
+     topic. They belong to ONE account. Log out and back in as someone else
+     — or switch Google accounts — and every one of them is about the
+     previous person. Stamp the cache with the user id it came from and
+     throw the whole lot away the moment that id changes. */
+  (function(){
+    if (!client) return;
+    var KEYS = ['pf_name','pf_email','pf_track','pf_topic','pf_pending'];
+    client.auth.getSession().then(function(res){
+      var s = res.data && res.data.session;
+      var uid = (s && s.user && s.user.id) || '';
+      var seen = '';
+      try { seen = localStorage.getItem('pf_uid') || ''; } catch(e){ return; }
+      if (uid === seen) return;
+      try {
+        if (seen) KEYS.forEach(function(k){ localStorage.removeItem(k); });
+        if (uid) localStorage.setItem('pf_uid', uid);
+        else localStorage.removeItem('pf_uid');
+      } catch(e){}
+    }).catch(function(){});
+  })();
+
   /* ---------- auth ---------- */
 
   function signUpEmail(name, email, password){

@@ -395,10 +395,12 @@
     }
     flushPending();
 
-    var name = '';
-    try { name = localStorage.getItem('pf_name') || ''; } catch(err){}
+    /* Session first, cache second — the other way round showed the previous
+       account's initial after switching accounts. */
+    var cached = '';
+    try { cached = localStorage.getItem('pf_name') || ''; } catch(err){}
     var meta = user.user_metadata || {};
-    if (!name) name = meta.name || meta.full_name || (user.email || '').split('@')[0];
+    var name = meta.name || meta.full_name || cached || (user.email || '').split('@')[0];
     $('me-av').textContent = initial(name);
 
     pf.getProfile().then(function(profile){
