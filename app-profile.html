@@ -62,16 +62,19 @@
           </div>
 
           <h4 class="mini-h">When you're free</h4>
+          <p class="mini-hint">Tap any block you could actually show up in. Hours are in your own time.</p>
           <div class="avail-grid" id="p-avail">
-            <span></span><span class="hd">Morning</span><span class="hd">Afternoon</span><span class="hd">Evening</span><span class="hd">Night</span>
-            <span class="day">Mon</span><button class="cell" data-slot="mon-morning" aria-label="Monday morning"></button><button class="cell" data-slot="mon-afternoon" aria-label="Monday afternoon"></button><button class="cell" data-slot="mon-evening" aria-label="Monday evening"></button><button class="cell" data-slot="mon-night" aria-label="Monday night"></button>
-            <span class="day">Tue</span><button class="cell" data-slot="tue-morning" aria-label="Tuesday morning"></button><button class="cell" data-slot="tue-afternoon" aria-label="Tuesday afternoon"></button><button class="cell" data-slot="tue-evening" aria-label="Tuesday evening"></button><button class="cell" data-slot="tue-night" aria-label="Tuesday night"></button>
-            <span class="day">Wed</span><button class="cell" data-slot="wed-morning" aria-label="Wednesday morning"></button><button class="cell" data-slot="wed-afternoon" aria-label="Wednesday afternoon"></button><button class="cell" data-slot="wed-evening" aria-label="Wednesday evening"></button><button class="cell" data-slot="wed-night" aria-label="Wednesday night"></button>
-            <span class="day">Thu</span><button class="cell" data-slot="thu-morning" aria-label="Thursday morning"></button><button class="cell" data-slot="thu-afternoon" aria-label="Thursday afternoon"></button><button class="cell" data-slot="thu-evening" aria-label="Thursday evening"></button><button class="cell" data-slot="thu-night" aria-label="Thursday night"></button>
-            <span class="day">Fri</span><button class="cell" data-slot="fri-morning" aria-label="Friday morning"></button><button class="cell" data-slot="fri-afternoon" aria-label="Friday afternoon"></button><button class="cell" data-slot="fri-evening" aria-label="Friday evening"></button><button class="cell" data-slot="fri-night" aria-label="Friday night"></button>
-            <span class="day">Sat</span><button class="cell" data-slot="sat-morning" aria-label="Saturday morning"></button><button class="cell" data-slot="sat-afternoon" aria-label="Saturday afternoon"></button><button class="cell" data-slot="sat-evening" aria-label="Saturday evening"></button><button class="cell" data-slot="sat-night" aria-label="Saturday night"></button>
-            <span class="day">Sun</span><button class="cell" data-slot="sun-morning" aria-label="Sunday morning"></button><button class="cell" data-slot="sun-afternoon" aria-label="Sunday afternoon"></button><button class="cell" data-slot="sun-evening" aria-label="Sunday evening"></button><button class="cell" data-slot="sun-night" aria-label="Sunday night"></button>
+            <span></span>
+            <span class="hd">Morning<b>6–12</b></span><span class="hd">Afternoon<b>12–17</b></span><span class="hd">Evening<b>17–22</b></span><span class="hd">Night<b>22–02</b></span>
+            <span class="day">Mon</span><button class="cell" aria-pressed="false" data-slot="mon-morning" aria-label="Monday morning"></button><button class="cell" aria-pressed="false" data-slot="mon-afternoon" aria-label="Monday afternoon"></button><button class="cell" aria-pressed="false" data-slot="mon-evening" aria-label="Monday evening"></button><button class="cell" aria-pressed="false" data-slot="mon-night" aria-label="Monday night"></button>
+            <span class="day">Tue</span><button class="cell" aria-pressed="false" data-slot="tue-morning" aria-label="Tuesday morning"></button><button class="cell" aria-pressed="false" data-slot="tue-afternoon" aria-label="Tuesday afternoon"></button><button class="cell" aria-pressed="false" data-slot="tue-evening" aria-label="Tuesday evening"></button><button class="cell" aria-pressed="false" data-slot="tue-night" aria-label="Tuesday night"></button>
+            <span class="day">Wed</span><button class="cell" aria-pressed="false" data-slot="wed-morning" aria-label="Wednesday morning"></button><button class="cell" aria-pressed="false" data-slot="wed-afternoon" aria-label="Wednesday afternoon"></button><button class="cell" aria-pressed="false" data-slot="wed-evening" aria-label="Wednesday evening"></button><button class="cell" aria-pressed="false" data-slot="wed-night" aria-label="Wednesday night"></button>
+            <span class="day">Thu</span><button class="cell" aria-pressed="false" data-slot="thu-morning" aria-label="Thursday morning"></button><button class="cell" aria-pressed="false" data-slot="thu-afternoon" aria-label="Thursday afternoon"></button><button class="cell" aria-pressed="false" data-slot="thu-evening" aria-label="Thursday evening"></button><button class="cell" aria-pressed="false" data-slot="thu-night" aria-label="Thursday night"></button>
+            <span class="day">Fri</span><button class="cell" aria-pressed="false" data-slot="fri-morning" aria-label="Friday morning"></button><button class="cell" aria-pressed="false" data-slot="fri-afternoon" aria-label="Friday afternoon"></button><button class="cell" aria-pressed="false" data-slot="fri-evening" aria-label="Friday evening"></button><button class="cell" aria-pressed="false" data-slot="fri-night" aria-label="Friday night"></button>
+            <span class="day">Sat</span><button class="cell" aria-pressed="false" data-slot="sat-morning" aria-label="Saturday morning"></button><button class="cell" aria-pressed="false" data-slot="sat-afternoon" aria-label="Saturday afternoon"></button><button class="cell" aria-pressed="false" data-slot="sat-evening" aria-label="Saturday evening"></button><button class="cell" aria-pressed="false" data-slot="sat-night" aria-label="Saturday night"></button>
+            <span class="day">Sun</span><button class="cell" aria-pressed="false" data-slot="sun-morning" aria-label="Sunday morning"></button><button class="cell" aria-pressed="false" data-slot="sun-afternoon" aria-label="Sunday afternoon"></button><button class="cell" aria-pressed="false" data-slot="sun-evening" aria-label="Sunday evening"></button><button class="cell" aria-pressed="false" data-slot="sun-night" aria-label="Sunday night"></button>
           </div>
+          <p class="avail-count" id="p-avail-count"></p>
 
           <div style="margin-top:22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
             <button class="btn primary" id="p-save">Save changes</button>
@@ -130,10 +133,23 @@
     Array.prototype.forEach.call(levelBox.querySelectorAll('.choice'), function(x){ x.classList.remove('sel'); });
     c.classList.add('sel');
   });
+  var availCount = document.getElementById('p-avail-count');
+  function countAvail(){
+    var n = availBox.querySelectorAll('.cell.sel').length;
+    availCount.textContent = n === 0 ? 'Nothing picked — nobody can find a time with you yet.'
+      : n === 1 ? '1 block — add at least one more, one is very hard to pair.'
+      : n < 3   ? n + ' blocks. Three or more makes you much easier to pair.'
+      :           n + ' blocks — plenty to work with.';
+    availCount.className = 'avail-count' + (n >= 3 ? ' good' : n >= 1 ? ' warn' : '');
+  }
   availBox.addEventListener('click', function(e){
     var c = e.target.closest('.cell');
-    if (c) c.classList.toggle('sel');
+    if (!c) return;
+    c.classList.toggle('sel');
+    c.setAttribute('aria-pressed', c.classList.contains('sel') ? 'true' : 'false');
+    countAvail();
   });
+  countAvail();
 
   function markSel(box, attr, value){
     if (!value) return;
@@ -167,6 +183,7 @@
       if (p.track_id) trackSel.value = p.track_id;
       markSel(levelBox, 'data-level', p.level);
       (p.availability || []).forEach(function(v){ markSel(availBox, 'data-slot', v); });
+      countAvail();
       document.getElementById('p-tz').textContent = p.timezone || '—';
       if (p.created_at) {
         try {

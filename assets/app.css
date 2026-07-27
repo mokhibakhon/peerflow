@@ -266,12 +266,30 @@ h1 .g{color:var(--p4)}
 .choice b{display:block;color:var(--ink);font-weight:600;font-size:14.5px}
 .choice span span{display:block;font-size:12.5px;color:var(--faint)}
 .choice.sel{border-color:var(--p4);background:var(--p0)}
-.avail-grid{display:grid;grid-template-columns:52px repeat(4,1fr);gap:5px;font-size:12px}
-.avail-grid .hd{font-family:var(--mono);font-size:9.5px;color:var(--faint);
-  text-transform:uppercase;letter-spacing:.05em;align-self:center}
-.avail-grid button{border:1px solid var(--line);background:#fff;border-radius:7px;
-  padding:8px 4px;font-size:12px;color:var(--soft)}
-.avail-grid button.sel{background:var(--p4);border-color:var(--p4);color:#fff}
+/* The grid was stretching the full width of the card, which turned each
+   cell into a wide thin bar that read as an empty text input. Capped so a
+   cell is roughly square, tinted so it reads as a button, and ticked when
+   pressed. Same shape as the one in signup, so the two agree. */
+.avail-grid{display:grid;grid-template-columns:46px repeat(4,minmax(0,1fr));
+  gap:6px;max-width:470px;font-size:12px}
+.avail-grid .hd{text-align:center;font-size:12px;font-weight:600;color:var(--ink);
+  padding-bottom:2px;line-height:1.25}
+.avail-grid .hd b{display:block;font-family:var(--mono);font-size:10px;
+  font-weight:400;color:var(--faint);letter-spacing:.02em}
+.avail-grid .day{align-self:center;font-size:12.5px;font-weight:600;color:var(--ink)}
+.avail-grid button{position:relative;height:38px;border:1.5px solid var(--line);
+  background:var(--band);border-radius:9px;padding:0;
+  transition:background .12s,border-color .12s}
+.avail-grid button:hover{border-color:var(--p4);background:var(--p0)}
+.avail-grid button.sel{background:var(--p4);border-color:var(--p4)}
+.avail-grid button.sel::after{content:"";position:absolute;left:50%;top:50%;
+  width:11px;height:6px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;
+  transform:translate(-50%,-70%) rotate(-45deg)}
+
+.mini-hint{font-size:13px;color:var(--faint);margin:0 0 10px}
+.avail-count{font-size:13.5px;color:var(--faint);margin:12px 0 0}
+.avail-count.warn{color:#9A6410}
+.avail-count.good{color:var(--p8);font-weight:600}
 
 /* ---------- badges ---------- */
 .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:14px}
@@ -298,7 +316,10 @@ h1 .g{color:var(--p4)}
   .tabs a{padding:7px 11px;font-size:14px}
   .tabs a svg{display:none}
   .slot .when{width:100%}
-  .avail-grid{grid-template-columns:44px repeat(4,1fr)}
+  .avail-grid{grid-template-columns:36px repeat(4,minmax(0,1fr));gap:4px}
+  .avail-grid button{height:42px}
+  .avail-grid .hd{font-size:11px}
+  .avail-grid .hd b{font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
