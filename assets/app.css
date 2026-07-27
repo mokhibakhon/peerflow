@@ -81,22 +81,75 @@ h1 .g{color:var(--p4)}
 .change{background:none;border:0;font-size:13px;color:var(--faint);text-decoration:underline;padding:0}
 
 /* ---------- buttons ---------- */
-.btn{background:var(--p6);color:#fff;padding:12px 20px;border-radius:10px;font-size:14.5px;
-  font-weight:600;border:0;display:inline-block;transition:transform .15s,background .15s}
-.btn:hover{transform:translateY(-1px);background:var(--p8)}
-.btn.dark{background:var(--ink)}
-.btn.dark:hover{background:#0D0F1E}
-.btn[disabled]{opacity:.55;pointer-events:none}
-.ghost{background:none;border:1px solid var(--line);color:var(--soft);padding:12px 17px;
-  border-radius:10px;font-size:14.5px;display:inline-block}
-.ghost:hover{border-color:var(--ink);color:var(--ink)}
-.small{background:none;border:1px solid var(--line);color:var(--soft);padding:7px 13px;
-  border-radius:999px;font-size:13px;flex:0 0 auto}
-.small:hover{border-color:var(--ink);color:var(--ink)}
-.small[disabled]{opacity:.5;pointer-events:none}
-.small.on{background:var(--p0);border-color:var(--p2);color:var(--p8)}
+/* Three weights that behave like one family: solid for the single action
+   that matters on a screen, outlined for its alternative, pill for actions
+   that live inside a row. All three lift a pixel on hover and press back
+   down on click, so a click always feels like it landed. */
+.btn,.ghost,.small{
+  font-family:var(--body);font-weight:600;letter-spacing:-.005em;line-height:1.2;
+  cursor:pointer;text-align:center;white-space:nowrap;text-decoration:none;
+  transition:background .15s ease,border-color .15s ease,
+             box-shadow .15s ease,transform .1s ease;
+}
+.btn:active,.ghost:active,.small:active{transform:translateY(1px)}
+
+/* Solid. The gradient is a two-step of the green ramp, not decoration: it
+   gives the face a light top edge so it reads as raised rather than flat. */
+.btn{
+  display:inline-block;padding:11px 20px;font-size:14.5px;border:0;color:#fff;
+  border-radius:10px;background:linear-gradient(180deg,var(--p4),var(--p6));
+  box-shadow:0 1px 2px rgba(8,80,65,.22), inset 0 1px 0 rgba(255,255,255,.18);
+}
+.btn:hover{
+  transform:translateY(-1px);
+  background:linear-gradient(180deg,#189068,var(--p8));
+  box-shadow:0 4px 12px rgba(8,80,65,.26), inset 0 1px 0 rgba(255,255,255,.18);
+}
+.btn:active{box-shadow:0 1px 2px rgba(8,80,65,.2), inset 0 1px 0 rgba(255,255,255,.1)}
+.btn.dark{
+  background:linear-gradient(180deg,#2B2F49,var(--ink));
+  box-shadow:0 1px 2px rgba(23,26,46,.3), inset 0 1px 0 rgba(255,255,255,.14);
+}
+.btn.dark:hover{
+  background:linear-gradient(180deg,#232741,#0D0F1E);
+  box-shadow:0 4px 12px rgba(23,26,46,.28), inset 0 1px 0 rgba(255,255,255,.14);
+}
+
+/* Outlined. White rather than transparent — a secondary button still has to
+   look like a surface you can press, especially sitting on a grey page. */
+.ghost{
+  display:inline-block;padding:11px 18px;font-size:14.5px;border-radius:10px;
+  background:var(--card);border:1px solid var(--line);color:var(--ink);
+  box-shadow:0 1px 2px rgba(23,26,46,.05);
+}
+.ghost:hover{
+  transform:translateY(-1px);border-color:#C6C5D0;background:#FCFCFD;
+  box-shadow:0 3px 9px rgba(23,26,46,.09);
+}
+
+.small{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:7px 14px;font-size:13px;border-radius:999px;flex:0 0 auto;
+  background:var(--card);border:1px solid var(--line);color:var(--soft);
+  box-shadow:0 1px 2px rgba(23,26,46,.05);
+}
+.small:hover{
+  transform:translateY(-1px);border-color:#C6C5D0;color:var(--ink);
+  box-shadow:0 3px 9px rgba(23,26,46,.09);
+}
+.small.on{background:var(--p0);border-color:var(--p2);color:var(--p8);box-shadow:none}
+
+/* Destructive actions are outlined, never solid — a red slab invites the
+   click it's warning you about. */
 .danger{color:#B4471F;border-color:#EBCFC4}
-.danger:hover{border-color:#B4471F;color:#8F3717}
+.danger:hover{border-color:#B4471F;color:#8F3717;background:#FEF7F4}
+
+/* Disabled buttons sit flat and don't respond, so "sending…" reads as
+   busy rather than broken. */
+.btn[disabled],.ghost[disabled],.small[disabled],
+.btn:disabled,.ghost:disabled,.small:disabled{
+  opacity:.55;pointer-events:none;box-shadow:none;transform:none;
+}
 
 /* ---------- card grid ---------- */
 .grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);

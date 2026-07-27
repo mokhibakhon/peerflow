@@ -66,12 +66,22 @@ a:focus-visible,button:focus-visible{
 .logo b{font-weight:700;color:#097a57}
 .nav-right{display:flex;align-items:center;gap:22px;font-size:14px;color:var(--ink-soft)}
 
+/* Lifts on hover, presses back down on click — the same behaviour the app
+   uses, so the two surfaces feel like one product. */
 .btn{
-  display:inline-block;background:var(--ink);color:#fff;padding:11px 20px;
+  display:inline-block;color:#fff;padding:11px 20px;line-height:1.2;
   border-radius:10px;font-size:14px;font-weight:600;border:0;cursor:pointer;
-  font-family:var(--body);transition:transform .15s ease,background .15s ease;
+  font-family:var(--body);text-decoration:none;white-space:nowrap;
+  background:linear-gradient(180deg,#2B2F49,var(--ink));
+  box-shadow:0 1px 2px rgba(23,26,46,.3), inset 0 1px 0 rgba(255,255,255,.14);
+  transition:background .15s ease,box-shadow .15s ease,transform .1s ease;
 }
-.btn:hover{background:#0D0F1E;transform:translateY(-1px)}
+.btn:hover{
+  transform:translateY(-1px);
+  background:linear-gradient(180deg,#232741,#0D0F1E);
+  box-shadow:0 4px 12px rgba(23,26,46,.28), inset 0 1px 0 rgba(255,255,255,.14);
+}
+.btn:active{transform:translateY(1px);box-shadow:0 1px 2px rgba(23,26,46,.26)}
 .btn-sm{padding:8px 15px;font-size:13.5px}
 
 /* ---------- hero ---------- */
@@ -171,9 +181,12 @@ h1 em{font-style:normal;color:var(--live)}
 .path h3{margin:0;font-size:17px;font-weight:600;letter-spacing:-0.012em}
 .path .cta{
   margin-top:auto;text-align:center;border:1px solid var(--ink);border-radius:9px;
-  padding:8px;font-size:13.5px;font-weight:600;transition:background .15s ease,color .15s ease;
+  padding:9px;font-size:13.5px;font-weight:600;line-height:1.2;
+  transition:background .15s ease,color .15s ease,box-shadow .15s ease;
 }
-.path:hover .cta{background:var(--ink);color:#fff}
+.path:hover .cta{background:var(--ink);color:#fff;
+  box-shadow:0 2px 8px rgba(23,26,46,.2), inset 0 1px 0 rgba(255,255,255,.12)}
+.path .cta:active{transform:translateY(1px)}
 
 /* How many people are on this path right now. Filled in by home.js from
    real sign-ups — it stays invisible (but keeps its space, so the cards
