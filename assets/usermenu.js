@@ -9,6 +9,13 @@ window.pfUserMenu = (function(){
     return (String(name || '').trim().charAt(0) || 'S').toUpperCase();
   }
 
+  /* The chip shows a first name only. A surname adds nothing there — you
+     know who you are — and it's the part most likely to overflow. The full
+     name still appears in the menu, where it's account detail. */
+  function firstName(name){
+    return String(name || '').trim().split(/\s+/)[0] || '';
+  }
+
   /* A stable colour per person, so your own avatar looks like *yours* rather
      than like a generic grey placeholder. Same name always lands on the same
      pair, and every pair is dark-on-light enough to read at 12px. */
@@ -53,7 +60,7 @@ window.pfUserMenu = (function(){
     wrap.innerHTML =
       '<button class="um-btn" id="nav-av" aria-haspopup="true" aria-expanded="false" aria-label="Your account">' +
         '<span id="um-face">' + face(name, '', 'um-face') + '</span>' +
-        '<span class="um-label" id="um-label">' + esc(name || 'Account') + '</span>' +
+        '<span class="um-label" id="um-label">' + esc(firstName(name) || 'Account') + '</span>' +
         '<svg class="um-chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">' +
           '<path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
       '</button>' +
@@ -133,7 +140,7 @@ window.pfUserMenu = (function(){
       if (f)  f.innerHTML  = face(name, avatarUrl, 'um-face');
       if (bf) bf.innerHTML = face(name, avatarUrl, 'um-bigface');
       var lab = document.getElementById('um-label');
-      if (lab) lab.textContent = name;
+      if (lab) lab.textContent = firstName(name);
       if (nameEl) nameEl.textContent = name;
     }
     if (email && mailEl) mailEl.textContent = email;
