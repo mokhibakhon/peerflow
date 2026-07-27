@@ -81,15 +81,20 @@ window.pf = (function(){
 
   /* ---------- profile ---------- */
 
-  /* The signed-in user's profile row, or null (signed out / no row yet). */
+  /* The signed-in user's profile row.
+       row   — found it
+       null  — signed out, or signed in with no row yet
+       false — we couldn't ask (network, RLS, table missing)
+     Callers must not treat false as "no profile": that turns a dropped
+     request into "you never signed up". Every use is falsy-safe either way. */
   function getProfile(){
     if (!client) return Promise.resolve(null);
     return client.auth.getUser().then(function(res){
       var user = res.data && res.data.user;
       if (!user) return null;
       return client.from('profiles').select('*').eq('id', user.id).maybeSingle()
-        .then(function(r){ return r.data || null; });
-    }).catch(function(){ return null; });
+        .then(function(r){ return r.error ? false : (r.data || null); });
+    }).catch(function(){ return false; });
   }
 
   /* Save the signed-in user's profile. Called from onboarding (track +

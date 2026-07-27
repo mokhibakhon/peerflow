@@ -403,8 +403,11 @@
 
     pf.getProfile().then(function(profile){
       /* Genuinely new user with nothing saved anywhere: finish onboarding. */
+      /* profile === false means the query failed, which is not the same as
+         "this person never onboarded". Bouncing someone with a flaky
+         connection into signup would make them answer everything again. */
       var onboarded = profile && (profile.track_id || profile.topic);
-      if (!onboarded){
+      if (!onboarded && profile !== false){
         var ls = '';
         try { ls = localStorage.getItem('pf_track') || ''; } catch(err){}
         if (!ls){ window.location.replace('signup.html'); return; }
@@ -423,7 +426,9 @@
           var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
           var past = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 <= now; }).reverse();
           var partner = partners[0] || null;
-          var pname = partner && (partner.name || partner.partner_name);
+          /* acceptedPartners() gives {requestId, profile, roomUrl} — the name
+             lives on .profile, not on the row itself. */
+          var pname = partner && partner.profile && partner.profile.name;
 
           if (upcoming.length){
             var next = upcoming[0];

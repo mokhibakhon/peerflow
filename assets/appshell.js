@@ -61,10 +61,13 @@
     chip.textContent = names[id];
     chip.hidden = false;
   }
+  /* Paint from the cache first so the chip doesn't pop in, then always
+     reconcile against the profile. Only checking when the cache was empty
+     meant a changed path never reached the header. */
   paintChip(track);
-  if (!track && window.pf && pf.getProfile) {
+  if (window.pf && pf.getProfile) {
     pf.getProfile().then(function(p){
-      if (!p || !p.track_id) return;
+      if (!p || !p.track_id || p.track_id === track) return;
       try { localStorage.setItem('pf_track', p.track_id); } catch (e) {}
       paintChip(p.track_id);
     });

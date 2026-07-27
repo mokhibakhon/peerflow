@@ -213,6 +213,9 @@
         try {
           if (nm) localStorage.setItem('pf_name', nm);
           if (tp) localStorage.setItem('pf_topic', tp);
+          /* The top bar's path chip reads this cache. Without it, changing
+             your path here leaves the old one in the header for good. */
+          if (trackSel.value) localStorage.setItem('pf_track', trackSel.value);
         } catch(err) {}
       } else if (res && res.demo) {
         note.style.color = '#c0392b';
