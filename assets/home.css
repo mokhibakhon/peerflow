@@ -26,6 +26,12 @@
 
 *{box-sizing:border-box}
 
+/* .um-wrap and friends are display:flex, which beats the hidden attribute's
+   own display:none. Without this a logged-out visitor sees a stray account
+   chip that JS has already marked hidden. */
+[hidden]{display:none!important}
+
+
 body{
   margin:0;
   background:var(--paper);
