@@ -93,11 +93,6 @@
         </div>
 
         <div class="card">
-          <h3>Badges</h3>
-          <div id="badges"><p class="bell-empty" style="padding:8px 0">Loading…</p></div>
-        </div>
-
-        <div class="card">
           <h3>Your data</h3>
           <p style="font-size:14.5px">Your name, what you're learning, your stage and your free times are visible to other signed-in members on the <a href="app-people.html" style="color:var(--green-dark);font-weight:600">People</a> page. Your email address is never shown to anyone.</p>
           <p style="font-size:14.5px;margin-top:12px">Want your account deleted? Email <a href="mailto:hello@peerflow.dev" style="color:var(--green-dark);font-weight:600">hello@peerflow.dev</a> and it's gone.</p>
@@ -159,13 +154,9 @@
   pf.currentUser().then(function(user){
     if (!user) {
       var s = document.getElementById('signedout'); if (s) s.hidden = false;
-      if (window.pfBadges) pfBadges.render(document.getElementById('badges'), null);
       return;
     }
     document.getElementById('p-email').textContent = user.email || '—';
-    pf.badgeStats().then(function(stats){
-      if (window.pfBadges) pfBadges.render(document.getElementById('badges'), stats);
-    });
     pf.getProfile().then(function(p){
       if (!p) return;
       /* Prefer the split columns; fall back to the old single name field
@@ -244,7 +235,6 @@
   });
 })();
 </script>
-<script src="assets/badges.js"></script>
 <script src="assets/appshell.js"></script>
 <script src="assets/usermenu.js"></script>
 <script src="assets/notify.js"></script>

@@ -81,7 +81,7 @@ window.pfUserMenu = (function(){
             '<circle cx="12" cy="8.5" r="3.6" stroke="currentColor" stroke-width="1.8"/>' +
             '<path d="M4.5 19.5c.9-3.6 3.8-5.5 7.5-5.5s6.6 1.9 7.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
           '</svg>Your profile</a>' +
-        '<a class="um-item" role="menuitem" href="app-profile.html#badges">' +
+        '<a class="um-item" role="menuitem" href="app-badges.html">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
             '<path d="M12 3.5l7 3.8v5.2c0 4.3-2.9 7.4-7 8.5-4.1-1.1-7-4.2-7-8.5V7.3l7-3.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>' +
             '<path d="M9 12.2l2.2 2.2 4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
