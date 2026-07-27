@@ -30,6 +30,11 @@ create table if not exists public.profiles (
 -- Adds newer columns when profiles already exists from an earlier run
 -- (create table if not exists would skip them).
 alter table public.profiles add column if not exists topic text;
+-- Name was one free-text field. Split so we can greet someone by first name
+-- without guessing where their name ends; `name` stays as the joined
+-- display value so older rows and every read path keep working.
+alter table public.profiles add column if not exists first_name text;
+alter table public.profiles add column if not exists last_name  text;
 
 -- ---------- waitlist (home-page email captures) ----------
 -- Anyone can leave their email + what they want to learn. Insert-only:

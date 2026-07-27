@@ -98,6 +98,8 @@ window.pf = (function(){
       if (!user) return { demo: true };            // not signed in (e.g. awaiting email confirm)
       var row = { id: user.id };
       if ('name' in profile)         row.name = profile.name || '';
+      if ('firstName' in profile)    row.first_name = profile.firstName || null;
+      if ('lastName' in profile)     row.last_name = profile.lastName || null;
       if ('track' in profile)        row.track_id = profile.track || null;
       if ('topic' in profile)        row.topic = profile.topic || null;
       if ('level' in profile)        row.level = profile.level || null;

@@ -30,7 +30,8 @@
 
           <h4 class="mini-h">Your name</h4>
           <div class="field" style="max-width:none">
-            <input id="p-name" type="text" placeholder="What should we call you?" autocomplete="given-name">
+            <input id="p-name" type="text" placeholder="First name" autocomplete="given-name">
+            <input id="p-last" type="text" placeholder="Last name (optional)" autocomplete="family-name" style="margin-top:8px">
           </div>
 
           <h4 class="mini-h">Your path</h4>
@@ -111,6 +112,7 @@
 <script>
 (function(){
   var nameI = document.getElementById('p-name');
+  var lastI = document.getElementById('p-last');
   var topicI = document.getElementById('p-topic');
   var trackSel = document.getElementById('p-track');
   var levelBox = document.getElementById('p-level');
@@ -118,7 +120,7 @@
   var note = document.getElementById('p-note');
 
   try {
-    nameI.value = localStorage.getItem('pf_name') || '';
+    nameI.value = (localStorage.getItem('pf_name') || '').split(/\s+/)[0] || '';
     topicI.value = localStorage.getItem('pf_topic') || '';
   } catch(err) {}
 
@@ -151,7 +153,16 @@
     });
     pf.getProfile().then(function(p){
       if (!p) return;
-      if (p.name) nameI.value = p.name;
+      /* Prefer the split columns; fall back to the old single name field
+         for rows saved before the split. */
+      if (p.first_name || p.last_name) {
+        nameI.value = p.first_name || '';
+        lastI.value = p.last_name || '';
+      } else if (p.name) {
+        var bits = String(p.name).trim().split(/\s+/);
+        nameI.value = bits.shift() || '';
+        lastI.value = bits.join(' ');
+      }
       if (p.topic) topicI.value = p.topic;
       if (p.track_id) trackSel.value = p.track_id;
       markSel(levelBox, 'data-level', p.level);
@@ -168,12 +179,18 @@
 
   document.getElementById('p-save').addEventListener('click', function(){
     var payload = {};
-    var nm = nameI.value.trim(), tp = topicI.value.trim();
+    var first = nameI.value.trim(), last = lastI.value.trim();
+    var nm = [first, last].filter(Boolean).join(' ');
+    var tp = topicI.value.trim();
     var sel = levelBox.querySelector('.choice.sel');
     var avail = Array.prototype.map.call(availBox.querySelectorAll('.cell.sel'),
       function(c){ return c.getAttribute('data-slot'); });
 
-    if (nm) payload.name = nm;
+    if (nm) {
+      payload.name = nm;
+      payload.firstName = first;
+      payload.lastName = last;
+    }
     if (tp) payload.topic = tp;
     if (trackSel.value) payload.track = trackSel.value;
     if (sel) payload.level = sel.getAttribute('data-level');

@@ -43,9 +43,13 @@
     </div>
     <div class="divider">or with email</div>
     <div class="field" id="f-name">
-      <label for="su-name">What should we call you?</label>
+      <label for="su-name">First name</label>
       <input id="su-name" type="text" placeholder="e.g. Mokhi" autocomplete="given-name">
-      <span class="err">Please tell us your name — your partner will see it.</span>
+      <span class="err">Please tell us your first name — your partner will see it.</span>
+    </div>
+    <div class="field">
+      <label for="su-last">Last name <span class="hint">optional</span></label>
+      <input id="su-last" type="text" placeholder="e.g. Rakhimova" autocomplete="family-name">
     </div>
     <div class="field" id="f-email">
       <label for="su-email">Email</label>
@@ -205,6 +209,9 @@
       if (profile && profile.track_id) { window.location.replace('app.html'); return; }
       var meta = user.user_metadata || {};
       state.name = meta.name || meta.full_name || (user.email || '').split('@')[0];
+      var parts = state.name.trim().split(/\s+/);
+      state.first = parts.shift() || '';
+      state.last  = parts.join(' ');
       state.email = user.email || '';
       state.provider = 'oauth';
       showSignedIn(state.email, null);
@@ -220,6 +227,7 @@
 
   /* ---------- step 1: email form with validation ---------- */
   var nameF = document.getElementById('f-name'), nameI = document.getElementById('su-name');
+  var lastI = document.getElementById('su-last');
   var mailF = document.getElementById('f-email'), mailI = document.getElementById('su-email');
   var passF = document.getElementById('f-pass'), passI = document.getElementById('su-pass');
 
@@ -254,7 +262,11 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mailI.value.trim())) { mailF.classList.add('bad'); ok = false; }
     if (passI.value.length < 8) { passF.classList.add('bad'); ok = false; }
     if (!ok) return;
-    state.name = nameI.value.trim();
+    state.first = nameI.value.trim();
+    state.last  = lastI.value.trim();
+    /* `name` stays the joined display value, so everything that reads a
+       single name — the chip, the people list, session labels — is unchanged. */
+    state.name = [state.first, state.last].filter(Boolean).join(' ');
     state.email = mailI.value.trim();
     state.provider = 'email';
     document.getElementById('auth-chip').hidden = true;
@@ -367,6 +379,8 @@
        actually working on. Both drive matching. */
     var profile = {
       name: state.name,
+      firstName: state.first || state.name,
+      lastName: state.last || '',
       track: state.track,
       topic: state.topic,
       level: state.level,

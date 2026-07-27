@@ -57,6 +57,10 @@ window.pfUserMenu = (function(){
 
     wrap = document.createElement('div');
     wrap.className = 'um-wrap';
+    /* Hidden until currentUser() confirms somebody is signed in. Rendering
+       first and hiding after showed a stray "S" chip to logged-out visitors
+       for as long as the auth check took — forever, if it never answered. */
+    wrap.hidden = true;
     wrap.innerHTML =
       '<button class="um-btn" id="nav-av" aria-haspopup="true" aria-expanded="false" aria-label="Your account">' +
         '<span id="um-face">' + face(name, '', 'um-face') + '</span>' +
@@ -151,7 +155,8 @@ window.pfUserMenu = (function(){
   /* Fill in from the signed-in account without every page having to. */
   if (ok && window.pf) {
     pf.currentUser().then(function(user){
-      if (!user) { wrap.hidden = true; return; }
+      if (!user) return;                       // stays hidden
+      wrap.hidden = false;
       var meta = user.user_metadata || {};
       var nm = '';
       try { nm = localStorage.getItem('pf_name') || ''; } catch(e){}
