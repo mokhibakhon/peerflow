@@ -388,9 +388,12 @@ h1 .g{color:var(--p4)}
   color:var(--faint);font-weight:400;margin:26px 0 10px}
 .board{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px 22px}
 .board:empty{display:none}
-.btn.primary{background:var(--p6);color:#fff}
-.btn.ghost{background:none;border:1px solid var(--line);color:var(--soft)}
-.btn.ghost:hover{background:none;border-color:var(--ink);color:var(--ink)}
+/* No .btn.primary / .btn.ghost rules here on purpose. These sat further
+   down the file than the button block and quietly flattened it back to a
+   plain fill on every page using class="btn primary". `.primary` needs no
+   rule at all — .btn is already the solid one — and class="btn ghost"
+   resolves correctly on its own, because .ghost is declared after .btn and
+   restates background, colour and shadow. */
 .signedout-note{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:14px;
   padding:16px 18px;font-size:14.5px;color:#7A4A12;margin:0 0 16px}
 .signedout-note a{border-bottom:1px solid #D9B98B;font-weight:600}
