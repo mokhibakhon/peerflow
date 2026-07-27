@@ -61,8 +61,12 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* Returns a promise. supabase-js clears the stored session only after its
+     logout request comes back, so callers must wait before navigating —
+     otherwise the navigation aborts the request and the session survives. */
   function signOut(){
-    if (client) client.auth.signOut();
+    if (!client) return Promise.resolve();
+    return client.auth.signOut().catch(function(){ return null; });
   }
 
   /* Change the signed-in user's password. Supabase requires a live session,

@@ -125,12 +125,27 @@ window.pfUserMenu = (function(){
     });
 
     document.getElementById('um-logout').addEventListener('click', function(){
+      var btn = this;
+      btn.disabled = true;
       try {
         ['pf_name','pf_email','pf_track','pf_topic','pf_pending']
           .forEach(function(k){ localStorage.removeItem(k); });
       } catch(err) {}
-      if (window.pf) pf.signOut();
-      window.location.href = 'index.html';
+
+      /* replace() rather than href: pressing back after logging out should
+         not return you to a page that still looks signed in. */
+      var left = false;
+      function leave(){ if (left) return; left = true; window.location.replace('index.html'); }
+
+      var out = window.pf && pf.signOut ? pf.signOut() : null;
+      if (out && out.then) {
+        out.then(leave, leave);
+        /* Don't strand anyone on the menu if the network hangs — the local
+           session is already gone by then either way. */
+        setTimeout(leave, 2500);
+      } else {
+        leave();
+      }
     });
     return true;
   }
