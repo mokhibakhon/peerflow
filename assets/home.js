@@ -1,4 +1,33 @@
 (function(){
+  /* If you're already signed in, the home page shouldn't be selling you a
+     sign-up. Swap the two auth links for one way back into the app, and
+     retarget every "find my partner" button at the app rather than at the
+     onboarding questions you've already answered. */
+
+  if (!window.pf || !pf.currentUser) return;
+
+  pf.currentUser().then(function(user){
+    if (!user) return;
+
+    var login = document.querySelector('.nav-right a[href="login.html"]');
+    if (login) login.remove();
+
+    var navBtn = document.querySelector('.nav-right a[href="signup.html"]');
+    if (navBtn) { navBtn.href = 'app.html'; navBtn.textContent = 'Go to my dashboard'; }
+
+    var heroBtn = document.querySelector('.hero .btn[href="signup.html"]');
+    if (heroBtn) { heroBtn.href = 'app.html'; heroBtn.textContent = 'Go to my dashboard'; }
+
+    /* Path cards: you already have a path, so send these to the people list
+       instead of asking you to pick one again. */
+    Array.prototype.forEach.call(document.querySelectorAll('.path .cta'), function(a){
+      a.href = 'app-people.html';
+      a.textContent = 'Find a partner';
+    });
+  });
+})();
+
+(function(){
   /* Hero card: a pomodoro ticking 25:00 down to 00:00 and starting over,
      with the ring emptying as it goes. Purely illustrative — the card is
      example data, which is why it's aria-hidden in the markup. */

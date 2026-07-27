@@ -75,6 +75,11 @@
     window.location.href = 'app.html';
   }
 
+  /* Already signed in? There's nothing to log into. Straight through. */
+  pf.currentUser().then(function(user){
+    if (user) window.location.replace('app.html');
+  });
+
   function social(provider){
     var s = document.getElementById('li-status');
     if (!pf.ready()) { s.textContent = 'Sign-in is temporarily unavailable — check your connection and try again.'; s.style.display='block'; return; }

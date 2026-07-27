@@ -192,16 +192,24 @@
     if (cfg.enableGithub === false) { var bh = document.getElementById('btn-github'); if (bh) bh.style.display = 'none'; }
   }
 
-  /* If we just came back from an OAuth redirect, the user is signed in —
-     skip account creation and resume onboarding at "what are you learning". */
+  /* Someone signed in has landed on the signup page. Two very different cases:
+
+     - They already have a profile, so there is nothing left to ask. Send them
+       straight to the app. This is what happens when an existing user clicks
+       "Find a partner" on the home page.
+     - They're mid-signup (usually just back from an OAuth redirect), so skip
+       account creation and resume at "which path are you on". */
   pf.currentUser().then(function(user){
     if (!user) return;
-    var meta = user.user_metadata || {};
-    state.name = meta.name || meta.full_name || (user.email || '').split('@')[0];
-    state.email = user.email || '';
-    state.provider = 'oauth';
-    showSignedIn(state.email, null);
-    if (cur === 0) show(1);
+    pf.getProfile().then(function(profile){
+      if (profile && profile.track_id) { window.location.replace('app.html'); return; }
+      var meta = user.user_metadata || {};
+      state.name = meta.name || meta.full_name || (user.email || '').split('@')[0];
+      state.email = user.email || '';
+      state.provider = 'oauth';
+      showSignedIn(state.email, null);
+      if (cur === 0) show(1);
+    });
   });
   document.getElementById('auth-switch').addEventListener('click', function(e){
     e.preventDefault();
