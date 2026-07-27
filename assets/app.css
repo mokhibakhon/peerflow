@@ -386,3 +386,17 @@ h1 .g{color:var(--p4)}
   .um-label,.um-chev{display:none}
   .um-btn{padding:4px}
 }
+
+/* ---------- people page ---------- */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;max-width:440px;margin:0 0 18px}
+.empty-hint{font-size:14.5px;color:var(--soft);margin:0 0 18px;max-width:640px}
+
+/* The row's right-hand slot: either a button to ask, or the state you're
+   already in. Fixed to the top so it lines up with the name, not the
+   middle of a three-line block. */
+.room .r .small,.ask-state{align-self:center}
+.ask-state{font-family:var(--mono);font-size:10px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--faint);border:1px solid var(--line);
+  border-radius:999px;padding:5px 10px;white-space:nowrap;flex:0 0 auto}
+.ask-state.ok{background:var(--p0);border-color:var(--p2);color:var(--p8)}

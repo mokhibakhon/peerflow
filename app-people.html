@@ -23,14 +23,14 @@
       no one here is made up.
     </p>
 
-    <div class="stat-row" style="max-width:420px;background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:24px">
+    <div class="stat-row">
       <div class="stat"><b id="st-total">—</b><span>signed up</span></div>
       <div class="stat"><b id="st-same">—</b><span>on your topic</span></div>
     </div>
 
-    <ul class="plist people-list" id="people">
-      <li style="color:var(--muted);font-size:14px">Loading…</li>
-    </ul>
+    <div class="b room" id="people">
+      <p class="n">Loading…</p>
+    </div>
   </div>
 </main>
 
@@ -48,7 +48,19 @@
 
   var pathLabel = { frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity', data:'Data & analytics', mobile:'Mobile', devops:'DevOps & cloud', aiml:'AI & ML', design:'UX/UI design' };
   var levelLabel = { new:'Just starting', tutorials:'Doing tutorials', jobprep:'Job-hunt prep', builder:'Builds projects' };
-  var palette = ['#0b8f66','#3d8fd1','#8e6cc8','#d1793d','#c2568e','#5a9e6f'];
+  /* Same tones as the account chip: a soft tint with a dark letter, keyed off
+     the name so someone's avatar is stable wherever they appear. Solid
+     saturated circles were shouting over the names next to them. */
+  var TONES = [
+    ['#EEEDFE','#3C3489'], ['#E1F5EE','#0F6E56'], ['#FBEAF0','#A94168'],
+    ['#E6F1FB','#185FA5'], ['#FAEEDA','#854F0B'], ['#FAECE7','#993C1D'],
+    ['#F5EAF8','#58256B'], ['#EDF0F3','#35414F']
+  ];
+  function tone(name){
+    var str = String(name || '?'), h = 0;
+    for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    return TONES[h % TONES.length];
+  }
 
   function esc(s){
     return String(s).replace(/[&<>"']/g, function(c){
@@ -68,7 +80,7 @@
 
   function actionFor(userId){
     var r = reqByUser[userId];
-    if (!r) return '<button class="btn ghost ask" data-ask="' + esc(userId) + '">Ask to partner</button>';
+    if (!r) return '<button class="small ask" data-ask="' + esc(userId) + '">Ask to partner</button>';
     if (r.status === 'accepted') return '<span class="ask-state ok">Partners</span>';
     if (r.status === 'declined') return '<span class="ask-state">Declined</span>';
     return r.direction === 'out'
@@ -84,26 +96,34 @@
     return pf.fetchPeers(24);
   }).then(function(people){
     if (people === null) {
-      list.innerHTML = '<li style="color:var(--muted);font-size:14px">Could not load people — check your connection and refresh.</li>';
+      list.innerHTML = '<p class="n">Could not load people — check your connection and refresh.</p>';
       return;
     }
     if (!people.length) {
-      list.innerHTML = '<li style="color:var(--muted);font-size:14px">' +
+      list.innerHTML = '<p class="n">' +
         'No one else has signed up yet — you’re first. That’s genuinely useful to know: ' +
         'share PeerFlow with one person learning the same thing and you’ve got your pair.</li>';
       return;
     }
-    list.innerHTML = people.map(function(p, i){
+    list.innerHTML = people.map(function(p){
       var nm = p.name || 'Someone';
-      var meta = [pathLabel[p.track_id] || '', p.topic ? 'Learning ' + p.topic : '', levelLabel[p.level] || '', p.timezone || '', since(p.created_at)]
-        .filter(Boolean).join(' · ');
+      var t = tone(nm);
+      /* Two lines, not one run-on string: what they're learning is the thing
+         you actually read, the rest is context. */
+      var learning = p.topic ? 'Learning ' + p.topic : '';
+      var meta = [pathLabel[p.track_id] || '', levelLabel[p.level] || '',
+                  p.timezone || '', since(p.created_at)].filter(Boolean).join(' · ');
       var same = myTopic && p.topic && p.topic.toLowerCase() === myTopic.toLowerCase();
-      return '<li>' +
-        '<span class="av" style="background:' + palette[i % palette.length] + '">' + esc(nm.trim().charAt(0).toUpperCase()) + '</span>' +
-        '<span><b>' + esc(nm) + (same ? ' <span class="same-tag">same topic</span>' : '') + '</b>' +
-        '<span>' + esc(meta) + '</span></span>' +
+      return '<div class="r">' +
+        '<span class="a" style="background:' + t[0] + ';color:' + t[1] + '">' +
+          esc(nm.trim().charAt(0).toUpperCase()) + '</span>' +
+        '<div class="b2">' +
+          '<p class="nm">' + esc(nm) + (same ? '<span class="same-tag">same topic</span>' : '') + '</p>' +
+          (learning ? '<p class="s">' + esc(learning) + '</p>' : '') +
+          (meta ? '<p class="mt">' + esc(meta) + '</p>' : '') +
+        '</div>' +
         actionFor(p.id) +
-        '</li>';
+        '</div>';
     }).join('');
   });
 
