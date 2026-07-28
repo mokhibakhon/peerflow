@@ -84,15 +84,6 @@
 
       <div class="app-col">
         <div class="card">
-          <h3>Account</h3>
-          <dl class="kv">
-            <dt>Email</dt><dd id="p-email">—</dd>
-            <dt>Timezone</dt><dd id="p-tz">—</dd>
-            <dt>Joined</dt><dd id="p-joined">—</dd>
-          </dl>
-        </div>
-
-        <div class="card">
           <h3>Your data</h3>
           <p style="font-size:14.5px">Your name, what you're learning, your stage and your free times are visible to other signed-in members on the <a href="app-people.html" style="color:var(--green-dark);font-weight:600">People</a> page. Your email address is never shown to anyone.</p>
           <p style="font-size:14.5px;margin-top:12px">Want your account deleted? Email <a href="mailto:hello@peerflow.dev" style="color:var(--green-dark);font-weight:600">hello@peerflow.dev</a> and it's gone.</p>
@@ -156,7 +147,6 @@
       var s = document.getElementById('signedout'); if (s) s.hidden = false;
       return;
     }
-    document.getElementById('p-email').textContent = user.email || '—';
     pf.getProfile().then(function(p){
       if (!p) return;
       /* Prefer the split columns; fall back to the old single name field
@@ -174,13 +164,6 @@
       markSel(levelBox, 'data-level', p.level);
       (p.availability || []).forEach(function(v){ markSel(availBox, 'data-slot', v); });
       countAvail();
-      document.getElementById('p-tz').textContent = p.timezone || '—';
-      if (p.created_at) {
-        try {
-          document.getElementById('p-joined').textContent =
-            new Date(p.created_at).toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
-        } catch(e){}
-      }
     });
   });
 
