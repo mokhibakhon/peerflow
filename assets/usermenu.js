@@ -92,11 +92,6 @@ window.pfUserMenu = (function(){
             '<path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 01-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 01-4 0v-.1A1.6 1.6 0 007 19.4a1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H1a2 2 0 010-4h.1A1.6 1.6 0 002.6 9a1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H7a1.6 1.6 0 001-1.5V3a2 2 0 014 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 010 4h-.1a1.6 1.6 0 00-1.5 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>' +
           '</svg>Settings</a>' +
         '<div class="um-sep"></div>' +
-        '<a class="um-item" role="menuitem" href="conduct.html">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-            '<path d="M5 4.5h11l3 3v12H5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>' +
-            '<path d="M8.5 10h7M8.5 14h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
-          '</svg>Code of conduct</a>' +
         '<button class="um-item danger" role="menuitem" id="um-logout">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
             '<path d="M14 4.5H6.5v15H14M11 12h9m0 0l-3-3m3 3l-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
