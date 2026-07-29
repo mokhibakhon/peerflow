@@ -23,8 +23,19 @@
 </header>
 
 <main class="auth-page">
-  <h1>Welcome back</h1>
-  <p class="lead">Pick up where you left off.</p>
+  <h1>Welcome back!</h1>
+  <p class="lead">Sign into your account</p>
+
+  <!-- One banner for every failed attempt. Deliberately does not say which
+       of the two was wrong: telling someone the email exists but the
+       password doesn't turns the form into an account checker. -->
+  <p class="auth-alert" id="li-alert" role="alert" hidden>
+    <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="9" fill="#D92D20"/>
+      <path d="M10 5.4v5.2M10 13.6v.6" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span>Uh-oh! Your email or password is incorrect.</span>
+  </p>
 
   <div class="auth-btns">
     <button class="auth-btn" id="btn-google">
@@ -42,7 +53,6 @@
   <div class="field" id="f-email">
     <label for="li-email">Email</label>
     <input id="li-email" type="email" placeholder="you@university.edu" autocomplete="email">
-    <span class="err">That doesn't look like an email address — check for typos.</span>
   </div>
   <div class="field" id="f-pass">
     <label for="li-pass">Password</label>
@@ -50,13 +60,17 @@
       <input id="li-pass" type="password" placeholder="Your password" autocomplete="current-password">
       <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Show password">Show</button>
     </div>
-    <span class="err">Please enter your password.</span>
+    <button type="button" class="forgot" id="forgot">Forgot password?</button>
+    <p class="forgot-note" id="forgot-note" hidden>
+      Password reset needs email sending set up, which isn't live yet.
+      Email <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a> and I'll reset it by hand.
+    </p>
   </div>
 
   <div style="margin-top:22px">
     <button class="btn primary big" id="login" style="width:100%">Log in</button>
   </div>
-  <p class="swap">Forgot your password? <span style="color:var(--muted)">password reset is coming soon</span> · New here? <a href="signup.html">Sign up</a></p>
+  <p class="swap">New here? <a href="signup.html">Sign up</a></p>
 
   <p id="li-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px"></p>
   <p class="onb-note">Email and Google sign-in are live.</p>
@@ -113,8 +127,32 @@
   var passF = document.getElementById('f-pass'), passI = document.getElementById('li-pass');
   var status = document.getElementById('li-status');
   var loginBtn = document.getElementById('login');
+  var alertBox = document.getElementById('li-alert');
+
+  /* One failure state for the whole form: clear both fields, show the
+     banner, put the cursor back in the email box. */
+  function fail(){
+    mailI.value = '';
+    passI.value = '';
+    mailF.classList.remove('bad');
+    passF.classList.remove('bad');
+    alertBox.hidden = false;
+    status.style.display = 'none';
+    mailI.focus();
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){ window.scrollTo(0, 0); }
+  }
   [ [mailF,mailI], [passF,passI] ].forEach(function(p){
-    p[1].addEventListener('input', function(){ p[0].classList.remove('bad'); status.style.display='none'; });
+    p[1].addEventListener('input', function(){
+      p[0].classList.remove('bad');
+      status.style.display = 'none';
+      alertBox.hidden = true;
+    });
+  });
+
+  var forgotBtn = document.getElementById('forgot');
+  forgotBtn.addEventListener('click', function(){
+    var n = document.getElementById('forgot-note');
+    n.hidden = !n.hidden;
   });
 
   document.getElementById('pw-toggle').addEventListener('click', function(){
@@ -124,10 +162,12 @@
   });
 
   loginBtn.addEventListener('click', function(){
-    var ok = true;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mailI.value.trim())) { mailF.classList.add('bad'); ok = false; }
-    if (!passI.value) { passF.classList.add('bad'); ok = false; }
-    if (!ok) return;
+    /* A malformed address and a wrong password get the same answer. Saying
+       "that isn't an email" is a different message from "wrong password",
+       and the difference is enough to tell someone which addresses exist. */
+    var ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mailI.value.trim()) && !!passI.value;
+    if (!ok) { fail(); return; }
+    alertBox.hidden = true;
     status.style.display = 'none';
     loginBtn.disabled = true;
     loginBtn.textContent = 'Logging in…';
@@ -135,9 +175,11 @@
       loginBtn.disabled = false;
       loginBtn.textContent = 'Log in';
       if (res.error) {
-        status.textContent = res.error === 'Invalid login credentials'
-          ? 'Wrong email or password — try again, or reset your password.'
-          : res.error;
+        /* Anything that isn't a plain credential rejection — rate limits,
+           unconfirmed email, the server being down — still needs saying,
+           because "wrong password" would send someone in circles. */
+        if (res.error === 'Invalid login credentials') { fail(); return; }
+        status.textContent = res.error;
         status.style.display = 'block';
         return;
       }
