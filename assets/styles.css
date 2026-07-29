@@ -668,3 +668,17 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
   margin:8px 0 0;font-size:13px;color:var(--muted);line-height:1.5;max-width:430px;
 }
 .forgot-note a{color:var(--green-dark);font-weight:600;border-bottom:1px solid var(--border)}
+
+/* ============ onboarding: optional-field hint, lone action button ============ */
+
+/* "optional" sits inside a <label>, so without this it inherits the label's
+   600 weight and reads as part of the field name. */
+.field label .hint{
+  font-weight:400;font-size:12.5px;color:var(--muted);letter-spacing:0;
+}
+
+/* Step one has no Back button. With justify-content:space-between and an
+   empty span holding the other end, the button drifted to the right edge on
+   its own. A single action fills the row, matching the login form. */
+.onb-nav.solo{justify-content:stretch;margin-top:20px}
+.onb-nav.solo .btn{width:100%}
