@@ -496,14 +496,35 @@ h1 .g{color:var(--p4)}
   gap:12px;max-width:440px;margin:0 0 18px}
 .empty-hint{font-size:14.5px;color:var(--soft);margin:0 0 18px;max-width:640px}
 
-/* The row's right-hand slot: either a button to ask, or the state you're
-   already in. Fixed to the top so it lines up with the name, not the
-   middle of a three-line block. */
-.room .r .small,.ask-state{align-self:center}
-.ask-state{font-family:var(--mono);font-size:10px;letter-spacing:.05em;
-  text-transform:uppercase;color:var(--faint);border:1px solid var(--line);
-  border-radius:999px;padding:5px 10px;white-space:nowrap;flex:0 0 auto}
-.ask-state.ok{background:var(--p0);border-color:var(--p2);color:var(--p8)}
+/* The row's right-hand slot. The action and the four states are built to one
+   size so the column stays straight however a row changes, and centred
+   against the block rather than pinned to its first line. */
+.askbtn,.pstate{
+  align-self:center;flex:0 0 auto;height:34px;border-radius:999px;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:0 16px;font-family:var(--body);font-size:13px;font-weight:600;
+  letter-spacing:-.005em;white-space:nowrap;
+}
+.askbtn svg,.pstate svg{width:14px;height:14px;flex:0 0 auto}
+
+/* Asking is the one thing this page exists for, so it gets the solid green
+   rather than sharing the outlined pill used for secondary row actions. */
+.askbtn{
+  border:0;color:#fff;cursor:pointer;
+  background:linear-gradient(180deg,var(--p4),var(--p6));
+  box-shadow:0 1px 2px rgba(8,80,65,.22), inset 0 1px 0 rgba(255,255,255,.18);
+  transition:background .15s ease,box-shadow .15s ease,transform .1s ease;
+}
+.askbtn:hover{transform:translateY(-1px);
+  background:linear-gradient(180deg,#189068,var(--p8));
+  box-shadow:0 4px 12px rgba(8,80,65,.26), inset 0 1px 0 rgba(255,255,255,.18)}
+.askbtn:active{transform:translateY(1px)}
+
+/* States are worn, not pressed — flat, no shadow, nothing to click. */
+.pstate{border:1px solid var(--line);background:#FBFBFC;color:var(--soft)}
+.pstate.ok{background:var(--p0);border-color:var(--p2);color:var(--p8)}
+.pstate.wait{background:#FFF6E8;border-color:#F0DCC2;color:#8A5A12}
+.pstate.no{color:var(--faint)}
 
 /* ---------- people: grouping, overlap, ask box ---------- */
 .group-h{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;

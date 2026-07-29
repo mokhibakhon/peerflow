@@ -78,14 +78,28 @@
   /* What's already been asked, so nobody is offered a duplicate request. */
   var reqByUser = {};
 
+  /* The right-hand slot is either the one action on this page or the state
+     you're already in with that person. Button and chips are built to the
+     same height and radius so the column stays straight as rows change
+     state, and each chip carries a glyph so it reads at a glance. */
+  var ICON = {
+    tick: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8.6l3 3L12.8 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    sent: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    wait: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.6V8l2.4 1.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    no:   '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.6 5.6l4.8 4.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  };
+  function chip(kind, icon, label){
+    return '<span class="pstate ' + kind + '">' + ICON[icon] + label + '</span>';
+  }
+
   function actionFor(userId){
     var r = reqByUser[userId];
-    if (!r) return '<button class="small ask" data-ask="' + esc(userId) + '">Ask to partner</button>';
-    if (r.status === 'accepted') return '<span class="ask-state ok">Partners</span>';
-    if (r.status === 'declined') return '<span class="ask-state">Declined</span>';
+    if (!r) return '<button class="askbtn" data-ask="' + esc(userId) + '">Ask to partner</button>';
+    if (r.status === 'accepted') return chip('ok',   'tick', 'Partners');
+    if (r.status === 'declined') return chip('no',   'no',   'Declined');
     return r.direction === 'out'
-      ? '<span class="ask-state">Request sent</span>'
-      : '<span class="ask-state">Asked you — check the bell</span>';
+      ? chip('sent', 'sent', 'Asked')
+      : chip('wait', 'wait', 'Waiting on you');
   }
 
   var me = { track: '', topic: myTopic, avail: [] };
@@ -233,7 +247,7 @@
     if (!r) return;
     var box = r.querySelector('.askbox');
     if (box) box.remove();
-    r.querySelectorAll('.ask-state,[data-ask]').forEach(function(n){ n.remove(); });
+    r.querySelectorAll('.pstate,[data-ask]').forEach(function(n){ n.remove(); });
     r.insertAdjacentHTML('beforeend', actionFor(r.getAttribute('data-id')));
   }
 
