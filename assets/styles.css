@@ -599,7 +599,7 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
   .lead-form input,.lead-form .btn{width:100%}
 }
 
-/* Signup: "Hello, Mokhi." once we know who they are. Sits above the step
+/* Signup: "Hello, John." once we know who they are. Sits above the step
    heading, in place of the old signed-in-as chip. */
 .greet{
   font-size:14.5px;font-weight:700;color:var(--green-dark);
