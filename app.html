@@ -138,7 +138,6 @@
         </div>
         <div class="calfoot">
           <span class="mono">Nobody set you a schedule. This is the one you kept.</span>
-          <span class="scale">less<i style="background:#EAE9EF"></i><i style="background:var(--p1)"></i><i style="background:var(--p2)"></i><i style="background:var(--p4)"></i><i style="background:var(--p6)"></i>more</span>
         </div>
         <div class="logs" id="logs"></div>
       </div>
@@ -277,9 +276,8 @@
       var day = new Date(start); day.setDate(day.getDate() + k);
       var key = day.getFullYear() + '-' + day.getMonth() + '-' + day.getDate();
       var mins = minutes[key] || 0;
-      var v = mins === 0 ? 0 : mins < 40 ? 1 : mins < 70 ? 2 : mins < 100 ? 3 : 4;
       var c = document.createElement('i');
-      if (v && day <= today) c.className = 'v' + v;
+      if (mins > 0 && day <= today) c.className = 'on';
       c.title = (mins ? mins + ' min' : 'no session') + ' · ' + day.getDate() + ' ' + MN[day.getMonth()];
       cells.appendChild(c);
 
