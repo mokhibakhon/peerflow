@@ -680,5 +680,8 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
 /* Step one has no Back button. With justify-content:space-between and an
    empty span holding the other end, the button drifted to the right edge on
    its own. A single action fills the row, matching the login form. */
-.onb-nav.solo{justify-content:stretch;margin-top:20px}
+/* 420px is what .auth-btns, .divider and .field are all capped at, so the
+   lone button lines up with the Google button and the inputs above it
+   instead of running the full width of the step. */
+.onb-nav.solo{justify-content:stretch;margin-top:20px;max-width:420px}
 .onb-nav.solo .btn{width:100%}
