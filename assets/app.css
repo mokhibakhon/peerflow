@@ -166,11 +166,14 @@ h1 .g{color:var(--p4)}
 .row-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 
 /* ---------- person rows ---------- */
-.room .r{display:flex;gap:11px;padding:13px 0;border-top:1px dashed var(--line);align-items:flex-start}
+/* wrap so the ask box can take a full line of its own instead of
+   crushing the name and meta into a narrow column beside it */
+.room .r{display:flex;flex-wrap:wrap;gap:11px;padding:13px 0;
+  border-top:1px dashed var(--line);align-items:flex-start}
 .room .r:first-of-type{border-top:0}
 .room .a{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
   justify-content:center;font-size:11.5px;font-weight:600;flex:0 0 auto}
-.room .b2{flex:1;min-width:0}
+.room .b2{flex:1 1 200px;min-width:0}
 .room .nm{font-size:14px;font-weight:600;margin:0;line-height:1.3}
 .room .mt{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin:2px 0 0;
   letter-spacing:.04em;text-transform:uppercase}
@@ -501,3 +504,24 @@ h1 .g{color:var(--p4)}
   text-transform:uppercase;color:var(--faint);border:1px solid var(--line);
   border-radius:999px;padding:5px 10px;white-space:nowrap;flex:0 0 auto}
 .ask-state.ok{background:var(--p0);border-color:var(--p2);color:var(--p8)}
+
+/* ---------- people: grouping, overlap, ask box ---------- */
+.group-h{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--faint);margin:20px 0 2px;padding-top:14px;border-top:1px solid var(--line)}
+.room .r:first-of-type + .group-h,.group-h:first-child{margin-top:0;padding-top:0;border-top:0}
+
+.same-tag.alt{background:#EEEDFE;color:#3C3489}
+
+/* The one fact that decides whether a partnership can physically happen. */
+.overlap{display:inline-block;margin-top:5px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.04em;text-transform:uppercase}
+.overlap.ok{color:var(--p8)}
+.overlap.none{color:#9A6410}
+
+.askbox{flex:1 0 100%;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  margin-top:10px;padding-top:12px;border-top:1px dashed var(--line)}
+.askbox input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;
+  padding:9px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
+.askbox input:focus{border-color:var(--p4);outline:none}
+.askbox .btn{padding:9px 16px;font-size:13.5px}
+.ask-err{flex:1 0 100%;margin:2px 0 0;font-size:13px;color:#B4471F}

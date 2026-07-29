@@ -19,13 +19,13 @@
     </div>
 
     <p class="empty-hint" style="max-width:640px">
-      Everyone who has signed up, newest first. This is the pool your partner comes from —
-      no one here is made up.
+      Everyone who has finished signing up. Closest to what you're learning first.
+      Nobody here is made up, and nobody is matched for you — you pick.
     </p>
 
     <div class="stat-row">
-      <div class="stat"><b id="st-total">—</b><span>signed up</span></div>
-      <div class="stat"><b id="st-same">—</b><span>on your topic</span></div>
+      <div class="stat"><b id="st-total">—</b><span>people here</span></div>
+      <div class="stat"><b id="st-same">—</b><span>on your path</span></div>
     </div>
 
     <div class="b room" id="people">
@@ -88,12 +88,79 @@
       : '<span class="ask-state">Asked you — check the bell</span>';
   }
 
-  pf.myRequests().then(function(r){
-    if (r) {
-      r.outgoing.forEach(function(x){ reqByUser[x.to_user]   = { status: x.status, direction: 'out' }; });
-      r.incoming.forEach(function(x){ reqByUser[x.from_user] = { status: x.status, direction: 'in'  }; });
+  var me = { track: '', topic: myTopic, avail: [] };
+
+  /* How many of your free blocks they are also free in. This is the fact
+     that decides whether a partnership can physically happen, so it goes
+     on the row rather than being something you find out after asking. */
+  function overlap(theirs){
+    if (!me.avail.length || !theirs || !theirs.length) return 0;
+    var mine = {}, n = 0;
+    me.avail.forEach(function(s){ mine[s] = true; });
+    theirs.forEach(function(s){ if (mine[s]) n++; });
+    return n;
+  }
+
+  function row(p){
+    var nm = p.name || 'Someone';
+    var t = tone(nm);
+    var sameTopic = me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase();
+    var samePath  = me.track && p.track_id === me.track;
+    var shared    = overlap(p.availability);
+
+    var tags = (sameTopic ? '<span class="same-tag">same topic</span>' : '') +
+               (samePath && !sameTopic ? '<span class="same-tag alt">same path</span>' : '');
+    var learning = p.topic ? 'Learning ' + p.topic : 'Hasn’t said what they’re learning yet';
+    var meta = [pathLabel[p.track_id] || '', levelLabel[p.level] || '',
+                p.timezone || '', since(p.created_at)].filter(Boolean).join(' · ');
+
+    var times = !me.avail.length ? ''
+      : shared ? '<span class="overlap ok">' + shared + ' time' + (shared === 1 ? '' : 's') + ' you\u2019re both free</span>'
+               : '<span class="overlap none">No times in common</span>';
+
+    return '<div class="r" data-id="' + esc(p.id) + '">' +
+      '<span class="a" style="background:' + t[0] + ';color:' + t[1] + '">' +
+        esc(nm.trim().charAt(0).toUpperCase()) + '</span>' +
+      '<div class="b2">' +
+        '<p class="nm">' + esc(nm) + tags + '</p>' +
+        '<p class="s">' + esc(learning) + '</p>' +
+        (meta ? '<p class="mt">' + esc(meta) + '</p>' : '') +
+        times +
+      '</div>' +
+      actionFor(p.id) +
+      '</div>';
+  }
+
+  function render(people){
+    /* Three buckets, best first. Raw newest-first buried the one person on
+       your topic under everyone who happened to sign up after them. */
+    var a = [], b = [], c = [];
+    people.forEach(function(p){
+      if (me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase()) a.push(p);
+      else if (me.track && p.track_id === me.track) b.push(p);
+      else c.push(p);
+    });
+
+    var html = '';
+    if (a.length) html += '<p class="group-h">Learning the same thing as you</p>' + a.map(row).join('');
+    if (b.length) html += '<p class="group-h">On your path</p>' + b.map(row).join('');
+    if (c.length) html += '<p class="group-h">' + (a.length || b.length ? 'Everyone else' : 'Everyone here') +
+                          '</p>' + c.map(row).join('');
+    list.innerHTML = html;
+  }
+
+  Promise.all([pf.myRequests(), pf.getProfile()]).then(function(r){
+    var reqs = r[0], profile = r[1];
+    if (reqs) {
+      reqs.outgoing.forEach(function(x){ reqByUser[x.to_user]   = { status: x.status, direction: 'out' }; });
+      reqs.incoming.forEach(function(x){ reqByUser[x.from_user] = { status: x.status, direction: 'in'  }; });
     }
-    return pf.fetchPeers(24);
+    if (profile) {
+      me.track = profile.track_id || '';
+      me.topic = profile.topic || myTopic;
+      me.avail = profile.availability || [];
+    }
+    return pf.fetchPeers(60);
   }).then(function(people){
     if (people === null) {
       list.innerHTML = '<p class="n">Could not load people — check your connection and refresh.</p>';
@@ -101,58 +168,75 @@
     }
     if (!people.length) {
       list.innerHTML = '<p class="n">' +
-        'No one else has signed up yet — you’re first. That’s genuinely useful to know: ' +
-        'share PeerFlow with one person learning the same thing and you’ve got your pair.</li>';
+        'No one else has finished signing up yet — you’re first. That’s genuinely useful to know: ' +
+        'share PeerFlow with one person learning the same thing and you’ve got your pair.</p>';
       return;
     }
-    list.innerHTML = people.map(function(p){
-      var nm = p.name || 'Someone';
-      var t = tone(nm);
-      /* Two lines, not one run-on string: what they're learning is the thing
-         you actually read, the rest is context. */
-      var learning = p.topic ? 'Learning ' + p.topic : '';
-      var meta = [pathLabel[p.track_id] || '', levelLabel[p.level] || '',
-                  p.timezone || '', since(p.created_at)].filter(Boolean).join(' · ');
-      var same = myTopic && p.topic && p.topic.toLowerCase() === myTopic.toLowerCase();
-      return '<div class="r">' +
-        '<span class="a" style="background:' + t[0] + ';color:' + t[1] + '">' +
-          esc(nm.trim().charAt(0).toUpperCase()) + '</span>' +
-        '<div class="b2">' +
-          '<p class="nm">' + esc(nm) + (same ? '<span class="same-tag">same topic</span>' : '') + '</p>' +
-          (learning ? '<p class="s">' + esc(learning) + '</p>' : '') +
-          (meta ? '<p class="mt">' + esc(meta) + '</p>' : '') +
-        '</div>' +
-        actionFor(p.id) +
-        '</div>';
-    }).join('');
+    render(people);
+    document.getElementById('st-total').textContent = people.length + 1;
+    document.getElementById('st-same').textContent =
+      me.track ? people.filter(function(p){ return p.track_id === me.track; }).length : 0;
   });
 
-  /* Send a request. */
+  /* Asking opens a one-line note first. sendPartnerRequest has always taken a
+     message and always been given an empty one, so requests arrived as a bare
+     name with nothing to say yes or no to. The note is optional — Send works
+     empty — but a sentence about what you're stuck on is the difference
+     between a request someone accepts and one they ignore. */
   list.addEventListener('click', function(e){
-    var btn = e.target.closest('[data-ask]');
-    if (!btn) return;
-    var id = btn.getAttribute('data-ask');
-    btn.disabled = true;
-    btn.textContent = 'Sending…';
-    pf.sendPartnerRequest(id, '').then(function(res){
+    var open = e.target.closest('[data-ask]');
+    if (open) {
+      var r = open.closest('.r');
+      var id = open.getAttribute('data-ask');
+      open.replaceWith(document.createComment('asking'));
+      var box = document.createElement('div');
+      box.className = 'askbox';
+      box.innerHTML =
+        '<input type="text" maxlength="140" placeholder="Say what you\u2019re working on (optional)">' +
+        '<button class="btn" data-send="' + esc(id) + '">Send request</button>' +
+        '<button class="small" data-cancel>Cancel</button>' +
+        '<p class="ask-err" hidden></p>';
+      r.appendChild(box);
+      box.querySelector('input').focus();
+      return;
+    }
+
+    var cancel = e.target.closest('[data-cancel]');
+    if (cancel) { redraw(cancel.closest('.r')); return; }
+
+    var send = e.target.closest('[data-send]');
+    if (!send) return;
+    var uid = send.getAttribute('data-send');
+    var wrap = send.closest('.askbox');
+    var msg = wrap.querySelector('input').value.trim();
+    var err = wrap.querySelector('.ask-err');
+    send.disabled = true;
+    send.textContent = 'Sending…';
+    err.hidden = true;
+    pf.sendPartnerRequest(uid, msg).then(function(res){
       if (res && res.sent) {
-        reqByUser[id] = { status: 'pending', direction: 'out' };
-        btn.outerHTML = '<span class="ask-state">Request sent</span>';
+        reqByUser[uid] = { status: 'pending', direction: 'out' };
+        redraw(send.closest('.r'));
         return;
       }
-      btn.disabled = false;
-      btn.textContent = 'Ask to partner';
-      alert(res && res.demo
+      send.disabled = false;
+      send.textContent = 'Send request';
+      err.textContent = res && res.demo
         ? 'You need to be signed in to send a request.'
-        : (res && res.error) || 'Could not send the request — please try again.');
+        : (res && res.error) || 'Could not send the request — please try again.';
+      err.hidden = false;
     });
   });
 
-  pf.learnerStats(myTopic).then(function(s){
-    if (!s) return;
-    document.getElementById('st-total').textContent = s.total;
-    document.getElementById('st-same').textContent = s.sameTopic;
-  });
+  /* Put a row back to its resting state after sending or cancelling. */
+  function redraw(r){
+    if (!r) return;
+    var box = r.querySelector('.askbox');
+    if (box) box.remove();
+    r.querySelectorAll('.ask-state,[data-ask]').forEach(function(n){ n.remove(); });
+    r.insertAdjacentHTML('beforeend', actionFor(r.getAttribute('data-id')));
+  }
+
 })();
 </script>
 <script src="assets/appshell.js"></script>

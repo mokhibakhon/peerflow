@@ -452,7 +452,7 @@ window.pf = (function(){
     return client.auth.getUser().then(function(res){
       var uid = res.data && res.data.user && res.data.user.id;
       var q = client.from('profiles')
-        .select('id,name,track_id,topic,level,timezone,created_at')
+        .select('id,name,track_id,topic,level,timezone,created_at,availability')
         /* Signing in with Google creates the row before any question is
            answered. Until a path is picked there is nothing to match on, so
            those half-finished rows stay out of the list — showing them would
