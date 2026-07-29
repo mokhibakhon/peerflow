@@ -127,9 +127,12 @@ h1 .g{color:var(--p4)}
   box-shadow:0 3px 9px rgba(23,26,46,.09);
 }
 
+/* One shape for everything you can press. The 999px pill came in with the
+   dashboard mockup and left the app speaking two languages: rounded
+   rectangles for the main actions, capsules for the row-level ones. */
 .small{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  padding:7px 14px;font-size:13px;border-radius:999px;flex:0 0 auto;
+  padding:8px 14px;font-size:13px;border-radius:9px;flex:0 0 auto;
   background:var(--card);border:1px solid var(--line);color:var(--soft);
   box-shadow:0 1px 2px rgba(23,26,46,.05);
 }
@@ -500,7 +503,7 @@ h1 .g{color:var(--p4)}
    size so the column stays straight however a row changes, and centred
    against the block rather than pinned to its first line. */
 .askbtn,.pstate{
-  align-self:center;flex:0 0 auto;height:34px;border-radius:999px;
+  align-self:center;flex:0 0 auto;height:36px;border-radius:10px;
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
   padding:0 16px;font-family:var(--body);font-size:13px;font-weight:600;
   letter-spacing:-.005em;white-space:nowrap;
