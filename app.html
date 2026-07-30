@@ -775,9 +775,13 @@
             });
           } else if (partner && pending.length){
             var mine = pending[0];
+            /* Name whoever this proposal is actually with. pname is the first
+               partner in the list, which is the wrong person as soon as you
+               have two and proposed to the second. */
+            var mineWho = mine.partnerName || pname;
             hero({
-              paired:true, partner:pname,
-              h: 'Waiting on <span class="g">' + esc(pname || 'your partner') + '</span>.',
+              paired:true, partner: mineWho,
+              h: 'Waiting on <span class="g">' + esc(mineWho || 'your partner') + '</span>.',
               s: 'You proposed ' + when(mine.startsAt) + '. It lands on both your calendars once they accept.',
               a: '<a class="ghost" href="app-sessions.html">See the proposal</a>'
             });
