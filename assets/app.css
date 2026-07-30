@@ -552,7 +552,7 @@ h1 .g{color:var(--p4)}
 
 /* ---------- people: the table ---------- */
 .ptable{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.pt-hd,.pt-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.2fr) 118px 152px;
+.pt-hd,.pt-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.1fr) 148px 152px;
   gap:16px;align-items:center;padding:13px 20px}
 /* No hours on your own profile means no shared-time column to fill. */
 .ptable.no-times .pt-hd,.ptable.no-times .pt-row{

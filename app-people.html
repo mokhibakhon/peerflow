@@ -105,7 +105,7 @@
 
   var me = { track: '', topic: myTopic, avail: [] };
 
-  /* How many of your free blocks they are also free in. This is the fact
+  /* How many of the times you're free they are free too. This is the fact
      that decides whether a partnership can physically happen, so it goes
      on the row rather than being something you find out after asking. */
   function overlap(theirs){
@@ -131,11 +131,16 @@
 
   function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
 
+  /* "3 blocks" is our word for it, not a reader's — what they want to know is
+     how often the two of you could actually sit down together. */
+  function howOften(n){
+    return n === 1 ? 'Once a week' : n + ' times a week';
+  }
   function timesShort(p){
     if (!me.avail.length) return '';
     var n = overlap(p.availability);
-    return n ? '<span class="overlap ok">' + n + ' block' + (n === 1 ? '' : 's') + '</span>'
-             : '<span class="overlap none">None</span>';
+    return n ? '<span class="overlap ok">' + howOften(n) + '</span>'
+             : '<span class="overlap none">No overlap</span>';
   }
 
   /* The top pick argues its case: the facts that made it the top pick sit on
@@ -151,8 +156,8 @@
     else if (why === 'path') facts.push(['Same path', pathLabel[p.track_id] || '']);
     else if (p.topic)        facts.push(['Learning', p.topic]);
     if (me.avail.length) {
-      facts.push([shared ? 'You’re both free' : 'Times in common',
-                  shared ? shared + ' block' + (shared === 1 ? '' : 's') : 'None yet']);
+      facts.push(shared ? ['You could meet', howOften(shared)]
+                        : ['Times you’re both free', 'None yet']);
     }
     if (levelLabel[p.level]) facts.push(['Stage', levelLabel[p.level]]);
     if (p.timezone)          facts.push(['Timezone', p.timezone]);
@@ -210,7 +215,7 @@
     if (ranked.length) {
       html += '<div class="ptable' + (me.avail.length ? '' : ' no-times') + '">' +
         '<div class="pt-hd"><span>Person</span><span>Learning</span>' +
-        (me.avail.length ? '<span>In common</span>' : '') + '<span></span></div>' +
+        (me.avail.length ? '<span>Could meet</span>' : '') + '<span></span></div>' +
         ranked.map(tableRow).join('') +
       '</div>';
     }
