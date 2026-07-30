@@ -179,33 +179,49 @@ for now. Buy a real mailbox when someone actually writes in.
    - Port `587`
    - Username `resend` (literally that word, not your email)
    - Password: the API key
-   - Sender email `hello@peerflow.dev`
+   - Sender email `hello@send.peerflow.dev`
    - Sender name `PeerFlow`
 
-### The one thing that trips people up
+   The sender address has to be **at the domain Resend verified**. We verified
+   `send.peerflow.dev`, so `hello@peerflow.dev` will be rejected — Resend only
+   signs mail for the exact domain it holds keys for. Recipients see the sender
+   name, so their inbox says "PeerFlow" either way.
 
-**A domain can only have one SPF record.** If both ImprovMX and Resend want
-one at the root, do not add two — merge them into a single TXT record:
+   `hello@peerflow.dev` stays the address on the site that people write *to*;
+   ImprovMX forwards it. Sending and receiving are different domains here and
+   that is fine.
+
+### Porkbun's Host field appends the domain
+
+Porkbun shows `.peerflow.dev` greyed out beside the Host box and adds it for
+you. Resend lists its hosts relative to the root already, so type them exactly
+as shown — `send.send`, not `send.send.peerflow.dev`. Pasting the full
+hostname produces `send.send.peerflow.dev.peerflow.dev`, which never verifies
+and gives no error explaining why.
+
+### The SPF trap, avoided
+
+**A domain can only have one SPF record**, and two is worse than none —
+receiving servers treat it as an error and the mail goes to spam. Because
+Resend is on `send.peerflow.dev`, its SPF sits at `send.send.peerflow.dev` and
+the root is left free for ImprovMX. Nothing to merge. If you ever move Resend
+to the root domain, the two have to become one record:
 
 ```
-v=spf1 include:spf.improvmx.com include:_spf.resend.com ~all
+v=spf1 include:spf.improvmx.com include:amazonses.com ~all
 ```
-
-Two SPF records is worse than none: receiving servers treat it as an error and
-your mail goes to spam. Using Resend's subdomain option in step 3.1 avoids the
-clash entirely, which is why it's worth taking.
 
 ## 4. DMARC (2 min)
 
 Without this, anyone can send email that looks like it came from PeerFlow.
-Add one TXT record in Porkbun DNS:
+Resend hands you this one as `v=DMARC1; p=none;` — use its value as-is, at
+Host `_dmarc`. Adding `rua=mailto:...` turns on aggregate reports, which arrive
+as XML attachments that are unreadable without a parser. Skip it until you
+have a reason to want them.
 
-- Host: `_dmarc`
-- Value: `v=DMARC1; p=none; rua=mailto:hello@peerflow.dev`
-
-`p=none` means "watch, don't block" — you'll get reports without risking your
-own mail. Once your real email has been passing for a couple of weeks, change
-`p=none` to `p=quarantine`.
+`p=none` means "watch, don't block" — nothing of yours gets bounced while you
+find out what's passing. Once your own mail has been landing properly for a
+couple of weeks, change `p=none` to `p=quarantine`.
 
 ## 5. Check it actually works
 
