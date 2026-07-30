@@ -61,10 +61,12 @@
       <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Show password">Show</button>
     </div>
     <button type="button" class="forgot" id="forgot">Forgot password?</button>
-    <p class="forgot-note" id="forgot-note" hidden>
-      Password reset needs email sending set up, which isn't live yet.
-      Email <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a> and I'll reset it by hand.
-    </p>
+    <div class="forgot-box" id="forgot-box" hidden>
+      <p>We'll email you a link to set a new one. Put the address you signed up
+        with in the email box above, then press send.</p>
+      <button type="button" class="ghost small-btn" id="forgot-send">Send reset link</button>
+      <p class="forgot-said" id="forgot-said" hidden></p>
+    </div>
   </div>
 
   <div style="margin-top:22px">
@@ -150,9 +152,39 @@
   });
 
   var forgotBtn = document.getElementById('forgot');
+  var forgotBox = document.getElementById('forgot-box');
+  var forgotSaid = document.getElementById('forgot-said');
   forgotBtn.addEventListener('click', function(){
-    var n = document.getElementById('forgot-note');
-    n.hidden = !n.hidden;
+    forgotBox.hidden = !forgotBox.hidden;
+    if (!forgotBox.hidden && !mailI.value.trim()) mailI.focus();
+  });
+
+  document.getElementById('forgot-send').addEventListener('click', function(){
+    var addr = mailI.value.trim();
+    forgotSaid.hidden = false;
+    forgotSaid.className = 'forgot-said';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addr)) {
+      forgotSaid.textContent = 'Put your email address in the box above first.';
+      mailI.focus();
+      return;
+    }
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Sending\u2026';
+    forgotSaid.hidden = true;
+    pf.sendPasswordReset(addr).then(function(res){
+      btn.disabled = false; btn.textContent = 'Send reset link';
+      forgotSaid.hidden = false;
+      if (res && res.sent) {
+        /* Said the same way for an address with no account, on purpose. */
+        forgotSaid.className = 'forgot-said ok';
+        forgotSaid.textContent = 'If there is an account for ' + addr +
+          ', a link is on its way. It expires in an hour.';
+        return;
+      }
+      forgotSaid.textContent = (res && res.error) ||
+        (res && res.demo ? 'Password reset isn\u2019t available right now.'
+                         : 'Could not send that \u2014 please try again.');
+    });
   });
 
   document.getElementById('pw-toggle').addEventListener('click', function(){
@@ -175,10 +207,15 @@
       loginBtn.disabled = false;
       loginBtn.textContent = 'Log in';
       if (res.error) {
-        /* Anything that isn't a plain credential rejection — rate limits,
-           unconfirmed email, the server being down — still needs saying,
-           because "wrong password" would send someone in circles. */
-        if (res.error === 'Invalid login credentials') { fail(); return; }
+        /* db.js collapses a wrong password and an unknown address into this
+           one sentence, and this is the banner that says it. Match on the
+           text it actually returns — comparing against Supabase's raw
+           "Invalid login credentials" stopped matching the moment those
+           messages started being written by us instead of by Postgres. */
+        if (/email or password is incorrect/i.test(res.error)) { fail(); return; }
+        /* Anything else — rate limits, an unconfirmed address, the server
+           being down — still needs saying, because "wrong password" would
+           send someone round in circles. */
         status.textContent = res.error;
         status.style.display = 'block';
         return;

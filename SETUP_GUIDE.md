@@ -223,7 +223,20 @@ have a reason to want them.
 find out what's passing. Once your own mail has been landing properly for a
 couple of weeks, change `p=none` to `p=quarantine`.
 
-## 5. Check it actually works
+## 5. Point Supabase at the reset page (1 min)
+
+The reset link in the email has to be allowed to come back to your site, or
+Supabase refuses to follow it.
+
+**Supabase → Authentication → URL Configuration**
+
+- **Site URL:** `https://peerflow.dev`
+- **Redirect URLs:** add `https://peerflow.dev/reset.html`
+
+If Site URL is still `localhost` or a Vercel preview address, every reset link
+will bounce off it.
+
+## 6. Check it actually works
 
 1. Click **Forgot password** on your own login page with a real address.
 2. If nothing arrives, open **Resend → Logs** first. It tells you whether the

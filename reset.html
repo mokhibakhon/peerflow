@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set a new password — PeerFlow</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="index.html" aria-label="PeerFlow home">
+      <svg width="30" height="30" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
+      <span>peer<b>flow</b></span>
+    </a>
+  </div>
+</header>
+
+<main class="auth-page">
+
+  <!-- Checking the link before showing anything. Offering a password box to
+       someone whose link has expired just wastes their typing. -->
+  <div id="checking">
+    <h1>One moment</h1>
+    <p class="lead">Checking your link…</p>
+  </div>
+
+  <div id="form-wrap" hidden>
+    <h1>Set a new password</h1>
+    <p class="lead">Pick something you haven't used elsewhere.</p>
+
+    <div class="field">
+      <label for="np">New password</label>
+      <div class="pw-wrap">
+        <input id="np" type="password" placeholder="At least 8 characters" autocomplete="new-password">
+        <button type="button" class="pw-toggle" id="np-toggle" aria-label="Show password">Show</button>
+      </div>
+      <div class="meter" id="np-meter"><i></i></div>
+      <p class="meter-label" id="np-label"></p>
+    </div>
+
+    <div style="margin-top:6px">
+      <button class="btn primary big" id="np-save" style="width:100%">Save new password</button>
+    </div>
+    <p id="np-status" style="display:none;font-size:13.5px;margin-top:14px"></p>
+  </div>
+
+  <!-- No usable recovery token: expired, already used, or opened by hand. -->
+  <div id="dead" hidden>
+    <h1>That link has expired</h1>
+    <p class="lead">Reset links last an hour and work once. Ask for a fresh one and
+      it'll be in your inbox in a minute.</p>
+    <div style="margin-top:6px">
+      <a class="btn primary big" href="login.html" style="width:100%;display:block;text-align:center">Back to log in</a>
+    </div>
+  </div>
+
+  <p class="onb-note">Trouble? Email <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a>.</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script>
+(function(){
+  var checking = document.getElementById('checking');
+  var formWrap = document.getElementById('form-wrap');
+  var dead     = document.getElementById('dead');
+  var input    = document.getElementById('np');
+  var saveBtn  = document.getElementById('np-save');
+  var status   = document.getElementById('np-status');
+
+  function show(el){
+    checking.hidden = true; formWrap.hidden = true; dead.hidden = true;
+    el.hidden = false;
+  }
+
+  /* Supabase puts the recovery token in the URL fragment and supabase-js
+     exchanges it for a session on load. That session is the only proof we
+     have that this person can read the mailbox, so if there isn't one there
+     is nothing to let them do. Errors come back in the fragment too — an
+     expired link arrives as error=access_denied rather than as a token. */
+  function hashHasError(){
+    var h = String(window.location.hash || '');
+    return /error=|error_description=/.test(h);
+  }
+
+  if (hashHasError()) { show(dead); }
+  else {
+    /* The exchange is asynchronous, so a single check can run before it has
+       finished. Poll briefly rather than declaring the link dead early. */
+    var tries = 0;
+    (function look(){
+      pf.currentUser().then(function(user){
+        if (user) {
+          show(formWrap);
+          /* Clear the token out of the address bar so it isn't sitting in
+             history, or in whatever the next page sends as a referrer. */
+          try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
+          input.focus();
+          return;
+        }
+        if (++tries > 8) { show(dead); return; }
+        setTimeout(look, 200);
+      });
+    })();
+  }
+
+  document.getElementById('np-toggle').addEventListener('click', function(){
+    var showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    this.textContent = showing ? 'Show' : 'Hide';
+  });
+
+  /* Same meter as signup, so the bar means the same thing in both places. */
+  var meter = document.getElementById('np-meter');
+  var label = document.getElementById('np-label');
+  input.addEventListener('input', function(){
+    var v = input.value, score = 0;
+    if (v.length >= 8) score++;
+    if (v.length >= 12) score++;
+    if (/[^A-Za-z0-9]/.test(v) || (/[A-Za-z]/.test(v) && /[0-9]/.test(v))) score++;
+    var pct = [0, 33, 66, 100][score];
+    meter.className = 'meter' + (score >= 3 ? ' good' : score === 2 ? ' ok' : '');
+    meter.querySelector('i').style.width = pct + '%';
+    label.textContent = !v ? '' : score >= 3 ? 'Strong' : score === 2 ? 'Could be longer' : 'Too short';
+    status.style.display = 'none';
+  });
+
+  saveBtn.addEventListener('click', function(){
+    var v = input.value;
+    status.style.display = 'block';
+    status.style.color = '#c0392b';
+    if (v.length < 8) {
+      status.textContent = 'Use at least eight characters.';
+      input.focus();
+      return;
+    }
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+    status.style.display = 'none';
+    pf.changePassword(v).then(function(res){
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save new password';
+      if (res && res.saved) {
+        /* The recovery session is a real session, so they're already in. */
+        window.location.replace('app.html');
+        return;
+      }
+      status.style.display = 'block';
+      status.textContent = (res && res.error) ||
+        (res && res.demo ? 'Password reset isn’t available right now.'
+                         : 'Could not save that — please try again.');
+    });
+  });
+})();
+</script>
+</body>
+</html>

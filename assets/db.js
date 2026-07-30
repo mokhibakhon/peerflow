@@ -118,8 +118,38 @@ window.pf = (function(){
     return client.auth.signOut().catch(function(){ return null; });
   }
 
+  /* Email a reset link. The link lands on reset.html carrying a recovery
+     token, which supabase-js turns into a short-lived session; changePassword
+     then works there exactly as it does for a signed-in user.
+
+     The answer is the same whether or not that address has an account. A
+     different response for an unknown address would turn this box into a way
+     of finding out who has signed up, which is the same reason the login form
+     gives one message for a wrong password and a wrong address. */
+  function sendPasswordReset(email){
+    if (!client) return Promise.resolve({ demo: true });
+    var base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+    return client.auth.resetPasswordForEmail(email, { redirectTo: base + 'reset.html' })
+      .then(function(r){
+        if (r.error) {
+          var m = String(r.error.message || '');
+          /* Rate limits are worth saying out loud: they're about how recently
+             this person asked, not about whether the account exists. */
+          if (/only request this after|rate limit|too many/i.test(m)) {
+            return fail(r.error, 'You asked very recently — give it a minute and try again.');
+          }
+          try { console.error('PeerFlow:', r.error); } catch(e){}
+        }
+        return { sent: true };
+      })
+      .catch(function(e){
+        return fail(e, 'Could not send that \u2014 check your connection and try again.');
+      });
+  }
+
   /* Change the signed-in user's password. Supabase requires a live session,
-     so this only works while logged in. */
+     so this works while logged in, and on reset.html once the recovery token
+     in the link has been exchanged for one. */
   function changePassword(newPassword){
     if (!client) return Promise.resolve({ demo: true });
     return client.auth.updateUser({ password: newPassword }).then(function(r){
@@ -557,6 +587,7 @@ window.pf = (function(){
     getProfile: getProfile,
     signOut: signOut,
     changePassword: changePassword,
+    sendPasswordReset: sendPasswordReset,
     saveProfile: saveProfile,
     joinWaitlist: joinWaitlist,
     getMatch: getMatch,
