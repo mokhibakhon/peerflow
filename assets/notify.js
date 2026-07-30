@@ -66,7 +66,8 @@
     return state.proposals.filter(function(x){
       if (x.startsAt.getTime() <= now) return false;
       if (x.status === 'proposed') return !x.mine;
-      return x.status === 'declined' && x.mine;
+      if (x.status === 'declined')  return x.mine;
+      return x.status === 'cancelled' && !x.cancelledByMe;
     });
   }
 
@@ -120,10 +121,11 @@
      the bell's job is only to tell you it's waiting. */
   function itemProposal(x){
     var who = esc(x.partnerName || 'Your partner');
-    var turned = x.status === 'declined';
+    var turned = x.status === 'declined' || x.status === 'cancelled';
+    var verb = x.status === 'cancelled' ? 'called off '
+             : x.status === 'declined'  ? 'can’t do ' : 'proposed ';
     return '<div class="bell-item fresh">' +
-      '<p><b>' + who + '</b> ' + (turned ? 'can’t do ' : 'proposed ') +
-      esc(whenLabel(x.startsAt)) + '</p>' +
+      '<p><b>' + who + '</b> ' + verb + esc(whenLabel(x.startsAt)) + '</p>' +
       (x.note ? '<p class="bell-msg">“' + esc(x.note) + '”</p>' : '') +
       '<p class="bell-time">' + x.durationMin + ' minutes</p>' +
       /* Sessions, not Partner: answering moved with the rest of scheduling. */

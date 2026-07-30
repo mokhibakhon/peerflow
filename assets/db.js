@@ -303,7 +303,7 @@ window.pf = (function(){
     return currentUid().then(function(uid){
       if (!uid) return null;
       return client.from('sessions')
-        .select('id,partner_name,topic,starts_at,duration_min,room_url,status,proposed_by,note')
+        .select('id,partner_name,topic,starts_at,duration_min,room_url,status,proposed_by,note,cancelled_by')
         .eq('user_id', uid)
         .order('starts_at', { ascending: true })
         .then(function(r){
@@ -323,7 +323,10 @@ window.pf = (function(){
               note: s.note,
               /* Explicitly false when proposed_by is missing, so a row from
                  before proposals existed can't read as "you proposed this". */
-              mine: !!s.proposed_by && s.proposed_by === uid
+              mine: !!s.proposed_by && s.proposed_by === uid,
+              /* Who called it off, so the person who did isn't told about
+                 their own decision. */
+              cancelledByMe: !!s.cancelled_by && s.cancelled_by === uid
             };
           });
         });
@@ -399,8 +402,18 @@ window.pf = (function(){
     return answer(startsAt, roomUrl, 'declined', 'Could not turn that down. Please try again.');
   }
 
-  /* Removes both rows: the proposer cancelling their own, and clearing a
-     decline once it has been read. */
+  /* Call off a session the two of you had agreed. Both rows become
+     'cancelled' rather than disappearing: deleting them cleared the other
+     person's calendar with no explanation, which is indistinguishable from
+     the app losing their session. They clear it once they've seen it. */
+  function cancelBooked(startsAt, roomUrl){
+    return answer(startsAt, roomUrl, 'cancelled',
+                  'Could not cancel that. Please try again.');
+  }
+
+  /* Removes both rows outright. For withdrawing a proposal nobody has
+     answered yet — nothing was agreed, so there is nothing to report — and
+     for clearing a decline or a cancellation you have read. */
   function cancelSession(startsAt, roomUrl){
     if (!client) return Promise.resolve({ demo: true });
     return client.rpc('drop_session', { p_starts_at: startsAt, p_room: roomUrl })
@@ -674,6 +687,7 @@ window.pf = (function(){
     proposeSession: proposeSession,
     acceptSession: acceptSession,
     declineSession: declineSession,
+    cancelBooked: cancelBooked,
     cancelSession: cancelSession,
     sendPartnerRequest: sendPartnerRequest,
     myRequests: myRequests,

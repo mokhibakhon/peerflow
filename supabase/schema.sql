@@ -120,9 +120,11 @@ end $$;
 
 -- ---------- sessions (proposed, then confirmed) ----------
 -- One row per person per meeting: proposing writes a row for each of you with
--- the same starts_at and room_url, both 'proposed'. When the other person
--- answers, both rows become 'confirmed' or 'declined'. Rows are only deleted
--- when the proposer cancels, or dismisses a decline. Each person can only
+-- the same starts_at and room_url, both 'proposed'. Answering moves both to
+-- 'confirmed' or 'declined'; calling off a confirmed session moves both to
+-- 'cancelled', so the other person is told rather than watching it disappear.
+-- Rows are deleted only when someone withdraws a proposal nobody has answered,
+-- or clears a decline or cancellation they have read. Each person can only
 -- read their own rows.
 create table if not exists public.sessions (
   id           uuid primary key default gen_random_uuid(),
@@ -143,6 +145,9 @@ create index if not exists sessions_user_starts on public.sessions (user_id, sta
 alter table public.sessions add column if not exists status      text not null default 'confirmed';
 alter table public.sessions add column if not exists proposed_by uuid references auth.users(id) on delete set null;
 alter table public.sessions add column if not exists note        text;
+-- Who called off a confirmed session. Cancelling used to delete both rows,
+-- which left the other person's calendar clearing itself with no explanation.
+alter table public.sessions add column if not exists cancelled_by uuid references auth.users(id) on delete set null;
 
 -- Dropped and re-added rather than created once, because 'declined' arrived
 -- after the constraint already existed: declining used to delete both rows,
@@ -150,7 +155,8 @@ alter table public.sessions add column if not exists note        text;
 -- been turned down. The row survives now and carries the answer.
 alter table public.sessions drop constraint if exists sessions_status_check;
 alter table public.sessions
-  add constraint sessions_status_check check (status in ('proposed', 'confirmed', 'declined'));
+  add constraint sessions_status_check
+  check (status in ('proposed', 'confirmed', 'declined', 'cancelled'));
 
 create index if not exists sessions_user_status on public.sessions (user_id, status);
 
@@ -289,7 +295,7 @@ as $$
 declare
   n integer;
 begin
-  if p_status not in ('confirmed', 'declined') then
+  if p_status not in ('confirmed', 'declined', 'cancelled') then
     raise exception 'bad status';
   end if;
   if not exists (
@@ -300,7 +306,8 @@ begin
   end if;
 
   update public.sessions
-     set status = p_status
+     set status       = p_status,
+         cancelled_by = case when p_status = 'cancelled' then auth.uid() else cancelled_by end
    where starts_at = p_starts_at and room_url = p_room;
   get diagnostics n = row_count;
   return n;

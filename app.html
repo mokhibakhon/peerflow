@@ -294,7 +294,9 @@
     var row = btn.closest('.slot'), err = row.querySelector('.slot-err');
     btn.disabled = true; btn.textContent = 'Cancelling…';
     err.hidden = true;
-    pf.cancelSession(btn.getAttribute('data-at'), btn.getAttribute('data-room')).then(function(res){
+    /* cancelBooked, not cancelSession: this one has to leave a trace, so the
+       other person is told rather than watching it vanish. */
+    pf.cancelBooked(btn.getAttribute('data-at'), btn.getAttribute('data-room')).then(function(res){
       if (res && res.saved) { window.location.reload(); return; }
       btn.disabled = false; btn.textContent = 'Cancel';
       btn.removeAttribute('data-armed'); btn.classList.remove('danger');
@@ -525,10 +527,12 @@
       var open = list.filter(function(x){
         if (x.startsAt.getTime() <= now) return false;
         if (x.status === 'proposed') return true;
-        /* A decline is only news to the person who proposed the time. The one
-           who turned it down already knows, and doesn't need it sitting on
-           their page until somebody clears it. */
-        return x.status === 'declined' && x.mine;
+        /* A decline is only news to the person who proposed the time, and a
+           cancellation only to the one who didn't do it. Whoever acted
+           already knows, and doesn't need it sitting on their page until
+           somebody clears it. */
+        if (x.status === 'declined')  return x.mine;
+        return x.status === 'cancelled' && !x.cancelledByMe;
       });
       /* Empty the list as well as hiding it, so nothing answered is left
          sitting in the DOM waiting to reappear. */
@@ -540,12 +544,14 @@
 
       document.getElementById('prop-list').innerHTML = open.map(function(x){
         var who = esc(x.partnerName || 'your partner');
-        var turned = x.status === 'declined';
-        var head = turned
-          ? '<b>' + who + '</b> can\u2019t do <b>' + esc(propWhen(x.startsAt)) + '</b>'
-          : x.mine
-            ? 'You proposed <b>' + esc(propWhen(x.startsAt)) + '</b>'
-            : '<b>' + who + '</b> proposed <b>' + esc(propWhen(x.startsAt)) + '</b>';
+        var turned = x.status === 'declined' || x.status === 'cancelled';
+        var head = x.status === 'cancelled'
+          ? '<b>' + who + '</b> called off <b>' + esc(propWhen(x.startsAt)) + '</b>'
+          : x.status === 'declined'
+            ? '<b>' + who + '</b> can\u2019t do <b>' + esc(propWhen(x.startsAt)) + '</b>'
+            : x.mine
+              ? 'You proposed <b>' + esc(propWhen(x.startsAt)) + '</b>'
+              : '<b>' + who + '</b> proposed <b>' + esc(propWhen(x.startsAt)) + '</b>';
         var key = ' data-at="' + esc(x.startsAt.toISOString()) + '" data-room="' + esc(x.roomUrl || '') +
                   '" data-len="' + x.durationMin + '"';
         var acts = turned
@@ -767,9 +773,12 @@
             return s.status === 'proposed' && s.startsAt.getTime() > now;
           });
           var waiting = pending.filter(function(s){ return !s.mine; })[0] || null;
-          /* A time of yours they turned down. Only news to whoever proposed it. */
+          /* A time of yours they turned down, or one they called off. Only
+             news to the person who didn't do it. */
           var turned = all.filter(function(s){
-            return s.status === 'declined' && s.mine && s.startsAt.getTime() > now;
+            if (s.startsAt.getTime() <= now) return false;
+            if (s.status === 'declined')  return s.mine;
+            return s.status === 'cancelled' && !s.cancelledByMe;
           })[0] || null;
           var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
           var past = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 <= now; }).reverse();
@@ -822,8 +831,10 @@
             hero({
               paired:true, partner: turned.partnerName || pname,
               h: '<span class="g">' + esc(turned.partnerName || pname || 'Your partner') +
-                 '</span> can’t make that time.',
-              s: 'They turned down ' + when(turned.startsAt) + '. Pick another and send it over.',
+                 '</span> ' + (turned.status === 'cancelled' ? 'called off your session.'
+                                                             : 'can’t make that time.'),
+              s: (turned.status === 'cancelled' ? 'They cancelled ' : 'They turned down ') +
+                 when(turned.startsAt) + '. Pick another and send it over.',
               a: '<a class="btn" href="app-sessions.html">Propose another time</a>'
             });
           } else if (partner && pending.length){
