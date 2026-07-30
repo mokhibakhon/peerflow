@@ -108,6 +108,52 @@
       </div>
     </section>
 
+    <!-- Proposed times waiting on one of you. -->
+    <section class="b wide" id="prop-card" hidden>
+      <div class="bh"><span class="gl" style="background:#FFF3E2"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="none" stroke="#B77A1B" stroke-width="2"/><path d="M11 6.4V11l3.2 1.9" stroke="#B77A1B" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:#8A5A12">Waiting</span><h2>Proposed times</h2></div></div>
+      <div id="prop-list"></div>
+    </section>
+
+    <!-- Proposing, shown once you actually have a partner. -->
+    <section class="b wide" id="book-card" hidden>
+      <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time</h2></div></div>
+      <p style="font-size:14.5px;color:var(--muted);margin-bottom:16px">
+        Nothing is booked until your partner accepts. They see it in their notifications
+        and can say yes or suggest something else.
+      </p>
+      <div id="bk-slots-wrap" hidden style="margin-bottom:18px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Times you're both free</label>
+        <div class="chips" id="bk-slots"></div>
+      </div>
+      <div class="book-row">
+        <div class="field" style="margin:0">
+          <label for="bk-date">Date</label>
+          <input id="bk-date" type="date">
+        </div>
+        <div class="field" style="margin:0">
+          <label for="bk-time">Time</label>
+          <input id="bk-time" type="time" value="19:00">
+        </div>
+        <div class="field" style="margin:0">
+          <label for="bk-len">Length</label>
+          <select id="bk-len">
+            <option value="25">25 min</option>
+            <option value="50" selected>50 min</option>
+            <option value="80">80 min</option>
+          </select>
+        </div>
+      </div>
+      <p class="bk-warn" id="bk-warn" hidden></p>
+      <div class="field" style="margin:18px 0 0">
+        <label for="bk-msg">Note <span class="hint">(optional)</span></label>
+        <input id="bk-msg" type="text" maxlength="140" placeholder="What you'd like to work on">
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
+        <button class="btn primary" id="bk-save">Propose this time</button>
+        <span id="bk-note" style="font-size:13.5px;color:var(--muted)"></span>
+      </div>
+    </section>
+
     <!-- ============ your rhythm ============ -->
     <section class="b wide">
       <div class="calhead">
@@ -289,6 +335,251 @@
     $('cal-real').hidden = false;
   }
 
+  /* ----- free times, shared -----
+     The availability grid is four bands a day, not clock times, so a window
+     can't be booked as-is. Picking one fills the date and time with the next
+     time that band comes round; you can still move either. Without it the
+     form was an empty date picker and a guess at whether your partner is
+     even awake then. */
+  var DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
+  var DAY_LABEL = { sun:'Sun', mon:'Mon', tue:'Tue', wed:'Wed', thu:'Thu', fri:'Fri', sat:'Sat' };
+  var BAND_START = { morning:6, afternoon:12, evening:17, night:22 };
+  var myAvail = [], bookPartner = null, myName = '';
+
+  /* Everything below moved here from the Partner page. Proposing a time, the
+     times waiting on an answer and the sessions they turn into are one thing,
+     and it was odd to start it on a page about who your partner is. */
+
+  function nextWhen(slot){
+    var parts = slot.split('-');
+    var day = DAYS.indexOf(parts[0]), hour = BAND_START[parts[1]];
+    if (day < 0 || hour == null) return null;
+    var d = new Date();
+    d.setHours(hour, 0, 0, 0);
+    d.setDate(d.getDate() + ((day - d.getDay() + 7) % 7));
+    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 7);
+    return d;
+  }
+
+  /* Which band a chosen date and time lands in. Night runs 22:00 to 02:00,
+     so the small hours belong to the night before. */
+  function slotOf(d){
+    var day = d.getDay(), h = d.getHours();
+    if (h < 6) return DAYS[(day + 6) % 7] + '-night';
+    return DAYS[day] + '-' + (h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'night');
+  }
+
+  function pad(n){ return String(n).padStart(2, '0'); }
+  function fillWhen(d){
+    document.getElementById('bk-date').value =
+      d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    document.getElementById('bk-time').value = pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function chosen(){
+    var date = document.getElementById('bk-date').value;
+    var time = document.getElementById('bk-time').value;
+    if (!date || !time) return null;
+    var d = new Date(date + 'T' + time);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function shared(){
+    var theirs = (bookPartner && bookPartner.availability) || [];
+    if (!myAvail.length || !theirs.length) return [];
+    var mine = {};
+    myAvail.forEach(function(x){ mine[x] = true; });
+    return theirs.filter(function(x){ return mine[x]; });
+  }
+
+  function paintSlots(){
+    var list = shared(), wrap = document.getElementById('bk-slots-wrap');
+    if (!list.length) { wrap.hidden = true; return; }
+    var dated = list.map(function(sl){ return { slot: sl, when: nextWhen(sl) }; })
+                    .filter(function(x){ return x.when; })
+                    .sort(function(a, b){ return a.when - b.when; });
+    document.getElementById('bk-slots').innerHTML = dated.map(function(x){
+      var parts = x.slot.split('-');
+      return '<button type="button" class="chip" data-slot="' + esc(x.slot) + '">' +
+        DAY_LABEL[parts[0]] + ' ' + parts[1] + '</button>';
+    }).join('');
+    wrap.hidden = false;
+  }
+
+  document.getElementById('bk-slots').addEventListener('click', function(e){
+    var c = e.target.closest('[data-slot]');
+    if (!c) return;
+    Array.prototype.forEach.call(this.querySelectorAll('.chip'), function(x){ x.classList.remove('on'); });
+    c.classList.add('on');
+    var d = nextWhen(c.getAttribute('data-slot'));
+    if (d) { fillWhen(d); checkWhen(); }
+  });
+
+  /* A time outside every shared window isn't wrong \u2014 people can make an
+     exception \u2014 so this is a note rather than a block. */
+  function checkWhen(){
+    var warn = document.getElementById('bk-warn');
+    var d = chosen(), list = shared();
+    if (!d || !list.length) { warn.hidden = true; return; }
+    var ok = list.indexOf(slotOf(d)) >= 0;
+    warn.hidden = ok;
+    if (!ok) warn.textContent = (bookPartner && bookPartner.name ? bookPartner.name : 'Your partner') +
+      ' hasn\u2019t said they\u2019re free then. You can still propose it.';
+  }
+  document.getElementById('bk-date').addEventListener('change', checkWhen);
+  document.getElementById('bk-time').addEventListener('change', checkWhen);
+
+  /* ----- proposing -----
+     Nothing reaches either calendar as a real session here. Both rows go in
+     as 'proposed'; the other person turns them into a booking. */
+  document.getElementById('bk-save').addEventListener('click', function(){
+    var note = document.getElementById('bk-note');
+    note.style.color = '#c0392b';
+    if (!bookPartner || !bookPartner.id) { note.textContent = 'You need a partner first.'; return; }
+    var w = chosen();
+    if (!w) { note.textContent = 'Pick a date and a time.'; return; }
+    if (w.getTime() < Date.now()) { note.textContent = 'That\u2019s in the past \u2014 pick a future time.'; return; }
+
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Sending\u2026';
+    note.textContent = '';
+    pf.proposeSession({
+      partnerId: bookPartner.id,
+      partnerName: bookPartner.name,
+      myName: myName,
+      topic: bookPartner.topic || '',
+      startsAt: w.toISOString(),
+      durationMin: parseInt(document.getElementById('bk-len').value, 10) || 50,
+      note: document.getElementById('bk-msg').value.trim(),
+      roomUrl: bookPartner.roomUrl,
+      pairId: bookPartner.requestId
+    }).then(function(res){
+      btn.disabled = false; btn.textContent = 'Propose this time';
+      if (res && res.saved) {
+        note.style.color = 'var(--green-dark)';
+        note.textContent = 'Sent \u2014 waiting on ' + (bookPartner.name || 'your partner') + '.';
+        document.getElementById('bk-msg').value = '';
+        loadProposals();
+      } else {
+        note.textContent = (res && res.error) ||
+          (res && res.demo ? 'You need to be signed in to propose a time.'
+                           : 'Could not send that \u2014 please try again.');
+      }
+    });
+  });
+
+  /* ----- proposals waiting on one of you ----- */
+  function propWhen(d){
+    return d.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' }) +
+      ', ' + d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function loadProposals(){
+    return pf.fetchSessions().then(renderProposals);
+  }
+
+  function renderProposals(list){
+    return Promise.resolve().then(function(){
+      var card = document.getElementById('prop-card');
+      if (!list) { card.hidden = true; return; }
+      var now = Date.now();
+      var open = list.filter(function(x){
+        if (x.startsAt.getTime() <= now) return false;
+        if (x.status === 'proposed') return true;
+        /* A decline is only news to the person who proposed the time. The one
+           who turned it down already knows, and doesn't need it sitting on
+           their page until somebody clears it. */
+        return x.status === 'declined' && x.mine;
+      });
+      /* Empty the list as well as hiding it, so nothing answered is left
+         sitting in the DOM waiting to reappear. */
+      if (!open.length) {
+        card.hidden = true;
+        document.getElementById('prop-list').innerHTML = '';
+        return;
+      }
+
+      document.getElementById('prop-list').innerHTML = open.map(function(x){
+        var who = esc(x.partnerName || 'your partner');
+        var turned = x.status === 'declined';
+        var head = turned
+          ? '<b>' + who + '</b> can\u2019t do <b>' + esc(propWhen(x.startsAt)) + '</b>'
+          : x.mine
+            ? 'You proposed <b>' + esc(propWhen(x.startsAt)) + '</b>'
+            : '<b>' + who + '</b> proposed <b>' + esc(propWhen(x.startsAt)) + '</b>';
+        var key = ' data-at="' + esc(x.startsAt.toISOString()) + '" data-room="' + esc(x.roomUrl || '') +
+                  '" data-len="' + x.durationMin + '"';
+        var acts = turned
+          ? '<button class="btn" data-swap' + key + '>Propose another time</button>' +
+            '<button class="small" data-drop' + key + '>Dismiss</button>'
+          : x.mine
+            ? '<span class="prop-wait">Waiting on ' + who + '</span>' +
+              '<button class="small" data-drop' + key + '>Cancel</button>'
+            : '<button class="btn" data-accept' + key + '>Accept</button>' +
+              '<button class="small" data-no' + key + '>Decline</button>' +
+              '<button class="small" data-swap' + key + '>Suggest another time</button>';
+        return '<div class="prop' + (turned ? ' turned' : '') + '">' +
+          '<p class="prop-h">' + head + '</p>' +
+          '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') + '</p>' +
+          (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
+          '<div class="prop-acts">' + acts + '</div><p class="prop-err" hidden></p></div>';
+      }).join('');
+      card.hidden = false;
+    });
+  }
+
+  document.getElementById('prop-list').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-accept],[data-drop],[data-swap],[data-no]');
+    if (!btn) return;
+    var box = btn.closest('.prop'), err = box.querySelector('.prop-err');
+    var at = btn.getAttribute('data-at'), room = btn.getAttribute('data-room');
+    var accept = btn.hasAttribute('data-accept');
+    var swap   = btn.hasAttribute('data-swap');
+    var no     = btn.hasAttribute('data-no');
+    var turned = box.classList.contains('turned');
+
+    /* Suggesting another time is a decline that hands you the pen: their
+       proposal comes off the table and the form opens on it, so you're
+       moving a time rather than starting from a blank date picker. */
+    if (swap) {
+      var d = new Date(at);
+      if (!isNaN(d.getTime())) { fillWhen(d); checkWhen(); }
+      var len = btn.getAttribute('data-len');
+      if (len) document.getElementById('bk-len').value = len;
+    }
+
+    Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = true; });
+    err.hidden = true;
+
+    /* Declining marks the pair 'declined' so the proposer finds out. Deleting
+       is for the proposer's own Cancel, and for dismissing a decline once it
+       has been read — the two cases where nobody is left uninformed.
+       Suggesting another time declines their time first, for the same reason:
+       vanishing it would tell them nothing. */
+    var act = accept ? pf.acceptSession(at, room)
+            : (no || (swap && !turned)) ? pf.declineSession(at, room)
+            : pf.cancelSession(at, room);
+
+    act.then(function(res){
+      if (res && res.saved) {
+        if (accept) { window.location.href = 'app.html'; return; }
+        loadProposals().then(function(){
+          if (!swap) return;
+          var note = document.getElementById('bk-note');
+          note.style.color = 'var(--muted)';
+          note.textContent = 'Their time is off the table \u2014 pick another and send it back.';
+          var card = document.getElementById('book-card');
+          try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err2){}
+          document.getElementById('bk-date').focus();
+        });
+        return;
+      }
+      Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = false; });
+      err.textContent = (res && res.error) || 'That didn\u2019t go through \u2014 please try again.';
+      err.hidden = false;
+    });
+  });
+
   /* ---------- checklist ---------- */
   function showSteps(profile, hasPartner, sessionCount){
     var complete = !!(profile && profile.name && profile.topic && profile.level &&
@@ -378,6 +669,9 @@
         if (!ls){ window.location.replace('signup.html'); return; }
       }
 
+      myName  = (profile && profile.name) || name || '';
+      myAvail = (profile && profile.availability) || [];
+
       var topic = (profile && profile.topic) || '';
       if (topic){
         $('topictext').innerHTML = 'You’re on <b>' + esc(topic) + '</b>';
@@ -406,6 +700,25 @@
           /* acceptedPartners() gives {requestId, profile, roomUrl} — the name
              lives on .profile, not on the row itself. */
           var pname = partner && partner.profile && partner.profile.name;
+
+          /* Hand the booking form its partner, then open it on the soonest
+             window you're both free in. */
+          if (partner && partner.profile && partner.profile.id){
+            bookPartner = {
+              id: partner.profile.id,
+              name: partner.profile.name,
+              topic: partner.profile.topic,
+              availability: partner.profile.availability || [],
+              roomUrl: partner.roomUrl,
+              requestId: partner.requestId
+            };
+            $('book-card').hidden = false;
+            var win = shared().map(nextWhen).filter(Boolean).sort(function(x, y){ return x - y; })[0];
+            fillWhen(win || new Date(Date.now() + 86400000));
+            paintSlots();
+            checkWhen();
+          }
+          renderProposals(all);
 
           if (upcoming.length){
             var next = upcoming[0];

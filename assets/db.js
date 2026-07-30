@@ -308,7 +308,9 @@ window.pf = (function(){
               status: s.status || 'confirmed',
               proposedBy: s.proposed_by,
               note: s.note,
-              mine: s.proposed_by === uid
+              /* Explicitly false when proposed_by is missing, so a row from
+                 before proposals existed can't read as "you proposed this". */
+              mine: !!s.proposed_by && s.proposed_by === uid
             };
           });
         });
