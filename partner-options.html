@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partner page — pick a layout</title>
+<meta name="robots" content="noindex">
+<!--
+  TEMPORARY. Five layouts for the Partner page, the same two partners in each
+  so the difference is the layout and nothing else. Pick a letter and this
+  file gets deleted.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  body{background:var(--bg)}
+  .pick{max-width:1080px;margin:0 auto;padding:34px 28px 80px}
+  .pick > h1{font-size:30px;margin:0 0 8px}
+  .pick > p.intro{color:var(--soft);font-size:15.5px;margin:0 0 34px;max-width:62ch}
+  .opt{margin:0 0 46px}
+  .opt-h{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .opt-h .letter{display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;border-radius:9px;background:var(--ink);color:#fff;
+    font-size:14px;font-weight:700;flex:0 0 auto}
+  .opt-h h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.02em}
+  .opt-why{margin:0 0 16px 40px;font-size:14px;color:var(--soft);max-width:70ch}
+  .stage{background:var(--bg);border:1px dashed var(--line);border-radius:18px;padding:20px}
+
+  .av{display:flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto}
+
+  /* ---------- A ---------- */
+  .a-card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:20px 22px;margin-bottom:14px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .a-card .av{width:52px;height:52px;border-radius:16px;font-size:18px}
+  .a-b{flex:1 1 220px;min-width:0}
+  .a-nm{margin:0;font-size:17px;font-weight:700;letter-spacing:-.015em}
+  .a-tp{margin:2px 0 0;font-size:14.5px;color:var(--soft)}
+  .a-mt{margin:6px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--faint)}
+
+  /* ---------- B ---------- */
+  .b-card{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    overflow:hidden;margin-bottom:14px;display:grid;grid-template-columns:96px minmax(0,1fr)}
+  .b-side{background:var(--p6);display:flex;align-items:center;justify-content:center}
+  .b-side .av{width:56px;height:56px;border-radius:50%;font-size:20px;
+    background:var(--p0);color:var(--p8)}
+  .b-body{padding:20px 22px}
+  .b-nm{margin:0;font-size:18px;font-weight:800;letter-spacing:-.02em}
+  .b-tp{margin:3px 0 0;font-size:14.5px;color:var(--soft)}
+  .b-facts{display:flex;gap:20px;flex-wrap:wrap;margin:14px 0 0;padding-top:13px;
+    border-top:1px solid var(--line)}
+  .b-fact b{display:block;font-size:14px;font-weight:700}
+  .b-fact span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--faint);margin-top:2px}
+  .b-acts{margin-top:16px;display:flex;gap:9px;flex-wrap:wrap}
+
+  /* ---------- C ---------- */
+  .c-wrap{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .c-head{background:#FBFBFC;border-bottom:1px solid var(--line);padding:13px 20px;
+    font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--faint)}
+  .c-row{display:flex;align-items:center;gap:14px;padding:15px 20px;
+    border-top:1px solid var(--line);flex-wrap:wrap}
+  .c-row:first-of-type{border-top:0}
+  .c-row .av{width:38px;height:38px;border-radius:11px;font-size:14px}
+  .c-b{flex:1 1 200px;min-width:0}
+  .c-nm{margin:0;font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .c-mt{margin:2px 0 0;font-size:13px;color:var(--faint)}
+
+  /* ---------- D ---------- */
+  .d-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .d-card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:20px;display:flex;flex-direction:column;align-items:flex-start}
+  .d-card .av{width:50px;height:50px;border-radius:15px;font-size:18px;margin-bottom:12px}
+  .d-nm{margin:0;font-size:16.5px;font-weight:700;letter-spacing:-.015em}
+  .d-tp{margin:3px 0 0;font-size:14px;color:var(--soft)}
+  .d-mt{margin:8px 0 0;font-family:var(--mono);font-size:10px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--faint)}
+  .d-card .btn{margin-top:16px;width:100%}
+
+  /* ---------- E ---------- */
+  .e-card{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:22px 24px;margin-bottom:14px}
+  .e-top{display:flex;gap:15px;align-items:center}
+  .e-top .av{width:50px;height:50px;border-radius:15px;font-size:18px}
+  .e-nm{margin:0;font-size:18px;font-weight:800;letter-spacing:-.02em}
+  .e-tp{margin:2px 0 0;font-size:14.5px;color:var(--soft)}
+  .e-next{margin:16px 0 0;padding:12px 14px;border-radius:12px;
+    background:var(--p0);border:1px solid var(--p2);
+    font-size:14px;color:var(--p8);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .e-next.none{background:#FBFBFC;border-color:var(--line);color:var(--soft)}
+  .e-next b{font-weight:700}
+  .e-free{margin:12px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--faint)}
+  .e-acts{margin-top:16px;display:flex;gap:9px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="pick">
+  <h1>Partner page — five layouts</h1>
+  <p class="intro">The same two partners in every one, so the only thing changing is the
+    layout. Tell me a letter. You can mix — "E's information in A's shape" is a fine answer.</p>
+
+  <section class="opt">
+    <div class="opt-h"><span class="letter">A</span><h2>Row cards</h2></div>
+    <p class="opt-why">What's there now, tightened: avatar on the left, everything on one
+      line, the action on the right. Calmest of the five and the shortest page.</p>
+    <div class="stage" id="stage-a"></div>
+  </section>
+
+  <section class="opt">
+    <div class="opt-h"><span class="letter">B</span><h2>Green edge, with facts</h2></div>
+    <p class="opt-why">A coloured spine down the side and the facts spelled out underneath —
+      topic, stage, timezone. Looks the most like a product; also the most furniture per
+      person.</p>
+    <div class="stage" id="stage-b"></div>
+  </section>
+
+  <section class="opt">
+    <div class="opt-h"><span class="letter">C</span><h2>One list</h2></div>
+    <p class="opt-why">All of them inside a single card, one row each. Takes the least
+      space and stops two partners looking like two separate announcements. Gets plain
+      quickly.</p>
+    <div class="stage" id="stage-c"></div>
+  </section>
+
+  <section class="opt">
+    <div class="opt-h"><span class="letter">D</span><h2>Side by side</h2></div>
+    <p class="opt-why">A grid rather than a stack, so two partners sit together instead of
+      one above the other. Reads as a set. Wastes width with only one.</p>
+    <div class="stage" id="stage-d"></div>
+  </section>
+
+  <section class="opt">
+    <div class="opt-h"><span class="letter">E</span><h2>What's happening with each</h2></div>
+    <p class="opt-why">Each card answers the question you actually came with: is anything
+      booked with this person, and when are we both free? The others describe who your
+      partner is; this one describes where you're up to with them.</p>
+    <div class="stage" id="stage-e"></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var TONES = [['#EEEDFE','#3C3489'], ['#E1F5EE','#0F6E56'], ['#FBEAF0','#A94168'],
+               ['#E6F1FB','#185FA5'], ['#FAEEDA','#854F0B']];
+  function tone(n){ var h=0; for (var i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))>>>0; return TONES[h%TONES.length]; }
+  function ini(n){ return n.trim().charAt(0).toUpperCase(); }
+
+  var P = [
+    { name:'Munisa Omonkhonova', topic:'Linux basics', level:'Doing tutorials',
+      tz:'Asia/Tashkent', free:'2 times you’re both free',
+      next:'Tue 5 Aug, 19:00', mins:50 },
+    { name:'Aziza Karimova', topic:'React', level:'Just starting',
+      tz:'Europe/London', free:'1 time you’re both free',
+      next:null, mins:null }
+  ];
+
+  function sty(p){ var t=tone(p.name); return 'background:'+t[0]+';color:'+t[1]; }
+
+  /* A */
+  document.getElementById('stage-a').innerHTML = P.map(function(p){
+    return '<div class="a-card">' +
+      '<span class="av" style="' + sty(p) + '">' + ini(p.name) + '</span>' +
+      '<div class="a-b"><p class="a-nm">' + p.name + '</p>' +
+      '<p class="a-tp">Learning ' + p.topic + '</p>' +
+      '<p class="a-mt">' + p.level + ' · ' + p.tz + '</p></div>' +
+      '<a class="btn" href="#">Propose a time</a></div>';
+  }).join('');
+
+  /* B */
+  document.getElementById('stage-b').innerHTML = P.map(function(p){
+    return '<div class="b-card">' +
+      '<div class="b-side"><span class="av">' + ini(p.name) + '</span></div>' +
+      '<div class="b-body"><p class="b-nm">' + p.name + '</p>' +
+      '<p class="b-tp">Learning ' + p.topic + '</p>' +
+      '<div class="b-facts">' +
+        '<div class="b-fact"><b>' + p.topic + '</b><span>Topic</span></div>' +
+        '<div class="b-fact"><b>' + p.level + '</b><span>Stage</span></div>' +
+        '<div class="b-fact"><b>' + p.tz + '</b><span>Timezone</span></div>' +
+      '</div>' +
+      '<div class="b-acts"><a class="btn" href="#">Propose a time</a></div>' +
+      '</div></div>';
+  }).join('');
+
+  /* C */
+  document.getElementById('stage-c').innerHTML =
+    '<div class="c-wrap"><div class="c-head">Your partners</div>' +
+    P.map(function(p){
+      return '<div class="c-row">' +
+        '<span class="av" style="' + sty(p) + '">' + ini(p.name) + '</span>' +
+        '<div class="c-b"><p class="c-nm">' + p.name + '</p>' +
+        '<p class="c-mt">' + p.topic + ' · ' + p.level + ' · ' + p.tz + '</p></div>' +
+        '<a class="small" href="#">Propose a time</a></div>';
+    }).join('') + '</div>';
+
+  /* D */
+  document.getElementById('stage-d').innerHTML =
+    '<div class="d-grid">' + P.map(function(p){
+      return '<div class="d-card">' +
+        '<span class="av" style="' + sty(p) + '">' + ini(p.name) + '</span>' +
+        '<p class="d-nm">' + p.name + '</p>' +
+        '<p class="d-tp">Learning ' + p.topic + '</p>' +
+        '<p class="d-mt">' + p.level + ' · ' + p.tz + '</p>' +
+        '<a class="btn" href="#">Propose a time</a></div>';
+    }).join('') + '</div>';
+
+  /* E */
+  document.getElementById('stage-e').innerHTML = P.map(function(p){
+    var next = p.next
+      ? '<div class="e-next"><b>Next: ' + p.next + '</b><span>' + p.mins + ' minutes</span></div>'
+      : '<div class="e-next none">Nothing booked with ' + p.name.split(' ')[0] + ' yet.</div>';
+    return '<div class="e-card">' +
+      '<div class="e-top"><span class="av" style="' + sty(p) + '">' + ini(p.name) + '</span>' +
+      '<div><p class="e-nm">' + p.name + '</p>' +
+      '<p class="e-tp">Learning ' + p.topic + ' · ' + p.level + '</p></div></div>' +
+      next +
+      '<p class="e-free">' + p.free + ' · ' + p.tz + '</p>' +
+      '<div class="e-acts"><a class="btn" href="#">Propose a time</a>' +
+      '<a class="small" href="#">See their profile</a></div>' +
+      '</div>';
+  }).join('');
+})();
+</script>
+</body>
+</html>
