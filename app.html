@@ -159,31 +159,6 @@
       </div>
     </section>
 
-    <!-- ============ your rhythm ============ -->
-    <section class="b wide">
-      <div class="calhead">
-        <div><span class="mono" style="color:var(--p6)">Your rhythm</span><p class="big" id="total">No sessions yet</p></div>
-        <span class="mono" id="longest"></span>
-      </div>
-
-      <div id="cal-real" hidden>
-        <div class="months" id="months"></div>
-        <div class="cal">
-          <div class="dlabels"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div>
-          <div class="cells" id="cells" role="img" aria-label="Your sessions over the last year"></div>
-        </div>
-        <div class="calfoot">
-          <span class="mono">Nobody set you a schedule. This is the one you kept.</span>
-        </div>
-        <div class="logs" id="logs"></div>
-      </div>
-
-      <div class="empty" id="cal-empty">
-        <div class="emptycal" id="ec" aria-hidden="true"></div>
-        <p>Your first session lands in the top left. After that this fills in on its own.</p>
-      </div>
-    </section>
-
     <!-- ============ invite ============ -->
     <section class="b wide inv">
       <div class="row">
@@ -304,77 +279,6 @@
       err.hidden = false;
     });
   });
-
-  /* ---------- calendar ---------- */
-  /* One cell per day for the last year, shaded by how long you sat that day.
-     Built from real rows only — an empty history shows the empty grid. */
-  var MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  function emptyCal(){
-    var ec = $('ec');
-    for (var k = 0; k < 28; k++){
-      var c = document.createElement('i');
-      if (k === 0) c.className = 'first';
-      ec.appendChild(c);
-    }
-  }
-
-  function buildCal(past){
-    var byDay = {}, minutes = {};
-    past.forEach(function(s){
-      var d = s.startsAt, key = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
-      byDay[key] = (byDay[key] || 0) + 1;
-      minutes[key] = (minutes[key] || 0) + (s.durationMin || 0);
-    });
-
-    var today = new Date(); today.setHours(0,0,0,0);
-    var end = new Date(today); end.setDate(end.getDate() + (6 - end.getDay()));
-    var start = new Date(end); start.setDate(start.getDate() - 363);
-
-    var months = $('months'), cells = $('cells'), lastM = -1;
-    for (var w = 0; w < 52; w++){
-      var md = new Date(start); md.setDate(md.getDate() + w * 7);
-      if (md.getMonth() !== lastM && md.getDate() <= 7){
-        var sp = document.createElement('span');
-        sp.textContent = MN[md.getMonth()];
-        sp.style.gridColumn = (w + 1) + ' / span 4';
-        months.appendChild(sp);
-        lastM = md.getMonth();
-      }
-    }
-
-    var streak = 0, best = 0, lastWeek = -1;
-    for (var k = 0; k < 364; k++){
-      var day = new Date(start); day.setDate(day.getDate() + k);
-      var key = day.getFullYear() + '-' + day.getMonth() + '-' + day.getDate();
-      var mins = minutes[key] || 0;
-      var c = document.createElement('i');
-      if (mins > 0 && day <= today) c.className = 'on';
-      c.title = (mins ? mins + ' min' : 'no session') + ' · ' + day.getDate() + ' ' + MN[day.getMonth()];
-      cells.appendChild(c);
-
-      /* Longest run of consecutive weeks with at least one session. */
-      var wk = Math.floor(k / 7);
-      if (mins > 0 && day <= today){
-        if (wk !== lastWeek){ streak = (wk === lastWeek + 1) ? streak + 1 : 1; lastWeek = wk; }
-        if (streak > best) best = streak;
-      }
-    }
-
-    $('total').textContent = past.length + ' session' + (past.length === 1 ? '' : 's') + ' in the last year';
-    $('longest').textContent = best > 1 ? 'longest run · ' + best + ' weeks' : '';
-
-    $('logs').innerHTML = past.slice(0, 6).map(function(s){
-      var d = s.startsAt, lbl = [s.partnerName || '', s.topic || ''].filter(Boolean).join(' — ');
-      return '<div class="l">' +
-        '<span class="d">' + esc(d.toLocaleDateString(undefined, { weekday:'short', day:'numeric' })) + '</span>' +
-        '<span class="t">' + esc(lbl || 'Session') + '</span>' +
-        '<span class="m">' + s.durationMin + 'm</span></div>';
-    }).join('');
-
-    $('cal-empty').hidden = true;
-    $('cal-real').hidden = false;
-  }
 
   /* ----- free times, shared -----
      The availability grid is four bands a day, not clock times, so a window
@@ -713,7 +617,6 @@
     else done(false);
   });
 
-  emptyCal();
 
   /* ---------- load ---------- */
   pf.currentUser().then(function(user){
@@ -781,7 +684,6 @@
             return s.status === 'cancelled' && !s.cancelledByMe;
           })[0] || null;
           var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
-          var past = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 <= now; }).reverse();
           var partner = partners[0] || null;
           /* acceptedPartners() gives {requestId, profile, roomUrl} — the name
              lives on .profile, not on the row itself. */
@@ -866,7 +768,6 @@
           } else {
             $('sess-empty').hidden = false;
           }
-          if (past.length) buildCal(past);
 
           showSteps(profile, !!partner, sessions.length);   /* confirmed only */
         });
