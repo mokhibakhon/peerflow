@@ -315,9 +315,14 @@
       { done: hasPartner, label:'Find a partner',
         hint:'Browse everyone here and ask someone learning the same thing.',
         href:'app-people.html', cta:'See people' },
+      /* Booking only exists once someone has accepted you, so until then this
+         step gets no button — sending people to a page with no form on it is
+         what made "Book it" look broken. */
       { done: sessionCount > 0, label:'Book your first session',
-        hint:'Agree a time and it lands on both your calendars.',
-        href:'app-sessions.html', cta:'Book it' }
+        hint: hasPartner ? 'Agree a time and it lands on both your calendars.'
+                         : 'Opens up as soon as you have a partner.',
+        href: hasPartner ? 'app-sessions.html' : '',
+        cta:  hasPartner ? 'Book it' : '' }
     ];
     if (steps.every(function(s){ return s.done; })) return;   // nothing left to nag about
 
@@ -329,7 +334,7 @@
         '</span>' +
         '<span class="step-body"><b>' + esc(s.label) + '</b>' +
           (s.done ? '' : '<span>' + esc(s.hint) + '</span>') + '</span>' +
-        (s.done ? '' : '<a class="small" href="' + s.href + '">' + esc(s.cta) + '</a>') +
+        (s.done || !s.cta ? '' : '<a class="small" href="' + s.href + '">' + esc(s.cta) + '</a>') +
       '</li>';
     }).join('');
   }

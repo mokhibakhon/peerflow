@@ -25,6 +25,9 @@
       <div class="row" id="match-actions" style="display:none">
         <a class="btn primary" id="call-link" href="#" target="_blank" rel="noopener" style="margin-left:auto">Start the call</a>
       </div>
+      <div class="row" id="match-find" hidden style="margin-top:16px">
+        <a class="btn" href="app-people.html">Find someone</a>
+      </div>
     </div>
 
     <!-- Booking, shown once you actually have a partner. -->
@@ -85,15 +88,18 @@
   } catch(err) {}
 
   /* Honest state: there's no automatic matching engine yet, so we never show a
-     fabricated partner. The message reflects the user's real track. */
+     fabricated partner. Nobody is pairing people by hand either — you ask
+     someone on the People page and they accept, so that's what this says. */
   function render(t){
     var status = document.getElementById('match-status');
     var title = document.getElementById('match-title');
     var sub = document.getElementById('match-sub');
     if (t) {
-      status.textContent = 'FINDING YOUR PARTNER';
-      title.textContent = 'We’re finding your partner';
-      sub.textContent = 'Right now we do this by hand, so give us a day or two. You’ll get an email when you’re matched.';
+      status.textContent = 'NO PARTNER YET';
+      title.textContent = 'You don’t have a partner yet';
+      sub.textContent = 'Ask someone on the People page. They get a notification and can say yes, ' +
+        'and booking opens up here as soon as one of you does.';
+      document.getElementById('match-find').hidden = false;
     } else {
       status.textContent = 'ALMOST THERE';
       title.textContent = 'Finish setting up first';
@@ -108,6 +114,7 @@
 
   function showMatched(m, p){
     partner = p || null;
+    document.getElementById('match-find').hidden = true;
     document.getElementById('match-status').textContent = 'YOUR PARTNER';
     var title = m.partner_name || 'Your partner';
     if (m.partner_topic) title += ' — learning ' + m.partner_topic;
@@ -186,6 +193,9 @@
   pf.currentUser().then(function(user){
     if (!user) return;
     pf.getProfile().then(function(profile){
+      /* The partner's row is stamped with our name, and pf_name is empty on a
+         fresh device — take it from the profile whenever we have one. */
+      if (profile && profile.name) name = profile.name;
       loadQueue(profile && profile.topic);
       if (profile && profile.track_id) {
         track = profile.track_id;
