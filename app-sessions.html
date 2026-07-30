@@ -309,7 +309,8 @@
         var head = x.mine
           ? 'You proposed <b>' + esc(whenLabel(x.startsAt)) + '</b>'
           : '<b>' + who + '</b> proposed <b>' + esc(whenLabel(x.startsAt)) + '</b>';
-        var key = ' data-at="' + esc(x.startsAt.toISOString()) + '" data-room="' + esc(x.roomUrl || '') + '"';
+        var key = ' data-at="' + esc(x.startsAt.toISOString()) + '" data-room="' + esc(x.roomUrl || '') +
+                  '" data-len="' + x.durationMin + '"';
         return '<div class="prop">' +
           '<p class="prop-h">' + head + '</p>' +
           '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') + '</p>' +
@@ -318,6 +319,7 @@
             ? '<span class="prop-wait">Waiting on ' + who + '</span>' +
               '<button class="small" data-drop' + key + '>Cancel</button>'
             : '<button class="btn" data-accept' + key + '>Accept</button>' +
+              '<button class="small" data-swap' + key + '>Suggest another time</button>' +
               '<button class="small" data-drop' + key + '>Decline</button>') +
           '</div><p class="prop-err" hidden></p></div>';
       }).join('');
@@ -326,17 +328,37 @@
   }
 
   document.getElementById('prop-list').addEventListener('click', function(e){
-    var btn = e.target.closest('[data-accept],[data-drop]');
+    var btn = e.target.closest('[data-accept],[data-drop],[data-swap]');
     if (!btn) return;
     var box = btn.closest('.prop'), err = box.querySelector('.prop-err');
     var at = btn.getAttribute('data-at'), room = btn.getAttribute('data-room');
     var accept = btn.hasAttribute('data-accept');
+    var swap   = btn.hasAttribute('data-swap');
+
+    /* Suggesting another time is a decline that hands you the pen: their
+       proposal comes off the table and the form opens on it, so you're
+       moving a time rather than starting from a blank date picker. */
+    if (swap) {
+      var d = new Date(at);
+      if (!isNaN(d.getTime())) { fillWhen(d); checkWhen(); }
+      var len = btn.getAttribute('data-len');
+      if (len) document.getElementById('bk-len').value = len;
+    }
+
     Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = true; });
     err.hidden = true;
     (accept ? pf.acceptSession(at, room) : pf.cancelSession(at, room)).then(function(res){
       if (res && res.saved) {
         if (accept) { window.location.href = 'app.html'; return; }
-        loadProposals();
+        loadProposals().then(function(){
+          if (!swap) return;
+          var note = document.getElementById('bk-note');
+          note.style.color = 'var(--muted)';
+          note.textContent = 'Their time is off the table \u2014 pick another and send it back.';
+          var card = document.getElementById('book-card');
+          try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err2){}
+          document.getElementById('bk-date').focus();
+        });
         return;
       }
       Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = false; });

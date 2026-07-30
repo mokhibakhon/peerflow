@@ -524,11 +524,8 @@
       if (res && res.error) {
         errored = true;
         btn.disabled = false; btn.textContent = 'Done';
-        var full = 'Could not save your profile:\n\n' + res.error + (res.detail ? '\n\n' + res.detail : '');
-        su2Status.textContent = 'Could not save your profile: ' + res.error;
+        su2Status.textContent = res.error;
         su2Status.style.display = 'block';
-        try { console.error('PeerFlow finish failed:', res); } catch(e){}
-        try { alert(full); } catch(e){}
         return;
       }
       if (res && res.saved) {

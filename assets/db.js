@@ -36,6 +36,22 @@ window.pf = (function(){
     }).catch(function(){});
   })();
 
+  /* ---------- errors ---------- */
+
+  /* One place where a database error becomes something a person reads.
+     Postgres and PostgREST errors name tables, columns, constraints and
+     policies, and telling a visitor which migration to run hands them a map
+     of the schema. The real error goes to the console, where whoever is
+     debugging can see it; the page gets a sentence that says what happened
+     without describing how anything is built.
+
+     Only messages that describe the user's own situation are passed through,
+     and each one is written here rather than taken from the database. */
+  function fail(err, msg){
+    try { console.error('PeerFlow:', err); } catch(e){}
+    return { error: msg || 'Something went wrong on our side. Please try again.' };
+  }
+
   /* ---------- auth ---------- */
 
   function signUpEmail(name, email, password){
@@ -45,8 +61,15 @@ window.pf = (function(){
       password: password,
       options: { data: { name: name } }
     }).then(function(res){
-      if (res.error) return { error: res.error.message };
-      // With email confirmation enabled there is a user but no session yet.
+      if (res.error) {
+        var m = String(res.error.message || '');
+        if (/already registered|already exists/i.test(m))
+          return fail(res.error, 'There is already an account with that email address.');
+        if (/password/i.test(m))
+          return fail(res.error, 'That password is too short — use at least six characters.');
+        return fail(res.error, 'Could not create your account. Please try again.');
+      }
+      // With email confirmation enabled there is a user but no session yet.'''
       return { user: res.data.user, session: res.data.session,
                needsConfirm: !!res.data.user && !res.data.session };
     }).catch(function(){ return { demo: true }; });
@@ -56,7 +79,9 @@ window.pf = (function(){
     if (!client) return Promise.resolve({ demo: true });
     return client.auth.signInWithPassword({ email: email, password: password })
       .then(function(res){
-        if (res.error) return { error: res.error.message };
+        /* One message for a wrong password and an address with no account,
+           so the form can't be used to find out which emails are registered. */
+        if (res.error) return fail(res.error, 'Your email or password is incorrect.');
         return { user: res.data.user, session: res.data.session };
       }).catch(function(){ return { demo: true }; });
   }
@@ -70,8 +95,9 @@ window.pf = (function(){
       provider: String(provider).toLowerCase(),
       options: { redirectTo: base + (redirectPath || 'app.html') }
     }).then(function(res){
-      return res.error ? { error: res.error.message } : { redirecting: true };
-    }).catch(function(err){ return { error: (err && err.message) || 'Sign-in failed' }; });
+      return res.error ? fail(res.error, 'Could not start that sign-in. Please try again.')
+                       : { redirecting: true };
+    }).catch(function(err){ return fail(err, 'Could not start that sign-in. Please try again.'); });
   }
 
   /* Current signed-in user (after an OAuth redirect, the session is in the URL
@@ -97,9 +123,13 @@ window.pf = (function(){
   function changePassword(newPassword){
     if (!client) return Promise.resolve({ demo: true });
     return client.auth.updateUser({ password: newPassword }).then(function(r){
-      if (r.error) return { error: r.error.message };
+      if (r.error) {
+        if (/password/i.test(String(r.error.message || '')))
+          return fail(r.error, 'That password is too short — use at least six characters.');
+        return fail(r.error, 'Could not change your password. Please try again.');
+      }
       return { saved: true };
-    }).catch(function(e){ return { error: (e && e.message) || 'Could not change your password.' }; });
+    }).catch(function(e){ return fail(e, 'Could not change your password. Please try again.'); });
   }
 
   /* ---------- profile ---------- */
@@ -153,26 +183,15 @@ window.pf = (function(){
                          'Re-run supabase/schema.sql to store names split.');
           } catch(e){}
           return client.from('profiles').upsert(row).then(function(r2){
-            return r2.error ? { error: r2.error.message } : { saved: true };
+            return r2.error ? fail(r2.error, 'Could not save your profile. Please try again.')
+                            : { saved: true };
           });
         }
-        if (r.error) {
-          try { console.error('PeerFlow saveProfile error:', r.error); } catch(e){}
-          var msg = r.error.message || 'Unknown error';
-          if (r.error.code === '42P01' || /relation .* does not exist/i.test(msg)) {
-            msg = 'The database tables are not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.';
-          }
-          var detail = [];
-          if (r.error.code) detail.push('code: ' + r.error.code);
-          if (r.error.details) detail.push('details: ' + r.error.details);
-          if (r.error.hint) detail.push('hint: ' + r.error.hint);
-          return { error: msg, detail: detail.join('  ·  ') };
-        }
+        if (r.error) return fail(r.error, 'Could not save your profile. Please try again.');
         return { saved: true };
       });
     }).catch(function(e){
-      try { console.error('PeerFlow saveProfile exception:', e); } catch(err){}
-      return { error: (e && e.message) || 'Network error while saving your profile.' };
+      return fail(e, 'Could not save your profile \u2014 check your connection and try again.');
     });
   }
 
@@ -187,17 +206,10 @@ window.pf = (function(){
       email: email,
       interest: interest || null
     }).then(function(r){
-      if (r.error) {
-        try { console.error('PeerFlow joinWaitlist error:', r.error); } catch(e){}
-        var msg = r.error.message || 'Something went wrong.';
-        if (r.error.code === '42P01' || /relation .* does not exist/i.test(msg)) {
-          msg = 'The waitlist table is not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.';
-        }
-        return { error: msg };
-      }
+      if (r.error) return fail(r.error, 'Could not add you to the list. Please try again.');
       return { saved: true };
     }).catch(function(e){
-      return { error: (e && e.message) || 'Network error — please try again.' };
+      return fail(e, 'Could not add you to the list \u2014 check your connection and try again.');
     });
   }
 
@@ -275,19 +287,12 @@ window.pf = (function(){
       }
       var rows = [ row(me.id, opts.partnerName || null), row(opts.partnerId, myName) ];
       return client.from('sessions').insert(rows).then(function(r){
-        if (r.error) {
-          try { console.error('PeerFlow proposeSession error:', r.error); } catch(e){}
-          var msg = r.error.message || 'Could not propose that time.';
-          if (r.error.code === '42P01') {
-            msg = 'The sessions table is not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.';
-          } else if (r.error.code === 'PGRST204' || r.error.code === '42703') {
-            msg = 'Your database is missing the proposal columns. Re-run supabase/schema.sql in the Supabase SQL Editor.';
-          }
-          return { error: msg };
-        }
+        if (r.error) return fail(r.error, 'Could not send that time. Please try again.');
         return { saved: true };
       });
-    }).catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+    }).catch(function(e){
+      return fail(e, 'Could not send that time \u2014 check your connection and try again.');
+    });
   }
 
   /* Accept a proposal: flip both copies of the meeting to 'confirmed'. Matched
@@ -299,8 +304,11 @@ window.pf = (function(){
       .eq('starts_at', startsAt)
       .eq('room_url', roomUrl)
       .then(function(r){
-        return r.error ? { error: r.error.message } : { saved: true };
-      }).catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+        return r.error ? fail(r.error, 'Could not accept that time. Please try again.')
+                       : { saved: true };
+      }).catch(function(e){
+        return fail(e, 'Could not accept that time \u2014 check your connection and try again.');
+      });
   }
 
   /* Cancel a session for both people (matched on the shared start + room). */
@@ -308,8 +316,12 @@ window.pf = (function(){
     if (!client) return Promise.resolve({ demo: true });
     return client.from('sessions').delete()
       .eq('starts_at', startsAt).eq('room_url', roomUrl)
-      .then(function(r){ return r.error ? { error: r.error.message } : { saved: true }; })
-      .catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+      .then(function(r){
+        return r.error ? fail(r.error, 'Could not cancel that. Please try again.') : { saved: true };
+      })
+      .catch(function(e){
+        return fail(e, 'Could not cancel that \u2014 check your connection and try again.');
+      });
   }
 
   /* ---------- partner requests ---------- */
@@ -326,11 +338,14 @@ window.pf = (function(){
         .then(function(r){
           if (r.error) {
             if (r.error.code === '23505') return { error: 'You’ve already sent them a request.' };
-            return { error: r.error.message || 'Could not send the request.' };
+            /* Safe to name: it describes what this person already did, not the schema. */
+            return fail(r.error, 'Could not send the request. Please try again.');
           }
           return { sent: true };
         });
-    }).catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+    }).catch(function(e){
+      return fail(e, 'Could not send the request \u2014 check your connection and try again.');
+    });
   }
 
   /* Every request involving the signed-in user, with the other person's
@@ -374,8 +389,11 @@ window.pf = (function(){
       .update({ status: status, to_seen_at: new Date().toISOString() })
       .eq('id', id)
       .then(function(r){
-        return r.error ? { error: r.error.message } : { saved: true };
-      }).catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+        return r.error ? fail(r.error, 'Could not save that answer. Please try again.')
+                       : { saved: true };
+      }).catch(function(e){
+        return fail(e, 'Could not save that answer \u2014 check your connection and try again.');
+      });
   }
 
   /* Mark notifications read: incoming requests you've looked at, and answers
