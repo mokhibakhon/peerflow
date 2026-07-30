@@ -19,8 +19,9 @@
     </div>
 
     <p class="empty-hint" style="max-width:640px">
-      Everyone who has finished signing up. Closest to what you're learning first.
-      Nobody here is made up, and nobody is matched for you — you pick.
+      Everyone who has finished signing up. The person at the top is whoever is
+      closest to what you're learning — a suggestion, not a match. Nobody here is
+      made up, and you can ask anyone on the list instead.
     </p>
 
     <div class="stat-row">
@@ -28,8 +29,8 @@
       <div class="stat"><b id="st-same">—</b><span>on your path</span></div>
     </div>
 
-    <div class="b room" id="people">
-      <p class="n">Loading…</p>
+    <div id="people">
+      <div class="b"><p class="n">Loading…</p></div>
     </div>
   </div>
 </main>
@@ -115,51 +116,104 @@
     return n;
   }
 
-  function row(p){
-    var nm = p.name || 'Someone';
-    var t = tone(nm);
-    var sameTopic = me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase();
-    var samePath  = me.track && p.track_id === me.track;
-    var shared    = overlap(p.availability);
+  /* Why this person is worth your attention, strongest reason first. The
+     ranking is the whole point of the page — a list in signup order buries
+     the one person on your topic under everyone who joined after them. */
+  function reason(p){
+    if (me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase()) return 'topic';
+    if (me.track && p.track_id === me.track) return 'path';
+    return '';
+  }
+  function score(p){
+    var r = reason(p);
+    return (r === 'topic' ? 200 : r === 'path' ? 100 : 0) + Math.min(overlap(p.availability), 20);
+  }
 
-    var tags = (sameTopic ? '<span class="same-tag">same topic</span>' : '') +
-               (samePath && !sameTopic ? '<span class="same-tag alt">same path</span>' : '');
-    var learning = p.topic ? 'Learning ' + p.topic : 'Hasn’t said what they’re learning yet';
-    var meta = [pathLabel[p.track_id] || '', levelLabel[p.level] || '',
-                p.timezone || '', since(p.created_at)].filter(Boolean).join(' · ');
+  function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
 
-    var times = !me.avail.length ? ''
-      : shared ? '<span class="overlap ok">' + shared + ' time' + (shared === 1 ? '' : 's') + ' you\u2019re both free</span>'
-               : '<span class="overlap none">No times in common</span>';
+  function timesShort(p){
+    if (!me.avail.length) return '';
+    var n = overlap(p.availability);
+    return n ? '<span class="overlap ok">' + n + ' block' + (n === 1 ? '' : 's') + '</span>'
+             : '<span class="overlap none">None</span>';
+  }
 
-    return '<div class="r" data-id="' + esc(p.id) + '">' +
-      '<span class="a" style="background:' + t[0] + ';color:' + t[1] + '">' +
-        esc(nm.trim().charAt(0).toUpperCase()) + '</span>' +
-      '<div class="b2">' +
-        '<p class="nm">' + esc(nm) + tags + '</p>' +
-        '<p class="s">' + esc(learning) + '</p>' +
-        (meta ? '<p class="mt">' + esc(meta) + '</p>' : '') +
-        times +
+  /* The top pick argues its case: the facts that made it the top pick sit on
+     the card, so the suggestion is checkable rather than trust-me. */
+  function heroCard(p){
+    var nm = p.name || 'Someone', t = tone(nm), why = reason(p), shared = overlap(p.availability);
+    var tag = why === 'topic' ? 'Closest to what you’re learning'
+            : why === 'path'  ? 'Closest on your path'
+                              : 'Free when you’re free';
+
+    var facts = [];
+    if (why === 'topic')     facts.push(['Same topic', p.topic]);
+    else if (why === 'path') facts.push(['Same path', pathLabel[p.track_id] || '']);
+    else if (p.topic)        facts.push(['Learning', p.topic]);
+    if (me.avail.length) {
+      facts.push([shared ? 'You’re both free' : 'Times in common',
+                  shared ? shared + ' block' + (shared === 1 ? '' : 's') : 'None yet']);
+    }
+    if (levelLabel[p.level]) facts.push(['Stage', levelLabel[p.level]]);
+    if (p.timezone)          facts.push(['Timezone', p.timezone]);
+
+    return '<div class="top-pick" data-id="' + esc(p.id) + '">' +
+      '<p class="tp-tag">' + tag + '</p>' +
+      '<div class="tp-top">' +
+        '<span class="tp-av" style="background:' + t[0] + ';color:' + t[1] + '">' + initial(nm) + '</span>' +
+        '<div><p class="tp-nm">' + esc(nm) + '</p><p class="tp-sub">' +
+          (p.topic ? 'Learning ' + esc(p.topic) : 'Hasn’t said what they’re learning yet') +
+        '</p></div>' +
       '</div>' +
+      '<div class="tp-facts">' + facts.map(function(f){
+        return '<div class="tp-fact"><b>' + esc(f[1]) + '</b><span>' + f[0] + '</span></div>';
+      }).join('') + '</div>' +
+      '<div class="tp-acts">' + actionFor(p.id) + '</div>' +
+    '</div>';
+  }
+
+  function tableRow(p){
+    var nm = p.name || 'Someone', t = tone(nm), why = reason(p);
+    var tags = why === 'topic' ? '<span class="same-tag">same topic</span>'
+             : why === 'path'  ? '<span class="same-tag alt">same path</span>' : '';
+    var sub = [pathLabel[p.track_id] || '', levelLabel[p.level] || '', since(p.created_at)]
+                .filter(Boolean).join(' \u00b7 ');
+
+    return '<div class="pt-row" data-id="' + esc(p.id) + '">' +
+      '<div class="pt-who">' +
+        '<span class="pt-av" style="background:' + t[0] + ';color:' + t[1] + '">' + initial(nm) + '</span>' +
+        '<div style="min-width:0"><div class="pt-nm"><span class="who">' + esc(nm) + '</span>' + tags + '</div>' +
+        (sub ? '<div class="pt-sub">' + esc(sub) + '</div>' : '') + '</div>' +
+      '</div>' +
+      '<div class="pt-tp">' + (p.topic ? esc(p.topic) : '<span class="pt-sub">Not said yet</span>') + '</div>' +
+      timesShort(p) +
       actionFor(p.id) +
-      '</div>';
+    '</div>';
   }
 
   function render(people){
-    /* Three buckets, best first. Raw newest-first buried the one person on
-       your topic under everyone who happened to sign up after them. */
-    var a = [], b = [], c = [];
-    people.forEach(function(p){
-      if (me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase()) a.push(p);
-      else if (me.track && p.track_id === me.track) b.push(p);
-      else c.push(p);
-    });
+    var ranked = people.slice().sort(function(x, y){ return score(y) - score(x); });
 
-    var html = '';
-    if (a.length) html += '<p class="group-h">Learning the same thing as you</p>' + a.map(row).join('');
-    if (b.length) html += '<p class="group-h">On your path</p>' + b.map(row).join('');
-    if (c.length) html += '<p class="group-h">' + (a.length || b.length ? 'Everyone else' : 'Everyone here') +
-                          '</p>' + c.map(row).join('');
+    /* Only lead with someone if there is a real reason to. Heroing whoever
+       happens to be first, with nothing in common and no shared time, would
+       be a recommendation the page cannot back up. Anyone already settled
+       with you — partnered or declined — is not a suggestion either. */
+    var hero = null;
+    for (var i = 0; i < ranked.length; i++) {
+      var st = (reqByUser[ranked[i].id] || {}).status;
+      if (st === 'accepted' || st === 'declined') continue;
+      if (score(ranked[i]) > 0) hero = ranked.splice(i, 1)[0];
+      break;
+    }
+
+    var html = hero ? heroCard(hero) : '';
+    if (ranked.length) {
+      html += '<div class="ptable' + (me.avail.length ? '' : ' no-times') + '">' +
+        '<div class="pt-hd"><span>Person</span><span>Learning</span>' +
+        (me.avail.length ? '<span>In common</span>' : '') + '<span></span></div>' +
+        ranked.map(tableRow).join('') +
+      '</div>';
+    }
     list.innerHTML = html;
   }
 
@@ -177,13 +231,13 @@
     return pf.fetchPeers(60);
   }).then(function(people){
     if (people === null) {
-      list.innerHTML = '<p class="n">Could not load people — check your connection and refresh.</p>';
+      list.innerHTML = '<div class="b"><p class="n">Could not load people — check your connection and refresh.</p></div>';
       return;
     }
     if (!people.length) {
-      list.innerHTML = '<p class="n">' +
+      list.innerHTML = '<div class="b"><p class="n">' +
         'No one else has finished signing up yet — you’re first. That’s genuinely useful to know: ' +
-        'share PeerFlow with one person learning the same thing and you’ve got your pair.</p>';
+        'share PeerFlow with one person learning the same thing and you’ve got your pair.</p></div>';
       return;
     }
     render(people);
@@ -200,7 +254,7 @@
   list.addEventListener('click', function(e){
     var open = e.target.closest('[data-ask]');
     if (open) {
-      var r = open.closest('.r');
+      var r = open.closest('[data-id]');
       var id = open.getAttribute('data-ask');
       open.replaceWith(document.createComment('asking'));
       var box = document.createElement('div');
@@ -210,13 +264,13 @@
         '<button class="btn" data-send="' + esc(id) + '">Send request</button>' +
         '<button class="small" data-cancel>Cancel</button>' +
         '<p class="ask-err" hidden></p>';
-      r.appendChild(box);
+      slot(r).appendChild(box);
       box.querySelector('input').focus();
       return;
     }
 
     var cancel = e.target.closest('[data-cancel]');
-    if (cancel) { redraw(cancel.closest('.r')); return; }
+    if (cancel) { redraw(cancel.closest('[data-id]')); return; }
 
     var send = e.target.closest('[data-send]');
     if (!send) return;
@@ -230,7 +284,7 @@
     pf.sendPartnerRequest(uid, msg).then(function(res){
       if (res && res.sent) {
         reqByUser[uid] = { status: 'pending', direction: 'out' };
-        redraw(send.closest('.r'));
+        redraw(send.closest('[data-id]'));
         return;
       }
       send.disabled = false;
@@ -242,13 +296,18 @@
     });
   });
 
+  /* The action lives directly in a table row, but inside its own strip on
+     the top pick, so both the ask box and the redrawn button go wherever
+     the action already was rather than at the end of the card. */
+  function slot(r){ return r.querySelector('.tp-acts') || r; }
+
   /* Put a row back to its resting state after sending or cancelling. */
   function redraw(r){
     if (!r) return;
-    var box = r.querySelector('.askbox');
+    var s = slot(r), box = s.querySelector('.askbox');
     if (box) box.remove();
-    r.querySelectorAll('.pstate,[data-ask]').forEach(function(n){ n.remove(); });
-    r.insertAdjacentHTML('beforeend', actionFor(r.getAttribute('data-id')));
+    s.querySelectorAll('.pstate,[data-ask]').forEach(function(n){ n.remove(); });
+    s.insertAdjacentHTML('beforeend', actionFor(r.getAttribute('data-id')));
   }
 
 })();

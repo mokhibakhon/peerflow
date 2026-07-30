@@ -529,10 +529,71 @@ h1 .g{color:var(--p4)}
 .pstate.wait{background:#FFF6E8;border-color:#F0DCC2;color:#8A5A12}
 .pstate.no{color:var(--faint)}
 
-/* ---------- people: grouping, overlap, ask box ---------- */
-.group-h{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--faint);margin:20px 0 2px;padding-top:14px;border-top:1px solid var(--line)}
-.room .r:first-of-type + .group-h,.group-h:first-child{margin-top:0;padding-top:0;border-top:0}
+/* ---------- people: top pick ---------- */
+/* One person gets argued for, with the reasons spelled out, and everyone
+   else is a table underneath. A flat list of names asks you to do the
+   comparing; this page does the comparing and shows its working. */
+.top-pick{background:var(--card);border:1px solid var(--p2);border-radius:18px;
+  padding:24px 26px;margin:0 0 16px;box-shadow:0 2px 10px rgba(8,80,65,.07)}
+.tp-tag{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--p6);margin:0 0 12px}
+.tp-top{display:flex;gap:16px;align-items:center}
+.tp-av{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:20px;flex:0 0 auto}
+.tp-nm{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em}
+.tp-sub{margin:2px 0 0;font-size:15px;color:var(--soft)}
+.tp-facts{display:flex;gap:22px;flex-wrap:wrap;margin:18px 0 0;padding-top:16px;
+  border-top:1px solid var(--line)}
+.tp-fact b{display:block;font-size:14.5px;font-weight:700}
+.tp-fact span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--faint);margin-top:2px}
+.tp-acts{margin-top:18px}
+.tp-acts .askbox{margin-top:0;padding-top:0;border-top:0}
+
+/* ---------- people: the table ---------- */
+.ptable{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.pt-hd,.pt-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.2fr) 118px 152px;
+  gap:16px;align-items:center;padding:13px 20px}
+/* No hours on your own profile means no shared-time column to fill. */
+.ptable.no-times .pt-hd,.ptable.no-times .pt-row{
+  grid-template-columns:minmax(0,1.5fr) minmax(0,1.2fr) 152px}
+.pt-hd{background:#FBFBFC;border-bottom:1px solid var(--line);font-family:var(--mono);
+  font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.pt-row{border-top:1px solid var(--line)}
+/* the header already draws a bottom border; :first-of-type would match the
+   header itself, not the first row, and leave the two stacked */
+.pt-hd + .pt-row,.pt-row:first-child{border-top:0}
+.pt-who{display:flex;align-items:center;gap:11px;min-width:0}
+.pt-av{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:13px;flex:0 0 auto}
+/* The tag is a separate flex item so a long name eats its own ellipsis
+   instead of chopping "same topic" down to "s…". */
+.pt-nm{display:flex;align-items:center;gap:6px;min-width:0;
+  font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.pt-nm .who{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-nm .same-tag{margin-left:0;flex:0 0 auto}
+.pt-sub{font-size:12px;color:var(--faint);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-tp{font-size:14px;color:var(--soft);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-row .overlap{margin-top:0;white-space:nowrap}
+/* the ask box drops onto a line of its own rather than becoming a column */
+.pt-row .askbox{grid-column:1/-1;margin-top:2px}
+
+/* The columns are what makes this readable, and there is no room for four
+   of them on a phone. Everything stacks into one column instead, with the
+   action right-aligned at the foot of the row — squeezing it in beside the
+   name left both of them fighting over about half a line. */
+@media (max-width:720px){
+  .pt-hd{display:none}
+  .pt-row,.ptable.no-times .pt-row{grid-template-columns:minmax(0,1fr);
+    gap:7px;padding:16px}
+  .pt-sub{white-space:normal;overflow:visible;line-height:1.45}
+  .pt-nm{flex-wrap:wrap;row-gap:4px;line-height:1.35}
+  .pt-nm .who{white-space:normal;overflow:visible}
+  .pt-row .overlap{margin-top:0}
+  .pt-row .askbtn,.pt-row .pstate{justify-self:end;margin-top:3px}
+}
 
 .same-tag.alt{background:#EEEDFE;color:#3C3489}
 
