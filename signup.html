@@ -124,6 +124,9 @@
   <section class="onb-step" data-step="4">
     <h1>When are you usually free?</h1>
     <p class="lead">Tap any block you could actually show up in — not the ones you wish you would.</p>
+    <div class="chips avail-any">
+      <button type="button" class="chip" id="avail-all" aria-pressed="false">I’m free any time</button>
+    </div>
     <div class="avail-grid" id="avail">
       <span></span>
       <span class="hd">Morning<b>6–12</b></span><span class="hd">Afternoon<b>12–17</b></span><span class="hd">Evening<b>17–22</b></span><span class="hd">Night<b>22–02</b></span>
@@ -424,15 +427,41 @@
   /* A running count, because the grid gives no other feedback that you've
      done enough. More blocks means more overlap with more people — with one
      block you can only ever pair with someone free at that exact hour. */
+  var availAll = document.getElementById('avail-all');
+  var availCells = availBox.querySelectorAll('.cell');
+
   function countAvail(){
     var n = availBox.querySelectorAll('.cell.sel').length;
     availCount.textContent = n === 0 ? 'Nothing picked yet.'
-      : n === 1 ? '1 block — add at least one more, one is very hard to pair.'
+      : n === availCells.length
+                ? 'Free any time \u2014 you\u2019ll have a time in common with everyone.'
+      : n === 1 ? '1 block \u2014 add at least one more, one is very hard to pair.'
       : n < 3   ? n + ' blocks. Three or more makes you much easier to pair.'
-      :           n + ' blocks — plenty to work with.';
+      :           n + ' blocks \u2014 plenty to work with.';
     availCount.className = 'avail-count' + (n >= 3 ? ' good' : n >= 1 ? ' warn' : '');
     return n;
   }
+
+  /* Twenty-eight taps is a lot to ask of someone whose answer is "whenever".
+     The shortcut fills the grid rather than storing a separate flag, so
+     everything downstream — overlap, matching, the profile page — keeps
+     working on the one list of slots it already understands. */
+  function syncAvailAll(){
+    var all = availBox.querySelectorAll('.cell.sel').length === availCells.length;
+    availAll.classList.toggle('on', all);
+    availAll.setAttribute('aria-pressed', all ? 'true' : 'false');
+  }
+  availAll.addEventListener('click', function(){
+    var on = !availAll.classList.contains('on');
+    Array.prototype.forEach.call(availCells, function(c){
+      c.classList.toggle('sel', on);
+      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    availErr.hidden = true;
+    countAvail();
+    syncAvailAll();
+  });
+
   availBox.addEventListener('click', function(e){
     var c = e.target.closest('.cell');
     if (!c) return;
@@ -440,6 +469,7 @@
     c.setAttribute('aria-pressed', c.classList.contains('sel') ? 'true' : 'false');
     availErr.hidden = true;
     countAvail();
+    syncAvailAll();
   });
 
   /* ---------- timezone ---------- */

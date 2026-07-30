@@ -62,6 +62,7 @@
           </div>
 
           <h4 class="mini-h">When you're free</h4>
+          <button type="button" class="small avail-any" id="p-avail-all" aria-pressed="false">I’m free any time</button>
           <div class="avail-grid" id="p-avail">
             <span></span>
             <span class="hd">Morning<b>6–12</b></span><span class="hd">Afternoon<b>12–17</b></span><span class="hd">Evening<b>17–22</b></span><span class="hd">Night<b>22–02</b></span>
@@ -119,20 +120,44 @@
     c.classList.add('sel');
   });
   var availCount = document.getElementById('p-avail-count');
+  var availAll = document.getElementById('p-avail-all');
+  var availCells = availBox.querySelectorAll('.cell');
+
   function countAvail(){
     var n = availBox.querySelectorAll('.cell.sel').length;
-    availCount.textContent = n === 0 ? 'Nothing picked — nobody can find a time with you yet.'
-      : n === 1 ? '1 block — add at least one more, one is very hard to pair.'
+    availCount.textContent = n === 0 ? 'Nothing picked \u2014 nobody can find a time with you yet.'
+      : n === availCells.length
+                ? 'Free any time \u2014 you\u2019ll have a time in common with everyone.'
+      : n === 1 ? '1 block \u2014 add at least one more, one is very hard to pair.'
       : n < 3   ? n + ' blocks. Three or more makes you much easier to pair.'
-      :           n + ' blocks — plenty to work with.';
+      :           n + ' blocks \u2014 plenty to work with.';
     availCount.className = 'avail-count' + (n >= 3 ? ' good' : n >= 1 ? ' warn' : '');
   }
+
+  /* Same shortcut as signup: fills the grid rather than storing a flag, so
+     the saved profile is still just the list of slots. */
+  function syncAvailAll(){
+    var all = availBox.querySelectorAll('.cell.sel').length === availCells.length;
+    availAll.classList.toggle('on', all);
+    availAll.setAttribute('aria-pressed', all ? 'true' : 'false');
+  }
+  availAll.addEventListener('click', function(){
+    var on = !availAll.classList.contains('on');
+    Array.prototype.forEach.call(availCells, function(c){
+      c.classList.toggle('sel', on);
+      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    countAvail();
+    syncAvailAll();
+  });
+
   availBox.addEventListener('click', function(e){
     var c = e.target.closest('.cell');
     if (!c) return;
     c.classList.toggle('sel');
     c.setAttribute('aria-pressed', c.classList.contains('sel') ? 'true' : 'false');
     countAvail();
+    syncAvailAll();
   });
   countAvail();
 
@@ -164,6 +189,7 @@
       markSel(levelBox, 'data-level', p.level);
       (p.availability || []).forEach(function(v){ markSel(availBox, 'data-slot', v); });
       countAvail();
+      syncAvailAll();
     });
   });
 

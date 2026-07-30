@@ -632,6 +632,9 @@ footer{background:var(--footer);color:#9fb3ba;padding:56px 0 40px;font-size:14.5
   border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;
   transform:translate(-50%,-70%) rotate(-45deg)}
 
+/* the shortcut sits above the grid, not in it */
+.avail-any{margin:0 0 12px}
+
 .avail-count{font-size:13.5px;color:var(--muted);margin:12px 0 0}
 .avail-count.warn{color:#9a6410}
 .avail-count.good{color:var(--green-dark);font-weight:600}

@@ -293,6 +293,10 @@ h1 .g{color:var(--p4)}
   width:11px;height:6px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;
   transform:translate(-50%,-70%) rotate(-45deg)}
 
+/* the shortcut sits above the grid, not in it, so it keeps button
+   styling instead of being picked up by .avail-grid button */
+.avail-any{margin:0 0 12px}
+
 .avail-count{font-size:13.5px;color:var(--faint);margin:12px 0 0}
 .avail-count.warn{color:#9A6410}
 .avail-count.good{color:var(--p8);font-weight:600}
