@@ -68,11 +68,6 @@
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
   }
-  function since(d){
-    var days = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
-    if (isNaN(days)) return '';
-    return days <= 0 ? 'joined today' : days === 1 ? 'joined yesterday' : 'joined ' + days + ' days ago';
-  }
 
   var list = document.getElementById('people');
 
@@ -180,7 +175,7 @@
     var nm = p.name || 'Someone', t = tone(nm), why = reason(p);
     var tags = why === 'topic' ? '<span class="same-tag">same topic</span>'
              : why === 'path'  ? '<span class="same-tag alt">same path</span>' : '';
-    var sub = [pathLabel[p.track_id] || '', levelLabel[p.level] || '', since(p.created_at)]
+    var sub = [pathLabel[p.track_id] || '', levelLabel[p.level] || '']
                 .filter(Boolean).join(' \u00b7 ');
 
     return '<div class="pt-row" data-id="' + esc(p.id) + '">' +
