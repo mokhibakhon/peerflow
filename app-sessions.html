@@ -59,7 +59,7 @@
 <script src="assets/authgate.js"></script>
 <script>
 (function(){
-  var track = '';
+  var track = '', myAvail = [];
   try { track = localStorage.getItem('pf_track') || ''; } catch(err) {}
 
   function esc(v){
@@ -100,19 +100,44 @@
     document.getElementById('board-note').textContent =
       'Propose a time on Sessions. The link to the call appears there fifteen ' +
       'minutes before you start.';
+
     document.getElementById('partner-list').innerHTML = list.map(function(x){
       var pr = x.profile || {};
-      var nm = esc(pr.name || 'Someone');
-      var meta = [pr.topic ? 'learning ' + pr.topic : '', levelLabel(pr.level), pr.timezone || '']
-                   .filter(Boolean).join(' \u00b7 ');
-      return '<div class="card next-card" style="margin-bottom:16px">' +
-        '<div class="when-big">YOUR PARTNER</div>' +
-        '<h2>' + nm + '</h2>' +
-        (meta ? '<p>' + esc(meta) + '</p>' : '') +
-        '<div class="row" style="margin-top:16px">' +
-          '<a class="btn" href="app.html">Propose a time</a>' +
+      var nm = pr.name || 'Someone';
+
+      /* Only facts we actually hold. An empty column headed "Stage" is worse
+         than three columns instead of four. */
+      var facts = [];
+      var n = overlap(pr.availability);
+      if (myAvail.length) {
+        facts.push(['Free together', n ? n + (n === 1 ? ' time' : ' times') : 'No overlap']);
+      }
+      if (levelLabel(pr.level)) facts.push(['Stage', levelLabel(pr.level)]);
+      if (pr.timezone)          facts.push(['Timezone', pr.timezone]);
+
+      return '<div class="pcard">' +
+        '<div class="pcard-side"><span>' + esc(nm.trim().charAt(0).toUpperCase()) + '</span></div>' +
+        '<div class="pcard-body">' +
+          '<p class="pcard-nm">' + esc(nm) + '</p>' +
+          '<p class="pcard-tp">' +
+            (pr.topic ? 'Learning ' + esc(pr.topic) : 'Hasn\u2019t said what they\u2019re learning yet') +
+          '</p>' +
+          (facts.length ? '<div class="pcard-facts">' + facts.map(function(f){
+            return '<div class="pcard-fact"><b>' + esc(f[1]) + '</b><span>' + f[0] + '</span></div>';
+          }).join('') + '</div>' : '') +
+          '<div class="pcard-acts"><a class="btn" href="app.html">Propose a time</a></div>' +
         '</div></div>';
     }).join('');
+  }
+
+  /* How many of your free windows they are also free in — the same number the
+     People page shows, so the two pages agree about the same pair. */
+  function overlap(theirs){
+    if (!myAvail.length || !theirs || !theirs.length) return 0;
+    var mine = {}, n = 0;
+    myAvail.forEach(function(sl){ mine[sl] = true; });
+    theirs.forEach(function(sl){ if (mine[sl]) n++; });
+    return n;
   }
 
   /* Real signup numbers, so waiting isn't a black box. */
@@ -139,6 +164,7 @@
   pf.currentUser().then(function(user){
     if (!user) return;
     pf.getProfile().then(function(profile){
+      myAvail = (profile && profile.availability) || [];
       loadQueue(profile && profile.topic);
       if (profile && profile.track_id) {
         track = profile.track_id;
