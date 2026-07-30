@@ -537,6 +537,8 @@ h1 .g{color:var(--p4)}
 .pstate.wait{background:#FFF6E8;border-color:#F0DCC2;color:#8A5A12}
 .pstate.no{color:var(--faint)}
 
+.slot-err{flex:1 0 100%;margin:8px 0 0;font-size:13px;color:#B4471F}
+
 /* ---------- proposed times ---------- */
 /* A proposal is not a booking, so it doesn't get the confident green card a
    confirmed session does — it sits quietly until somebody answers it. */

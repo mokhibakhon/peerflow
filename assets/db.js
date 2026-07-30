@@ -379,6 +379,14 @@ window.pf = (function(){
         }
         return fail(r.error, msg);
       }
+      /* The function returns how many rows it changed. Zero means it matched
+         nothing at all, which used to be reported as success and left both
+         sides looking however they already looked. */
+      if (r.data === 0) {
+        return fail(new Error('answer_session matched no rows'),
+          'That session has already been answered or removed. Refresh the page.');
+      }
+      try { if (r.data === 1) console.warn('PeerFlow: only one copy of the session moved.'); } catch(e){}
       return { saved: true };
     }).catch(function(e){ return fail(e, msg); });
   }
@@ -403,6 +411,11 @@ window.pf = (function(){
           }
           return fail(r.error, 'Could not cancel that. Please try again.');
         }
+        if (r.data === 0) {
+          return fail(new Error('drop_session matched no rows'),
+            'That session has already been cancelled. Refresh the page.');
+        }
+        try { if (r.data === 1) console.warn('PeerFlow: only one copy of the session was removed.'); } catch(e){}
         return { saved: true };
       }).catch(function(e){
         return fail(e, 'Could not cancel that \u2014 check your connection and try again.');
@@ -644,6 +657,20 @@ window.pf = (function(){
     joinWaitlist: joinWaitlist,
     getMatch: getMatch,
     fetchSessions: fetchSessions,
+    /* Console check when something has moved on one side and not the other:
+       pf.check().then(console.log) says which build is loaded and whether the
+       database functions it needs are actually there. */
+    check: function(){
+      var out = { rpcInCode: /rpc\(/.test(String(cancelSession)), connected: !!client };
+      if (!client) return Promise.resolve(out);
+      return client.rpc('drop_session', { p_starts_at: '1970-01-01T00:00:00Z', p_room: '__none__' })
+        .then(function(r){
+          out.dropSessionExists = !(r.error && (r.error.code === 'PGRST202' ||
+            /function .* does not exist/i.test(String(r.error.message || ''))));
+          out.detail = r.error ? (r.error.code || r.error.message) : 'callable';
+          return out;
+        }).catch(function(e){ out.dropSessionExists = false; out.detail = String(e); return out; });
+    },
     proposeSession: proposeSession,
     acceptSession: acceptSession,
     declineSession: declineSession,

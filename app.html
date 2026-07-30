@@ -263,11 +263,45 @@
       : (s.roomUrl && isOpen(s))
         ? '<a class="btn" href="' + esc(s.roomUrl) + '" target="_blank" rel="noopener">Join</a>'
         : '<span class="rel">' + esc(relative(s.startsAt)) + '</span>';
+    var key = ' data-at="' + esc(s.startsAt.toISOString()) + '" data-room="' + esc(s.roomUrl || '') + '"';
     return '<div class="slot">' +
       '<span class="when">' + esc(when(s.startsAt)) + '</span>' +
       '<span class="what">' + esc(label || 'Session') + '<span>' + s.durationMin + ' min</span></span>' +
-      right + '</div>';
+      right +
+      /* A booked session had no way out of it: Cancel only ever appeared on a
+         proposal you'd made, so once the other person accepted, neither of you
+         could call it off without editing the database by hand. */
+      (past ? '' : '<button class="small" data-cancel-booked' + key + '>Cancel</button>') +
+      '<p class="slot-err" hidden></p></div>';
   }
+
+  /* Ask once, same as the proposal cards — this takes the session off your
+     partner's calendar too. */
+  document.getElementById('upcoming').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-cancel-booked]');
+    if (!btn) {
+      Array.prototype.forEach.call(this.querySelectorAll('[data-armed="1"]'), function(b){
+        b.removeAttribute('data-armed'); b.classList.remove('danger'); b.textContent = 'Cancel';
+      });
+      return;
+    }
+    if (btn.getAttribute('data-armed') !== '1') {
+      btn.setAttribute('data-armed', '1');
+      btn.classList.add('danger');
+      btn.textContent = 'Sure? Cancel it';
+      return;
+    }
+    var row = btn.closest('.slot'), err = row.querySelector('.slot-err');
+    btn.disabled = true; btn.textContent = 'Cancelling…';
+    err.hidden = true;
+    pf.cancelSession(btn.getAttribute('data-at'), btn.getAttribute('data-room')).then(function(res){
+      if (res && res.saved) { window.location.reload(); return; }
+      btn.disabled = false; btn.textContent = 'Cancel';
+      btn.removeAttribute('data-armed'); btn.classList.remove('danger');
+      err.textContent = (res && res.error) || 'Could not cancel that — please try again.';
+      err.hidden = false;
+    });
+  });
 
   /* ---------- calendar ---------- */
   /* One cell per day for the last year, shaded by how long you sat that day.
