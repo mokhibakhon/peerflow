@@ -122,7 +122,7 @@
   function itemProposal(x){
     var who = esc(x.partnerName || 'Your partner');
     var turned = x.status === 'declined' || x.status === 'cancelled';
-    var verb = x.status === 'cancelled' ? 'called off '
+    var verb = x.status === 'cancelled' ? 'cancelled '
              : x.status === 'declined'  ? 'can’t do ' : 'proposed ';
     return '<div class="bell-item fresh">' +
       '<p><b>' + who + '</b> ' + verb + esc(whenLabel(x.startsAt)) + '</p>' +

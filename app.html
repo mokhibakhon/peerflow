@@ -546,7 +546,7 @@
         var who = esc(x.partnerName || 'your partner');
         var turned = x.status === 'declined' || x.status === 'cancelled';
         var head = x.status === 'cancelled'
-          ? '<b>' + who + '</b> called off <b>' + esc(propWhen(x.startsAt)) + '</b>'
+          ? '<b>' + who + '</b> cancelled <b>' + esc(propWhen(x.startsAt)) + '</b>'
           : x.status === 'declined'
             ? '<b>' + who + '</b> can\u2019t do <b>' + esc(propWhen(x.startsAt)) + '</b>'
             : x.mine
@@ -773,7 +773,7 @@
             return s.status === 'proposed' && s.startsAt.getTime() > now;
           });
           var waiting = pending.filter(function(s){ return !s.mine; })[0] || null;
-          /* A time of yours they turned down, or one they called off. Only
+          /* A time of yours they turned down, or one they cancelled. Only
              news to the person who didn't do it. */
           var turned = all.filter(function(s){
             if (s.startsAt.getTime() <= now) return false;
@@ -831,7 +831,7 @@
             hero({
               paired:true, partner: turned.partnerName || pname,
               h: '<span class="g">' + esc(turned.partnerName || pname || 'Your partner') +
-                 '</span> ' + (turned.status === 'cancelled' ? 'called off your session.'
+                 '</span> ' + (turned.status === 'cancelled' ? 'cancelled your session.'
                                                              : 'can’t make that time.'),
               s: (turned.status === 'cancelled' ? 'They cancelled ' : 'They turned down ') +
                  when(turned.startsAt) + '. Pick another and send it over.',
