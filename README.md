@@ -40,7 +40,8 @@ home-page waitlist. Everything degrades gracefully: if Supabase is unreachable
 (offline, file://, schema not created yet), pages fall back to a safe state
 rather than breaking.
 
-- `supabase/schema.sql` — paste into Supabase → SQL Editor → Run. Creates
+- `supabase/schema.sql` ([raw file](https://raw.githubusercontent.com/mokhibakhon/peerflow/main/supabase/schema.sql)) — the only schema file;
+  always use the version on `main`. Paste into Supabase → SQL Editor → Run. Creates
   tables (`tracks`, `profiles`, `waitlist`, `matches`), row-level security, and
   a signup trigger, and seeds the cybersecurity track.
 - `assets/supabase-config.js` — project URL + publishable key (public by

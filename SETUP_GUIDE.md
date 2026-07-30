@@ -122,8 +122,17 @@ alone; those are what point the domain at Vercel.
 Nothing below matters if the app itself is broken, and right now two features
 are waiting on this.
 
-1. **Supabase → SQL Editor → New query**
-2. Paste the whole of `supabase/schema.sql` and run it.
+There is one schema file and this is it — always the version on `main`:
+
+**https://raw.githubusercontent.com/mokhibakhon/peerflow/main/supabase/schema.sql**
+
+That link is the raw file, so it opens as plain text you can select all and
+copy. Don't work from an older copy saved anywhere else.
+
+1. Open the link above, select everything, copy.
+2. **Supabase → SQL Editor → New query**, paste, **Run**.
+3. Sanity check before you run it: the text you pasted should contain
+   `proposed_by`. If it doesn't, you have an old copy.
 
 Safe to re-run as many times as you like: every column is
 `add column if not exists`, and existing sessions default to `confirmed` so
