@@ -131,16 +131,15 @@
 
   function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
 
-  /* "3 blocks" is our word for it, not a reader's — what they want to know is
-     how often the two of you could actually sit down together. */
-  function howOften(n){
-    return n === 1 ? 'Once a week' : n + ' times a week';
-  }
+  /* "3 blocks" is our word for a cell in the availability grid, not a
+     reader's. The cell says the whole thing instead, so the column needs no
+     decoding: "3 times you're both free". */
+  function howMany(n){ return n === 1 ? '1 time' : n + ' times'; }
   function timesShort(p){
     if (!me.avail.length) return '';
     var n = overlap(p.availability);
-    return n ? '<span class="overlap ok">' + howOften(n) + '</span>'
-             : '<span class="overlap none">No overlap</span>';
+    return n ? '<span class="overlap ok">' + howMany(n) + ' you\u2019re both free</span>'
+             : '<span class="overlap none">No times in common</span>';
   }
 
   /* The top pick argues its case: the facts that made it the top pick sit on
@@ -156,7 +155,7 @@
     else if (why === 'path') facts.push(['Same path', pathLabel[p.track_id] || '']);
     else if (p.topic)        facts.push(['Learning', p.topic]);
     if (me.avail.length) {
-      facts.push(shared ? ['You could meet', howOften(shared)]
+      facts.push(shared ? ['You’re both free', howMany(shared)]
                         : ['Times you’re both free', 'None yet']);
     }
     if (levelLabel[p.level]) facts.push(['Stage', levelLabel[p.level]]);
@@ -215,7 +214,7 @@
     if (ranked.length) {
       html += '<div class="ptable' + (me.avail.length ? '' : ' no-times') + '">' +
         '<div class="pt-hd"><span>Person</span><span>Learning</span>' +
-        (me.avail.length ? '<span>Could meet</span>' : '') + '<span></span></div>' +
+        (me.avail.length ? '<span>Schedules</span>' : '') + '<span></span></div>' +
         ranked.map(tableRow).join('') +
       '</div>';
     }
