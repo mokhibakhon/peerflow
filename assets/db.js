@@ -154,8 +154,24 @@ window.pf = (function(){
     if (!client) return Promise.resolve({ demo: true });
     return client.auth.updateUser({ password: newPassword }).then(function(r){
       if (r.error) {
-        if (/password/i.test(String(r.error.message || '')))
-          return fail(r.error, 'That password is too short — use at least six characters.');
+        /* Matching on /password/ alone was wrong: nearly every failure here
+           mentions the word, so a fifteen-character password came back as
+           "too short". These are four different things to do about it, so
+           each gets its own sentence, and anything unrecognised says only
+           what it can stand behind. */
+        var m = String(r.error.message || '');
+        /* The character-requirements message reads "at least one character of
+           each", so it has to be tested before the length check or it comes
+           out as "too short" — which is how the last version of this got the
+           answer wrong. */
+        if (/should contain|character of each|requirement/i.test(m))
+          return fail(r.error, 'That password needs a mix of upper and lower case, a number and a symbol.');
+        if (/at least|too short|minimum|length/i.test(m))
+          return fail(r.error, 'Use at least eight characters.');
+        if (/should be different|same as the old|same_password/i.test(m))
+          return fail(r.error, 'That is the password you already have — pick a different one.');
+        if (/session|jwt|token|expired|not authenticated|missing/i.test(m))
+          return fail(r.error, 'Your reset link has expired. Ask for a new one and try again.');
         return fail(r.error, 'Could not change your password. Please try again.');
       }
       return { saved: true };
