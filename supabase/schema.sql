@@ -230,8 +230,10 @@ create policy "book with your partner"
     )
   );
 
--- Accepting flips both rows to 'confirmed', so it needs the same reach as
--- booking: your own row, or your accepted partner's copy of the same meeting.
+-- Answering and cancelling go through the functions below rather than
+-- straight UPDATE/DELETE, but the policies stay: they're what those functions
+-- would need if they ever ran as the caller, and what stops a hand-written
+-- request doing something the app wouldn't.
 create policy "answer a proposal"
   on public.sessions for update using (
     auth.uid() = user_id
@@ -262,6 +264,76 @@ create policy "cancel a session"
           or (r.to_user   = auth.uid() and r.from_user = sessions.user_id))
     )
   );
+
+-- ---------- answering a proposal touches both copies ----------
+-- A meeting is two rows, one per person, and answering has to move both. It
+-- can't be done from the browser: "read own sessions" limits SELECT to your
+-- own rows, and Postgres applies SELECT policies to UPDATE and DELETE as well,
+-- so a client-side update matched only the caller's copy and quietly left the
+-- partner's behind — an accepted session that was still 'proposed' for them,
+-- and a cancelled one that never left their calendar.
+--
+-- These run as the definer, so they see both rows. Each starts by checking the
+-- caller owns a copy of that exact meeting, which is the same permission the
+-- policies above describe.
+
+create or replace function public.answer_session(
+  p_starts_at timestamptz,
+  p_room      text,
+  p_status    text
+) returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  n integer;
+begin
+  if p_status not in ('confirmed', 'declined') then
+    raise exception 'bad status';
+  end if;
+  if not exists (
+    select 1 from public.sessions
+    where user_id = auth.uid() and starts_at = p_starts_at and room_url = p_room
+  ) then
+    raise exception 'no such session for this user';
+  end if;
+
+  update public.sessions
+     set status = p_status
+   where starts_at = p_starts_at and room_url = p_room;
+  get diagnostics n = row_count;
+  return n;
+end $$;
+
+create or replace function public.drop_session(
+  p_starts_at timestamptz,
+  p_room      text
+) returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  n integer;
+begin
+  if not exists (
+    select 1 from public.sessions
+    where user_id = auth.uid() and starts_at = p_starts_at and room_url = p_room
+  ) then
+    raise exception 'no such session for this user';
+  end if;
+
+  delete from public.sessions
+   where starts_at = p_starts_at and room_url = p_room;
+  get diagnostics n = row_count;
+  return n;
+end $$;
+
+revoke all on function public.answer_session(timestamptz, text, text) from public, anon;
+revoke all on function public.drop_session(timestamptz, text)          from public, anon;
+grant execute on function public.answer_session(timestamptz, text, text) to authenticated;
+grant execute on function public.drop_session(timestamptz, text)          to authenticated;
 
 -- Partner requests: visible to the two people involved, and only they can act.
 create policy "read own requests"

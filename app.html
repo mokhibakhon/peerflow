@@ -528,10 +528,42 @@
     });
   }
 
+  /* Cancelling and declining both take a time off somebody else's calendar,
+     and a single click is a thin thing to stand between a mis-tap and that.
+     The button asks once, in place — no dialog to dismiss, and clicking
+     anything else on the card backs out of it. */
+  function armed(btn){ return btn.getAttribute('data-armed') === '1'; }
+
+  function disarmAll(scope){
+    Array.prototype.forEach.call(scope.querySelectorAll('[data-armed="1"]'), function(b){
+      b.removeAttribute('data-armed');
+      b.classList.remove('danger');
+      b.textContent = b.getAttribute('data-label') || b.textContent;
+    });
+  }
+
+  function arm(btn, question){
+    disarmAll(btn.closest('.prop'));
+    btn.setAttribute('data-label', btn.textContent);
+    btn.setAttribute('data-armed', '1');
+    btn.classList.add('danger');
+    btn.textContent = question;
+  }
+
   document.getElementById('prop-list').addEventListener('click', function(e){
     var btn = e.target.closest('[data-accept],[data-drop],[data-swap],[data-no]');
-    if (!btn) return;
+    if (!btn) { disarmAll(this); return; }
     var box = btn.closest('.prop'), err = box.querySelector('.prop-err');
+
+    /* Dismissing a decline destroys nothing the other person can see, so it
+       goes straight through; the other two ask first. */
+    var destructive = (btn.hasAttribute('data-no')) ||
+                      (btn.hasAttribute('data-drop') && !box.classList.contains('turned'));
+    if (destructive && !armed(btn)) {
+      arm(btn, btn.hasAttribute('data-no') ? 'Sure? Turn it down' : 'Sure? Cancel it');
+      return;
+    }
+    disarmAll(box);
     var at = btn.getAttribute('data-at'), room = btn.getAttribute('data-room');
     var accept = btn.hasAttribute('data-accept');
     var swap   = btn.hasAttribute('data-swap');

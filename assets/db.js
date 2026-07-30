@@ -347,50 +347,52 @@ window.pf = (function(){
     });
   }
 
-  /* Accept a proposal: flip both copies of the meeting to 'confirmed'. Matched
-     on the shared start and room, the same pair of facts cancelling uses. */
+  /* Accepting, declining and cancelling all have to move BOTH copies of a
+     meeting, and none of them can do that from here. "read own sessions"
+     limits SELECT to your own rows, and Postgres applies SELECT policies to
+     UPDATE and DELETE as well — so a filtered update from the browser only
+     ever matched the caller's copy and left the partner's untouched. That is
+     why a cancelled session stayed on the other person's calendar.
+
+     The two functions below run in the database with the reach to see both
+     rows, and check the caller owns a copy before touching anything. */
+  function answer(startsAt, roomUrl, status, msg){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.rpc('answer_session', {
+      p_starts_at: startsAt, p_room: roomUrl, p_status: status
+    }).then(function(r){
+      if (r.error) {
+        if (r.error.code === 'PGRST202' || /function .* does not exist/i.test(String(r.error.message || ''))) {
+          return fail(r.error, 'This needs a database update that hasn\u2019t been applied yet.');
+        }
+        return fail(r.error, msg);
+      }
+      return { saved: true };
+    }).catch(function(e){ return fail(e, msg); });
+  }
+
   function acceptSession(startsAt, roomUrl){
-    if (!client) return Promise.resolve({ demo: true });
-    return client.from('sessions')
-      .update({ status: 'confirmed' })
-      .eq('starts_at', startsAt)
-      .eq('room_url', roomUrl)
-      .then(function(r){
-        return r.error ? fail(r.error, 'Could not accept that time. Please try again.')
-                       : { saved: true };
-      }).catch(function(e){
-        return fail(e, 'Could not accept that time \u2014 check your connection and try again.');
-      });
+    return answer(startsAt, roomUrl, 'confirmed', 'Could not accept that time. Please try again.');
   }
 
-  /* Turn a proposal down. Both copies stay, marked 'declined', so the person
-     who proposed the time finds out — deleting them, which is what this used
-     to do, made a decline indistinguishable from nothing ever happening.
-     They clear it themselves once they've seen it. */
   function declineSession(startsAt, roomUrl){
-    if (!client) return Promise.resolve({ demo: true });
-    return client.from('sessions')
-      .update({ status: 'declined' })
-      .eq('starts_at', startsAt)
-      .eq('room_url', roomUrl)
-      .then(function(r){
-        return r.error ? fail(r.error, 'Could not turn that down. Please try again.')
-                       : { saved: true };
-      }).catch(function(e){
-        return fail(e, 'Could not turn that down \u2014 check your connection and try again.');
-      });
+    return answer(startsAt, roomUrl, 'declined', 'Could not turn that down. Please try again.');
   }
 
-  /* Cancel a session for both people (matched on the shared start + room).
-     Also what clears a decline once it has been read. */
+  /* Removes both rows: the proposer cancelling their own, and clearing a
+     decline once it has been read. */
   function cancelSession(startsAt, roomUrl){
     if (!client) return Promise.resolve({ demo: true });
-    return client.from('sessions').delete()
-      .eq('starts_at', startsAt).eq('room_url', roomUrl)
+    return client.rpc('drop_session', { p_starts_at: startsAt, p_room: roomUrl })
       .then(function(r){
-        return r.error ? fail(r.error, 'Could not cancel that. Please try again.') : { saved: true };
-      })
-      .catch(function(e){
+        if (r.error) {
+          if (r.error.code === 'PGRST202' || /function .* does not exist/i.test(String(r.error.message || ''))) {
+            return fail(r.error, 'This needs a database update that hasn\u2019t been applied yet.');
+          }
+          return fail(r.error, 'Could not cancel that. Please try again.');
+        }
+        return { saved: true };
+      }).catch(function(e){
         return fail(e, 'Could not cancel that \u2014 check your connection and try again.');
       });
   }
