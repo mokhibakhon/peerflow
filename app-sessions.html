@@ -20,29 +20,23 @@
 <main>
   <div class="wrap">
     <div class="app-head">
-      <h1>My partner</h1>
+      <h1 id="page-h">My partner</h1>
     </div>
 
-    <div class="card next-card" style="max-width:640px">
-      <div class="when-big" id="match-status">FINDING YOUR PARTNER</div>
-      <h2 id="match-title">We're finding your partner</h2>
-      <p id="match-sub">Right now we do this by hand, so give us a day or two. You'll get an email when you're matched.</p>
+    <!-- No partner yet, or the profile isn't finished. -->
+    <div class="card next-card" id="none-card" hidden style="max-width:640px">
+      <div class="when-big" id="match-status">NO PARTNER YET</div>
+      <h2 id="match-title">You don't have a partner yet</h2>
+      <p id="match-sub"></p>
       <div class="row" id="match-find" hidden style="margin-top:16px">
         <a class="btn" href="app-people.html">Find someone</a>
       </div>
-      <div class="row" id="match-book" hidden style="margin-top:16px">
-        <a class="btn" href="app.html">Propose a time</a>
-      </div>
     </div>
 
-    <!-- Everyone else who has accepted you. -->
-    <div class="card b room" id="more-card" hidden style="max-width:640px;margin-top:24px">
-      <h3>Also partnered with you</h3>
-      <p style="font-size:14.5px;color:var(--muted);margin-bottom:6px">
-        You can book a time with any of them from Sessions.
-      </p>
-      <div id="more-list"></div>
-    </div>
+    <!-- One card each. Nobody is "the" partner: they're all people who said
+         yes, and promoting whichever came back first made two partners look
+         like one partner and a footnote. -->
+    <div id="partner-list" style="max-width:640px"></div>
 
     <!-- Real numbers from the database, so the wait isn't a black box. -->
     <div class="card" id="queue-card" style="max-width:640px;margin-top:24px">
@@ -65,11 +59,8 @@
 <script src="assets/authgate.js"></script>
 <script>
 (function(){
-  var name='', track='';
-  try {
-    name = localStorage.getItem('pf_name') || '';
-    track = localStorage.getItem('pf_track') || '';
-  } catch(err) {}
+  var track = '';
+  try { track = localStorage.getItem('pf_track') || ''; } catch(err) {}
 
   function esc(v){
     return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
@@ -77,69 +68,51 @@
     });
   }
 
-  /* Honest state: there's no automatic matching engine yet, so we never show a
-     fabricated partner. Nobody is pairing people by hand either — you ask
-     someone on the People page and they accept, so that's what this says. */
-  function render(t){
+  /* Honest state: nobody is pairing people by hand and there is no matching
+     engine — you ask someone on the People page and they accept. */
+  function renderNone(hasTrack){
+    document.getElementById('none-card').hidden = false;
     var status = document.getElementById('match-status');
     var title = document.getElementById('match-title');
     var sub = document.getElementById('match-sub');
-    if (t) {
+    if (hasTrack) {
       status.textContent = 'NO PARTNER YET';
-      title.textContent = 'You don’t have a partner yet';
+      title.textContent = 'You don\u2019t have a partner yet';
       sub.textContent = 'Ask someone on the People page. They get a notification and can say yes, ' +
-        'and booking opens up here as soon as one of you does.';
+        'and booking opens up on Sessions as soon as one of you does.';
       document.getElementById('match-find').hidden = false;
     } else {
       status.textContent = 'ALMOST THERE';
       title.textContent = 'Finish setting up first';
-      sub.textContent = 'Tell us what you’re learning so we can start finding your partner.';
+      sub.textContent = 'Tell us what you\u2019re learning so we can start finding your partner.';
     }
   }
-  render(track);
 
-  /* Who we're paired with, when it came from an accepted request. Booking
-     needs their user id, so a hand-arranged match can't use it. */
-  var partner = null;
-
-  function showMatched(m, p){
-    partner = p || null;
-    document.getElementById('match-find').hidden = true;
-    document.getElementById('match-status').textContent = 'YOUR PARTNER';
-    var title = m.partner_name || 'Your partner';
-    if (m.partner_topic) title += ' — learning ' + m.partner_topic;
-    document.getElementById('match-title').textContent = title;
-    document.getElementById('match-sub').textContent = m.partner_times ? 'Free: ' + m.partner_times : '';
-    /* No standing "start the call" button. The room is always technically
-       open, so a permanent link let either of you drop into an empty call at
-       any hour with nothing agreed. The link belongs to a booked session and
-       appears on Sessions fifteen minutes before it starts. */
-    document.getElementById('board-note').textContent =
-      'Propose a time on Sessions. The link to the call appears there fifteen ' +
-      'minutes before you start.';
-    /* Booking a time lives on Sessions now, so this page points at it rather
-       than carrying a second copy of the form. */
-    document.getElementById('match-book').hidden = !(partner && partner.id);
-  }
-
-  function showOthers(rest){
-    var card = document.getElementById('more-card');
-    if (!rest.length) { card.hidden = true; return; }
-    document.getElementById('more-list').innerHTML = rest.map(function(x){
-      var nm = esc(x.profile.name || 'Someone');
-      var sub = [x.profile.topic ? 'learning ' + x.profile.topic : '',
-                 levelLabel(x.profile.level)].filter(Boolean).join(' \u00b7 ');
-      return '<div class="r">' +
-        '<span class="a" style="background:var(--p0);color:var(--p6)">' +
-          esc((x.profile.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
-        '<div class="b2"><p class="nm">' + nm + '</p>' +
-        (sub ? '<p class="s">' + esc(sub) + '</p>' : '') + '</div></div>';
-    }).join('');
-    card.hidden = false;
-  }
   function levelLabel(v){
     return { new:'Just starting', tutorials:'Doing tutorials',
              jobprep:'Job-hunt prep', builder:'Builds projects' }[v] || '';
+  }
+
+  function renderPartners(list){
+    document.getElementById('none-card').hidden = true;
+    document.getElementById('page-h').textContent =
+      list.length > 1 ? 'My partners' : 'My partner';
+    document.getElementById('board-note').textContent =
+      'Propose a time on Sessions. The link to the call appears there fifteen ' +
+      'minutes before you start.';
+    document.getElementById('partner-list').innerHTML = list.map(function(x){
+      var pr = x.profile || {};
+      var nm = esc(pr.name || 'Someone');
+      var meta = [pr.topic ? 'learning ' + pr.topic : '', levelLabel(pr.level), pr.timezone || '']
+                   .filter(Boolean).join(' \u00b7 ');
+      return '<div class="card next-card" style="margin-bottom:16px">' +
+        '<div class="when-big">YOUR PARTNER</div>' +
+        '<h2>' + nm + '</h2>' +
+        (meta ? '<p>' + esc(meta) + '</p>' : '') +
+        '<div class="row" style="margin-top:16px">' +
+          '<a class="btn" href="app.html">Propose a time</a>' +
+        '</div></div>';
+    }).join('');
   }
 
   /* Real signup numbers, so waiting isn't a black box. */
@@ -166,41 +139,14 @@
   pf.currentUser().then(function(user){
     if (!user) return;
     pf.getProfile().then(function(profile){
-      /* The partner's row is stamped with our name, and pf_name is empty on a
-         fresh device — take it from the profile whenever we have one. */
-      if (profile && profile.name) name = profile.name;
-      myAvail = (profile && profile.availability) || [];
       loadQueue(profile && profile.topic);
       if (profile && profile.track_id) {
         track = profile.track_id;
         try { localStorage.setItem('pf_track', track); } catch(e){}
-        render(track);
       }
-      /* A partner you agreed with through a request wins over the waiting
-         state; a hand-arranged match still works as a fallback. */
       pf.acceptedPartners().then(function(list){
-        if (list && list.length) {
-          var first = list[0];
-          showMatched({
-            partner_name: first.profile.name,
-            partner_topic: first.profile.topic,
-            partner_times: '',
-            room_url: first.roomUrl
-          }, {
-            id: first.profile.id,
-            name: first.profile.name,
-            topic: first.profile.topic,
-            availability: first.profile.availability || [],
-            roomUrl: first.roomUrl,
-            requestId: first.requestId
-          });
-          /* Nothing stops two people accepting you, and this page used to
-             show list[0] and drop the rest — so a real partner existed in
-             the database and appeared nowhere. */
-          showOthers(list.slice(1));
-          return;
-        }
-        pf.getMatch().then(function(m){ if (m) showMatched(m); });
+        if (list && list.length) { renderPartners(list); return; }
+        renderNone(!!track);
       });
     });
   });
