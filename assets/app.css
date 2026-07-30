@@ -193,7 +193,11 @@ h1 .g{color:var(--p4)}
 .slot{display:flex;align-items:center;gap:14px;padding:12px 0;
   border-top:1px dashed var(--line);flex-wrap:wrap}
 .slot:first-child{border-top:0}
-.slot .when{font-family:var(--mono);font-size:12.5px;color:var(--ink);width:150px;flex:0 0 auto}
+/* Wide enough for "Mon, Aug 3, 06:40 PM" on one line — at 150px every
+   booked row wrapped its own date. */
+.slot .when{font-family:var(--mono);font-size:12.5px;color:var(--ink);
+  width:190px;flex:0 0 auto}
+@media (max-width:600px){ .slot .when{width:auto;flex:1 1 100%} }
 .slot .what{flex:1;min-width:140px;font-size:14.5px}
 .slot .what span{display:block;font-size:12.5px;color:var(--faint)}
 .slot .rel{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
@@ -538,6 +542,11 @@ h1 .g{color:var(--p4)}
 .pstate.no{color:var(--faint)}
 
 .slot-err{flex:1 0 100%;margin:8px 0 0;font-size:13px;color:#B4471F}
+
+/* Labels inside a card, for a list that has more than one kind of thing in
+   it. Quieter than a second card heading, which is what these used to be. */
+.sub-h{margin:18px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+.sub-h:first-of-type{margin-top:2px;padding-top:0;border-top:0}
 
 /* ---------- partner cards ---------- */
 /* A green spine down the side so a partner reads as a person rather than

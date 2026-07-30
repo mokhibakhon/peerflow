@@ -100,23 +100,27 @@
     </section>
 
     <!-- ============ sessions ============ -->
-    <section class="b" id="sess-card">
+    <!-- One card, not two. A time waiting on an answer and a time already
+         agreed are the same thing at different stages, and splitting them
+         across two cards made the page look busier than it is. Full width,
+         because at half the rows wrapped onto three lines each. -->
+    <section class="b wide" id="sess-card">
       <div class="bh">
         <span class="gl" style="background:var(--p0)">
           <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><rect x="6" y="11" width="4" height="4" rx="1" fill="#0F6E56"/><path d="M7 2v3M15 2v3" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
         </span>
-        <div><span class="mono" style="color:var(--p6)">Booked</span><h2 id="sess-h">Coming up</h2></div>
+        <div><span class="mono" style="color:var(--p6)">Your time</span><h2 id="sess-h">Sessions</h2></div>
       </div>
-      <div id="upcoming"></div>
-      <div class="empty" id="sess-empty" hidden>
-        <p>Nothing booked. Propose a time to your partner and it lands here, with a link to the call, as soon as they accept.</p>
-      </div>
-    </section>
 
-    <!-- Proposed times waiting on one of you. -->
-    <section class="b wide" id="prop-card" hidden>
-      <div class="bh"><span class="gl" style="background:#FFF3E2"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="none" stroke="#B77A1B" stroke-width="2"/><path d="M11 6.4V11l3.2 1.9" stroke="#B77A1B" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:#8A5A12">Waiting</span><h2>Proposed times</h2></div></div>
+      <p class="mono sub-h" id="prop-h" hidden>Waiting on an answer</p>
       <div id="prop-list"></div>
+
+      <p class="mono sub-h" id="up-h" hidden>Booked</p>
+      <div id="upcoming"></div>
+
+      <div class="empty" id="sess-empty" hidden>
+        <p>Nothing booked. Propose a time below and it lands here, with a link to the call, as soon as your partner accepts.</p>
+      </div>
     </section>
 
     <!-- Proposing, shown once you actually have a partner. -->
@@ -446,8 +450,8 @@
 
   function renderProposals(list){
     return Promise.resolve().then(function(){
-      var card = document.getElementById('prop-card');
-      if (!list) { card.hidden = true; return; }
+      var head = document.getElementById('prop-h');
+      if (!list) { head.hidden = true; return; }
       var now = Date.now();
       var open = list.filter(function(x){
         if (x.startsAt.getTime() <= now) return false;
@@ -462,7 +466,7 @@
       /* Empty the list as well as hiding it, so nothing answered is left
          sitting in the DOM waiting to reappear. */
       if (!open.length) {
-        card.hidden = true;
+        head.hidden = true;
         document.getElementById('prop-list').innerHTML = '';
         return;
       }
@@ -494,7 +498,7 @@
           (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
           '<div class="prop-acts">' + acts + '</div><p class="prop-err" hidden></p></div>';
       }).join('');
-      card.hidden = false;
+      head.hidden = false;
     });
   }
 
@@ -803,9 +807,11 @@
 
           if (upcoming.length){
             $('upcoming').innerHTML = upcoming.map(function(s){ return slot(s, false); }).join('');
-          } else {
-            $('sess-empty').hidden = false;
+            $('up-h').hidden = false;
           }
+          /* The empty line belongs to the whole card: a proposal on the page
+             means it isn't empty, even with nothing booked. */
+          $('sess-empty').hidden = !!(upcoming.length || pending.length || turned);
 
           showSteps(profile, !!partner, sessions.length);   /* confirmed only */
         });
