@@ -102,3 +102,103 @@ Makes "Continue with Google" real. Needs step 2 finished first.
 | Google/GitHub Client secret | ❌ never | Supabase Providers page only |
 | Registrar/domain login | ❌ never | your password manager |
 | Vercel tokens | ❌ not needed | GitHub connection replaces them |
+
+---
+
+# Email — do these in order
+
+Everything stays on Vercel. No Cloudflare, no nameserver move, nothing to pay
+for. Two services: **ImprovMX** receives mail sent to `hello@peerflow.dev`,
+**Resend** sends password resets to your users. About 35 minutes total.
+
+## 1. Re-run the database schema (5 min) — do this first
+
+Nothing below matters if the app itself is broken, and right now two features
+are waiting on this.
+
+1. **Supabase → SQL Editor → New query**
+2. Paste the whole of `supabase/schema.sql` and run it.
+
+Safe to re-run as many times as you like: every column is
+`add column if not exists`, and existing sessions default to `confirmed` so
+nothing already booked disappears.
+
+This adds `first_name`/`last_name` to profiles, and `status`/`proposed_by`/
+`note` to sessions — the columns propose-and-accept needs.
+
+## 2. ImprovMX, so `hello@peerflow.dev` stops bouncing (10 min)
+
+Six places on the site tell people to write to that address, including the
+password-reset fallback on the login page. All of them currently bounce.
+
+1. **improvmx.com** → enter `peerflow.dev` and the Gmail address you want mail
+   forwarded to.
+2. It shows you two **MX records**. Add both in
+   **Vercel → your project → Settings → Domains → peerflow.dev → DNS**.
+   Priorities matter — copy them exactly as shown.
+3. ImprovMX may also offer an SPF record. **Read step 4 before adding it.**
+4. Send yourself a test from any other address. It should land in your Gmail
+   within a minute.
+
+Forwarding is one-way: replies from Gmail go out as your Gmail address. Fine
+for now. Buy a real mailbox when someone actually writes in.
+
+## 3. Resend, so password reset works (15 min)
+
+1. **resend.com** → sign up → **Domains → Add Domain** → `peerflow.dev`.
+   If it offers to set things up on a subdomain like `send.peerflow.dev`,
+   take it — it keeps Resend's records from colliding with ImprovMX's.
+2. It gives you DNS records. Add them in the same Vercel DNS panel.
+   Wait for Resend to show the domain as **Verified** before continuing.
+3. **API Keys → Create**, permission *Sending access*. Copy it now — it is
+   shown once.
+4. **Supabase → Authentication → Emails → SMTP Settings** → enable custom
+   SMTP:
+   - Host `smtp.resend.com`
+   - Port `587`
+   - Username `resend` (literally that word, not your email)
+   - Password: the API key
+   - Sender email `hello@peerflow.dev`
+   - Sender name `PeerFlow`
+
+### The one thing that trips people up
+
+**A domain can only have one SPF record.** If both ImprovMX and Resend want
+one at the root, do not add two — merge them into a single TXT record:
+
+```
+v=spf1 include:spf.improvmx.com include:_spf.resend.com ~all
+```
+
+Two SPF records is worse than none: receiving servers treat it as an error and
+your mail goes to spam. Using Resend's subdomain option in step 3.1 avoids the
+clash entirely, which is why it's worth taking.
+
+## 4. DMARC (2 min)
+
+Without this, anyone can send email that looks like it came from PeerFlow.
+Add one TXT record in Vercel DNS:
+
+- Name: `_dmarc`
+- Value: `v=DMARC1; p=none; rua=mailto:hello@peerflow.dev`
+
+`p=none` means "watch, don't block" — you'll get reports without risking your
+own mail. Once your real email has been passing for a couple of weeks, change
+`p=none` to `p=quarantine`.
+
+## 5. Check it actually works
+
+1. Click **Forgot password** on your own login page with a real address.
+2. If nothing arrives, open **Resend → Logs** first. It tells you whether the
+   message left, bounced or was rejected — which says immediately whether the
+   problem is Supabase or DNS.
+3. Check the spam folder too. If it landed there, SPF/DKIM/DMARC aren't all
+   passing yet.
+
+## What this does not do
+
+Supabase only sends **auth** email — confirmations, password resets, magic
+links. It will not tell someone "Aziza proposed Tuesday evening." Right now a
+proposal only reaches your partner when they open the app. Sending that needs
+a Supabase Edge Function calling Resend when a session row is inserted — a
+separate piece of work, worth doing once this is up and working.
