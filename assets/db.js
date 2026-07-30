@@ -104,6 +104,23 @@ window.pf = (function(){
     }).catch(function(err){ return fail(err, 'Could not start that sign-in. Please try again.'); });
   }
 
+  /* The signed-in user's id, for filtering queries.
+
+     This used to be client.auth.getUser(), which sends a request to the auth
+     endpoint every time it's called — and it was called eight times across
+     the data layer, chained one after another, so a dashboard load spent
+     several serial round trips just re-asking who you are. getSession() reads
+     the stored token locally and refreshes it only when it has expired. The
+     server still decides what you may read: RLS runs off the JWT, not off
+     anything answered here. */
+  function currentUid(){
+    if (!client) return Promise.resolve(null);
+    return client.auth.getSession().then(function(res){
+      var s = res.data && res.data.session;
+      return (s && s.user && s.user.id) || null;
+    }).catch(function(){ return null; });
+  }
+
   /* Current signed-in user (after an OAuth redirect, the session is in the URL
      and supabase-js stores it automatically). Resolves null when signed out. */
   function currentUser(){
@@ -192,8 +209,7 @@ window.pf = (function(){
      request into "you never signed up". Every use is falsy-safe either way. */
   function getProfile(){
     if (!client) return Promise.resolve(null);
-    return client.auth.getUser().then(function(res){
-      var user = res.data && res.data.user;
+    return currentUser().then(function(user){
       if (!user) return null;
       return client.from('profiles').select('*').eq('id', user.id).maybeSingle()
         .then(function(r){ return r.error ? false : (r.data || null); });
@@ -205,8 +221,7 @@ window.pf = (function(){
      (level, goal, detailed availability). Same columns either way. */
   function saveProfile(profile){
     if (!client) return Promise.resolve({ demo: true });
-    return client.auth.getUser().then(function(res){
-      var user = res.data && res.data.user;
+    return currentUser().then(function(user){
       if (!user) return { demo: true };            // not signed in (e.g. awaiting email confirm)
       var row = { id: user.id };
       if ('name' in profile)         row.name = profile.name || '';
@@ -270,8 +285,7 @@ window.pf = (function(){
      pointing at the other, and both rows share the same room_url. */
   function getMatch(){
     if (!client) return Promise.resolve(null);
-    return client.auth.getUser().then(function(res){
-      var uid = res.data && res.data.user && res.data.user.id;
+    return currentUid().then(function(uid){
       if (!uid) return null;
       return client.from('matches')
         .select('partner_name,partner_topic,partner_times,room_url')
@@ -286,8 +300,7 @@ window.pf = (function(){
      created when two partners agree a time; nothing is generated. */
   function fetchSessions(){
     if (!client) return Promise.resolve(null);
-    return client.auth.getUser().then(function(res){
-      var uid = res.data && res.data.user && res.data.user.id;
+    return currentUid().then(function(uid){
       if (!uid) return null;
       return client.from('sessions')
         .select('id,partner_name,topic,starts_at,duration_min,room_url,status,proposed_by,note')
@@ -322,8 +335,7 @@ window.pf = (function(){
      as a real session until the other person accepts. */
   function proposeSession(opts){
     if (!client) return Promise.resolve({ demo: true });
-    return client.auth.getUser().then(function(res){
-      var me = res.data && res.data.user;
+    return currentUser().then(function(me){
       if (!me) return { demo: true };
       var myName = opts.myName || (me.email || '').split('@')[0];
       var room = opts.roomUrl || ('https://meet.jit.si/PeerFlow-' + (opts.pairId || me.id));
@@ -402,8 +414,7 @@ window.pf = (function(){
   /* Ask someone to be your learning partner. */
   function sendPartnerRequest(toUserId, message){
     if (!client) return Promise.resolve({ demo: true });
-    return client.auth.getUser().then(function(res){
-      var uid = res.data && res.data.user && res.data.user.id;
+    return currentUid().then(function(uid){
       if (!uid) return { demo: true };
       if (uid === toUserId) return { error: 'You can’t send a request to yourself.' };
       return client.from('partner_requests')
@@ -425,8 +436,7 @@ window.pf = (function(){
      profile attached. Returns { incoming: [], outgoing: [], me: uid }. */
   function myRequests(){
     if (!client) return Promise.resolve(null);
-    return client.auth.getUser().then(function(res){
-      var uid = res.data && res.data.user && res.data.user.id;
+    return currentUid().then(function(uid){
       if (!uid) return null;
       return client.from('partner_requests')
         .select('id,from_user,to_user,message,status,to_seen_at,from_seen_at,created_at')
@@ -565,8 +575,7 @@ window.pf = (function(){
      an empty list means the site genuinely has no one else yet. */
   function fetchPeers(limit){
     if (!client) return Promise.resolve(null);
-    return client.auth.getUser().then(function(res){
-      var uid = res.data && res.data.user && res.data.user.id;
+    return currentUid().then(function(uid){
       var q = client.from('profiles')
         .select('id,name,track_id,topic,level,timezone,created_at,availability')
         /* Signing in with Google creates the row before any question is

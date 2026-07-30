@@ -116,8 +116,8 @@
       ', ' + d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
   }
 
-  /* Answering happens on the Partner page, where you can see the alternative
-     times as well — the bell's job is to tell you it's waiting. */
+  /* Answering happens on Sessions, next to the form for a counter-offer —
+     the bell's job is only to tell you it's waiting. */
   function itemProposal(x){
     var who = esc(x.partnerName || 'Your partner');
     var turned = x.status === 'declined';
@@ -126,7 +126,8 @@
       esc(whenLabel(x.startsAt)) + '</p>' +
       (x.note ? '<p class="bell-msg">“' + esc(x.note) + '”</p>' : '') +
       '<p class="bell-time">' + x.durationMin + ' minutes</p>' +
-      '<div class="bell-actions"><a class="btn primary" href="app-sessions.html">' +
+      /* Sessions, not Partner: answering moved with the rest of scheduling. */
+      '<div class="bell-actions"><a class="btn primary" href="app.html">' +
         (turned ? 'Pick another time' : 'Answer it') + '</a></div>' +
       '</div>';
   }
