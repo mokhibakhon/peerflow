@@ -30,12 +30,23 @@
       </div>
     </div>
 
-    <!-- Booking, shown once you actually have a partner. -->
+    <!-- Proposed times waiting on one of you. -->
+    <div class="card" id="prop-card" hidden style="max-width:640px;margin-top:24px">
+      <h3>Proposed times</h3>
+      <div id="prop-list"></div>
+    </div>
+
+    <!-- Proposing, shown once you actually have a partner. -->
     <div class="card" id="book-card" hidden style="max-width:640px;margin-top:24px">
-      <h3>Book a session</h3>
+      <h3>Propose a time</h3>
       <p style="font-size:14.5px;color:var(--muted);margin-bottom:16px">
-        Pick a time you've both agreed on. It shows up on both your Sessions pages with the same call link.
+        Nothing is booked until your partner accepts. They see it in their notifications
+        and can say yes or suggest something else.
       </p>
+      <div id="bk-slots-wrap" hidden style="margin-bottom:18px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Times you're both free</label>
+        <div class="chips" id="bk-slots"></div>
+      </div>
       <div class="book-row">
         <div class="field" style="margin:0">
           <label for="bk-date">Date</label>
@@ -54,8 +65,13 @@
           </select>
         </div>
       </div>
+      <p class="bk-warn" id="bk-warn" hidden></p>
+      <div class="field" style="margin:18px 0 0">
+        <label for="bk-msg">Note <span class="hint">(optional)</span></label>
+        <input id="bk-msg" type="text" maxlength="140" placeholder="What you'd like to work on">
+      </div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
-        <button class="btn primary" id="bk-save">Book it</button>
+        <button class="btn primary" id="bk-save">Propose this time</button>
         <span id="bk-note" style="font-size:13.5px;color:var(--muted)"></span>
       </div>
     </div>
@@ -86,6 +102,12 @@
     name = localStorage.getItem('pf_name') || '';
     track = localStorage.getItem('pf_track') || '';
   } catch(err) {}
+
+  function esc(v){
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
 
   /* Honest state: there's no automatic matching engine yet, so we never show a
      fabricated partner. Nobody is pairing people by hand either — you ask
@@ -127,45 +149,199 @@
       'First time? Say hi, tell them what you’re stuck on, and agree when you’re meeting next.';
     if (partner && partner.id) {
       document.getElementById('book-card').hidden = false;
-      var d = new Date(Date.now() + 86400000);   // default to tomorrow
-      document.getElementById('bk-date').value =
-        d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      /* Default to the soonest window you're both free in; tomorrow only when
+         there isn't one, so the form never opens on a time they can't make. */
+      var list = shared();
+      var first = list.map(nextWhen).filter(Boolean).sort(function(a, b){ return a - b; })[0];
+      fillWhen(first || new Date(Date.now() + 86400000));
+      paintSlots();
+      checkWhen();
     }
   }
 
-  /* ----- booking ----- */
+  /* ----- free times, shared -----
+     The availability grid is four bands a day, not clock times, so a window
+     can't be booked as-is. Picking one fills the date and time with the next
+     time that band comes round; you can still move either. Without it the
+     form was an empty date picker and a guess at whether your partner is
+     even awake then. */
+  var DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
+  var DAY_LABEL = { sun:'Sun', mon:'Mon', tue:'Tue', wed:'Wed', thu:'Thu', fri:'Fri', sat:'Sat' };
+  var BAND_START = { morning:6, afternoon:12, evening:17, night:22 };
+  var myAvail = [];
+
+  function nextWhen(slot){
+    var parts = slot.split('-');
+    var day = DAYS.indexOf(parts[0]), hour = BAND_START[parts[1]];
+    if (day < 0 || hour == null) return null;
+    var d = new Date();
+    d.setHours(hour, 0, 0, 0);
+    d.setDate(d.getDate() + ((day - d.getDay() + 7) % 7));
+    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 7);
+    return d;
+  }
+
+  /* Which band a chosen date and time lands in. Night runs 22:00 to 02:00,
+     so the small hours belong to the night before. */
+  function slotOf(d){
+    var day = d.getDay(), h = d.getHours();
+    if (h < 6) return DAYS[(day + 6) % 7] + '-night';
+    return DAYS[day] + '-' + (h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'night');
+  }
+
+  function pad(n){ return String(n).padStart(2, '0'); }
+  function fillWhen(d){
+    document.getElementById('bk-date').value =
+      d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    document.getElementById('bk-time').value = pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function chosen(){
+    var date = document.getElementById('bk-date').value;
+    var time = document.getElementById('bk-time').value;
+    if (!date || !time) return null;
+    var d = new Date(date + 'T' + time);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function shared(){
+    var theirs = (partner && partner.availability) || [];
+    if (!myAvail.length || !theirs.length) return [];
+    var mine = {};
+    myAvail.forEach(function(x){ mine[x] = true; });
+    return theirs.filter(function(x){ return mine[x]; });
+  }
+
+  function paintSlots(){
+    var list = shared(), wrap = document.getElementById('bk-slots-wrap');
+    if (!list.length) { wrap.hidden = true; return; }
+    var dated = list.map(function(sl){ return { slot: sl, when: nextWhen(sl) }; })
+                    .filter(function(x){ return x.when; })
+                    .sort(function(a, b){ return a.when - b.when; });
+    document.getElementById('bk-slots').innerHTML = dated.map(function(x){
+      var parts = x.slot.split('-');
+      return '<button type="button" class="chip" data-slot="' + esc(x.slot) + '">' +
+        DAY_LABEL[parts[0]] + ' ' + parts[1] + '</button>';
+    }).join('');
+    wrap.hidden = false;
+  }
+
+  document.getElementById('bk-slots').addEventListener('click', function(e){
+    var c = e.target.closest('[data-slot]');
+    if (!c) return;
+    Array.prototype.forEach.call(this.querySelectorAll('.chip'), function(x){ x.classList.remove('on'); });
+    c.classList.add('on');
+    var d = nextWhen(c.getAttribute('data-slot'));
+    if (d) { fillWhen(d); checkWhen(); }
+  });
+
+  /* A time outside every shared window isn't wrong \u2014 people can make an
+     exception \u2014 so this is a note rather than a block. */
+  function checkWhen(){
+    var warn = document.getElementById('bk-warn');
+    var d = chosen(), list = shared();
+    if (!d || !list.length) { warn.hidden = true; return; }
+    var ok = list.indexOf(slotOf(d)) >= 0;
+    warn.hidden = ok;
+    if (!ok) warn.textContent = (partner && partner.name ? partner.name : 'Your partner') +
+      ' hasn\u2019t said they\u2019re free then. You can still propose it.';
+  }
+  document.getElementById('bk-date').addEventListener('change', checkWhen);
+  document.getElementById('bk-time').addEventListener('change', checkWhen);
+
+  /* ----- proposing -----
+     Nothing reaches either calendar as a real session here. Both rows go in
+     as 'proposed'; the other person turns them into a booking. */
   document.getElementById('bk-save').addEventListener('click', function(){
     var note = document.getElementById('bk-note');
     note.style.color = '#c0392b';
     if (!partner || !partner.id) { note.textContent = 'You need a partner first.'; return; }
-    var date = document.getElementById('bk-date').value;
-    var time = document.getElementById('bk-time').value;
-    if (!date || !time) { note.textContent = 'Pick a date and a time.'; return; }
-    var when = new Date(date + 'T' + time);
-    if (isNaN(when.getTime())) { note.textContent = 'That date and time didn’t parse.'; return; }
-    if (when.getTime() < Date.now()) { note.textContent = 'That’s in the past — pick a future time.'; return; }
+    var w = chosen();
+    if (!w) { note.textContent = 'Pick a date and a time.'; return; }
+    if (w.getTime() < Date.now()) { note.textContent = 'That\u2019s in the past \u2014 pick a future time.'; return; }
 
     var btn = this;
-    btn.disabled = true; btn.textContent = 'Booking…';
+    btn.disabled = true; btn.textContent = 'Sending\u2026';
     note.textContent = '';
-    pf.bookSession({
+    pf.proposeSession({
       partnerId: partner.id,
       partnerName: partner.name,
       myName: name,
       topic: partner.topic || '',
-      startsAt: when.toISOString(),
+      startsAt: w.toISOString(),
       durationMin: parseInt(document.getElementById('bk-len').value, 10) || 50,
+      note: document.getElementById('bk-msg').value.trim(),
       roomUrl: partner.roomUrl,
       pairId: partner.requestId
     }).then(function(res){
-      btn.disabled = false; btn.textContent = 'Book it';
+      btn.disabled = false; btn.textContent = 'Propose this time';
       if (res && res.saved) {
         note.style.color = 'var(--green-dark)';
-        note.textContent = 'Booked — taking you to your sessions…';
-        setTimeout(function(){ window.location.href = 'app.html'; }, 800);
+        note.textContent = 'Sent \u2014 waiting on ' + (partner.name || 'your partner') + '.';
+        document.getElementById('bk-msg').value = '';
+        loadProposals();
       } else {
-        note.textContent = (res && res.error) || 'Could not book that — please try again.';
+        note.textContent = (res && res.error) ||
+          (res && res.demo ? 'You need to be signed in to propose a time.'
+                           : 'Could not send that \u2014 please try again.');
       }
+    });
+  });
+
+  /* ----- proposals waiting on one of you ----- */
+  function whenLabel(d){
+    return d.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' }) +
+      ', ' + d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function loadProposals(){
+    return pf.fetchSessions().then(function(list){
+      var card = document.getElementById('prop-card');
+      if (!list) { card.hidden = true; return; }
+      var now = Date.now();
+      var open = list.filter(function(x){
+        return x.status === 'proposed' && x.startsAt.getTime() > now;
+      });
+      if (!open.length) { card.hidden = true; return; }
+
+      document.getElementById('prop-list').innerHTML = open.map(function(x){
+        var who = esc(x.partnerName || 'your partner');
+        var head = x.mine
+          ? 'You proposed <b>' + esc(whenLabel(x.startsAt)) + '</b>'
+          : '<b>' + who + '</b> proposed <b>' + esc(whenLabel(x.startsAt)) + '</b>';
+        var key = ' data-at="' + esc(x.startsAt.toISOString()) + '" data-room="' + esc(x.roomUrl || '') + '"';
+        return '<div class="prop">' +
+          '<p class="prop-h">' + head + '</p>' +
+          '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') + '</p>' +
+          (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
+          '<div class="prop-acts">' + (x.mine
+            ? '<span class="prop-wait">Waiting on ' + who + '</span>' +
+              '<button class="small" data-drop' + key + '>Cancel</button>'
+            : '<button class="btn" data-accept' + key + '>Accept</button>' +
+              '<button class="small" data-drop' + key + '>Decline</button>') +
+          '</div><p class="prop-err" hidden></p></div>';
+      }).join('');
+      card.hidden = false;
+    });
+  }
+
+  document.getElementById('prop-list').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-accept],[data-drop]');
+    if (!btn) return;
+    var box = btn.closest('.prop'), err = box.querySelector('.prop-err');
+    var at = btn.getAttribute('data-at'), room = btn.getAttribute('data-room');
+    var accept = btn.hasAttribute('data-accept');
+    Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = true; });
+    err.hidden = true;
+    (accept ? pf.acceptSession(at, room) : pf.cancelSession(at, room)).then(function(res){
+      if (res && res.saved) {
+        if (accept) { window.location.href = 'app.html'; return; }
+        loadProposals();
+        return;
+      }
+      Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = false; });
+      err.textContent = (res && res.error) || 'That didn\u2019t go through \u2014 please try again.';
+      err.hidden = false;
     });
   });
 
@@ -196,6 +372,7 @@
       /* The partner's row is stamped with our name, and pf_name is empty on a
          fresh device — take it from the profile whenever we have one. */
       if (profile && profile.name) name = profile.name;
+      myAvail = (profile && profile.availability) || [];
       loadQueue(profile && profile.topic);
       if (profile && profile.track_id) {
         track = profile.track_id;
@@ -216,9 +393,11 @@
             id: p.profile.id,
             name: p.profile.name,
             topic: p.profile.topic,
+            availability: p.profile.availability || [],
             roomUrl: p.roomUrl,
             requestId: p.requestId
           });
+          loadProposals();
           return;
         }
         pf.getMatch().then(function(m){ if (m) showMatched(m); });

@@ -228,7 +228,7 @@ window.pf = (function(){
       var uid = res.data && res.data.user && res.data.user.id;
       if (!uid) return null;
       return client.from('sessions')
-        .select('id,partner_name,topic,starts_at,duration_min,room_url')
+        .select('id,partner_name,topic,starts_at,duration_min,room_url,status,proposed_by,note')
         .eq('user_id', uid)
         .order('starts_at', { ascending: true })
         .then(function(r){
@@ -240,42 +240,67 @@ window.pf = (function(){
               topic: s.topic,
               startsAt: new Date(s.starts_at),
               durationMin: s.duration_min || 50,
-              roomUrl: s.room_url
+              roomUrl: s.room_url,
+              /* Rows written before proposals existed have no status; they
+                 were already agreed, so they count as confirmed. */
+              status: s.status || 'confirmed',
+              proposedBy: s.proposed_by,
+              note: s.note,
+              mine: s.proposed_by === uid
             };
           });
         });
     }).catch(function(){ return null; });
   }
 
-  /* Book a session with a partner. Writes one row for each of you, sharing a
-     start time and room, so both see it on their own Sessions page. */
-  function bookSession(opts){
+  /* Propose a time to your partner. Writes one row for each of you, sharing a
+     start time and room, both 'proposed' — nothing lands on either calendar
+     as a real session until the other person accepts. */
+  function proposeSession(opts){
     if (!client) return Promise.resolve({ demo: true });
     return client.auth.getUser().then(function(res){
       var me = res.data && res.data.user;
       if (!me) return { demo: true };
       var myName = opts.myName || (me.email || '').split('@')[0];
       var room = opts.roomUrl || ('https://meet.jit.si/PeerFlow-' + (opts.pairId || me.id));
-      var rows = [
-        { user_id: me.id,             partner_name: opts.partnerName || null,
-          topic: opts.topic || null,  starts_at: opts.startsAt,
-          duration_min: opts.durationMin || 50, room_url: room },
-        { user_id: opts.partnerId,    partner_name: myName,
-          topic: opts.topic || null,  starts_at: opts.startsAt,
-          duration_min: opts.durationMin || 50, room_url: room }
-      ];
+      var common = {
+        topic: opts.topic || null, starts_at: opts.startsAt,
+        duration_min: opts.durationMin || 50, room_url: room,
+        status: 'proposed', proposed_by: me.id, note: opts.note || null
+      };
+      function row(userId, partnerName){
+        var o = { user_id: userId, partner_name: partnerName };
+        for (var k in common) if (common.hasOwnProperty(k)) o[k] = common[k];
+        return o;
+      }
+      var rows = [ row(me.id, opts.partnerName || null), row(opts.partnerId, myName) ];
       return client.from('sessions').insert(rows).then(function(r){
         if (r.error) {
-          try { console.error('PeerFlow bookSession error:', r.error); } catch(e){}
-          var msg = r.error.message || 'Could not book that session.';
+          try { console.error('PeerFlow proposeSession error:', r.error); } catch(e){}
+          var msg = r.error.message || 'Could not propose that time.';
           if (r.error.code === '42P01') {
             msg = 'The sessions table is not set up yet. Run supabase/schema.sql in the Supabase SQL Editor.';
+          } else if (r.error.code === 'PGRST204' || r.error.code === '42703') {
+            msg = 'Your database is missing the proposal columns. Re-run supabase/schema.sql in the Supabase SQL Editor.';
           }
           return { error: msg };
         }
         return { saved: true };
       });
     }).catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
+  }
+
+  /* Accept a proposal: flip both copies of the meeting to 'confirmed'. Matched
+     on the shared start and room, the same pair of facts cancelling uses. */
+  function acceptSession(startsAt, roomUrl){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.from('sessions')
+      .update({ status: 'confirmed' })
+      .eq('starts_at', startsAt)
+      .eq('room_url', roomUrl)
+      .then(function(r){
+        return r.error ? { error: r.error.message } : { saved: true };
+      }).catch(function(e){ return { error: (e && e.message) || 'Network error.' }; });
   }
 
   /* Cancel a session for both people (matched on the shared start + room). */
@@ -325,7 +350,7 @@ window.pf = (function(){
           var others = rows.map(function(x){ return x.from_user === uid ? x.to_user : x.from_user; });
           if (!others.length) return { incoming: [], outgoing: [], me: uid };
           return client.from('profiles')
-            .select('id,name,track_id,topic,level,timezone')
+            .select('id,name,track_id,topic,level,timezone,availability')
             .in('id', others)
             .then(function(p){
               var byId = {};
@@ -518,7 +543,8 @@ window.pf = (function(){
     joinWaitlist: joinWaitlist,
     getMatch: getMatch,
     fetchSessions: fetchSessions,
-    bookSession: bookSession,
+    proposeSession: proposeSession,
+    acceptSession: acceptSession,
     cancelSession: cancelSession,
     sendPartnerRequest: sendPartnerRequest,
     myRequests: myRequests,

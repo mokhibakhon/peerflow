@@ -118,10 +118,11 @@ begin
   end if;
 end $$;
 
--- ---------- sessions (scheduled meetings, created by hand for now) ----------
--- One row per person per meeting: when two partners agree a time, insert a row
--- for each of them with the same starts_at and room_url. Each person can only
--- read their own rows.
+-- ---------- sessions (proposed, then confirmed) ----------
+-- One row per person per meeting: proposing writes a row for each of you with
+-- the same starts_at and room_url, both 'proposed'. When the other person
+-- accepts, both rows become 'confirmed'. Declining deletes both. Each person
+-- can only read their own rows.
 create table if not exists public.sessions (
   id           uuid primary key default gen_random_uuid(),
   user_id      uuid not null references auth.users(id) on delete cascade,
@@ -133,6 +134,24 @@ create table if not exists public.sessions (
   created_at   timestamptz not null default now()
 );
 create index if not exists sessions_user_starts on public.sessions (user_id, starts_at);
+
+-- Added after the first release. Sessions used to be written straight to both
+-- calendars with no say from the other person; now one of you proposes and the
+-- other answers. Existing rows default to 'confirmed' so nothing already
+-- agreed disappears from anybody's calendar.
+alter table public.sessions add column if not exists status      text not null default 'confirmed';
+alter table public.sessions add column if not exists proposed_by uuid references auth.users(id) on delete set null;
+alter table public.sessions add column if not exists note        text;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'sessions_status_check') then
+    alter table public.sessions
+      add constraint sessions_status_check check (status in ('proposed', 'confirmed'));
+  end if;
+end $$;
+
+create index if not exists sessions_user_status on public.sessions (user_id, status);
 
 -- ---------- auto-create a profile on signup ----------
 create or replace function public.handle_new_user()
@@ -169,6 +188,7 @@ drop policy if exists "anyone can join the waitlist" on public.waitlist;
 drop policy if exists "read own match"              on public.matches;
 drop policy if exists "read own sessions"           on public.sessions;
 drop policy if exists "book with your partner"      on public.sessions;
+drop policy if exists "answer a proposal"           on public.sessions;
 drop policy if exists "cancel a session"            on public.sessions;
 drop policy if exists "read own requests"           on public.partner_requests;
 drop policy if exists "send requests as yourself"   on public.partner_requests;
@@ -209,7 +229,28 @@ create policy "book with your partner"
     )
   );
 
--- Cancelling removes both rows, so the same rule applies.
+-- Accepting flips both rows to 'confirmed', so it needs the same reach as
+-- booking: your own row, or your accepted partner's copy of the same meeting.
+create policy "answer a proposal"
+  on public.sessions for update using (
+    auth.uid() = user_id
+    or exists (
+      select 1 from public.partner_requests r
+      where r.status = 'accepted'
+        and ((r.from_user = auth.uid() and r.to_user = sessions.user_id)
+          or (r.to_user   = auth.uid() and r.from_user = sessions.user_id))
+    )
+  ) with check (
+    auth.uid() = user_id
+    or exists (
+      select 1 from public.partner_requests r
+      where r.status = 'accepted'
+        and ((r.from_user = auth.uid() and r.to_user = sessions.user_id)
+          or (r.to_user   = auth.uid() and r.from_user = sessions.user_id))
+    )
+  );
+
+-- Cancelling and declining both remove the pair of rows, so the same rule applies.
 create policy "cancel a session"
   on public.sessions for delete using (
     auth.uid() = user_id

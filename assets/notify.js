@@ -31,7 +31,7 @@
   var panel = document.getElementById('pf-panel');
   var list  = document.getElementById('pf-list');
 
-  var state = { incoming: [], outgoing: [], loaded: false };
+  var state = { incoming: [], outgoing: [], proposals: [], loaded: false };
 
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -49,11 +49,21 @@
     return days + 'd ago';
   }
 
-  /* Unread = requests waiting on you, plus answers you haven't seen yet. */
+  /* Unread = requests waiting on you, answers you haven't seen yet, and any
+     time your partner has proposed that you haven't answered. Sessions carry
+     no seen-at column, so a proposal counts until it's accepted or declined —
+     it's the one notification you can't afford to lose. */
   function unread(){
     var a = state.incoming.filter(function(x){ return x.status === 'pending' && !x.to_seen_at; });
     var b = state.outgoing.filter(function(x){ return x.status !== 'pending' && !x.from_seen_at; });
-    return a.concat(b);
+    return a.concat(b).concat(theirProposals());
+  }
+
+  function theirProposals(){
+    var now = Date.now();
+    return state.proposals.filter(function(x){
+      return x.status === 'proposed' && !x.mine && x.startsAt.getTime() > now;
+    });
   }
 
   function paintBadge(){
@@ -97,15 +107,36 @@
       '<p class="bell-time">sent ' + ago(x.created_at) + '</p></div>';
   }
 
+  function whenLabel(d){
+    return d.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' }) +
+      ', ' + d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+  }
+
+  /* Answering happens on the Partner page, where you can see the alternative
+     times as well — the bell's job is to tell you it's waiting. */
+  function itemProposal(x){
+    return '<div class="bell-item fresh">' +
+      '<p><b>' + esc(x.partnerName || 'Your partner') + '</b> proposed ' +
+      esc(whenLabel(x.startsAt)) + '</p>' +
+      (x.note ? '<p class="bell-msg">“' + esc(x.note) + '”</p>' : '') +
+      '<p class="bell-time">' + x.durationMin + ' minutes</p>' +
+      '<div class="bell-actions"><a class="btn primary" href="app-sessions.html">Answer it</a></div>' +
+      '</div>';
+  }
+
   function paintList(){
-    var items = state.incoming.map(itemIncoming).concat(state.outgoing.map(itemOutgoing));
+    var items = theirProposals().map(itemProposal)
+      .concat(state.incoming.map(itemIncoming))
+      .concat(state.outgoing.map(itemOutgoing));
     list.innerHTML = items.length
       ? items.join('')
       : '<p class="bell-empty">Nothing yet. When someone asks to be your partner, it shows up here.</p>';
   }
 
   function load(){
-    return pf.myRequests().then(function(r){
+    return Promise.all([pf.myRequests(), pf.fetchSessions()]).then(function(res){
+      var r = res[0];
+      state.proposals = res[1] || [];
       if (!r) { state.loaded = true; list.innerHTML = '<p class="bell-empty">Could not load notifications.</p>'; return; }
       state.incoming = r.incoming;
       state.outgoing = r.outgoing;
@@ -124,6 +155,8 @@
     if (!open) {
       if (!state.loaded) load();
       /* Opening the panel counts as reading. */
+      /* Proposals stay unread on purpose: they clear when you answer them,
+         not when you glance at the panel. */
       var inc = state.incoming.filter(function(x){ return x.status === 'pending' && !x.to_seen_at; });
       var out = state.outgoing.filter(function(x){ return x.status !== 'pending' && !x.from_seen_at; });
       if (inc.length || out.length) {

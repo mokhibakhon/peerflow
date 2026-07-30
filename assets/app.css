@@ -264,6 +264,10 @@ h1 .g{color:var(--p4)}
 .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;
   padding:11px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--p4);outline:none}
+/* Date, time and length belong on one line — they're one answer. */
+.book-row{display:flex;gap:12px;flex-wrap:wrap}
+.book-row .field{flex:1 1 150px;min-width:130px;max-width:none}
+
 .yourline{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap}
 .yourline input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;
   padding:11px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
@@ -532,6 +536,35 @@ h1 .g{color:var(--p4)}
 .pstate.ok{background:var(--p0);border-color:var(--p2);color:var(--p8)}
 .pstate.wait{background:#FFF6E8;border-color:#F0DCC2;color:#8A5A12}
 .pstate.no{color:var(--faint)}
+
+/* ---------- proposed times ---------- */
+/* A proposal is not a booking, so it doesn't get the confident green card a
+   confirmed session does — it sits quietly until somebody answers it. */
+.prop{border-top:1px dashed var(--line);padding:15px 0}
+.prop:first-child{border-top:0;padding-top:2px}
+.prop-h{margin:0;font-size:14.5px;color:var(--soft)}
+.prop-h b{color:var(--ink);font-weight:700}
+.prop-m{margin:3px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--faint)}
+.prop-note{margin:8px 0 0;font-size:14px;color:var(--soft);
+  border-left:2px solid var(--line);padding-left:11px}
+.prop-acts{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:13px}
+.prop-wait{font-size:13px;color:var(--faint)}
+.prop-err{margin:9px 0 0;font-size:13px;color:#B4471F}
+
+/* Choosing a time your partner never said they were free in is allowed, so
+   this is a warning colour, not an error one. */
+.bk-warn{margin:14px 0 0;font-size:13.5px;color:#8A5A12;
+  background:#FFF6E8;border:1px solid #F0DCC2;border-radius:10px;padding:9px 12px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+/* Same rounded rectangle as every other button in the app, not a capsule. */
+.chip{border:1px solid var(--line);background:var(--card);border-radius:9px;
+  padding:8px 14px;font-family:var(--body);font-size:13px;font-weight:600;
+  color:var(--soft);cursor:pointer;
+  transition:border-color .15s,background .15s,color .15s}
+.chip:hover{border-color:var(--p2);color:var(--ink)}
+.chip.on{background:var(--p0);border-color:var(--p2);color:var(--p8)}
 
 /* ---------- people: top pick ---------- */
 /* One person gets argued for, with the reasons spelled out, and everyone

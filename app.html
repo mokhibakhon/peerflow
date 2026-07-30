@@ -104,7 +104,7 @@
       </div>
       <div id="upcoming"></div>
       <div class="empty" id="sess-empty" hidden>
-        <p>Nothing booked. Once you and your partner agree a time it lands here with a link to the call.</p>
+        <p>Nothing booked. Propose a time to your partner and it lands here, with a link to the call, as soon as they accept.</p>
       </div>
     </section>
 
@@ -319,10 +319,10 @@
          step gets no button — sending people to a page with no form on it is
          what made "Book it" look broken. */
       { done: sessionCount > 0, label:'Book your first session',
-        hint: hasPartner ? 'Agree a time and it lands on both your calendars.'
+        hint: hasPartner ? 'Propose a time. It is booked once they accept.'
                          : 'Opens up as soon as you have a partner.',
         href: hasPartner ? 'app-sessions.html' : '',
-        cta:  hasPartner ? 'Book it' : '' }
+        cta:  hasPartner ? 'Propose a time' : '' }
     ];
     if (steps.every(function(s){ return s.done; })) return;   // nothing left to nag about
 
@@ -426,8 +426,16 @@
 
       Promise.all([pf.acceptedPartners(), pf.fetchSessions(), pf.fetchPeers(12)])
         .then(function(r){
-          var partners = r[0] || [], sessions = r[1] || [], peers = r[2];
+          var partners = r[0] || [], all = r[1] || [], peers = r[2];
           var now = Date.now();
+          /* A proposal is not a session. It doesn't go on the calendar, it
+             isn't "coming up", and it doesn't tick the checklist — until
+             somebody accepts it, nothing has been agreed. */
+          var sessions = all.filter(function(s){ return s.status === 'confirmed'; });
+          var pending = all.filter(function(s){
+            return s.status === 'proposed' && s.startsAt.getTime() > now;
+          });
+          var waiting = pending.filter(function(s){ return !s.mine; })[0] || null;
           var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
           var past = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 <= now; }).reverse();
           var partner = partners[0] || null;
@@ -447,12 +455,29 @@
                    : '<a class="btn" href="app-sessions.html">See the booking</a>',
               ag: next.roomUrl && !isOpen(next) ? 'The call link opens 15 minutes before you start.' : ''
             });
+          } else if (waiting){
+            hero({
+              paired:true, partner: waiting.partnerName || pname,
+              h: '<span class="g">' + esc(waiting.partnerName || pname || 'Your partner') +
+                 '</span> proposed a time.',
+              s: when(waiting.startsAt) + ' · ' + waiting.durationMin + ' minutes. ' +
+                 'Nothing is booked until you say yes.',
+              a: '<a class="btn" href="app-sessions.html">Answer it</a>'
+            });
+          } else if (partner && pending.length){
+            var mine = pending[0];
+            hero({
+              paired:true, partner:pname,
+              h: 'Waiting on <span class="g">' + esc(pname || 'your partner') + '</span>.',
+              s: 'You proposed ' + when(mine.startsAt) + '. It lands on both your calendars once they accept.',
+              a: '<a class="ghost" href="app-sessions.html">See the proposal</a>'
+            });
           } else if (partner){
             hero({
               paired:true, partner:pname,
               h: 'You’re paired with <span class="g">' + esc(pname || 'your partner') + '</span>.',
-              s: 'Nothing booked yet. Agree a time and it lands on both your calendars with a link to the call.',
-              a: '<a class="btn" href="app-sessions.html">Book a session</a>'
+              s: 'Nothing booked yet. Propose a time and it lands on both your calendars once they accept.',
+              a: '<a class="btn" href="app-sessions.html">Propose a time</a>'
             });
           } else {
             hero({
@@ -471,7 +496,7 @@
           if (past.length) buildCal(past);
 
           showRoom(peers, topic);
-          showSteps(profile, !!partner, sessions.length);
+          showSteps(profile, !!partner, sessions.length);   /* confirmed only */
         });
     });
   });
