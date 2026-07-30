@@ -552,6 +552,13 @@ h1 .g{color:var(--p4)}
 .prop-wait{font-size:13px;color:var(--faint)}
 .prop-err{margin:9px 0 0;font-size:13px;color:#B4471F}
 
+/* A turned-down time isn't an error, it's an answer — warm rather than red,
+   and it keeps a button because the useful next move is another time. */
+.prop.turned .prop-h b:first-child{color:var(--ink)}
+.prop.turned{background:#FFFBF4;border:1px solid #F0DCC2;border-radius:12px;
+  padding:14px 16px;margin:12px 0}
+.prop.turned:first-child{padding-top:14px}
+
 /* Choosing a time your partner never said they were free in is allowed, so
    this is a warning colour, not an error one. */
 .bk-warn{margin:14px 0 0;font-size:13.5px;color:#8A5A12;

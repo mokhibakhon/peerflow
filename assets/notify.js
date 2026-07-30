@@ -59,10 +59,14 @@
     return a.concat(b).concat(theirProposals());
   }
 
+  /* Two kinds of session news: a time waiting on you to answer, and a time of
+     yours that got turned down. Both need you to go and do something. */
   function theirProposals(){
     var now = Date.now();
     return state.proposals.filter(function(x){
-      return x.status === 'proposed' && !x.mine && x.startsAt.getTime() > now;
+      if (x.startsAt.getTime() <= now) return false;
+      if (x.status === 'proposed') return !x.mine;
+      return x.status === 'declined' && x.mine;
     });
   }
 
@@ -115,12 +119,15 @@
   /* Answering happens on the Partner page, where you can see the alternative
      times as well — the bell's job is to tell you it's waiting. */
   function itemProposal(x){
+    var who = esc(x.partnerName || 'Your partner');
+    var turned = x.status === 'declined';
     return '<div class="bell-item fresh">' +
-      '<p><b>' + esc(x.partnerName || 'Your partner') + '</b> proposed ' +
+      '<p><b>' + who + '</b> ' + (turned ? 'can’t do ' : 'proposed ') +
       esc(whenLabel(x.startsAt)) + '</p>' +
       (x.note ? '<p class="bell-msg">“' + esc(x.note) + '”</p>' : '') +
       '<p class="bell-time">' + x.durationMin + ' minutes</p>' +
-      '<div class="bell-actions"><a class="btn primary" href="app-sessions.html">Answer it</a></div>' +
+      '<div class="bell-actions"><a class="btn primary" href="app-sessions.html">' +
+        (turned ? 'Pick another time' : 'Answer it') + '</a></div>' +
       '</div>';
   }
 

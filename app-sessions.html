@@ -300,40 +300,59 @@
       if (!list) { card.hidden = true; return; }
       var now = Date.now();
       var open = list.filter(function(x){
-        return x.status === 'proposed' && x.startsAt.getTime() > now;
+        if (x.startsAt.getTime() <= now) return false;
+        if (x.status === 'proposed') return true;
+        /* A decline is only news to the person who proposed the time. The one
+           who turned it down already knows, and doesn't need it sitting on
+           their page until somebody clears it. */
+        return x.status === 'declined' && x.mine;
       });
-      if (!open.length) { card.hidden = true; return; }
+      /* Empty the list as well as hiding it, so nothing answered is left
+         sitting in the DOM waiting to reappear. */
+      if (!open.length) {
+        card.hidden = true;
+        document.getElementById('prop-list').innerHTML = '';
+        return;
+      }
 
       document.getElementById('prop-list').innerHTML = open.map(function(x){
         var who = esc(x.partnerName || 'your partner');
-        var head = x.mine
-          ? 'You proposed <b>' + esc(whenLabel(x.startsAt)) + '</b>'
-          : '<b>' + who + '</b> proposed <b>' + esc(whenLabel(x.startsAt)) + '</b>';
+        var turned = x.status === 'declined';
+        var head = turned
+          ? '<b>' + who + '</b> can\u2019t do <b>' + esc(whenLabel(x.startsAt)) + '</b>'
+          : x.mine
+            ? 'You proposed <b>' + esc(whenLabel(x.startsAt)) + '</b>'
+            : '<b>' + who + '</b> proposed <b>' + esc(whenLabel(x.startsAt)) + '</b>';
         var key = ' data-at="' + esc(x.startsAt.toISOString()) + '" data-room="' + esc(x.roomUrl || '') +
                   '" data-len="' + x.durationMin + '"';
-        return '<div class="prop">' +
-          '<p class="prop-h">' + head + '</p>' +
-          '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') + '</p>' +
-          (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
-          '<div class="prop-acts">' + (x.mine
+        var acts = turned
+          ? '<button class="btn" data-swap' + key + '>Propose another time</button>' +
+            '<button class="small" data-drop' + key + '>Dismiss</button>'
+          : x.mine
             ? '<span class="prop-wait">Waiting on ' + who + '</span>' +
               '<button class="small" data-drop' + key + '>Cancel</button>'
             : '<button class="btn" data-accept' + key + '>Accept</button>' +
-              '<button class="small" data-swap' + key + '>Suggest another time</button>' +
-              '<button class="small" data-drop' + key + '>Decline</button>') +
-          '</div><p class="prop-err" hidden></p></div>';
+              '<button class="small" data-no' + key + '>Decline</button>' +
+              '<button class="small" data-swap' + key + '>Suggest another time</button>';
+        return '<div class="prop' + (turned ? ' turned' : '') + '">' +
+          '<p class="prop-h">' + head + '</p>' +
+          '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') + '</p>' +
+          (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
+          '<div class="prop-acts">' + acts + '</div><p class="prop-err" hidden></p></div>';
       }).join('');
       card.hidden = false;
     });
   }
 
   document.getElementById('prop-list').addEventListener('click', function(e){
-    var btn = e.target.closest('[data-accept],[data-drop],[data-swap]');
+    var btn = e.target.closest('[data-accept],[data-drop],[data-swap],[data-no]');
     if (!btn) return;
     var box = btn.closest('.prop'), err = box.querySelector('.prop-err');
     var at = btn.getAttribute('data-at'), room = btn.getAttribute('data-room');
     var accept = btn.hasAttribute('data-accept');
     var swap   = btn.hasAttribute('data-swap');
+    var no     = btn.hasAttribute('data-no');
+    var turned = box.classList.contains('turned');
 
     /* Suggesting another time is a decline that hands you the pen: their
        proposal comes off the table and the form opens on it, so you're
@@ -347,7 +366,17 @@
 
     Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = true; });
     err.hidden = true;
-    (accept ? pf.acceptSession(at, room) : pf.cancelSession(at, room)).then(function(res){
+
+    /* Declining marks the pair 'declined' so the proposer finds out. Deleting
+       is for the proposer's own Cancel, and for dismissing a decline once it
+       has been read — the two cases where nobody is left uninformed.
+       Suggesting another time declines their time first, for the same reason:
+       vanishing it would tell them nothing. */
+    var act = accept ? pf.acceptSession(at, room)
+            : (no || (swap && !turned)) ? pf.declineSession(at, room)
+            : pf.cancelSession(at, room);
+
+    act.then(function(res){
       if (res && res.saved) {
         if (accept) { window.location.href = 'app.html'; return; }
         loadProposals().then(function(){

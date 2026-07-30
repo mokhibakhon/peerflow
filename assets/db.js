@@ -65,11 +65,15 @@ window.pf = (function(){
         var m = String(res.error.message || '');
         if (/already registered|already exists/i.test(m))
           return fail(res.error, 'There is already an account with that email address.');
-        if (/password/i.test(m))
-          return fail(res.error, 'That password is too short — use at least six characters.');
+        /* Same trap as changePassword had: /password/ matches almost every
+           failure here, so the specific ones are tested first. */
+        if (/should contain|character of each|requirement/i.test(m))
+          return fail(res.error, 'That password needs a mix of upper and lower case, a number and a symbol.');
+        if (/at least|too short|minimum|length/i.test(m))
+          return fail(res.error, 'That password is too short — use at least eight characters.');
         return fail(res.error, 'Could not create your account. Please try again.');
       }
-      // With email confirmation enabled there is a user but no session yet.'''
+      // With email confirmation enabled there is a user but no session yet.
       return { user: res.data.user, session: res.data.session,
                needsConfirm: !!res.data.user && !res.data.session };
     }).catch(function(){ return { demo: true }; });
@@ -357,7 +361,26 @@ window.pf = (function(){
       });
   }
 
-  /* Cancel a session for both people (matched on the shared start + room). */
+  /* Turn a proposal down. Both copies stay, marked 'declined', so the person
+     who proposed the time finds out — deleting them, which is what this used
+     to do, made a decline indistinguishable from nothing ever happening.
+     They clear it themselves once they've seen it. */
+  function declineSession(startsAt, roomUrl){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.from('sessions')
+      .update({ status: 'declined' })
+      .eq('starts_at', startsAt)
+      .eq('room_url', roomUrl)
+      .then(function(r){
+        return r.error ? fail(r.error, 'Could not turn that down. Please try again.')
+                       : { saved: true };
+      }).catch(function(e){
+        return fail(e, 'Could not turn that down \u2014 check your connection and try again.');
+      });
+  }
+
+  /* Cancel a session for both people (matched on the shared start + room).
+     Also what clears a decline once it has been read. */
   function cancelSession(startsAt, roomUrl){
     if (!client) return Promise.resolve({ demo: true });
     return client.from('sessions').delete()
@@ -610,6 +633,7 @@ window.pf = (function(){
     fetchSessions: fetchSessions,
     proposeSession: proposeSession,
     acceptSession: acceptSession,
+    declineSession: declineSession,
     cancelSession: cancelSession,
     sendPartnerRequest: sendPartnerRequest,
     myRequests: myRequests,

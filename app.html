@@ -436,6 +436,10 @@
             return s.status === 'proposed' && s.startsAt.getTime() > now;
           });
           var waiting = pending.filter(function(s){ return !s.mine; })[0] || null;
+          /* A time of yours they turned down. Only news to whoever proposed it. */
+          var turned = all.filter(function(s){
+            return s.status === 'declined' && s.mine && s.startsAt.getTime() > now;
+          })[0] || null;
           var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
           var past = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 <= now; }).reverse();
           var partner = partners[0] || null;
@@ -463,6 +467,14 @@
               s: when(waiting.startsAt) + ' · ' + waiting.durationMin + ' minutes. ' +
                  'Nothing is booked until you say yes.',
               a: '<a class="btn" href="app-sessions.html">Answer it</a>'
+            });
+          } else if (turned){
+            hero({
+              paired:true, partner: turned.partnerName || pname,
+              h: '<span class="g">' + esc(turned.partnerName || pname || 'Your partner') +
+                 '</span> can’t make that time.',
+              s: 'They turned down ' + when(turned.startsAt) + '. Pick another and send it over.',
+              a: '<a class="btn" href="app-sessions.html">Propose another time</a>'
             });
           } else if (partner && pending.length){
             var mine = pending[0];

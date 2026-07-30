@@ -121,8 +121,9 @@ end $$;
 -- ---------- sessions (proposed, then confirmed) ----------
 -- One row per person per meeting: proposing writes a row for each of you with
 -- the same starts_at and room_url, both 'proposed'. When the other person
--- accepts, both rows become 'confirmed'. Declining deletes both. Each person
--- can only read their own rows.
+-- answers, both rows become 'confirmed' or 'declined'. Rows are only deleted
+-- when the proposer cancels, or dismisses a decline. Each person can only
+-- read their own rows.
 create table if not exists public.sessions (
   id           uuid primary key default gen_random_uuid(),
   user_id      uuid not null references auth.users(id) on delete cascade,
@@ -143,13 +144,13 @@ alter table public.sessions add column if not exists status      text not null d
 alter table public.sessions add column if not exists proposed_by uuid references auth.users(id) on delete set null;
 alter table public.sessions add column if not exists note        text;
 
-do $$
-begin
-  if not exists (select 1 from pg_constraint where conname = 'sessions_status_check') then
-    alter table public.sessions
-      add constraint sessions_status_check check (status in ('proposed', 'confirmed'));
-  end if;
-end $$;
+-- Dropped and re-added rather than created once, because 'declined' arrived
+-- after the constraint already existed: declining used to delete both rows,
+-- which left the person who proposed the time with no way of knowing it had
+-- been turned down. The row survives now and carries the answer.
+alter table public.sessions drop constraint if exists sessions_status_check;
+alter table public.sessions
+  add constraint sessions_status_check check (status in ('proposed', 'confirmed', 'declined'));
 
 create index if not exists sessions_user_status on public.sessions (user_id, status);
 
