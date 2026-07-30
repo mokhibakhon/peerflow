@@ -107,9 +107,15 @@ Makes "Continue with Google" real. Needs step 2 finished first.
 
 # Email — do these in order
 
-Everything stays on Vercel. No Cloudflare, no nameserver move, nothing to pay
+The site stays on Vercel. No Cloudflare, no nameserver move, nothing to pay
 for. Two services: **ImprovMX** receives mail sent to `hello@peerflow.dev`,
 **Resend** sends password resets to your users. About 35 minutes total.
+
+**Every DNS record below goes in Porkbun, not Vercel.** `peerflow.dev` uses
+Porkbun's nameservers, so Porkbun is what actually answers DNS queries for the
+domain — records added anywhere else are ignored. Porkbun → **Domain
+Management** → `peerflow.dev` → **DNS**. Leave the existing A/CNAME records
+alone; those are what point the domain at Vercel.
 
 ## 1. Re-run the database schema (5 min) — do this first
 
@@ -133,12 +139,27 @@ password-reset fallback on the login page. All of them currently bounce.
 
 1. **improvmx.com** → enter `peerflow.dev` and the Gmail address you want mail
    forwarded to.
-2. It shows you two **MX records**. Add both in
-   **Vercel → your project → Settings → Domains → peerflow.dev → DNS**.
-   Priorities matter — copy them exactly as shown.
-3. ImprovMX may also offer an SPF record. **Read step 4 before adding it.**
-4. Send yourself a test from any other address. It should land in your Gmail
-   within a minute.
+2. In **Porkbun → Domain Management → peerflow.dev → DNS**, add two records:
+
+   | Type | Host | Priority | Answer |
+   |---|---|---|---|
+   | MX | *(leave empty)* | 10 | `mx1.improvmx.com` |
+   | MX | *(leave empty)* | 20 | `mx2.improvmx.com` |
+
+   Porkbun calls the value field **Answer**. An empty Host means the domain
+   itself — do not type `@` or `peerflow.dev`. ImprovMX displays the values
+   with a trailing dot (`mx1.improvmx.com.`); enter them without it. Leave TTL
+   at the default.
+3. If Porkbun's own **Email Forwarding** is switched on for this domain, turn
+   it off — it adds competing MX records.
+4. ImprovMX may also offer an SPF record. **Read step 4 before adding it.**
+5. Back on the ImprovMX page, press **Check again**. It can take a few minutes
+   for Porkbun to publish. Then send yourself a test from any other address; it
+   should reach your Gmail within a minute.
+
+Ignore the **Go Premium** banner. One-click setup is a convenience for people
+who don't want to add two records by hand. Adding them by hand is two minutes
+and costs nothing.
 
 Forwarding is one-way: replies from Gmail go out as your Gmail address. Fine
 for now. Buy a real mailbox when someone actually writes in.
@@ -148,7 +169,7 @@ for now. Buy a real mailbox when someone actually writes in.
 1. **resend.com** → sign up → **Domains → Add Domain** → `peerflow.dev`.
    If it offers to set things up on a subdomain like `send.peerflow.dev`,
    take it — it keeps Resend's records from colliding with ImprovMX's.
-2. It gives you DNS records. Add them in the same Vercel DNS panel.
+2. It gives you DNS records. Add them in the same Porkbun DNS panel.
    Wait for Resend to show the domain as **Verified** before continuing.
 3. **API Keys → Create**, permission *Sending access*. Copy it now — it is
    shown once.
@@ -177,9 +198,9 @@ clash entirely, which is why it's worth taking.
 ## 4. DMARC (2 min)
 
 Without this, anyone can send email that looks like it came from PeerFlow.
-Add one TXT record in Vercel DNS:
+Add one TXT record in Porkbun DNS:
 
-- Name: `_dmarc`
+- Host: `_dmarc`
 - Value: `v=DMARC1; p=none; rua=mailto:hello@peerflow.dev`
 
 `p=none` means "watch, don't block" — you'll get reports without risking your
