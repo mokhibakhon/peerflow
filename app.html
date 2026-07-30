@@ -126,6 +126,10 @@
         Nothing is booked until your partner accepts. They see it in their notifications
         and can say yes or suggest something else.
       </p>
+      <div class="field" id="bk-who-wrap" hidden style="max-width:320px">
+        <label for="bk-who">Who with</label>
+        <select id="bk-who"></select>
+      </div>
       <div id="bk-slots-wrap" hidden style="margin-bottom:18px">
         <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Times you're both free</label>
         <div class="chips" id="bk-slots"></div>
@@ -289,7 +293,7 @@
   var DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
   var DAY_LABEL = { sun:'Sun', mon:'Mon', tue:'Tue', wed:'Wed', thu:'Thu', fri:'Fri', sat:'Sat' };
   var BAND_START = { morning:6, afternoon:12, evening:17, night:22 };
-  var myAvail = [], bookPartner = null, myName = '';
+  var myAvail = [], bookPartner = null, myName = '', bookPartners = [];
 
   /* Everything below moved here from the Partner page. Proposing a time, the
      times waiting on an answer and the sessions they turn into are one thing,
@@ -350,6 +354,23 @@
     }).join('');
     wrap.hidden = false;
   }
+
+  /* Free windows and the warning are both about one specific person, so
+     changing who this is for has to redraw them. */
+  function pickPartner(i){
+    bookPartner = bookPartners[i] || null;
+    if (!bookPartner) return;
+    var win = shared().map(nextWhen).filter(Boolean).sort(function(x, y){ return x - y; })[0];
+    fillWhen(win || new Date(Date.now() + 86400000));
+    paintSlots();
+    checkWhen();
+  }
+
+  document.getElementById('bk-who').addEventListener('change', function(){
+    pickPartner(parseInt(this.value, 10) || 0);
+    var note = document.getElementById('bk-note');
+    note.textContent = '';
+  });
 
   document.getElementById('bk-slots').addEventListener('click', function(e){
     var c = e.target.closest('[data-slot]');
@@ -688,23 +709,36 @@
           /* acceptedPartners() gives {requestId, profile, roomUrl} — the name
              lives on .profile, not on the row itself. */
           var pname = partner && partner.profile && partner.profile.name;
+          /* "You're paired with Munisa" was a lie the moment a second person
+             accepted. Name them all. */
+          var names = partners.map(function(x){ return x.profile && x.profile.name; }).filter(Boolean);
+          var allNames = names.length < 2 ? (names[0] || 'your partner')
+            : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
 
-          /* Hand the booking form its partner, then open it on the soonest
-             window you're both free in. */
-          if (partner && partner.profile && partner.profile.id){
-            bookPartner = {
-              id: partner.profile.id,
-              name: partner.profile.name,
-              topic: partner.profile.topic,
-              availability: partner.profile.availability || [],
-              roomUrl: partner.roomUrl,
-              requestId: partner.requestId
-            };
+          /* Every accepted partner, not just the first. Nothing stops two
+             people accepting you, and the form used to be wired to
+             partners[0] — so a second partner existed in the database and
+             was unreachable from the page. */
+          bookPartners = partners.filter(function(x){ return x.profile && x.profile.id; })
+            .map(function(x){
+              return {
+                id: x.profile.id,
+                name: x.profile.name,
+                topic: x.profile.topic,
+                availability: x.profile.availability || [],
+                roomUrl: x.roomUrl,
+                requestId: x.requestId
+              };
+            });
+          if (bookPartners.length){
             $('book-card').hidden = false;
-            var win = shared().map(nextWhen).filter(Boolean).sort(function(x, y){ return x - y; })[0];
-            fillWhen(win || new Date(Date.now() + 86400000));
-            paintSlots();
-            checkWhen();
+            /* The picker only earns its space when there's a choice to make. */
+            var whoWrap = $('bk-who-wrap'), who = $('bk-who');
+            who.innerHTML = bookPartners.map(function(x, i){
+              return '<option value="' + i + '">' + esc(x.name || 'Your partner') + '</option>';
+            }).join('');
+            whoWrap.hidden = bookPartners.length < 2;
+            pickPartner(0);
           }
           renderProposals(all);
 
@@ -750,7 +784,7 @@
           } else if (partner){
             hero({
               paired:true, partner:pname,
-              h: 'You’re paired with <span class="g">' + esc(pname || 'your partner') + '</span>.',
+              h: 'You’re paired with <span class="g">' + esc(allNames) + '</span>.',
               s: 'Nothing booked yet. Propose a time and it lands on both your calendars once they accept.',
               a: '<a class="btn" href="app-sessions.html">Propose a time</a>'
             });

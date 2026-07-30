@@ -35,6 +35,15 @@
       </div>
     </div>
 
+    <!-- Everyone else who has accepted you. -->
+    <div class="card b room" id="more-card" hidden style="max-width:640px;margin-top:24px">
+      <h3>Also partnered with you</h3>
+      <p style="font-size:14.5px;color:var(--muted);margin-bottom:6px">
+        You can book a time with any of them from Sessions.
+      </p>
+      <div id="more-list"></div>
+    </div>
+
     <!-- Real numbers from the database, so the wait isn't a black box. -->
     <div class="card" id="queue-card" style="max-width:640px;margin-top:24px">
       <h3>Where things stand</h3>
@@ -113,6 +122,26 @@
     document.getElementById('match-book').hidden = !(partner && partner.id);
   }
 
+  function showOthers(rest){
+    var card = document.getElementById('more-card');
+    if (!rest.length) { card.hidden = true; return; }
+    document.getElementById('more-list').innerHTML = rest.map(function(x){
+      var nm = esc(x.profile.name || 'Someone');
+      var sub = [x.profile.topic ? 'learning ' + x.profile.topic : '',
+                 levelLabel(x.profile.level)].filter(Boolean).join(' \u00b7 ');
+      return '<div class="r">' +
+        '<span class="a" style="background:var(--p0);color:var(--p6)">' +
+          esc((x.profile.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+        '<div class="b2"><p class="nm">' + nm + '</p>' +
+        (sub ? '<p class="s">' + esc(sub) + '</p>' : '') + '</div></div>';
+    }).join('');
+    card.hidden = false;
+  }
+  function levelLabel(v){
+    return { new:'Just starting', tutorials:'Doing tutorials',
+             jobprep:'Job-hunt prep', builder:'Builds projects' }[v] || '';
+  }
+
   /* Real signup numbers, so waiting isn't a black box. */
   function loadQueue(topic){
     pf.learnerStats(topic).then(function(s){
@@ -151,20 +180,24 @@
          state; a hand-arranged match still works as a fallback. */
       pf.acceptedPartners().then(function(list){
         if (list && list.length) {
-          var p = list[0];
+          var first = list[0];
           showMatched({
-            partner_name: p.profile.name,
-            partner_topic: p.profile.topic,
+            partner_name: first.profile.name,
+            partner_topic: first.profile.topic,
             partner_times: '',
-            room_url: p.roomUrl
+            room_url: first.roomUrl
           }, {
-            id: p.profile.id,
-            name: p.profile.name,
-            topic: p.profile.topic,
-            availability: p.profile.availability || [],
-            roomUrl: p.roomUrl,
-            requestId: p.requestId
+            id: first.profile.id,
+            name: first.profile.name,
+            topic: first.profile.topic,
+            availability: first.profile.availability || [],
+            roomUrl: first.roomUrl,
+            requestId: first.requestId
           });
+          /* Nothing stops two people accepting you, and this page used to
+             show list[0] and drop the rest — so a real partner existed in
+             the database and appeared nowhere. */
+          showOthers(list.slice(1));
           return;
         }
         pf.getMatch().then(function(m){ if (m) showMatched(m); });
