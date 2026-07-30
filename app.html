@@ -108,21 +108,6 @@
       </div>
     </section>
 
-    <!-- ============ people on your path ============ -->
-    <section class="b room" id="room-card">
-      <div class="bh">
-        <span class="gl" style="background:#FBEAF0">
-          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><circle cx="8" cy="8" r="4" fill="#D4537E"/><circle cx="15" cy="9.5" r="3.2" fill="#ED93B1"/><path d="M2 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" fill="#D4537E"/><path d="M14 19c0-2.6 1.6-4.4 4-4.4s3 1.8 3 4.4" fill="#ED93B1"/></svg>
-        </span>
-        <div><span class="mono" style="color:#A94168">Also here</span><h2 id="room-h">Other people</h2></div>
-      </div>
-      <p class="n" id="room-n">Loading…</p>
-      <div id="room" style="margin-top:12px"></div>
-      <div class="row-acts" id="room-acts" hidden>
-        <a class="small" href="app-people.html">See everyone</a>
-      </div>
-    </section>
-
     <!-- ============ your rhythm ============ -->
     <section class="b wide">
       <div class="calhead">
@@ -339,30 +324,6 @@
     }).join('');
   }
 
-  /* ---------- other people ---------- */
-  function showRoom(peers, myTopic){
-    if (!peers){ $('room-n').textContent = 'We couldn’t reach the server, so this list is empty.'; return; }
-    if (!peers.length){
-      $('room-h').textContent = 'Nobody else yet';
-      $('room-n').textContent = 'You’re the first one here. When somebody else signs up they show up in this list.';
-      return;
-    }
-    var names = (window.pf && pf.trackNames) || {};
-    $('room-h').textContent = peers.length + ' other ' + (peers.length === 1 ? 'person' : 'people') + ' here';
-    $('room-n').textContent = 'Not partners — just everyone else who has signed up. Ask anyone learning what you’re learning.';
-    $('room').innerHTML = peers.slice(0, 4).map(function(p){
-      var same = myTopic && p.topic && p.topic.toLowerCase() === myTopic.toLowerCase();
-      var meta = [names[p.track_id] || '', p.topic || '', p.timezone || ''].filter(Boolean).join(' · ');
-      return '<div class="r">' +
-        '<div class="a" style="background:#EEEDFE;color:#3C3489" aria-hidden="true">' + esc(initial(p.name)) + '</div>' +
-        '<div class="b2"><p class="nm">' + esc(p.name || 'Someone') +
-          (same ? '<span class="same-tag">same topic</span>' : '') + '</p>' +
-          (meta ? '<p class="mt">' + esc(meta) + '</p>' : '') + '</div>' +
-        '</div>';
-    }).join('');
-    $('room-acts').hidden = false;
-  }
-
   /* Answers from signup that never reached the database (no session at the
      time, e.g. email confirmation was on). Save them now that we're signed in. */
   function flushPending(){
@@ -393,7 +354,6 @@
       hero({ h:'You’re signed out.', s:'Log in and your partner, sessions and history come back exactly as you left them.',
              a:'<a class="btn" href="login.html">Log in</a><a class="ghost" href="signup.html">Sign up</a>' });
       $('sess-card').hidden = true;
-      $('room-card').hidden = true;
       return;
     }
     flushPending();
@@ -424,9 +384,9 @@
         $('topicline').hidden = false;
       }
 
-      Promise.all([pf.acceptedPartners(), pf.fetchSessions(), pf.fetchPeers(12)])
+      Promise.all([pf.acceptedPartners(), pf.fetchSessions()])
         .then(function(r){
-          var partners = r[0] || [], all = r[1] || [], peers = r[2];
+          var partners = r[0] || [], all = r[1] || [];
           var now = Date.now();
           /* A proposal is not a session. It doesn't go on the calendar, it
              isn't "coming up", and it doesn't tick the checklist — until
@@ -507,7 +467,6 @@
           }
           if (past.length) buildCal(past);
 
-          showRoom(peers, topic);
           showSteps(profile, !!partner, sessions.length);   /* confirmed only */
         });
     });
