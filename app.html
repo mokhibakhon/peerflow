@@ -88,16 +88,6 @@
 
   <div class="grid">
 
-    <!-- ============ getting started ============ -->
-    <section class="b wide" id="steps-card" hidden>
-      <div class="bh">
-        <span class="gl" style="background:#EEEDFE">
-          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="#AFA9EC"/><path d="M7 11.2l3 3L15.5 8" fill="none" stroke="#3C3489" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <div><span class="mono" style="color:#5A51B5">Getting started</span><h2>What's left to do</h2></div>
-      </div>
-      <ol class="steps-list" id="steps-list"></ol>
-    </section>
 
     <!-- ============ sessions ============ -->
     <!-- One card, not two. A time waiting on an answer and a time already
@@ -779,41 +769,6 @@
     });
   });
 
-  /* ---------- checklist ---------- */
-  function showSteps(profile, hasPartner, sessionCount){
-    var complete = !!(profile && profile.name && profile.topic && profile.level &&
-                      (profile.availability || []).length);
-    var steps = [
-      { done: complete, label:'Finish your profile',
-        hint:'Your topic, stage and free times are what we match on.',
-        href:'app-profile.html', cta:'Complete it' },
-      { done: hasPartner, label:'Find a partner',
-        hint:'Browse everyone here and ask someone learning the same thing.',
-        href:'app-people.html', cta:'See people' },
-      /* Booking only exists once someone has accepted you, so until then this
-         step gets no button — sending people to a page with no form on it is
-         what made "Book it" look broken. */
-      { done: sessionCount > 0, label:'Book your first session',
-        hint: hasPartner ? 'Propose a time. It is booked once they accept.'
-                         : 'Opens up as soon as you have a partner.',
-        href: hasPartner ? 'app-sessions.html' : '',
-        cta:  hasPartner ? 'Propose a time' : '' }
-    ];
-    if (steps.every(function(s){ return s.done; })) return;   // nothing left to nag about
-
-    $('steps-card').hidden = false;
-    $('steps-list').innerHTML = steps.map(function(s){
-      return '<li class="' + (s.done ? 'done' : '') + '">' +
-        '<span class="tick" aria-hidden="true">' + (s.done ?
-          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.4 4.4L19 7.5" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
-        '</span>' +
-        '<span class="step-body"><b>' + esc(s.label) + '</b>' +
-          (s.done ? '' : '<span>' + esc(s.hint) + '</span>') + '</span>' +
-        (s.done || !s.cta ? '' : '<a class="small" href="' + s.href + '">' + esc(s.cta) + '</a>') +
-      '</li>';
-    }).join('');
-  }
-
   /* Answers from signup that never reached the database (no session at the
      time, e.g. email confirmation was on). Save them now that we're signed in. */
   function flushPending(){
@@ -999,8 +954,6 @@
             $('up-h').hidden = false;
           }
           syncSessCard();
-
-          showSteps(profile, !!partner, sessions.length);   /* confirmed only */
         });
     });
   });

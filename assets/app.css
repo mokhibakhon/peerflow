@@ -229,19 +229,6 @@ h1 .g{color:var(--p4)}
 .logs .t{flex:1;min-width:0}
 .logs .m{font-family:var(--mono);font-size:11px;color:var(--faint)}
 
-/* ---------- checklist ---------- */
-.steps-list{list-style:none;margin:0;padding:0;display:grid;gap:2px}
-.steps-list li{display:flex;align-items:center;gap:12px;padding:12px 0;
-  border-top:1px dashed var(--line)}
-.steps-list li:first-child{border-top:0}
-.tick{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:0 0 auto;
-  display:flex;align-items:center;justify-content:center}
-.steps-list li.done .tick{background:var(--p4);border-color:var(--p4)}
-.step-body{flex:1;min-width:0;font-size:14.5px}
-.step-body b{font-weight:600;display:block}
-.step-body span{display:block;font-size:13px;color:var(--faint)}
-.steps-list li.done .step-body b{color:var(--faint);text-decoration:line-through}
-
 /* ---------- invite ---------- */
 .inv{border:1px dashed var(--line);background:#FAFAFB}
 .inv .row{display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
