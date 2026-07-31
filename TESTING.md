@@ -62,7 +62,7 @@ the console line, not the sentence — the sentence is deliberately vague.
       profile.
 - [ ] The table under it lines up, and the **Schedules** column reads
       *"N times you're both free"*, matching the windows you actually share.
-- [ ] Ask to partner → box opens → type a note → Send → row becomes **Asked**.
+- [ ] Send request → box opens → type a note → Send → row becomes **Asked**.
 - [ ] **N:** bell shows **1**, panel says *Mokhibakhon wants to learn with you*
       with your note.
 - [ ] **N:** Accept. **M:** refresh → row reads **Partners**.
@@ -149,7 +149,7 @@ side that didn't click.
       gone — not an empty card with a heading on it.
 - [ ] A proposal never appears under **Booked**.
 - [ ] **People page:** *Asked*, *Partners*, *Declined*, *Waiting on you* and
-      *Ask to partner* are all the same size and weight in the table.
+      *Send request* are all the same size and weight in the table.
 
 ## 6. Speed
 

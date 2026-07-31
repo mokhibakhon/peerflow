@@ -20,7 +20,7 @@ static site with no build step.
 | `conduct.html` | Code of conduct |
 | `app.html` | **Sessions** — the signed-in home. Proposals waiting on an answer, what's booked, and the form to propose a time |
 | `app-sessions.html` | **Partner** — who you're paired with, and what you have in common |
-| `app-people.html` | **People** — everyone signed up, closest match first, with *Ask to partner* |
+| `app-people.html` | **People** — everyone signed up, closest match first, with *Send request* |
 | `app-profile.html` | Your name, topic, stage, timezone and free times |
 | `app-settings.html` | Password, account, sign out |
 | `app-badges.html` | What you've done so far |
@@ -79,7 +79,7 @@ There is no automatic matching engine, and no hand-editing of tables.
 
 1. **People** ranks everyone by how close they are to what you're learning —
    same topic first, then same path, then how many free windows you share.
-2. You press **Ask to partner** and can add a note. They get it in their bell.
+2. You press **Send request** and can add a note. They get it in their bell.
 3. They accept, and you're partners. Either of you can have more than one.
 4. On **Sessions**, one of you proposes a time. Nothing is booked until the
    other accepts; they can also decline or suggest another time. Either side

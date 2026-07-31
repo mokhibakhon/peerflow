@@ -95,7 +95,7 @@
 
   function actionFor(userId){
     var r = reqByUser[userId];
-    if (!r) return '<button class="askbtn" data-ask="' + esc(userId) + '">Ask to partner</button>';
+    if (!r) return '<button class="askbtn" data-ask="' + esc(userId) + '">Send request</button>';
     if (r.status === 'accepted') return chip('ok',   'tick', 'Partners');
     if (r.status === 'declined') return chip('no',   'no',   'Declined');
     return r.direction === 'out'
@@ -265,7 +265,10 @@
       box.className = 'askbox';
       box.innerHTML =
         '<input type="text" maxlength="140" placeholder="Say what you\u2019re working on (optional)">' +
-        '<button class="btn" data-send="' + esc(id) + '">Send request</button>' +
+        /* Just "Send" — the row button is the one that says "Send request",
+           and two buttons a centimetre apart carrying the same three words
+           is a question about which one you are really pressing. */
+        '<button class="btn" data-send="' + esc(id) + '">Send</button>' +
         '<button class="small" data-cancel>Cancel</button>' +
         '<p class="ask-err" hidden></p>';
       slot(r).appendChild(box);
@@ -292,7 +295,7 @@
         return;
       }
       send.disabled = false;
-      send.textContent = 'Send request';
+      send.textContent = 'Send';
       err.textContent = res && res.demo
         ? 'You need to be signed in to send a request.'
         : (res && res.error) || 'Could not send the request — please try again.';
