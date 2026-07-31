@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bands, finished three ways</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+<link rel="stylesheet" href="assets/home.css">
+<style>
+  .pick{position:sticky;top:0;z-index:99;background:#171A2E;color:#fff;padding:12px 0}
+  .pick .in{max-width:1060px;margin:0 auto;padding:0 24px;display:flex;
+    align-items:center;gap:10px;flex-wrap:wrap}
+  .pick b{font-size:14px;margin-right:6px}
+  .pick button{border:1px solid rgba(255,255,255,.24);background:none;color:#fff;
+    border-radius:9px;padding:7px 14px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+  .pick button.on{background:#fff;color:#171A2E;border-color:#fff}
+  .pick span.note{font-size:12.5px;opacity:.66;margin-left:auto}
+  .chapno{display:none}
+
+  /* ==========================================================
+     Shared, and the actual repairs to A. Every one of these was
+     wrong in the first pass, whichever finish you pick.
+     ========================================================== */
+
+  /* A band needs the same air top and bottom. .sec only had padding on
+     top, so "Learning something that isn't here?" ended 30px above a
+     hard colour change. */
+  .fix .sec{padding:88px 0}
+  .fix #how{padding:88px 0}
+
+  /* Full-bleed without leaving .wrap. */
+  .fix .band{box-shadow:0 0 0 100vmax var(--bandc);clip-path:inset(0 -100vmax);
+    background:var(--bandc)}
+
+  /* A hairline at every boundary. Two flat colours meeting is a change;
+     a change with an edge on it is a decision. */
+  .fix .band{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+
+  /* The quote had a heading on the left and half a band of nothing on the
+     right. Centred, it uses the width it was given and changes pace on
+     purpose rather than by accident. */
+  .fix .founder{max-width:none;padding:88px 0;text-align:center}
+  .fix .founder .fnd-head{margin-bottom:20px}
+  .fix .founder blockquote{max-width:740px;margin:0 auto;font-size:27px;line-height:1.42}
+  .fix .founder cite{margin-top:18px}
+
+  /* The footer was a strip of leftover grey under the last band. It now
+     belongs to whatever band closes the page. */
+  .fix footer{border-top:0;padding:30px 0 44px}
+
+  .fix .how-card,.fix .path{border-color:#DEDDE6}
+
+  /* ==========================================================
+     A1 — two surfaces, tightened
+     ========================================================== */
+  .a1 #how{--bandc:var(--card)}
+  .a1 #how,.a1 .founder{}
+  .a1 .founder{--bandc:var(--card)}
+  .a1 #how,.a1 .founder{background:var(--card);
+    box-shadow:0 0 0 100vmax var(--card);clip-path:inset(0 -100vmax);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .a1 footer{background:var(--card);box-shadow:0 0 0 100vmax var(--card);
+    clip-path:inset(0 -100vmax);margin-top:-1px}
+
+  /* ==========================================================
+     A2 — three surfaces: white, grey, mint
+     ========================================================== */
+  .a2 #how,.a2 .founder{background:var(--card);
+    box-shadow:0 0 0 100vmax var(--card);clip-path:inset(0 -100vmax);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .a2 .paths-sec{background:var(--live-soft);
+    box-shadow:0 0 0 100vmax var(--live-soft);clip-path:inset(0 -100vmax);
+    border-top:1px solid #C9E6D8;border-bottom:1px solid #C9E6D8}
+  .a2 .paths-sec .path{border-color:#C9E6D8}
+  .a2 .paths-sec .mono{color:var(--live-deep)}
+  .a2 footer{background:var(--card);box-shadow:0 0 0 100vmax var(--card);
+    clip-path:inset(0 -100vmax);margin-top:-1px}
+
+  /* ==========================================================
+     A3 — white, grey, then a dark close
+     ========================================================== */
+  .a3 #how{background:var(--card);
+    box-shadow:0 0 0 100vmax var(--card);clip-path:inset(0 -100vmax);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .a3 .founder{background:#12352C;color:#fff;
+    box-shadow:0 0 0 100vmax #12352C;clip-path:inset(0 -100vmax);border:0}
+  .a3 .founder .fnd-head h2{color:#fff}
+  .a3 .founder cite{color:#8FD3BB}
+  .a3 footer{background:#12352C;color:#A9BDB6;
+    box-shadow:0 0 0 100vmax #12352C;clip-path:inset(0 -100vmax)}
+  .a3 footer a{color:#CFE7DD}
+
+  @media (max-width:760px){
+    .fix .sec,.fix #how,.fix .founder{padding:56px 0}
+    .fix .founder blockquote{font-size:22px}
+  }
+</style>
+</head>
+<body class="fix a1">
+
+<div class="pick"><div class="in">
+  <b>Finish the bands:</b>
+  <button data-v="a1" class="on">A1 · two surfaces</button>
+  <button data-v="a2">A2 · white, grey, mint</button>
+  <button data-v="a3">A3 · dark close</button>
+  <span class="note">All three carry the same four repairs.</span>
+</div></div>
+
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="logo" href="index.html" aria-label="PeerFlow home">
+      <svg width="26" height="26" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
+      <span>peer<b>flow</b></span>
+    </a>
+    <div class="nav-right">
+      <a href="#how">How it works</a>
+      <a href="login.html">Log in</a>
+      <a class="btn btn-sm" href="signup.html">Find a partner</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <header class="hero">
+    <div>
+      <h1>Nobody near you is learning this. <em>Someone online is.</em></h1>
+      <p class="lede">We find you one partner on the same path, and you meet every week — face to face.</p>
+      <a class="btn" href="signup.html">Find my partner</a>
+    </div>
+
+    <!--
+      An illustration of a session in progress: two people, cameras on, one
+      pomodoro running. Nobody here is a real user, so the whole card is
+      hidden from screen readers rather than announced as live data.
+      The clock is driven by home.js.
+    -->
+    <aside class="session" aria-hidden="true">
+      <div class="session-head">
+        <span class="live"><b></b>In session</span>
+        <span class="mono">cameras on</span>
+      </div>
+
+      <div class="tiles">
+        <div class="tile">
+          <span class="tav" style="background:#534AB7">AM</span>
+          <span class="tname">Amir</span>
+        </div>
+        <div class="tile you">
+          <span class="tav" style="background:#0FA36B">YOU</span>
+          <span class="tname">You</span>
+        </div>
+      </div>
+
+      <div class="rows">
+        <div class="row"><span>Both learning</span><b>Linux basics</b></div>
+      </div>
+
+      <div class="pom">
+        <div class="pom-ring">
+          <svg viewBox="0 0 100 100">
+            <circle class="pom-track" cx="50" cy="50" r="43"/>
+            <circle class="pom-arc" id="pf-arc" cx="50" cy="50" r="43"/>
+          </svg>
+        </div>
+        <div class="pom-txt">
+          <b id="pf-count">25:00</b>
+          <span>left in this pomodoro</span>
+        </div>
+      </div>
+    </aside>
+  </header>
+
+  <!-- ================= HOW IT WORKS =================
+       The pictures are drawn for this width, not screenshots shrunk to fit —
+       see assets/how-frames.html. The steps used to say we match you with
+       someone, which stopped being true when asking and accepting arrived. -->
+  <section id="how" class="sec">
+    <!-- No mono kicker above the heading here, the way the other sections
+         have one — it would only say "How it works" twice. -->
+    <div class="sec-head">
+      <span class="chapno">01</span>
+      <h2 data-a="How it works" data-b="How it works" data-c="See how it works" data-d="How does it work?" data-e="The process">How it works</h2>
+      <p>Nothing decides for you. You pick the person, you both agree the time.</p>
+    </div>
+
+    <div class="how-grid">
+      <article class="how-card">
+        <div class="how-shot">
+          <img src="assets/how-1-find.png" width="1280" height="841" loading="lazy"
+               alt="A list of people learning the same thing, each with a Send request button">
+        </div>
+        <div class="how-body">
+          <span class="mono">Step one</span>
+          <h3>Find someone</h3>
+          <p>Everyone on your path, closest to what you're learning first. Send a
+          request — they can say yes.</p>
+        </div>
+      </article>
+
+      <article class="how-card">
+        <div class="how-shot">
+          <img src="assets/how-2-time.png" width="1280" height="841" loading="lazy"
+               alt="Picking a day you are both free and proposing a time">
+        </div>
+        <div class="how-body">
+          <span class="mono">Step two</span>
+          <h3>Agree a time</h3>
+          <p>The days you're both free come first. Nothing is booked until your
+          partner accepts.</p>
+        </div>
+      </article>
+
+      <article class="how-card">
+        <div class="how-shot">
+          <img src="assets/how-3-call.png" width="1280" height="841" loading="lazy"
+               alt="Two people in a video session, cameras on">
+        </div>
+        <div class="how-body">
+          <span class="mono">Step three</span>
+          <h3>Meet</h3>
+          <p>Cameras on, one hour, just the two of you. The link opens fifteen
+          minutes before.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= PATHS ================= -->
+  <section class="sec paths-sec">
+    <div class="sec-head">
+      <span class="chapno">02</span>
+      <span class="mono" data-a="Eight paths" data-b="Paths" data-c="Eight paths" data-d="" data-e="">Eight paths</span>
+      <h2 data-a="Pick where you're headed" data-b="Pick your path" data-c="Pick where you're headed" data-d="What can I learn?" data-e="The paths">Pick where you're headed</h2>
+      <p>Your partner is on the same path, at roughly the same point.</p>
+    </div>
+
+    <!-- Each .waiting is filled in by home.js from the real number of people
+         signed up to that path. data-track matches the ids in signup.html. -->
+    <div class="grid">
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Frontend">
+          <rect width="200" height="130" fill="#3C3489"/>
+          <ellipse cx="98" cy="110" rx="56" ry="8" fill="#26215C"/>
+          <rect x="26" y="20" width="16" height="16" rx="4" fill="#534AB7"/>
+          <rect x="156" y="90" width="12" height="12" rx="3" fill="#534AB7"/>
+          <rect x="72" y="22" width="86" height="62" rx="7" fill="#534AB7"/>
+          <rect x="44" y="32" width="92" height="70" rx="7" fill="#EEEDFE"/>
+          <path d="M44 39a7 7 0 0 1 7-7h78a7 7 0 0 1 7 7v8H44Z" fill="#CECBF6"/>
+          <circle cx="53" cy="39" r="2.4" fill="#7F77DD"/><circle cx="62" cy="39" r="2.4" fill="#7F77DD"/><circle cx="71" cy="39" r="2.4" fill="#7F77DD"/>
+          <rect x="52" y="56" width="26" height="38" rx="4" fill="#AFA9EC"/>
+          <rect x="86" y="56" width="42" height="9" rx="3" fill="#CECBF6"/>
+          <rect x="86" y="70" width="42" height="9" rx="3" fill="#CECBF6"/>
+          <rect x="86" y="84" width="26" height="9" rx="3" fill="#AFA9EC"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="frontend"><b></b><span></span></span>
+          <h3>Frontend</h3>
+          <a class="cta" href="signup.html?path=frontend">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Backend">
+          <rect width="200" height="130" fill="#0F6E56"/>
+          <ellipse cx="100" cy="112" rx="52" ry="8" fill="#085041"/>
+          <circle cx="32" cy="30" r="7" fill="#1D9E75"/>
+          <rect x="158" y="94" width="12" height="12" rx="3" fill="#1D9E75"/>
+          <rect x="61" y="27" width="84" height="22" rx="5" fill="#04342C"/>
+          <rect x="58" y="24" width="84" height="22" rx="5" fill="#E1F5EE"/>
+          <circle cx="69" cy="35" r="3.4" fill="#1D9E75"/>
+          <rect x="80" y="31" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="38" width="22" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="124" y="30" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="30" width="4" height="12" rx="2" fill="#5DCAA5"/>
+          <rect x="61" y="55" width="84" height="22" rx="5" fill="#04342C"/>
+          <rect x="58" y="52" width="84" height="22" rx="5" fill="#E1F5EE"/>
+          <circle cx="69" cy="63" r="3.4" fill="#1D9E75"/>
+          <rect x="80" y="59" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="66" width="22" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="124" y="58" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="58" width="4" height="12" rx="2" fill="#5DCAA5"/>
+          <rect x="61" y="83" width="84" height="22" rx="5" fill="#04342C"/>
+          <rect x="58" y="80" width="84" height="22" rx="5" fill="#E1F5EE"/>
+          <circle cx="69" cy="91" r="3.4" fill="#1D9E75"/>
+          <rect x="80" y="87" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="94" width="22" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="124" y="86" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="86" width="4" height="12" rx="2" fill="#5DCAA5"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="backend"><b></b><span></span></span>
+          <h3>Backend</h3>
+          <a class="cta" href="signup.html?path=backend">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Cybersecurity">
+          <rect width="200" height="130" fill="#993C1D"/>
+          <ellipse cx="100" cy="112" rx="44" ry="8" fill="#712B13"/>
+          <circle cx="32" cy="34" r="6" fill="#D85A30"/>
+          <rect x="158" y="86" width="13" height="13" rx="3" fill="#D85A30"/>
+          <path d="M103 20l43 17v31c0 20-18 33-43 42-25-9-43-22-43-42V37Z" fill="#D85A30"/>
+          <path d="M100 20l43 17v31c0 20-18 33-43 42-25-9-43-22-43-42V37Z" fill="#FAECE7"/>
+          <path d="M100 31l33 13v24c0 15-14 25-33 32-19-7-33-17-33-32V44Z" fill="#F5C4B3"/>
+          <circle cx="100" cy="62" r="9" fill="#993C1D"/>
+          <path d="M95.5 67h9l-2 15h-5Z" fill="#993C1D"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="cybersecurity"><b></b><span></span></span>
+          <h3>Cybersecurity</h3>
+          <a class="cta" href="signup.html?path=cybersecurity">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Data and analytics">
+          <rect width="200" height="130" fill="#185FA5"/>
+          <ellipse cx="100" cy="112" rx="54" ry="8" fill="#0C447C"/>
+          <circle cx="30" cy="32" r="7" fill="#378ADD"/>
+          <rect x="160" y="92" width="12" height="12" rx="3" fill="#378ADD"/>
+          <rect x="51" y="27" width="104" height="76" rx="8" fill="#0C447C"/>
+          <rect x="48" y="24" width="104" height="76" rx="8" fill="#E6F1FB"/>
+          <rect x="62" y="66" width="15" height="20" rx="3" fill="#85B7EB"/>
+          <rect x="83" y="56" width="15" height="30" rx="3" fill="#85B7EB"/>
+          <rect x="104" y="62" width="15" height="24" rx="3" fill="#378ADD"/>
+          <rect x="125" y="44" width="15" height="42" rx="3" fill="#378ADD"/>
+          <path d="M69 60 90 50l21 6 21-14" fill="none" stroke="#185FA5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="132" cy="42" r="4.5" fill="#185FA5"/>
+          <rect x="62" y="34" width="30" height="5" rx="2.5" fill="#B5D4F4"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="data"><b></b><span></span></span>
+          <h3>Data &amp; analytics</h3>
+          <a class="cta" href="signup.html?path=data">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Mobile">
+          <rect width="200" height="130" fill="#993556"/>
+          <ellipse cx="100" cy="112" rx="46" ry="8" fill="#72243E"/>
+          <circle cx="34" cy="36" r="6" fill="#D4537E"/>
+          <rect x="77" y="21" width="52" height="86" rx="11" fill="#72243E"/>
+          <rect x="74" y="18" width="52" height="86" rx="11" fill="#FBEAF0"/>
+          <rect x="80" y="30" width="40" height="62" rx="6" fill="#F4C0D1"/>
+          <rect x="90" y="23" width="20" height="4" rx="2" fill="#F4C0D1"/>
+          <rect x="86" y="38" width="28" height="16" rx="4" fill="#D4537E"/>
+          <rect x="86" y="60" width="28" height="5" rx="2.5" fill="#ED93B1"/>
+          <rect x="86" y="70" width="18" height="5" rx="2.5" fill="#ED93B1"/>
+          <rect x="90" y="96" width="20" height="3" rx="1.5" fill="#F4C0D1"/>
+          <rect x="130" y="44" width="40" height="20" rx="6" fill="#D4537E"/>
+          <circle cx="140" cy="54" r="3" fill="#FBEAF0"/><rect x="147" y="52" width="16" height="4" rx="2" fill="#FBEAF0"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="mobile"><b></b><span></span></span>
+          <h3>Mobile</h3>
+          <a class="cta" href="signup.html?path=mobile">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="DevOps and cloud">
+          <rect width="200" height="130" fill="#35414F"/>
+          <ellipse cx="100" cy="112" rx="48" ry="8" fill="#232C36"/>
+          <circle cx="32" cy="88" r="6" fill="#6C7C8E"/>
+          <rect x="160" y="28" width="12" height="12" rx="3" fill="#6C7C8E"/>
+          <path d="M78 55a17 17 0 0 1 33-6 13 13 0 0 1 19 12 12 12 0 0 1-4 23H80a17 17 0 0 1-2-29Z" fill="#232C36" transform="translate(3,3)"/>
+          <path d="M78 55a17 17 0 0 1 33-6 13 13 0 0 1 19 12 12 12 0 0 1-4 23H80a17 17 0 0 1-2-29Z" fill="#EDF0F3"/>
+          <path d="M76 92a26 26 0 0 0 48 0" fill="none" stroke="#9EAAB8" stroke-width="4" stroke-linecap="round"/>
+          <path d="M124 86l6 8-11 1Z" fill="#9EAAB8"/>
+          <rect x="88" y="60" width="24" height="4" rx="2" fill="#9EAAB8"/>
+          <rect x="88" y="69" width="16" height="4" rx="2" fill="#9EAAB8"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="devops"><b></b><span></span></span>
+          <h3>DevOps &amp; cloud</h3>
+          <a class="cta" href="signup.html?path=devops">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="AI and machine learning">
+          <rect width="200" height="130" fill="#58256B"/>
+          <ellipse cx="100" cy="112" rx="46" ry="8" fill="#3C1749"/>
+          <circle cx="32" cy="32" r="6" fill="#9B5BB4"/>
+          <rect x="158" y="92" width="12" height="12" rx="3" fill="#9B5BB4"/>
+          <rect x="76" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="97" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="118" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/>
+          <rect x="76" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="97" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="118" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/>
+          <rect x="58" y="52" width="14" height="6" rx="3" fill="#9B5BB4"/><rect x="58" y="72" width="14" height="6" rx="3" fill="#9B5BB4"/>
+          <rect x="128" y="52" width="14" height="6" rx="3" fill="#9B5BB4"/><rect x="128" y="72" width="14" height="6" rx="3" fill="#9B5BB4"/>
+          <rect x="73" y="39" width="58" height="58" rx="12" fill="#3C1749"/>
+          <rect x="70" y="36" width="58" height="58" rx="12" fill="#F5EAF8"/>
+          <rect x="82" y="48" width="34" height="34" rx="8" fill="#C594D6"/>
+          <circle cx="99" cy="65" r="6" fill="#58256B"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="aiml"><b></b><span></span></span>
+          <h3>AI &amp; machine learning</h3>
+          <a class="cta" href="signup.html?path=aiml">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="UX and UI design">
+          <rect width="200" height="130" fill="#854F0B"/>
+          <ellipse cx="100" cy="112" rx="52" ry="8" fill="#633806"/>
+          <circle cx="30" cy="92" r="6" fill="#EF9F27"/>
+          <rect x="160" y="26" width="12" height="12" rx="3" fill="#EF9F27"/>
+          <rect x="52" y="24" width="74" height="54" rx="7" fill="#EF9F27"/>
+          <rect x="77" y="47" width="74" height="54" rx="7" fill="#633806"/>
+          <rect x="74" y="44" width="74" height="54" rx="7" fill="#FAEEDA"/>
+          <rect x="84" y="54" width="26" height="26" rx="5" fill="#FAC775"/>
+          <rect x="118" y="54" width="22" height="5" rx="2.5" fill="#FAC775"/>
+          <rect x="118" y="64" width="22" height="5" rx="2.5" fill="#FAC775"/>
+          <rect x="118" y="74" width="14" height="5" rx="2.5" fill="#FAC775"/>
+          <path d="M113 78l22 9-9 3-3 9Z" fill="#633806"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="design"><b></b><span></span></span>
+          <h3>UX/UI design</h3>
+          <a class="cta" href="signup.html?path=design">Find my partner</a>
+        </div>
+      </article>
+
+    </div>
+
+    <p class="other">Learning something that isn't here? <a href="mailto:hello@peerflow.dev">Tell us</a> and we'll look for your partner too.</p>
+  </section>
+
+  <!-- ================= FOUNDER ================= -->
+  <section class="founder">
+    <div class="sec-head fnd-head"><span class="chapno">03</span><h2 data-a="Why this exists" data-b="Why this exists" data-c="Why we built it" data-d="Why does this exist?" data-e="The reason">Why this exists</h2></div>
+    <blockquote>I grew up in a small town. I didn't need another course — I needed someone who'd show up on Tuesday because I was expecting them.</blockquote>
+    <cite>Mohibakhon, founder</cite>
+  </section>
+
+  <footer>
+    <span>peerflow — find one person to learn with</span>
+    <span><a href="conduct.html">Code of conduct</a> · <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a></span>
+  </footer>
+
+</div>
+
+
+<script src="assets/home.js"></script>
+<script>
+document.querySelectorAll('[data-a]').forEach(function(el){
+  el.textContent = el.getAttribute('data-a');
+});
+document.querySelector('.pick').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-v]');
+  if (!b) return;
+  document.body.className = 'fix ' + b.getAttribute('data-v');
+  document.querySelectorAll('.pick button').forEach(function(x){
+    x.classList.toggle('on', x === b);
+  });
+});
+</script>
+</body>
+</html>
