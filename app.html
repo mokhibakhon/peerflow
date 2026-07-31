@@ -126,51 +126,26 @@
     <!-- Proposing, shown once you actually have a partner. -->
     <section class="b wide" id="book-card" hidden>
       <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time</h2></div></div>
-      <p style="font-size:14.5px;color:var(--muted);margin-bottom:16px">
-        Nothing is booked until your partner accepts. They see it in their notifications
-        and can say yes or suggest something else.
-      </p>
-      <div class="field" id="bk-who-wrap" hidden style="max-width:320px">
-        <label for="bk-who">Who with</label>
-        <select id="bk-who"></select>
-      </div>
-      <div id="bk-slots-wrap" hidden style="margin-bottom:16px">
-        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Times you're both free</label>
-        <div class="chips" id="bk-slots"></div>
-      </div>
+      <!-- The whole form is one sentence. Every green word opens a menu, and
+           the line underneath says whether your partner has told us they're
+           free then. Labels, boxes and a row of three fields said the same
+           thing in four times the space and never once said it out loud. -->
+      <p class="sent" id="bk-sent">Meet
+        <span class="pick" data-k="who"></span> on
+        <span class="pick" data-k="day"></span> at
+        <span class="pick" data-k="time"></span> for
+        <span class="pick" data-k="len"></span>.</p>
+      <p class="bk-line" id="bk-warn"></p>
 
-      <!-- The chips are the choice; this says in words what picking one means,
-           because a filled-in date box a few inches below doesn't. -->
-      <p class="bk-chosen" id="bk-chosen"></p>
-      <button type="button" class="linky" id="bk-toggle" aria-expanded="false">Change time or length</button>
-
-      <div class="book-row" id="bk-manual" hidden>
-        <div class="field" style="margin:0">
-          <label for="bk-date">Date</label>
-          <input id="bk-date" type="date">
-        </div>
-        <div class="field" style="margin:0">
-          <label for="bk-time">Time</label>
-          <input id="bk-time" type="time" value="19:00">
-        </div>
-        <div class="field" style="margin:0">
-          <label for="bk-len">Length</label>
-          <select id="bk-len">
-            <option value="25">25 min</option>
-            <option value="50" selected>50 min</option>
-            <option value="80">80 min</option>
-          </select>
-        </div>
-      </div>
-      <p class="bk-warn" id="bk-warn" hidden></p>
-      <div class="field" style="margin:18px 0 0">
+      <div class="field" style="margin:20px 0 0">
         <label for="bk-msg">Note <span class="hint">(optional)</span></label>
         <input id="bk-msg" type="text" maxlength="140" placeholder="What you'd like to work on">
       </div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
         <button class="btn primary" id="bk-save">Propose this time</button>
-        <span id="bk-note" style="font-size:13.5px;color:var(--muted)"></span>
+        <span class="bk-hint" id="bk-hint">Nothing is booked until they accept.</span>
       </div>
+      <p id="bk-note" class="bk-status"></p>
     </section>
 
     <!-- ============ invite ============ -->
@@ -294,16 +269,25 @@
     });
   });
 
-  /* ----- free times, shared -----
-     The availability grid is four bands a day, not clock times, so a window
-     can't be booked as-is. Picking one fills the date and time with the next
-     time that band comes round; you can still move either. Without it the
-     form was an empty date picker and a guess at whether your partner is
-     even awake then. */
+  /* ----- the sentence -----
+     Availability is four bands a day, not clock times, so a window can't be
+     booked as-is. The day menu lists the days you're both free, the time menu
+     turns that day's shared bands into actual hours, and anything outside
+     both is still reachable — it just isn't offered first. */
   var DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
-  var DAY_LABEL = { sun:'Sun', mon:'Mon', tue:'Tue', wed:'Wed', thu:'Thu', fri:'Fri', sat:'Sat' };
-  var BAND_START = { morning:6, afternoon:12, evening:17, night:22 };
+  var BAND_START  = { morning:6, afternoon:12, evening:17, night:22 };
+  /* Hours offered inside a band. Night stops at 23 rather than running into
+     the next day, because a menu of times under a date has to belong to that
+     date. */
+  var BAND_HOURS  = { morning:[6,7,8,9,10,11], afternoon:[12,13,14,15,16],
+                      evening:[17,18,19,20,21], night:[22,23] };
+  var DAY_HOURS   = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+  var LENGTHS = [ { v:25, why:'a quick check-in' },
+                  { v:50, why:'the usual' },
+                  { v:80, why:'a proper session' } ];
+
   var myAvail = [], bookPartner = null, myName = '', bookPartners = [];
+  var bkDay = null, bkHour = 19, bkLen = 50, bkOpen = null;
 
   /* Everything below moved here from the Partner page. Proposing a time, the
      times waiting on an answer and the sessions they turn into are one thing,
@@ -328,19 +312,11 @@
     return DAYS[day] + '-' + (h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'night');
   }
 
-  function pad(n){ return String(n).padStart(2, '0'); }
-  function fillWhen(d){
-    document.getElementById('bk-date').value =
-      d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-    document.getElementById('bk-time').value = pad(d.getHours()) + ':' + pad(d.getMinutes());
-  }
-
+  function midnight(d){ var x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+  function dayKey(d){ return midnight(d).getTime(); }
   function chosen(){
-    var date = document.getElementById('bk-date').value;
-    var time = document.getElementById('bk-time').value;
-    if (!date || !time) return null;
-    var d = new Date(date + 'T' + time);
-    return isNaN(d.getTime()) ? null : d;
+    if (!bkDay) return null;
+    var d = new Date(bkDay); d.setHours(bkHour, 0, 0, 0); return d;
   }
 
   function shared(){
@@ -351,111 +327,258 @@
     return theirs.filter(function(x){ return mine[x]; });
   }
 
-  function paintSlots(){
-    var list = shared(), wrap = document.getElementById('bk-slots-wrap');
-    if (!list.length) { wrap.hidden = true; return; }
-    var dated = list.map(function(sl){ return { slot: sl, when: nextWhen(sl) }; })
-                    .filter(function(x){ return x.when; })
-                    .sort(function(a, b){ return a.when - b.when; });
-    document.getElementById('bk-slots').innerHTML = dated.map(function(x){
-      var parts = x.slot.split('-');
-      /* The date the chip actually means, on the chip. "Tue evening" made you
-         cross-reference a date box further down to find out which Tuesday. */
-      var d = x.when;
-      var when = DAY_LABEL[parts[0]] + ' ' + d.getDate() + ' ' +
-                 d.toLocaleDateString(undefined, { month:'short' });
-      return '<button type="button" class="chip" data-slot="' + esc(x.slot) + '">' +
-        when + ' \u00b7 ' + parts[1] + '</button>';
+  /* Days you're both free, next time each comes round. Two bands on the same
+     weekday are one day with two windows, not two entries. */
+  function freeDays(){
+    var by = {}, out = [];
+    shared().forEach(function(sl){
+      var d = nextWhen(sl);
+      if (!d) return;
+      var k = dayKey(d);
+      if (!by[k]) { by[k] = { date: midnight(d), bands: [] }; out.push(by[k]); }
+      if (by[k].bands.indexOf(sl.split('-')[1]) < 0) by[k].bands.push(sl.split('-')[1]);
+    });
+    return out.sort(function(a, b){ return a.date - b.date; });
+  }
+
+  /* The bands you share on whichever day is chosen. Empty is a real answer:
+     it means this day isn't one of the shared ones. */
+  function bandsOn(d){
+    if (!d) return [];
+    var day = DAYS[d.getDay()], list = shared(), out = [];
+    ['morning','afternoon','evening','night'].forEach(function(b){
+      if (list.indexOf(day + '-' + b) >= 0) out.push(b);
+    });
+    return out;
+  }
+  function hoursOn(d){
+    var out = [];
+    bandsOn(d).forEach(function(b){
+      BAND_HOURS[b].forEach(function(h){ if (out.indexOf(h) < 0) out.push(h); });
+    });
+    return out.sort(function(a, b){ return a - b; });
+  }
+  function bothFree(){ return chosen() ? hoursOn(bkDay).indexOf(bkHour) >= 0 : false; }
+
+  function clockOf(h){ var d = new Date(); d.setHours(h, 0, 0, 0);
+    return d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }); }
+  function dayLong(d){ return d.toLocaleDateString(undefined,
+    { weekday:'long', day:'numeric', month:'short' }); }
+  /* The sentence takes a first name — "Meet Munisa Omonkhonova on Tuesday"
+     puts a surname in the middle of a line that reads as speech. The menu
+     still shows the whole name, because that's where you tell people apart. */
+  function shortName(){
+    var n = (bookPartner && bookPartner.name || '').trim();
+    return n ? n.split(/\s+/)[0] : 'your partner';
+  }
+
+  /* ----- what each menu contains ----- */
+  function menuBody(kind){
+    var i;
+
+    if (kind === 'who') return bookPartners.map(function(p, n){
+      return '<button type="button" class="opt' + (p === bookPartner ? ' on' : '') +
+        '" data-v="' + n + '"><span class="av">' + esc(initial(p.name || '?')) + '</span>' +
+        '<span>' + esc(p.name || 'Your partner') +
+        (p.topic ? '<em>' + esc(p.topic) + '</em>' : '') + '</span></button>';
     }).join('');
-    wrap.hidden = false;
-  }
 
-  /* Free windows and the warning are both about one specific person, so
-     changing who this is for has to redraw them. */
-  function pickPartner(i){
-    bookPartner = bookPartners[i] || null;
-    if (!bookPartner) return;
-    var win = shared().map(nextWhen).filter(Boolean).sort(function(x, y){ return x - y; })[0];
-    /* Tomorrow evening, not tomorrow at whatever time it happens to be now —
-       the fallback used to open the form at 04:13 if that's when you loaded it. */
-    var fallback = new Date(Date.now() + 86400000);
-    fallback.setHours(19, 0, 0, 0);
-    fillWhen(win || fallback);
-    paintSlots();
-    /* Nothing to pick from means the manual fields are the only way in, so
-       they start open rather than behind a link. */
-    var box = document.getElementById('bk-manual'), tog = document.getElementById('bk-toggle');
-    if (!shared().length) { box.hidden = false; tog.hidden = true; }
-    else { box.hidden = true; tog.hidden = false; tog.textContent = 'Change time or length'; }
-    refresh();
-  }
-
-  document.getElementById('bk-who').addEventListener('change', function(){
-    pickPartner(parseInt(this.value, 10) || 0);
-    var note = document.getElementById('bk-note');
-    note.textContent = '';
-  });
-
-  document.getElementById('bk-slots').addEventListener('click', function(e){
-    var c = e.target.closest('[data-slot]');
-    if (!c) return;
-    var d = nextWhen(c.getAttribute('data-slot'));
-    if (d) { fillWhen(d); refresh(); }
-  });
-
-  /* A time outside every shared window isn't wrong \u2014 people can make an
-     exception \u2014 so this is a note rather than a block. */
-  /* One line saying what will actually be proposed. Everything that can change
-     the answer — a chip, the date, the time, the length — ends up here. */
-  function sayChosen(){
-    var el = document.getElementById('bk-chosen');
-    var d = chosen();
-    if (!d) {
-      el.className = 'bk-chosen none';
-      el.textContent = 'Pick a time above, or set one yourself.';
-      return;
+    if (kind === 'day'){
+      var days = freeDays(), out = '';
+      if (days.length){
+        out += '<p class="pop-h">You’re both free</p>' + days.map(function(x){
+          return '<button type="button" class="opt' +
+            (bkDay && dayKey(x.date) === dayKey(bkDay) ? ' on' : '') +
+            '" data-day="' + x.date.getTime() + '">' +
+            esc(x.date.toLocaleDateString(undefined, { weekday:'long' })) +
+            '<span class="r">' + esc(x.date.getDate()) + ' ' +
+            esc(x.date.toLocaleDateString(undefined, { month:'short' })) + '</span></button>';
+        }).join('');
+      } else {
+        /* Nobody has said when they're free, so there is nothing to lead with.
+           The next week is a better offer than an empty menu. */
+        out += '<p class="pop-h">Next seven days</p>';
+        for (i = 1; i <= 7; i++){
+          var d = midnight(new Date(Date.now() + i * 86400000));
+          out += '<button type="button" class="opt' +
+            (bkDay && dayKey(d) === dayKey(bkDay) ? ' on' : '') +
+            '" data-day="' + d.getTime() + '">' +
+            esc(d.toLocaleDateString(undefined, { weekday:'long' })) +
+            '<span class="r">' + esc(d.getDate()) + ' ' +
+            esc(d.toLocaleDateString(undefined, { month:'short' })) + '</span></button>';
+        }
+      }
+      return out + '<div class="pop-sep"></div>' +
+        '<div class="pop-any"><input type="date" id="bk-any" aria-label="Another day" min="' +
+        isoDate(new Date()) + '">' +
+        '<button type="button" class="small" data-any="1">Use this day</button></div>';
     }
-    var len = document.getElementById('bk-len').value;
-    el.className = 'bk-chosen';
-    el.innerHTML = esc(d.toLocaleDateString(undefined,
-        { weekday:'long', day:'numeric', month:'long' })) + ' at ' +
-      esc(d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' })) +
-      ' <span class="len">\u00b7 ' + esc(len) + ' minutes</span>';
+
+    if (kind === 'time'){
+      var mine = hoursOn(bkDay);
+      var cell = function(h){
+        return '<button type="button" class="' + (h === bkHour ? 'on' : '') +
+          '" data-hour="' + h + '">' + esc(clockOf(h)) + '</button>';
+      };
+      if (!mine.length) return '<p class="pop-h">Any time</p><div class="tgrid dim">' +
+        DAY_HOURS.map(cell).join('') + '</div>';
+      var rest = DAY_HOURS.filter(function(h){ return mine.indexOf(h) < 0; });
+      return '<p class="pop-h">' + esc(bandsOn(bkDay).join(' and ')) +
+        ' — you’re both free</p><div class="tgrid">' + mine.map(cell).join('') + '</div>' +
+        (rest.length ? '<div class="pop-sep"></div><p class="pop-h">Any other time</p>' +
+          '<div class="tgrid dim">' + rest.map(cell).join('') + '</div>' : '');
+    }
+
+    return LENGTHS.map(function(l){
+      return '<button type="button" class="opt' + (l.v === bkLen ? ' on' : '') +
+        '" data-len="' + l.v + '"><span>' + l.v + ' minutes<em>' + l.why +
+        '</em></span></button>';
+    }).join('');
   }
 
-  /* A chip stays lit only while the form still says what it set. Edit the
-     date by hand and the chip is no longer describing the answer. */
-  function syncChips(){
-    var d = chosen();
-    var want = d ? slotOf(d) : '';
-    Array.prototype.forEach.call(document.querySelectorAll('#bk-slots .chip'), function(c){
-      var same = d && c.getAttribute('data-slot') === want &&
-                 +nextWhen(c.getAttribute('data-slot')) === +d;
-      c.classList.toggle('on', !!same);
+  function isoDate(d){
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function pad2(n){ return String(n).padStart(2, '0'); }
+
+  /* ----- the words in the sentence ----- */
+  function pickLabel(kind){
+    if (kind === 'who')  return shortName();
+    if (kind === 'day')  return bkDay ? dayLong(bkDay) : 'a day';
+    if (kind === 'time') return clockOf(bkHour);
+    return bkLen + ' minutes';
+  }
+
+  function closeMenu(){
+    if (!bkOpen) return;
+    var p = bkOpen.querySelector('.pop');
+    if (p) p.remove();
+    var t = bkOpen.querySelector('.trig');
+    if (t) t.setAttribute('aria-expanded', 'false');
+    bkOpen = null;
+  }
+
+  /* A time outside every shared window isn't wrong — people make exceptions —
+     so this line is a note, never a block. */
+  function paintSentence(){
+    Array.prototype.forEach.call(document.querySelectorAll('#bk-sent .pick'), function(host){
+      var kind = host.getAttribute('data-k');
+      var v = host.querySelector('.v');
+      if (v) v.textContent = pickLabel(kind);
+    });
+    document.getElementById('bk-hint').textContent = bookPartner
+      ? 'Nothing is booked until ' + shortName() + ' accepts.'
+      : 'Nothing is booked until they accept.';
+    var line = document.getElementById('bk-warn');
+    if (!bookPartner || !chosen()) { line.textContent = ''; line.className = 'bk-line'; return; }
+    if (bothFree()){
+      var bands = bandsOn(bkDay);
+      line.className = 'bk-line';
+      line.textContent = 'You’re both free ' +
+        (bands[0] === 'night' ? 'at night' : 'in the ' + bands.join(' and ')) + ' that day.';
+    } else if (!shared().length){
+      line.className = 'bk-line warn';
+      line.textContent = 'You haven’t both said when you’re free, so we can’t check this one.';
+    } else {
+      line.className = 'bk-line warn';
+      line.textContent = shortName() + ' hasn’t said they’re free then. You can still propose it.';
+    }
+  }
+
+  /* One partner is not a choice, so it reads as a plain word. Two or more and
+     it becomes a menu like the rest of the sentence. */
+  function buildPicks(){
+    Array.prototype.forEach.call(document.querySelectorAll('#bk-sent .pick'), function(host){
+      var kind = host.getAttribute('data-k');
+      if (kind === 'who' && bookPartners.length < 2){
+        host.innerHTML = '<b class="v flat"></b>';
+        return;
+      }
+      if (host.querySelector('.trig')) return;
+      host.innerHTML = '<button type="button" class="trig" aria-haspopup="listbox" ' +
+        'aria-expanded="false"><span class="v"></span></button>';
     });
   }
 
-  function refresh(){ sayChosen(); syncChips(); checkWhen(); }
+  document.getElementById('bk-sent').addEventListener('click', function(e){
+    var host = e.target.closest('.pick');
+    if (!host) return;
+    var kind = host.getAttribute('data-k');
 
-  document.getElementById('bk-toggle').addEventListener('click', function(){
-    var box = document.getElementById('bk-manual');
-    box.hidden = !box.hidden;
-    this.setAttribute('aria-expanded', String(!box.hidden));
-    this.textContent = box.hidden ? 'Change time or length' : 'Done';
+    /* opening and closing */
+    if (e.target.closest('.trig')){
+      e.stopPropagation();
+      var was = bkOpen === host;
+      closeMenu();
+      if (was) return;
+      var pop = document.createElement('div');
+      pop.className = 'pop' + (kind === 'time' ? ' times' : '');
+      pop.setAttribute('role', 'listbox');
+      pop.innerHTML = menuBody(kind);
+      host.appendChild(pop);
+      host.querySelector('.trig').setAttribute('aria-expanded', 'true');
+      bkOpen = host;
+      var card = document.getElementById('book-card').getBoundingClientRect();
+      if (pop.getBoundingClientRect().right > card.right - 8) pop.classList.add('right');
+      var any = pop.querySelector('#bk-any');
+      if (any && bkDay) any.value = isoDate(bkDay);
+      return;
+    }
+
+    /* choosing */
+    var el = e.target.closest('[data-v],[data-day],[data-hour],[data-len],[data-any]');
+    if (!el) return;
+
+    if (el.hasAttribute('data-any')){
+      var field = document.getElementById('bk-any');
+      var picked = field && field.value ? new Date(field.value + 'T00:00') : null;
+      if (!picked || isNaN(picked.getTime())) return;
+      bkDay = midnight(picked);
+    } else if (el.hasAttribute('data-day')){
+      bkDay = new Date(parseInt(el.getAttribute('data-day'), 10));
+    } else if (el.hasAttribute('data-hour')){
+      bkHour = parseInt(el.getAttribute('data-hour'), 10);
+    } else if (el.hasAttribute('data-len')){
+      bkLen = parseInt(el.getAttribute('data-len'), 10);
+    } else {
+      pickPartner(parseInt(el.getAttribute('data-v'), 10) || 0);
+      closeMenu();
+      return;
+    }
+
+    /* Moving the day can strand the hour outside every shared window. Snap to
+       that day's first shared hour when there is one, and leave the hour alone
+       when there isn't — an ordinary day shouldn't jump to 6am. */
+    if (el.hasAttribute('data-day') || el.hasAttribute('data-any')){
+      var hs = hoursOn(bkDay);
+      if (hs.length && hs.indexOf(bkHour) < 0) bkHour = hs[0];
+    }
+    closeMenu();
+    paintSentence();
   });
-  document.getElementById('bk-len').addEventListener('change', sayChosen);
 
-  function checkWhen(){
-    var warn = document.getElementById('bk-warn');
-    var d = chosen(), list = shared();
-    if (!d || !list.length) { warn.hidden = true; return; }
-    var ok = list.indexOf(slotOf(d)) >= 0;
-    warn.hidden = ok;
-    if (!ok) warn.textContent = (bookPartner && bookPartner.name ? bookPartner.name : 'Your partner') +
-      ' hasn\u2019t said they\u2019re free then. You can still propose it.';
+  document.addEventListener('click', closeMenu);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMenu(); });
+
+  /* Free windows and the note are both about one specific person, so changing
+     who this is for has to redraw them. */
+  function pickPartner(i){
+    bookPartner = bookPartners[i] || null;
+    if (!bookPartner) return;
+    document.getElementById('bk-note').textContent = '';
+    buildPicks();
+    var first = freeDays()[0];
+    if (first){
+      bkDay = first.date;
+      bkHour = hoursOn(bkDay)[0];
+    } else if (!bkDay){
+      /* Tomorrow evening, not tomorrow at whatever time it happens to be now —
+         the form used to open at 04:13 if that's when you loaded the page. */
+      bkDay = midnight(new Date(Date.now() + 86400000));
+      bkHour = 19;
+    }
+    paintSentence();
   }
-  document.getElementById('bk-date').addEventListener('change', refresh);
-  document.getElementById('bk-time').addEventListener('change', refresh);
 
   /* ----- proposing -----
      Nothing reaches either calendar as a real session here. Both rows go in
@@ -477,7 +600,7 @@
       myName: myName,
       topic: bookPartner.topic || '',
       startsAt: w.toISOString(),
-      durationMin: parseInt(document.getElementById('bk-len').value, 10) || 50,
+      durationMin: bkLen,
       note: document.getElementById('bk-msg').value.trim(),
       roomUrl: bookPartner.roomUrl,
       pairId: bookPartner.requestId
@@ -485,7 +608,7 @@
       btn.disabled = false; btn.textContent = 'Propose this time';
       if (res && res.saved) {
         note.style.color = 'var(--green-dark)';
-        note.textContent = 'Sent \u2014 waiting on ' + (bookPartner.name || 'your partner') + '.';
+        note.textContent = 'Sent \u2014 waiting on ' + shortName() + '.';
         document.getElementById('bk-msg').value = '';
         loadProposals();
       } else {
@@ -607,9 +730,10 @@
        moving a time rather than starting from a blank date picker. */
     if (swap) {
       var d = new Date(at);
-      if (!isNaN(d.getTime())) { fillWhen(d); checkWhen(); }
-      var len = btn.getAttribute('data-len');
-      if (len) document.getElementById('bk-len').value = len;
+      if (!isNaN(d.getTime())) { bkDay = midnight(d); bkHour = d.getHours(); }
+      var len = parseInt(btn.getAttribute('data-len'), 10);
+      if (len) bkLen = len;
+      paintSentence();
     }
 
     Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = true; });
@@ -634,7 +758,8 @@
           note.textContent = 'Their time is off the table \u2014 pick another and send it back.';
           var card = document.getElementById('book-card');
           try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err2){}
-          document.getElementById('bk-date').focus();
+          var firstPick = card.querySelector('#bk-sent .pick[data-k="day"] .trig');
+          if (firstPick) firstPick.focus();
         });
         return;
       }
@@ -794,12 +919,8 @@
             });
           if (bookPartners.length){
             $('book-card').hidden = false;
-            /* The picker only earns its space when there's a choice to make. */
-            var whoWrap = $('bk-who-wrap'), who = $('bk-who');
-            who.innerHTML = bookPartners.map(function(x, i){
-              return '<option value="' + i + '">' + esc(x.name || 'Your partner') + '</option>';
-            }).join('');
-            whoWrap.hidden = bookPartners.length < 2;
+            /* Who it's for is a word in the sentence, and only a menu when
+               there's more than one person it could be. */
             pickPartner(0);
           }
           renderProposals(all);

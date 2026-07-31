@@ -269,8 +269,6 @@ h1 .g{color:var(--p4)}
   padding:11px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--p4);outline:none}
 /* Date, time and length belong on one line — they're one answer. */
-.book-row{display:flex;gap:12px;flex-wrap:wrap}
-.book-row .field{flex:1 1 150px;min-width:130px;max-width:none}
 
 .yourline{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap}
 .yourline input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;
@@ -543,17 +541,79 @@ h1 .g{color:var(--p4)}
 
 .slot-err{flex:1 0 100%;margin:8px 0 0;font-size:13px;color:#B4471F}
 
-/* The resolved date and time, in words. Picking "Tue evening" used to only
-   change two inputs further down the form, which left the connection between
-   the chip and the date for the reader to work out. */
-.bk-chosen{margin:0;font-size:16px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
-.bk-chosen .len{font-weight:400;color:var(--soft)}
-.bk-chosen.none{font-weight:400;font-size:14.5px;color:var(--faint)}
-.linky{display:inline-block;margin:6px 0 0;padding:0;border:0;background:none;
-  font-family:var(--body);font-size:13px;font-weight:600;color:var(--p6);
-  text-decoration:underline;cursor:pointer}
-.linky:hover{color:var(--p8)}
-#bk-manual{margin-top:16px}
+/* ---------- proposing a time ----------
+   The form is a sentence. Every green word opens a menu, so the card says
+   what it will send rather than leaving you to read four filled-in boxes and
+   assemble the answer yourself. */
+.sent{margin:0;font-size:19px;line-height:1.95;font-weight:500;
+  color:var(--soft);letter-spacing:-.012em}
+.pick{position:relative;display:inline-block}
+.trig{position:relative;display:inline-block;border:0;background:none;cursor:pointer;
+  font-family:var(--body);font-size:19px;font-weight:800;color:var(--p6);
+  letter-spacing:-.018em;border-radius:0;padding:0 16px 2px 0;
+  border-bottom:2px solid var(--p1);transition:color .13s,border-color .13s}
+.trig::after{content:"";position:absolute;top:50%;right:3px;width:7px;height:7px;
+  border-right:2px solid currentColor;border-bottom:2px solid currentColor;opacity:.55;
+  transform:translateY(-75%) rotate(45deg);transition:transform .16s ease}
+.trig[aria-expanded="true"]::after{transform:translateY(-30%) rotate(-135deg)}
+.trig:hover{color:var(--p8);border-bottom-color:var(--p4)}
+.trig[aria-expanded="true"]{color:var(--p8);border-bottom-color:var(--p6)}
+/* One partner isn't a choice, so their name is a word rather than a control. */
+.v.flat{font-weight:800;color:var(--ink);letter-spacing:-.018em}
+
+.bk-line{margin:8px 0 0;font-size:13.5px;color:var(--faint)}
+.bk-line.warn{color:#8A5A12}
+.bk-hint{font-size:13px;color:var(--faint)}
+.bk-status{margin:10px 0 0;font-size:13.5px;color:var(--muted)}
+.bk-status:empty{margin:0}
+
+/* The menu. The app's own, not the operating system's grey list. */
+.pop{position:absolute;top:calc(100% + 9px);left:-8px;z-index:40;min-width:236px;
+  background:var(--card);border:1px solid var(--line);border-radius:13px;padding:5px;
+  box-shadow:0 14px 34px rgba(23,26,46,.14),0 2px 6px rgba(23,26,46,.06);
+  max-height:min(56vh,420px);overflow-y:auto;
+  animation:popin .14s cubic-bezier(.2,.9,.3,1)}
+.pop.right{left:auto;right:-8px}
+.pop.times{min-width:274px}
+@keyframes popin{from{opacity:0;transform:translateY(-5px) scale(.985)}}
+
+.pop-h{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--faint);padding:8px 11px 5px}
+.pop-sep{height:1px;background:var(--line);margin:5px}
+.opt{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;
+  padding:8px 11px;border-radius:8px;font-family:var(--body);font-size:14px;font-weight:600;
+  color:var(--ink);text-align:left;cursor:pointer;line-height:1.25}
+.opt:hover{background:var(--band)}
+.opt.on{background:var(--p0);color:var(--p8)}
+.opt .r{margin-left:auto;font-weight:400;font-size:12.5px;color:var(--faint);white-space:nowrap}
+.opt.on .r{color:var(--p6)}
+.opt em{display:block;font-style:normal;font-weight:400;font-size:12px;
+  color:var(--faint);margin-top:1px}
+.opt.on em{color:var(--p6)}
+.opt .av{width:22px;height:22px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+  background:var(--p1);color:var(--p8);font-size:10.5px;font-weight:800}
+
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:1px 5px 5px}
+.tgrid button{border:0;background:var(--band);border-radius:7px;padding:8px 3px;white-space:nowrap;
+  font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
+.tgrid button:hover{background:#E9E9EF}
+.tgrid button.on{background:var(--p8);color:#fff}
+.tgrid.dim button{background:none;color:var(--faint);font-weight:500}
+.tgrid.dim button:hover{background:var(--band);color:var(--ink)}
+.tgrid.dim button.on{background:var(--p8);color:#fff}
+
+/* A day nobody listed. Reachable, but past the days that were. */
+.pop-any{display:flex;gap:6px;padding:4px 6px 5px}
+.pop-any input{flex:1 1 auto;min-width:0;border:1px solid var(--line);border-radius:8px;
+  padding:7px 9px;font-family:var(--body);font-size:12.5px;color:var(--ink);background:var(--card)}
+.pop-any input:focus{border-color:var(--p4);outline:none}
+
+/* A phone can't hold the sentence on one line, and at 19px it wrapped into
+   four. Menus stop trying to hit a minimum width they haven't got. */
+@media (max-width:560px){
+  .sent,.trig{font-size:17px}
+  .pop,.pop.times{min-width:0;width:max-content;max-width:min(320px,78vw)}
+}
 
 /* Labels inside a card, for a list that has more than one kind of thing in
    it. Quieter than a second card heading, which is what these used to be. */
