@@ -134,11 +134,17 @@
         <label for="bk-who">Who with</label>
         <select id="bk-who"></select>
       </div>
-      <div id="bk-slots-wrap" hidden style="margin-bottom:18px">
+      <div id="bk-slots-wrap" hidden style="margin-bottom:16px">
         <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">Times you're both free</label>
         <div class="chips" id="bk-slots"></div>
       </div>
-      <div class="book-row">
+
+      <!-- The chips are the choice; this says in words what picking one means,
+           because a filled-in date box a few inches below doesn't. -->
+      <p class="bk-chosen" id="bk-chosen"></p>
+      <button type="button" class="linky" id="bk-toggle" aria-expanded="false">Change time or length</button>
+
+      <div class="book-row" id="bk-manual" hidden>
         <div class="field" style="margin:0">
           <label for="bk-date">Date</label>
           <input id="bk-date" type="date">
@@ -353,8 +359,13 @@
                     .sort(function(a, b){ return a.when - b.when; });
     document.getElementById('bk-slots').innerHTML = dated.map(function(x){
       var parts = x.slot.split('-');
+      /* The date the chip actually means, on the chip. "Tue evening" made you
+         cross-reference a date box further down to find out which Tuesday. */
+      var d = x.when;
+      var when = DAY_LABEL[parts[0]] + ' ' + d.getDate() + ' ' +
+                 d.toLocaleDateString(undefined, { month:'short' });
       return '<button type="button" class="chip" data-slot="' + esc(x.slot) + '">' +
-        DAY_LABEL[parts[0]] + ' ' + parts[1] + '</button>';
+        when + ' \u00b7 ' + parts[1] + '</button>';
     }).join('');
     wrap.hidden = false;
   }
@@ -365,9 +376,18 @@
     bookPartner = bookPartners[i] || null;
     if (!bookPartner) return;
     var win = shared().map(nextWhen).filter(Boolean).sort(function(x, y){ return x - y; })[0];
-    fillWhen(win || new Date(Date.now() + 86400000));
+    /* Tomorrow evening, not tomorrow at whatever time it happens to be now —
+       the fallback used to open the form at 04:13 if that's when you loaded it. */
+    var fallback = new Date(Date.now() + 86400000);
+    fallback.setHours(19, 0, 0, 0);
+    fillWhen(win || fallback);
     paintSlots();
-    checkWhen();
+    /* Nothing to pick from means the manual fields are the only way in, so
+       they start open rather than behind a link. */
+    var box = document.getElementById('bk-manual'), tog = document.getElementById('bk-toggle');
+    if (!shared().length) { box.hidden = false; tog.hidden = true; }
+    else { box.hidden = true; tog.hidden = false; tog.textContent = 'Change time or length'; }
+    refresh();
   }
 
   document.getElementById('bk-who').addEventListener('change', function(){
@@ -379,14 +399,52 @@
   document.getElementById('bk-slots').addEventListener('click', function(e){
     var c = e.target.closest('[data-slot]');
     if (!c) return;
-    Array.prototype.forEach.call(this.querySelectorAll('.chip'), function(x){ x.classList.remove('on'); });
-    c.classList.add('on');
     var d = nextWhen(c.getAttribute('data-slot'));
-    if (d) { fillWhen(d); checkWhen(); }
+    if (d) { fillWhen(d); refresh(); }
   });
 
   /* A time outside every shared window isn't wrong \u2014 people can make an
      exception \u2014 so this is a note rather than a block. */
+  /* One line saying what will actually be proposed. Everything that can change
+     the answer — a chip, the date, the time, the length — ends up here. */
+  function sayChosen(){
+    var el = document.getElementById('bk-chosen');
+    var d = chosen();
+    if (!d) {
+      el.className = 'bk-chosen none';
+      el.textContent = 'Pick a time above, or set one yourself.';
+      return;
+    }
+    var len = document.getElementById('bk-len').value;
+    el.className = 'bk-chosen';
+    el.innerHTML = esc(d.toLocaleDateString(undefined,
+        { weekday:'long', day:'numeric', month:'long' })) + ' at ' +
+      esc(d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' })) +
+      ' <span class="len">\u00b7 ' + esc(len) + ' minutes</span>';
+  }
+
+  /* A chip stays lit only while the form still says what it set. Edit the
+     date by hand and the chip is no longer describing the answer. */
+  function syncChips(){
+    var d = chosen();
+    var want = d ? slotOf(d) : '';
+    Array.prototype.forEach.call(document.querySelectorAll('#bk-slots .chip'), function(c){
+      var same = d && c.getAttribute('data-slot') === want &&
+                 +nextWhen(c.getAttribute('data-slot')) === +d;
+      c.classList.toggle('on', !!same);
+    });
+  }
+
+  function refresh(){ sayChosen(); syncChips(); checkWhen(); }
+
+  document.getElementById('bk-toggle').addEventListener('click', function(){
+    var box = document.getElementById('bk-manual');
+    box.hidden = !box.hidden;
+    this.setAttribute('aria-expanded', String(!box.hidden));
+    this.textContent = box.hidden ? 'Change time or length' : 'Done';
+  });
+  document.getElementById('bk-len').addEventListener('change', sayChosen);
+
   function checkWhen(){
     var warn = document.getElementById('bk-warn');
     var d = chosen(), list = shared();
@@ -396,8 +454,8 @@
     if (!ok) warn.textContent = (bookPartner && bookPartner.name ? bookPartner.name : 'Your partner') +
       ' hasn\u2019t said they\u2019re free then. You can still propose it.';
   }
-  document.getElementById('bk-date').addEventListener('change', checkWhen);
-  document.getElementById('bk-time').addEventListener('change', checkWhen);
+  document.getElementById('bk-date').addEventListener('change', refresh);
+  document.getElementById('bk-time').addEventListener('change', refresh);
 
   /* ----- proposing -----
      Nothing reaches either calendar as a real session here. Both rows go in

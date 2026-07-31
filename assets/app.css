@@ -543,6 +543,18 @@ h1 .g{color:var(--p4)}
 
 .slot-err{flex:1 0 100%;margin:8px 0 0;font-size:13px;color:#B4471F}
 
+/* The resolved date and time, in words. Picking "Tue evening" used to only
+   change two inputs further down the form, which left the connection between
+   the chip and the date for the reader to work out. */
+.bk-chosen{margin:0;font-size:16px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.bk-chosen .len{font-weight:400;color:var(--soft)}
+.bk-chosen.none{font-weight:400;font-size:14.5px;color:var(--faint)}
+.linky{display:inline-block;margin:6px 0 0;padding:0;border:0;background:none;
+  font-family:var(--body);font-size:13px;font-weight:600;color:var(--p6);
+  text-decoration:underline;cursor:pointer}
+.linky:hover{color:var(--p8)}
+#bk-manual{margin-top:16px}
+
 /* Labels inside a card, for a list that has more than one kind of thing in
    it. Quieter than a second card heading, which is what these used to be. */
 .sub-h{margin:18px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
