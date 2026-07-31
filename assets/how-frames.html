@@ -46,28 +46,27 @@
   .pdone{border:2px solid #E7E6EC;background:#FBFBFC;color:#82869C}
   .pbtn svg,.pdone svg{width:32px;height:32px;flex:0 0 auto}
 
-  /* ---------- 2. one time, one button ---------- */
-  .tbody{flex:1;display:flex;flex-direction:column;align-items:center;
-    justify-content:center;padding:0 40px}
-  .tkick{font-family:var(--mono);font-size:24px;letter-spacing:.1em;text-transform:uppercase;
-    color:#9497A9;margin:0 0 30px}
-  .tdays{display:flex;gap:20px;margin-bottom:46px}
-  .tday{width:150px;border:2px solid #E7E6EC;border-radius:20px;padding:20px 0 22px;
-    text-align:center;background:#fff}
-  .tday .w{display:block;font-family:var(--mono);font-size:22px;letter-spacing:.07em;
-    text-transform:uppercase;color:#9497A9}
-  .tday .d{display:block;font-size:54px;font-weight:800;letter-spacing:-.03em;
-    line-height:1.1;margin-top:2px;color:var(--ink)}
-  .tday.on{background:#0F6E56;border-color:#0F6E56}
-  .tday.on .w{color:#9FE1CB}
-  .tday.on .d{color:#fff}
-  .twhen{font-size:60px;font-weight:800;letter-spacing:-.03em;color:var(--ink);margin:0 0 40px}
-  .twhen .t{color:#0F6E56}
-  .tgo{height:92px;border-radius:18px;display:inline-flex;align-items:center;padding:0 44px;
-    font-size:36px;font-weight:700;letter-spacing:-.01em;color:#fff;
-    background:linear-gradient(180deg,#1D9E75,#0F6E56);
-    box-shadow:0 3px 8px rgba(8,80,65,.26), inset 0 2px 0 rgba(255,255,255,.2)}
-  .tfoot{font-size:27px;color:#9497A9;margin:26px 0 0}
+  /* ---------- 2. the exchange ----------
+     Agreeing a time is a conversation, so the picture is one. The question
+     takes the ink from the nav button and the answer the pale green, which
+     puts the weight of the card on the yes — that is the half of the exchange
+     the step is actually named after. */
+  .thread{width:100%;max-width:940px;display:flex;flex-direction:column;gap:40px;
+    margin:0 auto}
+  .line{display:flex;align-items:flex-end;gap:20px}
+  .line.mine{flex-direction:row-reverse}
+  .av{width:88px;height:88px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    font-size:34px;font-weight:800}
+  .b{padding:32px 40px;border-radius:36px;font-size:46px;font-weight:600;
+    letter-spacing:-.02em;line-height:1.25;max-width:640px}
+  .b.me{background:#171A2E;color:#fff;border-bottom-right-radius:12px;
+    box-shadow:0 8px 22px rgba(23,26,46,.24)}
+  .b.them{background:#DFF0EA;color:#0A4A3B;border-bottom-left-radius:12px}
+  .tick{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:50%;
+    background:#1D9E75;vertical-align:-11px;margin-left:14px}
+  .tick svg{width:26px;height:26px}
+  .tbody{flex:1;display:flex;align-items:center;justify-content:center;padding:0 44px}
+
 </style>
 </head>
 <body>
@@ -117,15 +116,16 @@
   </div>
   <div class="fbody">
     <div class="tbody">
-      <p class="tkick">Times you're both free</p>
-      <div class="tdays">
-        <div class="tday on"><span class="w">Tue</span><span class="d">4</span></div>
-        <div class="tday"><span class="w">Thu</span><span class="d">6</span></div>
-        <div class="tday"><span class="w">Sat</span><span class="d">8</span></div>
+      <div class="thread">
+        <div class="line mine">
+          <span class="av" style="background:#EEEDFE;color:#3C3489">Y</span>
+          <span class="b me">Tuesday at 7pm?</span>
+        </div>
+        <div class="line">
+          <span class="av" style="background:#E1F5EE;color:#0F6E56">S</span>
+          <span class="b them">Works for me<span class="tick"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+        </div>
       </div>
-      <p class="twhen">Tuesday at <span class="t">7:00 PM</span></p>
-      <span class="tgo">Propose this time</span>
-      <p class="tfoot">Nothing is booked until Sandra accepts.</p>
     </div>
   </div>
 </div>
