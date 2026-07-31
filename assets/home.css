@@ -150,19 +150,23 @@ h1 em{font-style:normal;color:var(--live)}
 }
 .pom-txt span{font-size:13px;color:var(--ink-soft)}
 
-/* ---------- steps ---------- */
-/* A pale green tint — enough of a surface change to make this its own beat,
-   without turning the section into a block of colour. Text stays dark. */
-.steps{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  background:var(--live-soft);border:1px solid #C9E6D8;border-radius:18px;overflow:hidden;
-  margin-top:8px;
+/* ---------- how it works ---------- */
+/* Three cards, picture on top. The pictures are drawn to be read at this
+   width — roughly 322px on a full-size screen — rather than being screenshots
+   of the real pages shrunk until the words turn into texture. */
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.how-card{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  overflow:hidden;display:flex;flex-direction:column;
 }
-.step{padding:28px 28px 30px}
-.step + .step{border-left:1px solid #C9E6D8}
-.step .mono{color:var(--live-deep)}
-.step h3{margin:8px 0 4px;font-size:16px;font-weight:600;letter-spacing:-0.01em}
-.step p{margin:0;font-size:14px;color:var(--ink-soft)}
+.how-shot{line-height:0;border-bottom:1px solid var(--line);background:#FAFAFB}
+/* width and height are on the img as well, so the row keeps its shape while
+   the pictures are still coming down the wire. */
+.how-shot img{width:100%;height:auto;display:block}
+.how-body{padding:20px 22px 24px}
+.how-body .mono{color:var(--live-deep)}
+.how-body h3{margin:8px 0 5px;font-size:18px;font-weight:700;letter-spacing:-0.015em}
+.how-body p{margin:0;font-size:14.5px;color:var(--ink-soft)}
 
 /* ---------- paths ---------- */
 .sec{padding:80px 0 0}
@@ -221,11 +225,13 @@ footer{
   flex-wrap:wrap;gap:10px;
 }
 
+@media (max-width:760px){
+  .how-grid{grid-template-columns:1fr}
+}
+
 @media (max-width:900px){
   .hero{grid-template-columns:1fr;gap:36px;padding:40px 0 52px}
   .grid{grid-template-columns:repeat(2,1fr)}
-  .steps{grid-template-columns:1fr}
-  .step + .step{border-left:0;border-top:1px solid #C9E6D8}
 }
 @media (max-width:520px){
   .grid{grid-template-columns:1fr}
