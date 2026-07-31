@@ -2,159 +2,145 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Step two — five pictures, none of them a screenshot</title>
+<title>Step two — the exchange, five ways</title>
 <link rel="stylesheet" href="app.css">
 <style>
-  /* The last five were all the same idea: photograph a screen. At 403px a
-     screen is chrome and grey rectangles. These are pictures of the *thing*
-     instead — an agreement, an overlap, an object, a pair, a date — so they
-     have three or four shapes each and survive the reduction. */
+  /* One idea — two people agreeing a time — drawn five ways. Read at about
+     403px in the card, so everything is near three times its final size and
+     nothing carries more than a handful of shapes. */
   body{margin:0;background:#fff;font-family:var(--body)}
   .frame{width:1280px;height:841px;background:#fff;border:1px solid #E7E6EC;
     border-radius:15px;overflow:hidden;display:flex;flex-direction:column;margin:0 0 40px}
   .body{flex:1;display:flex;flex-direction:column;align-items:center;
-    justify-content:center;padding:0 60px;text-align:center}
+    justify-content:center;padding:0 64px}
 
-  /* ---------- A: the exchange ---------- */
-  .chat{width:100%;max-width:900px;display:flex;flex-direction:column;gap:34px}
-  .bub{max-width:74%;padding:32px 40px;border-radius:34px;font-size:46px;font-weight:600;
-    letter-spacing:-.02em;line-height:1.25;text-align:left;position:relative}
-  .bub.me{align-self:flex-end;background:#0F6E56;color:#fff;border-bottom-right-radius:10px}
-  .bub.them{align-self:flex-start;background:#F1F0F4;color:var(--ink);border-bottom-left-radius:10px}
-  .bub .who{display:block;font-family:var(--mono);font-size:20px;letter-spacing:.08em;
-    text-transform:uppercase;margin-bottom:10px;opacity:.62;font-weight:400}
-  .tick{display:inline-block;width:44px;height:44px;border-radius:50%;background:#1D9E75;
-    vertical-align:-10px;margin-left:12px;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.6 6.3l2.2 2.3 4.7-5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-size:26px;background-repeat:no-repeat;background-position:center}
+  .tick{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:50%;
+    background:#1D9E75;vertical-align:-11px;margin-left:14px}
+  .tick svg{width:26px;height:26px}
 
-  /* ---------- B: the overlap ---------- */
-  .venn{position:relative;width:900px;height:430px;margin-bottom:44px}
-  .venn .c{position:absolute;top:0;width:530px;height:430px;border-radius:50%;
-    display:grid;align-content:start;justify-items:center;padding-top:52px}
-  .venn .l{left:0;background:rgba(93,202,165,.5)}
-  .venn .r{right:0;background:rgba(159,225,203,.62)}
-  .venn .lbl{font-size:34px;font-weight:700;color:#0A4A3B;letter-spacing:-.02em}
-  .venn .mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-    text-align:center;z-index:3}
-  .venn .mid b{display:block;font-size:96px;font-weight:800;letter-spacing:-.05em;
-    color:#0A3D31;line-height:.95}
-  .venn .mid span{display:block;font-family:var(--mono);font-size:22px;letter-spacing:.09em;
-    text-transform:uppercase;color:#0F6E56;margin-top:12px}
-  .cap{font-size:44px;font-weight:800;letter-spacing:-.028em;color:var(--ink);margin:0}
-  .cap .t{color:#0F6E56}
-  .sub{font-size:29px;color:#9497A9;margin:18px 0 0}
+  /* ---------- 1: with faces ---------- */
+  .thread{width:100%;max-width:960px;display:flex;flex-direction:column;gap:40px}
+  .line{display:flex;align-items:flex-end;gap:20px}
+  .line.mine{flex-direction:row-reverse}
+  .av{width:88px;height:88px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    font-size:34px;font-weight:800}
+  .b{padding:32px 40px;border-radius:36px;font-size:46px;font-weight:600;letter-spacing:-.02em;
+    line-height:1.25;max-width:660px}
+  .b.them{background:#F1F0F4;color:var(--ink);border-bottom-left-radius:12px}
+  .b.me{background:#0F6E56;color:#fff;border-bottom-right-radius:12px;
+    box-shadow:0 8px 22px rgba(8,80,65,.22)}
 
-  /* ---------- C: the ticket ---------- */
-  .tk{width:100%;max-width:860px;border-radius:30px;overflow:hidden;
-    box-shadow:0 20px 50px rgba(8,80,65,.16)}
-  .tk-top{background:#0F6E56;color:#fff;padding:44px 48px 40px;text-align:left;position:relative}
-  .tk-kick{font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;
-    color:#9FE1CB;margin:0 0 14px}
-  .tk-day{font-size:76px;font-weight:800;letter-spacing:-.04em;margin:0;line-height:1}
-  .tk-time{font-size:44px;font-weight:600;margin:14px 0 0;opacity:.92}
-  .perf{height:0;border-top:5px dashed #D7EFE6;background:#fff;position:relative}
-  .perf::before,.perf::after{content:"";position:absolute;top:-26px;width:52px;height:52px;
-    border-radius:50%;background:#fff}
-  .perf::before{left:-26px}
-  .perf::after{right:-26px}
-  .tk-bot{background:#fff;padding:34px 48px 40px;display:flex;align-items:center;gap:22px;
-    border:2px solid #DCEFE7;border-top:0;border-radius:0 0 30px 30px}
-  .tk-avs{display:flex;flex:0 0 auto}
-  .tk-avs i{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;
-    font-style:normal;font-size:28px;font-weight:800;border:5px solid #fff}
-  .tk-avs i:nth-child(2){margin-left:-22px}
-  .tk-who{font-size:34px;font-weight:700;letter-spacing:-.02em;text-align:left;line-height:1.3}
-  .tk-who span{display:block;font-size:25px;font-weight:400;color:#9497A9;margin-top:4px}
-  .tk-ok{margin-left:auto;font-family:var(--mono);font-size:22px;letter-spacing:.09em;
-    text-transform:uppercase;color:#0F6E56;border:3px solid #9FE1CB;border-radius:12px;
-    padding:14px 20px;transform:rotate(-4deg)}
+  /* ---------- 2: in a window ---------- */
+  .win{width:100%;max-width:940px;border:2px solid #E7E6EC;border-radius:34px;overflow:hidden;
+    box-shadow:0 20px 46px rgba(23,26,46,.10)}
+  .win-h{display:flex;align-items:center;gap:20px;padding:28px 34px;border-bottom:2px solid #F1F0F4;
+    background:#FBFBFC}
+  .win-h .av{width:70px;height:70px;font-size:28px}
+  .win-h .n{font-size:36px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+  .win-h .n span{display:block;font-size:24px;font-weight:400;color:#9497A9;margin-top:2px}
+  .win-b{padding:38px 34px;display:flex;flex-direction:column;gap:32px}
+  .win-b .b{font-size:42px;padding:28px 34px;max-width:74%}
+  .win-b .b.me{align-self:flex-end}
+  .win-b .b.them{align-self:flex-start}
 
-  /* ---------- D: the pair ---------- */
-  .pair{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:52px}
-  .pav{width:186px;height:186px;border-radius:50%;display:grid;place-items:center;
-    font-size:76px;font-weight:800;flex:0 0 auto;z-index:2}
-  .link{flex:0 0 auto;width:230px;height:8px;background:
-    repeating-linear-gradient(90deg,#9FE1CB 0 22px,transparent 22px 40px);margin:0 -18px}
-  .slot{background:#0F6E56;color:#fff;border-radius:26px;padding:30px 40px;z-index:3;
-    box-shadow:0 14px 34px rgba(8,80,65,.24)}
-  .slot b{display:block;font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1}
-  .slot span{display:block;font-family:var(--mono);font-size:22px;letter-spacing:.09em;
-    text-transform:uppercase;color:#9FE1CB;margin-top:10px}
+  /* ---------- 3: exchange, then the result ---------- */
+  .mini{width:100%;max-width:900px;display:flex;flex-direction:column;gap:26px;margin-bottom:52px}
+  .mini .b{font-size:38px;padding:24px 32px;border-radius:28px;max-width:70%}
+  .mini .b.me{align-self:flex-end}
+  .mini .b.them{align-self:flex-start}
+  .out{display:flex;align-items:center;gap:24px;background:#E7F6F0;border:3px solid #9FE1CB;
+    border-radius:26px;padding:30px 38px;width:100%;max-width:900px}
+  .out .k{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;
+    background:#0F6E56;flex:0 0 auto}
+  .out .k svg{width:34px;height:34px}
+  .out b{font-size:44px;font-weight:800;letter-spacing:-.03em;color:#0A3D31}
+  .out span{font-family:var(--mono);font-size:22px;letter-spacing:.09em;text-transform:uppercase;
+    color:#0F6E56;margin-left:auto}
 
-  /* ---------- E: the day ---------- */
-  .sheet{width:430px;border-radius:34px;overflow:hidden;background:#fff;
-    border:3px solid #E7E6EC;box-shadow:0 22px 50px rgba(23,26,46,.12);margin-bottom:48px}
-  .sh-top{background:#0F6E56;color:#fff;font-family:var(--mono);font-size:28px;
-    letter-spacing:.14em;text-transform:uppercase;padding:22px 0}
-  .sh-num{font-size:210px;font-weight:800;letter-spacing:-.06em;line-height:1;
-    color:var(--ink);padding:26px 0 6px}
-  .sh-mo{font-size:34px;font-weight:600;color:#9497A9;padding-bottom:30px}
-  .sh-time{border-top:3px solid #EFEEF2;padding:26px 0;font-size:46px;font-weight:800;
-    letter-spacing:-.02em;color:#0F6E56}
+  /* ---------- 4: two lines, nothing else ---------- */
+  .big{width:100%;max-width:1000px;display:flex;flex-direction:column;gap:44px}
+  .big .b{font-size:62px;font-weight:700;letter-spacing:-.03em;padding:42px 52px;
+    border-radius:48px;line-height:1.2;max-width:82%}
+  .big .b.me{align-self:flex-end;border-bottom-right-radius:14px}
+  .big .b.them{align-self:flex-start;border-bottom-left-radius:14px}
+  .big .tick{width:58px;height:58px;margin-left:18px;vertical-align:-13px}
+  .big .tick svg{width:32px;height:32px}
+
+  /* ---------- 5: the answer is the picture ---------- */
+  .quiet{width:100%;max-width:880px;display:flex;flex-direction:column;gap:20px;margin-bottom:56px}
+  .quiet .b{font-size:32px;font-weight:600;padding:20px 28px;border-radius:22px;max-width:62%;
+    letter-spacing:-.015em}
+  .quiet .b.me{align-self:flex-end;background:#DFF0EA;color:#0A4A3B;box-shadow:none}
+  .quiet .b.them{align-self:flex-start;background:#F1F0F4;color:#585C74}
+  .hero-time{text-align:center}
+  .hero-time b{display:block;font-size:88px;font-weight:800;letter-spacing:-.045em;
+    color:var(--ink);line-height:1}
+  .hero-time b em{font-style:normal;color:#0F6E56}
+  .hero-time span{display:block;font-family:var(--mono);font-size:24px;letter-spacing:.1em;
+    text-transform:uppercase;color:#0F6E56;margin-top:20px}
 </style>
 </head>
 <body>
 
-<!-- ============ A: the exchange ============ -->
+<!-- ============ 1: with faces ============ -->
 <div class="frame" id="v-a"><div class="body">
-  <div class="chat">
-    <span class="bub me"><span class="who">You</span>Tuesday at 7pm?</span>
-    <span class="bub them"><span class="who">Sandra</span>Works for me<span class="tick"></span></span>
+  <div class="thread">
+    <div class="line mine">
+      <span class="av" style="background:#EEEDFE;color:#3C3489">Y</span>
+      <span class="b me">Tuesday at 7pm?</span>
+    </div>
+    <div class="line">
+      <span class="av" style="background:#E1F5EE;color:#0F6E56">S</span>
+      <span class="b them">Works for me<span class="tick"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+    </div>
   </div>
 </div></div>
 
-<!-- ============ B: the overlap ============ -->
+<!-- ============ 2: in a window ============ -->
 <div class="frame" id="v-b"><div class="body">
-  <div class="venn">
-    <div class="c l"><span class="lbl">You’re free</span></div>
-    <div class="c r"><span class="lbl">Sandra’s free</span></div>
-    <div class="mid"><b>3</b><span>evenings</span></div>
+  <div class="win">
+    <div class="win-h">
+      <span class="av" style="background:#E1F5EE;color:#0F6E56">S</span>
+      <span class="n">Sandra<span>Learning Linux basics</span></span>
+    </div>
+    <div class="win-b">
+      <span class="b me">Tuesday at 7pm?</span>
+      <span class="b them">Works for me<span class="tick"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+    </div>
   </div>
-  <p class="cap">Tuesday at <span class="t">7:00 PM</span></p>
 </div></div>
 
-<!-- ============ C: the ticket ============ -->
+<!-- ============ 3: exchange, then the result ============ -->
 <div class="frame" id="v-c"><div class="body">
-  <div class="tk">
-    <div class="tk-top">
-      <p class="tk-kick">Booked</p>
-      <p class="tk-day">Tuesday 4 Nov</p>
-      <p class="tk-time">7:00 – 7:50 PM</p>
-    </div>
-    <div class="perf"></div>
-    <div class="tk-bot">
-      <span class="tk-avs">
-        <i style="background:#E1F5EE;color:#0F6E56">S</i>
-        <i style="background:#EEEDFE;color:#3C3489">Y</i>
-      </span>
-      <span class="tk-who">You and Sandra<span>Linux basics</span></span>
-      <span class="tk-ok">Agreed</span>
-    </div>
+  <div class="mini">
+    <span class="b me">Tuesday at 7pm?</span>
+    <span class="b them">Works for me</span>
+  </div>
+  <div class="out">
+    <span class="k"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <b>Tuesday, 7:00 PM</b>
+    <span>Booked</span>
   </div>
 </div></div>
 
-<!-- ============ D: the pair ============ -->
+<!-- ============ 4: two lines, nothing else ============ -->
 <div class="frame" id="v-d"><div class="body">
-  <div class="pair">
-    <span class="pav" style="background:#EEEDFE;color:#3C3489">Y</span>
-    <span class="link"></span>
-    <span class="slot"><b>7:00 PM</b><span>Tuesday</span></span>
-    <span class="link"></span>
-    <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
+  <div class="big">
+    <span class="b me">Tuesday, 7pm?</span>
+    <span class="b them">Yes<span class="tick"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
   </div>
-  <p class="cap">One time you’re <span class="t">both free</span></p>
 </div></div>
 
-<!-- ============ E: the day ============ -->
+<!-- ============ 5: the answer is the picture ============ -->
 <div class="frame" id="v-e"><div class="body">
-  <div class="sheet">
-    <div class="sh-top">Tuesday</div>
-    <div class="sh-num">4</div>
-    <div class="sh-mo">November</div>
-    <div class="sh-time">7:00 PM</div>
+  <div class="quiet">
+    <span class="b me">Tuesday at 7pm?</span>
+    <span class="b them">Works for me</span>
   </div>
-  <p class="sub" style="margin:0">Agreed by both of you</p>
+  <div class="hero-time">
+    <b>Tuesday <em>7:00 PM</em></b>
+    <span>Agreed by both of you</span>
+  </div>
 </div></div>
 
 </body>
