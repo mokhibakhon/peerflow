@@ -86,14 +86,65 @@
   .tk-alt{margin-top:18px}
 
   /* ---------- D: sentence ---------- */
-  .sent{font-size:22px;line-height:1.85;letter-spacing:-.015em;font-weight:500;color:var(--soft)}
-  .sent .pick{position:relative;display:inline-block}
-  .sent select{appearance:none;border:0;background:none;font-family:var(--body);font-size:22px;
-    font-weight:800;letter-spacing:-.02em;color:var(--p6);cursor:pointer;padding:0 17px 2px 0;
-    border-bottom:2px solid var(--p1);border-radius:0}
-  .sent select:hover{border-bottom-color:var(--p4);color:var(--p8)}
-  .sent .pick::after{content:"";position:absolute;right:3px;top:52%;width:7px;height:7px;pointer-events:none;
-    border-right:2px solid var(--p4);border-bottom:2px solid var(--p4);transform:translateY(-70%) rotate(45deg)}
+  .sent{font-size:23px;line-height:2;letter-spacing:-.015em;font-weight:500;color:var(--soft)}
+  .pick{position:relative;display:inline-block}
+
+  /* The word you press. Underlined rather than boxed — it has to read as part
+     of the sentence, not as a control that wandered into it. */
+  .trig{border:0;background:none;font-family:var(--body);font-size:23px;font-weight:800;
+    letter-spacing:-.02em;color:var(--p6);cursor:pointer;padding:0 19px 3px 0;border-radius:0;
+    border-bottom:2px solid var(--p1);transition:color .13s,border-color .13s}
+  .trig::after{content:"";position:absolute;right:4px;top:50%;width:7px;height:7px;
+    border-right:2px solid var(--p4);border-bottom:2px solid var(--p4);
+    transform:translateY(-75%) rotate(45deg);transition:transform .16s ease}
+  .trig:hover{color:var(--p8);border-bottom-color:var(--p4)}
+  .trig[aria-expanded="true"]{color:var(--p8);border-bottom-color:var(--p6)}
+  .trig[aria-expanded="true"]::after{transform:translateY(-30%) rotate(-135deg)}
+
+  /* The menu. A card with the app's own radius and shadow, not the operating
+     system's grey list — that list is the reason this option looked cheap. */
+  .pop{position:absolute;top:calc(100% + 12px);left:-8px;z-index:40;min-width:262px;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px;
+    box-shadow:0 16px 40px rgba(23,26,46,.15),0 2px 6px rgba(23,26,46,.06);
+    max-height:min(56vh,430px);overflow-y:auto;
+    animation:popin .14s cubic-bezier(.2,.9,.3,1)}
+  .pop.right{left:auto;right:-8px}
+  @keyframes popin{from{opacity:0;transform:translateY(-5px) scale(.985)}}
+  .pop-h{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--faint);padding:9px 12px 6px}
+  .pop-sep{height:1px;background:var(--line);margin:6px 6px}
+
+  .opt{display:flex;align-items:center;gap:11px;width:100%;border:0;background:none;
+    padding:9px 12px;border-radius:9px;font-family:var(--body);font-size:15px;font-weight:600;
+    color:var(--ink);text-align:left;cursor:pointer;line-height:1.25}
+  .opt:hover{background:var(--band)}
+  .opt.on{background:var(--p0);color:var(--p8)}
+  .opt .r{margin-left:auto;font-weight:400;font-size:13px;color:var(--faint);white-space:nowrap}
+  .opt.on .r{color:var(--p6)}
+  .opt em{display:block;font-style:normal;font-weight:400;font-size:12.5px;color:var(--faint);margin-top:2px}
+  .opt.on em{color:var(--p6)}
+  .opt.mild{font-weight:600;color:var(--p6);font-size:14px}
+  .opt .av{width:26px;height:26px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    background:var(--p1);color:var(--p8);font-size:11.5px;font-weight:800}
+
+  .pop.times{min-width:308px}
+  .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:2px 6px 6px}
+  .tgrid button{border:0;background:var(--band);border-radius:8px;padding:10px 4px;white-space:nowrap;
+    font-family:var(--body);font-size:13px;font-weight:600;color:var(--ink);cursor:pointer}
+  .tgrid button:hover{background:#E9E9EF}
+  .tgrid button.on{background:var(--p8);color:#fff}
+  .tgrid.dim button{background:none;color:var(--faint);font-weight:500}
+  .tgrid.dim button:hover{background:var(--band);color:var(--ink)}
+  .tgrid.dim button.on{background:var(--p8);color:#fff}
+
+  /* On a phone the sentence has to wrap; at 23px it wrapped into four lines
+     and stopped reading as a sentence at all. */
+  @media (max-width:560px){
+    .sent{font-size:19px;line-height:1.95}
+    .trig{font-size:19px;padding-right:17px}
+    .pop{min-width:0;width:max-content;max-width:min(320px,78vw)}
+    .pop.times{min-width:0}
+  }
 
   /* ---------- E: week strip ---------- */
   .strip{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:14px}
@@ -226,17 +277,17 @@
 
   <!-- ============================== D ============================== -->
   <div class="optlabel"><b>D</b><span>One sentence — the form reads as English</span></div>
-  <p class="lead" style="margin:0 0 14px">No labels, no boxes, no rows. Every green word is a
-  dropdown. It's the smallest version of this card that can exist, and it says
-  exactly what will be sent.</p>
+  <p class="lead" style="margin:0 0 14px">No labels, no boxes, no rows. Every green word opens a
+  menu — the app's own, not the operating system's grey list. It's the smallest
+  version of this card that can exist, and it says exactly what will be sent.</p>
   <section class="b wide">
     <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time</h2></div></div>
 
     <p class="sent">
-      Meet <span class="pick"><select id="d-who"><option>Munisa</option><option>Aziza</option></select></span>
-      on <span class="pick"><select id="d-day"></select></span>
-      at <span class="pick"><select id="d-time"></select></span>
-      for <span class="pick"><select id="d-len"><option>25 minutes</option><option selected>50 minutes</option><option>80 minutes</option></select></span>.
+      Meet <span class="pick" id="p-who"></span>
+      on <span class="pick" id="p-day"></span>
+      at <span class="pick" id="p-time"></span>
+      for <span class="pick" id="p-len"></span>.
     </p>
     <p class="quiet" id="d-note" style="margin:6px 0 0">You're both free then.</p>
 
@@ -392,22 +443,125 @@ var OPTS = nextDates(4);
 
 /* ---------- D ---------- */
 (function(){
-  var dsel = document.getElementById('d-day'), tsel = document.getElementById('d-time');
-  dsel.innerHTML = OPTS.map(function(o, i){
-    return '<option value="' + i + '">' +
-      o.when.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'short' }) + '</option>';
-  }).join('') + '<option value="x">another day…</option>';
-  function fill(){
-    var o = OPTS[+dsel.value] || OPTS[0];
-    tsel.innerHTML = BAND_HOURS[o.band].map(function(h){
-      var d = new Date(o.when); d.setHours(h);
-      return '<option>' + hhmm(d) + '</option>';
+  var WHO = [ { n:'Munisa Omonkhonova', short:'Munisa', t:'Linux basics' },
+              { n:'Aziza Karimova',     short:'Aziza',  t:'Linux basics' } ];
+  var LENS = [ { v:25, why:'a quick check-in' },
+               { v:50, why:'the usual' },
+               { v:80, why:'a proper session' } ];
+  var ALL_HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+
+  var who = 0, day = 0, hour = null, len = 50, open = null;
+
+  function dayObj(){ return OPTS[day]; }
+  function at(){ var d = new Date(dayObj().when); d.setHours(hour, 0, 0, 0); return d; }
+  function free(){ return BAND_HOURS[dayObj().band].indexOf(hour) >= 0; }
+
+  /* Each menu is built fresh when it opens, so it can't drift out of step
+     with the sentence above it. */
+  function menu(kind){
+    if (kind === 'who') return WHO.map(function(w, i){
+      return '<button type="button" class="opt' + (i === who ? ' on' : '') + '" data-v="' + i + '">' +
+        '<span class="av">' + w.short[0] + '</span><span>' + w.n + '<em>' + w.t + '</em></span></button>';
     }).join('');
-    document.getElementById('d-note').textContent =
-      'You’re both free ' + (o.band === 'night' ? 'at night' : 'in the ' + o.band) + ' that day.';
+
+    if (kind === 'day') return '<p class="pop-h">You’re both free</p>' + OPTS.map(function(o, i){
+      return '<button type="button" class="opt' + (i === day ? ' on' : '') + '" data-v="' + i + '">' +
+        o.when.toLocaleDateString('en-GB', { weekday:'long' }) +
+        '<span class="r">' + o.when.getDate() + ' ' +
+        o.when.toLocaleDateString('en-GB', { month:'short' }) + '</span></button>';
+    }).join('') + '<div class="pop-sep"></div>' +
+      '<button type="button" class="opt mild" data-v="x">Any other day…</button>';
+
+    if (kind === 'time'){
+      var band = dayObj().band, inband = BAND_HOURS[band];
+      var cell = function(h){
+        var d = new Date(dayObj().when); d.setHours(h, 0, 0, 0);
+        return '<button type="button" class="' + (h === hour ? 'on' : '') + '" data-v="' + h + '">' +
+          hhmm(d) + '</button>';
+      };
+      return '<p class="pop-h">' + band + ' — you’re both free</p>' +
+        '<div class="tgrid">' + inband.map(cell).join('') + '</div>' +
+        '<div class="pop-sep"></div><p class="pop-h">Any other time</p>' +
+        '<div class="tgrid dim">' +
+          ALL_HOURS.filter(function(h){ return inband.indexOf(h) < 0; }).map(cell).join('') +
+        '</div>';
+    }
+
+    return LENS.map(function(l){
+      return '<button type="button" class="opt' + (l.v === len ? ' on' : '') + '" data-v="' + l.v + '">' +
+        '<span>' + l.v + ' minutes<em>' + l.why + '</em></span></button>';
+    }).join('');
   }
-  dsel.addEventListener('change', fill);
-  fill();
+
+  function label(kind){
+    if (kind === 'who')  return WHO[who].short;
+    if (kind === 'day')  return dayObj().when.toLocaleDateString('en-GB',
+                           { weekday:'long', day:'numeric', month:'short' });
+    if (kind === 'time') return hhmm(at());
+    return len + ' minutes';
+  }
+
+  function close(){
+    if (!open) return;
+    var pop = open.querySelector('.pop');
+    if (pop) pop.remove();
+    open.querySelector('.trig').setAttribute('aria-expanded', 'false');
+    open = null;
+  }
+
+  function paint(){
+    ['who','day','time','len'].forEach(function(k){
+      document.querySelector('#p-' + (k === 'len' ? 'len' : k) + ' .v').textContent = label(k);
+    });
+    document.getElementById('d-note').textContent = free()
+      ? 'You’re both free ' + (dayObj().band === 'night' ? 'at night'
+          : 'in the ' + dayObj().band) + ' that day.'
+      : WHO[who].short + ' hasn’t said she’s free then — you can still ask.';
+  }
+
+  ['who','day','time','len'].forEach(function(kind){
+    var host = document.getElementById('p-' + kind);
+    host.innerHTML = '<button type="button" class="trig" aria-haspopup="listbox" ' +
+      'aria-expanded="false"><span class="v"></span></button>';
+
+    host.querySelector('.trig').addEventListener('click', function(e){
+      e.stopPropagation();
+      var was = open === host;
+      close();
+      if (was) return;
+      var pop = document.createElement('div');
+      pop.className = 'pop' + (kind === 'time' ? ' times' : '');
+      pop.setAttribute('role', 'listbox');
+      pop.innerHTML = menu(kind);
+      host.appendChild(pop);
+      this.setAttribute('aria-expanded', 'true');
+      open = host;
+      /* Flip to the right edge rather than let a menu run off the card. */
+      var card = host.closest('section').getBoundingClientRect();
+      if (pop.getBoundingClientRect().right > card.right - 8) pop.classList.add('right');
+    });
+
+    host.addEventListener('click', function(e){
+      var b = e.target.closest('[data-v]');
+      if (!b) return;
+      var v = b.getAttribute('data-v');
+      if (kind === 'who')  who = +v;
+      if (kind === 'len')  len = +v;
+      if (kind === 'time') hour = +v;
+      if (kind === 'day'){
+        if (v === 'x'){ close(); return; }   /* would open a date field */
+        day = +v;
+        if (BAND_HOURS[dayObj().band].indexOf(hour) < 0) hour = BAND_HOURS[dayObj().band][0];
+      }
+      close(); paint();
+    });
+  });
+
+  document.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+
+  hour = BAND_HOURS[dayObj().band][0];
+  paint();
 })();
 
 /* ---------- E ---------- */
