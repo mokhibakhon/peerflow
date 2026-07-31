@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Propose a time — layout options</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  body{background:var(--bg)}
+  .wrapx{max-width:900px;margin:0 auto;padding:30px 22px 70px}
+  .optlabel{margin:44px 0 12px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .optlabel b{font-size:26px;letter-spacing:-.02em}
+  .optlabel span{font-size:14px;color:var(--soft)}
+  .lead{font-size:15px;color:var(--soft);max-width:60ch}
+
+  /* shared bits used by more than one option */
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+  .seg button{border:0;background:none;padding:9px 15px;font-size:13.5px;font-weight:600;
+    color:var(--soft);border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--p0);color:var(--p8)}
+  .foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:20px}
+  .lbl{font-size:13px;font-weight:600;color:var(--ink);display:block;margin-bottom:8px}
+  .quiet{font-size:13px;color:var(--faint)}
+  .linky2{border:0;background:none;padding:0;font-family:var(--body);font-size:13px;
+    font-weight:600;color:var(--p6);text-decoration:underline;cursor:pointer}
+
+  /* ---------- A: time cards ---------- */
+  .tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+  .tcard{position:relative;border:1px solid var(--line);background:var(--card);border-radius:13px;
+    padding:13px 10px 12px;text-align:center;cursor:pointer;transition:.15s}
+  .tcard:hover{border-color:var(--p2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(23,26,46,.07)}
+  .tcard .dw{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .tcard .dd{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin:1px 0 0}
+  .tcard .mo{font-size:12px;color:var(--soft);margin-bottom:7px}
+  .tcard .hh{font-size:13.5px;font-weight:700;color:var(--p6);border-top:1px solid var(--line);padding-top:7px}
+  .tcard.on{background:var(--p8);border-color:var(--p8)}
+  .tcard.on .dw{color:var(--p2)}
+  .tcard.on .dd,.tcard.on .mo{color:#fff}
+  .tcard.on .mo{opacity:.8}
+  .tcard.on .hh{color:#fff;border-top-color:rgba(255,255,255,.22)}
+  .tcard.on::after{content:"";position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
+    background:var(--p4);border:2px solid var(--card);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.2 2.2 4.8-4.8' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-size:12px;background-repeat:no-repeat;background-position:center}
+
+  /* ---------- B: day rail ---------- */
+  .rail{display:grid;grid-template-columns:190px minmax(0,1fr);border:1px solid var(--line);
+    border-radius:14px;overflow:hidden;background:var(--card)}
+  .rail-l{border-right:1px solid var(--line);background:#FBFBFC;padding:8px}
+  .rail-l button{display:block;width:100%;text-align:left;border:0;background:none;padding:10px 12px;
+    border-radius:9px;font-size:14px;font-weight:600;color:var(--soft);font-family:var(--body)}
+  .rail-l button small{display:block;font-weight:400;font-size:12px;color:var(--faint)}
+  .rail-l button:hover{background:var(--band);color:var(--ink)}
+  .rail-l button.on{background:var(--p8);color:#fff}
+  .rail-l button.on small{color:var(--p2)}
+  .rail-r{padding:16px 18px;min-height:216px}
+  .tlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:10px}
+  .tlist button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:11px 6px;
+    font-size:14px;font-weight:600;color:var(--ink);font-family:var(--body)}
+  .tlist button:hover{border-color:var(--p2)}
+  .tlist button.on{background:var(--p0);border-color:var(--p4);color:var(--p8);box-shadow:inset 0 0 0 1px var(--p4)}
+  .railbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+
+  /* ---------- C: ticket ---------- */
+  .ticket{border-radius:16px;overflow:hidden;border:1px solid var(--p2);background:var(--card);
+    box-shadow:0 10px 26px rgba(8,80,65,.09)}
+  .tk-top{background:linear-gradient(160deg,var(--p8),#0B6350);color:#fff;padding:18px 20px 20px}
+  .tk-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .tk-who{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600}
+  .tk-av{display:flex}
+  .tk-av i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-style:normal;
+    font-size:11px;font-weight:700;border:2px solid var(--p8);background:var(--p2);color:var(--p8)}
+  .tk-av i+i{margin-left:-8px;background:var(--p1)}
+  .tk-tag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    background:rgba(255,255,255,.14);padding:5px 9px;border-radius:6px}
+  .tk-day{font-size:26px;font-weight:800;letter-spacing:-.025em;margin:15px 0 2px}
+  .tk-time{font-size:16px;font-weight:600;opacity:.92}
+  .tk-meta{font-size:12.5px;opacity:.7;margin-top:7px}
+  .tk-perf{height:0;border-top:2px dashed var(--p1);position:relative}
+  .tk-perf::before,.tk-perf::after{content:"";position:absolute;top:-9px;width:16px;height:16px;
+    border-radius:50%;background:var(--bg)}
+  .tk-perf::before{left:-9px}.tk-perf::after{right:-9px}
+  .tk-bot{padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .tk-alt{margin-top:18px}
+
+  /* ---------- D: sentence ---------- */
+  .sent{font-size:22px;line-height:1.85;letter-spacing:-.015em;font-weight:500;color:var(--soft)}
+  .sent .pick{position:relative;display:inline-block}
+  .sent select{appearance:none;border:0;background:none;font-family:var(--body);font-size:22px;
+    font-weight:800;letter-spacing:-.02em;color:var(--p6);cursor:pointer;padding:0 17px 2px 0;
+    border-bottom:2px solid var(--p1);border-radius:0}
+  .sent select:hover{border-bottom-color:var(--p4);color:var(--p8)}
+  .sent .pick::after{content:"";position:absolute;right:3px;top:52%;width:7px;height:7px;pointer-events:none;
+    border-right:2px solid var(--p4);border-bottom:2px solid var(--p4);transform:translateY(-70%) rotate(45deg)}
+
+  /* ---------- E: week strip ---------- */
+  .strip{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:14px}
+  .strip-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .strip-h b{font-size:14px}
+  .strip-h button{border:1px solid var(--line);background:var(--card);border-radius:8px;width:28px;height:28px;
+    color:var(--soft);font-size:14px;line-height:1}
+  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .days .dh{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--faint);text-align:center;padding-bottom:4px}
+  .day{position:relative;border:1px solid transparent;background:none;border-radius:10px;padding:9px 0 13px;
+    font-size:15px;font-weight:600;color:var(--faint);font-family:var(--body)}
+  .day.free{color:var(--ink);border-color:var(--line);background:var(--card)}
+  .day.free:hover{border-color:var(--p2)}
+  .day.free::after{content:"";position:absolute;left:50%;bottom:7px;transform:translateX(-50%);
+    width:5px;height:5px;border-radius:50%;background:var(--p4)}
+  .day.on{background:var(--p8);border-color:var(--p8);color:#fff}
+  .day.on::after{background:var(--p2)}
+  .day[disabled]{cursor:default}
+  .day.gone{color:#CFCFD8}
+  .strip-t{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+  .pills button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 15px;
+    font-size:13.5px;font-weight:600;color:var(--ink);font-family:var(--body)}
+  .pills button:hover{border-color:var(--p2)}
+  .pills button.on{background:var(--p0);border-color:var(--p4);color:var(--p8)}
+  .sum{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
+  .sum .len{font-weight:400;color:var(--soft)}
+</style>
+</head>
+<body>
+<div class="wrapx">
+
+  <h1 style="font-size:30px;letter-spacing:-.03em;margin:0 0 8px">Propose a time — five ways</h1>
+  <p class="lead">Same data every time: you're both free Tuesday and Thursday evening, Saturday
+  afternoon and Sunday morning. All five are clickable — try picking things.</p>
+
+  <!-- ============================== A ============================== -->
+  <div class="optlabel"><b>A</b><span>Time cards — the chips grow up</span></div>
+  <p class="lead" style="margin:0 0 14px">Every option you can pick is a card with the date on it.
+  Length is three buttons instead of a dropdown. Nothing is hidden behind a link except the
+  rare case of a time outside both your windows.</p>
+  <section class="b wide">
+    <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time to Munisa</h2></div></div>
+
+    <label class="lbl">Times you're both free</label>
+    <div class="tcards" id="a-cards"></div>
+
+    <div class="foot">
+      <div>
+        <label class="lbl">How long</label>
+        <div class="seg" id="a-len">
+          <button data-v="25">25 min</button>
+          <button data-v="50" class="on">50 min</button>
+          <button data-v="80">80 min</button>
+        </div>
+      </div>
+      <div style="flex:1"></div>
+      <button class="linky2" style="align-self:flex-end;padding-bottom:11px">Need a different time?</button>
+    </div>
+
+    <div class="field" style="margin:20px 0 0"><label for="a-note">Note <span class="hint">(optional)</span></label>
+      <input id="a-note" type="text" placeholder="What you'd like to work on"></div>
+    <div class="foot"><button class="btn" id="a-cta">Propose Tuesday 5:00 PM</button>
+      <span class="quiet">Nothing is booked until Munisa accepts.</span></div>
+  </section>
+
+  <!-- ============================== B ============================== -->
+  <div class="optlabel"><b>B</b><span>Day, then time — the booking-page shape</span></div>
+  <p class="lead" style="margin:0 0 14px">Days down the left, times inside that day on the right.
+  The shape people already know from booking a haircut or a doctor. Scales if you ever
+  offer more than one hour per evening.</p>
+  <section class="b wide">
+    <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time to Munisa</h2></div></div>
+
+    <div class="rail">
+      <div class="rail-l" id="b-days"></div>
+      <div class="rail-r">
+        <span class="mono" id="b-band">EVENING</span>
+        <div class="tlist" id="b-times"></div>
+        <p class="quiet" style="margin:14px 0 0">Munisa is in Asia/Tashkent, same as you.</p>
+      </div>
+    </div>
+
+    <div class="railbar">
+      <p class="sum" id="b-sum" style="margin:0"></p>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="seg" id="b-len">
+          <button data-v="25">25</button><button data-v="50" class="on">50</button><button data-v="80">80 min</button>
+        </div>
+        <button class="btn">Propose</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== C ============================== -->
+  <div class="optlabel"><b>C</b><span>The ticket — what you're sending, front and centre</span></div>
+  <p class="lead" style="margin:0 0 14px">The chosen session is the object on the page, not the
+  output of a form. Alternatives sit underneath as a quiet row. Feels like something
+  real is about to happen.</p>
+  <section class="b wide">
+    <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time</h2></div></div>
+
+    <div class="ticket">
+      <div class="tk-top">
+        <div class="tk-row">
+          <div class="tk-who"><span class="tk-av"><i>M</i><i>M</i></span> You and Munisa</div>
+          <span class="tk-tag">Linux basics</span>
+        </div>
+        <p class="tk-day" id="c-day">Tuesday, 4 August</p>
+        <p class="tk-time" id="c-time">5:00 PM – 5:50 PM</p>
+        <p class="tk-meta">Asia/Tashkent · both of you free at this time</p>
+      </div>
+      <div class="tk-perf"></div>
+      <div class="tk-bot">
+        <button class="btn">Propose this time</button>
+        <span class="quiet">Munisa can accept or suggest another.</span>
+      </div>
+    </div>
+
+    <div class="tk-alt">
+      <label class="lbl">Or one of these — you're both free</label>
+      <div class="chips" id="c-alts"></div>
+      <div class="foot" style="margin-top:14px">
+        <div class="seg" id="c-len"><button data-v="25">25 min</button><button data-v="50" class="on">50 min</button><button data-v="80">80 min</button></div>
+        <button class="linky2">Pick a time by hand</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== D ============================== -->
+  <div class="optlabel"><b>D</b><span>One sentence — the form reads as English</span></div>
+  <p class="lead" style="margin:0 0 14px">No labels, no boxes, no rows. Every green word is a
+  dropdown. It's the smallest version of this card that can exist, and it says
+  exactly what will be sent.</p>
+  <section class="b wide">
+    <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time</h2></div></div>
+
+    <p class="sent">
+      Meet <span class="pick"><select id="d-who"><option>Munisa</option><option>Aziza</option></select></span>
+      on <span class="pick"><select id="d-day"></select></span>
+      at <span class="pick"><select id="d-time"></select></span>
+      for <span class="pick"><select id="d-len"><option>25 minutes</option><option selected>50 minutes</option><option>80 minutes</option></select></span>.
+    </p>
+    <p class="quiet" id="d-note" style="margin:6px 0 0">You're both free then.</p>
+
+    <div class="field" style="margin:22px 0 0"><label for="d-msg">Note <span class="hint">(optional)</span></label>
+      <input id="d-msg" type="text" placeholder="What you'd like to work on"></div>
+    <div class="foot"><button class="btn">Propose this time</button>
+      <span class="quiet">Nothing is booked until Munisa accepts.</span></div>
+  </section>
+
+  <!-- ============================== E ============================== -->
+  <div class="optlabel"><b>E</b><span>Week strip — a calendar without a calendar</span></div>
+  <p class="lead" style="margin:0 0 14px">Two weeks across, dots on the days you're both free.
+  You can see the shape of the week, which none of the others give you — and picking a
+  greyed-out day is still allowed, it just warns.</p>
+  <section class="b wide">
+    <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time to Munisa</h2></div></div>
+
+    <div class="strip">
+      <div class="strip-h"><b id="e-mon">August 2026</b>
+        <span><button type="button">‹</button> <button type="button">›</button></span></div>
+      <div class="days" id="e-head"></div>
+      <div class="days" id="e-days"></div>
+      <div class="strip-t">
+        <label class="lbl" id="e-tl">Times on Tuesday 4 August</label>
+        <div class="pills" id="e-times"></div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <div class="seg" id="e-len"><button data-v="25">25 min</button><button data-v="50" class="on">50 min</button><button data-v="80">80 min</button></div>
+      <div style="flex:1"></div>
+      <p class="sum" id="e-sum" style="margin:0"></p>
+    </div>
+    <div class="foot"><button class="btn">Propose this time</button>
+      <span class="quiet">Nothing is booked until Munisa accepts.</span></div>
+  </section>
+
+</div>
+
+<script>
+/* One fixed "today" so every option shows the same dates. */
+var TODAY = new Date(2026, 6, 31);           /* Fri 31 Jul 2026 */
+var DOW = ['sun','mon','tue','wed','thu','fri','sat'];
+var SHARED = { tue:'evening', thu:'evening', sat:'afternoon', sun:'morning' };
+var BAND_START = { morning:9, afternoon:12, evening:17, night:22 };
+var BAND_HOURS = { morning:[9,10,11], afternoon:[12,13,14,15], evening:[17,18,19,20], night:[22,23] };
+
+function nextDates(n){
+  var out = [], d = new Date(TODAY);
+  for (var i = 1; i <= 21 && out.length < n; i++){
+    var x = new Date(d); x.setDate(d.getDate() + i);
+    var band = SHARED[DOW[x.getDay()]];
+    if (band){ x.setHours(BAND_START[band], 0, 0, 0); out.push({ when:x, band:band }); }
+  }
+  return out;
+}
+function hhmm(d){ return d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' }); }
+function dayLong(d){ return d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' }); }
+function plus(d, min){ var x = new Date(d); x.setMinutes(x.getMinutes() + min); return x; }
+function seg(id, cb){
+  var el = document.getElementById(id);
+  el.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    [].forEach.call(el.querySelectorAll('button'), function(x){ x.classList.remove('on'); });
+    b.classList.add('on'); if (cb) cb(+b.getAttribute('data-v'));
+  });
+}
+
+var OPTS = nextDates(4);
+
+/* ---------- A ---------- */
+(function(){
+  var pick = 0, len = 50;
+  document.getElementById('a-cards').innerHTML = OPTS.map(function(o, i){
+    return '<button type="button" class="tcard' + (i ? '' : ' on') + '" data-i="' + i + '">' +
+      '<div class="dw">' + o.when.toLocaleDateString('en-GB', { weekday:'short' }) + '</div>' +
+      '<div class="dd">' + o.when.getDate() + '</div>' +
+      '<div class="mo">' + o.when.toLocaleDateString('en-GB', { month:'short' }) + '</div>' +
+      '<div class="hh">' + hhmm(o.when) + '</div></button>';
+  }).join('');
+  function cta(){
+    document.getElementById('a-cta').textContent =
+      'Propose ' + OPTS[pick].when.toLocaleDateString('en-GB', { weekday:'long' }) + ' ' + hhmm(OPTS[pick].when);
+  }
+  document.getElementById('a-cards').addEventListener('click', function(e){
+    var c = e.target.closest('.tcard'); if (!c) return;
+    [].forEach.call(this.children, function(x){ x.classList.remove('on'); });
+    c.classList.add('on'); pick = +c.getAttribute('data-i'); cta();
+  });
+  seg('a-len', function(v){ len = v; });
+  cta();
+})();
+
+/* ---------- B ---------- */
+(function(){
+  var day = 0, hour = null, len = 50;
+  document.getElementById('b-days').innerHTML = OPTS.map(function(o, i){
+    return '<button type="button" class="' + (i ? '' : 'on') + '" data-i="' + i + '">' +
+      o.when.toLocaleDateString('en-GB', { weekday:'long' }) +
+      '<small>' + o.when.getDate() + ' ' + o.when.toLocaleDateString('en-GB', { month:'long' }) + '</small></button>';
+  }).join('') + '<button type="button" data-i="x" style="color:var(--p6)">Another day…</button>';
+
+  function times(){
+    var o = OPTS[day];
+    document.getElementById('b-band').textContent = o.band.toUpperCase();
+    var hs = BAND_HOURS[o.band];
+    if (hour === null || hs.indexOf(hour) < 0) hour = hs[0];
+    document.getElementById('b-times').innerHTML = hs.map(function(h){
+      var d = new Date(o.when); d.setHours(h);
+      return '<button type="button" class="' + (h === hour ? 'on' : '') + '" data-h="' + h + '">' + hhmm(d) + '</button>';
+    }).join('');
+    sum();
+  }
+  function sum(){
+    var d = new Date(OPTS[day].when); d.setHours(hour);
+    document.getElementById('b-sum').innerHTML =
+      dayLong(d) + ' at ' + hhmm(d) + ' <span class="len">· ' + len + ' min</span>';
+  }
+  document.getElementById('b-days').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b || b.getAttribute('data-i') === 'x') return;
+    [].forEach.call(this.children, function(x){ x.classList.remove('on'); });
+    b.classList.add('on'); day = +b.getAttribute('data-i'); hour = null; times();
+  });
+  document.getElementById('b-times').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    [].forEach.call(this.children, function(x){ x.classList.remove('on'); });
+    b.classList.add('on'); hour = +b.getAttribute('data-h'); sum();
+  });
+  seg('b-len', function(v){ len = v; sum(); });
+  times();
+})();
+
+/* ---------- C ---------- */
+(function(){
+  var pick = 0, len = 50;
+  function paint(){
+    var o = OPTS[pick];
+    document.getElementById('c-day').textContent = dayLong(o.when);
+    document.getElementById('c-time').textContent = hhmm(o.when) + ' – ' + hhmm(plus(o.when, len));
+    document.getElementById('c-alts').innerHTML = OPTS.map(function(x, i){
+      return i === pick ? '' : '<button type="button" class="chip" data-i="' + i + '">' +
+        x.when.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' }) +
+        ' · ' + hhmm(x.when) + '</button>';
+    }).join('');
+  }
+  document.getElementById('c-alts').addEventListener('click', function(e){
+    var b = e.target.closest('[data-i]'); if (!b) return;
+    pick = +b.getAttribute('data-i'); paint();
+  });
+  seg('c-len', function(v){ len = v; paint(); });
+  paint();
+})();
+
+/* ---------- D ---------- */
+(function(){
+  var dsel = document.getElementById('d-day'), tsel = document.getElementById('d-time');
+  dsel.innerHTML = OPTS.map(function(o, i){
+    return '<option value="' + i + '">' +
+      o.when.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'short' }) + '</option>';
+  }).join('') + '<option value="x">another day…</option>';
+  function fill(){
+    var o = OPTS[+dsel.value] || OPTS[0];
+    tsel.innerHTML = BAND_HOURS[o.band].map(function(h){
+      var d = new Date(o.when); d.setHours(h);
+      return '<option>' + hhmm(d) + '</option>';
+    }).join('');
+    document.getElementById('d-note').textContent =
+      'You’re both free ' + (o.band === 'night' ? 'at night' : 'in the ' + o.band) + ' that day.';
+  }
+  dsel.addEventListener('change', fill);
+  fill();
+})();
+
+/* ---------- E ---------- */
+(function(){
+  var days = [], pick = 0, hour = null, len = 50;
+  /* Starts on the Sunday of this week, so today is on the strip. Days that
+     have already gone stay in place rather than shifting the grid. */
+  var start = new Date(TODAY); start.setDate(start.getDate() - start.getDay());
+  for (var i = 0; i < 14; i++){
+    var d = new Date(start); d.setDate(start.getDate() + i);
+    var past = d <= TODAY;
+    days.push({ when:d, past:past, band:past ? null : (SHARED[DOW[d.getDay()]] || null) });
+  }
+  document.getElementById('e-head').innerHTML =
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(function(x){ return '<div class="dh">' + x + '</div>'; }).join('');
+  function paintDays(){
+    document.getElementById('e-days').innerHTML = days.map(function(o, i){
+      var cls = 'day' + (o.band ? ' free' : '') + (i === pick ? ' on' : '') + (o.past ? ' gone' : '');
+      return '<button type="button" class="' + cls + '" data-i="' + i + '"' +
+        (o.past ? ' disabled' : '') + '>' + o.when.getDate() + '</button>';
+    }).join('');
+  }
+  function paintTimes(){
+    var o = days[pick];
+    document.getElementById('e-tl').textContent = 'Times on ' +
+      o.when.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+    var hs = o.band ? BAND_HOURS[o.band] : [17, 18, 19, 20];
+    if (hour === null || hs.indexOf(hour) < 0) hour = hs[0];
+    document.getElementById('e-times').innerHTML = hs.map(function(h){
+      var d = new Date(o.when); d.setHours(h, 0, 0, 0);
+      return '<button type="button" class="' + (h === hour ? 'on' : '') + '" data-h="' + h + '">' + hhmm(d) + '</button>';
+    }).join('') + (o.band ? '' : '<span class="quiet" style="align-self:center;margin-left:6px">Munisa hasn’t said she’s free — you can still ask.</span>');
+    var s = new Date(o.when); s.setHours(hour, 0, 0, 0);
+    document.getElementById('e-sum').innerHTML =
+      dayLong(s) + ' at ' + hhmm(s) + ' <span class="len">· ' + len + ' min</span>';
+  }
+  document.getElementById('e-days').addEventListener('click', function(e){
+    var b = e.target.closest('.day'); if (!b) return;
+    pick = +b.getAttribute('data-i'); hour = null; paintDays(); paintTimes();
+  });
+  document.getElementById('e-times').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    hour = +b.getAttribute('data-h'); paintTimes();
+  });
+  seg('e-len', function(v){ len = v; paintTimes(); });
+  /* open on the first day you're both free */
+  days.some(function(o, i){ if (o.band){ pick = i; return true; } });
+  paintDays(); paintTimes();
+})();
+</script>
+</body>
+</html>
