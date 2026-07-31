@@ -72,14 +72,19 @@ the console line, not the sentence — the sentence is deliberately vague.
 Check **both windows** after every step. Half of these bugs only show on the
 side that didn't click.
 
-- [ ] **M:** Sessions. **Propose a time** card is there, with chips for the
-      windows you both ticked, and the date/time already on the soonest one.
-- [ ] Chips read like *"Tue evening"* — not blank, not `tue-evening`.
-- [ ] **M:** pick a chip, add a note, **Propose this time**.
+- [ ] **M:** Sessions. The **Propose a time** card reads as a sentence:
+      *"Meet Munisa on Tuesday, 4 Aug at 5:00 PM for 50 minutes."*
+- [ ] Under it: *"You're both free in the evening that day."*
+- [ ] Press the day. Menu lists **only** the days you both ticked, with the
+      date on the right — not `tue-evening`, not a blank list.
+- [ ] Press the time. Top group is the band you share; **Any other time**
+      below it is dimmed. Pick a dimmed one → the line turns amber and names
+      Munisa. Put it back.
+- [ ] **M:** set a time, add a note, **Propose this time**.
       → *"Sent — waiting on Munisa."*
       → a card: *"You proposed …"* with **Waiting on Munisa** and **Cancel**.
-- [ ] **M:** Coming up is still empty and the calendar is unchanged.
-      **A proposal is not a booking.**
+- [ ] **M:** the **Booked** heading is still absent. **A proposal is not a
+      booking.**
 - [ ] **N:** refresh → bell shows **1** → panel: *Mokhibakhon proposed …* with
       the note → **Answer it** goes to **Sessions** (not Partner) and the card
       is right there with Accept / Decline / Suggest another time.
@@ -90,7 +95,7 @@ side that didn't click.
 - [ ] **N:** Accept → lands on Sessions showing *"Next session in N days"*.
 - [ ] **M: refresh** → **also** shows the booked session, not a pending
       proposal. *(This is the one that was broken.)*
-- [ ] Both: it's in **Coming up**, and one square is filled on the calendar.
+- [ ] Both: it's under **Booked** in the Sessions card.
 - [ ] Both: no call link yet — it says the link opens 15 minutes before.
 - [ ] **N:** bell count drops.
 
@@ -122,10 +127,17 @@ side that didn't click.
 
 ### 4e. Edge cases (M's form)
 
-- [ ] A past date → *"That's in the past — pick a future time."*
+- [ ] **Any other day…** at the foot of the day menu: pick a date, **Use this
+      day** → the sentence moves to it and the line turns amber.
+- [ ] That date field will not offer a day before today.
+- [ ] Pick today, then an hour that has already gone → **Propose this time**
+      → *"That's in the past — pick a future time."*
 - [ ] A time in no shared window → amber warning naming Munisa, but
       **Propose still works**. It's a note, not a block.
-- [ ] Clear the date → *"Pick a date and a time."*
+- [ ] **Two partners:** the sentence starts *"Meet <name>"* as a menu. With
+      only one partner it's plain text, not a menu with one row in it.
+- [ ] Switch partner → the day and time jump to a window *that* partner
+      shares.
 
 ## 5. Things that should NOT happen
 
@@ -133,9 +145,11 @@ side that didn't click.
 - [ ] The Partner page has **no** booking form — only who your partner is, and
       a link across to Sessions.
 - [ ] Signed out, the landing page shows **no** account letter top-right.
-- [ ] With no partner, the dashboard checklist's *Book your first session* has
-      **no button** — it should say it opens up once you have a partner.
-- [ ] A proposal never appears on the calendar or in Coming up.
+- [ ] With nothing proposed and nothing booked, the whole **Sessions** card is
+      gone — not an empty card with a heading on it.
+- [ ] A proposal never appears under **Booked**.
+- [ ] **People page:** *Asked*, *Partners*, *Declined*, *Waiting on you* and
+      *Ask to partner* are all the same size and weight in the table.
 
 ## 6. Speed
 

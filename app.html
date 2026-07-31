@@ -293,14 +293,6 @@
     return d;
   }
 
-  /* Which band a chosen date and time lands in. Night runs 22:00 to 02:00,
-     so the small hours belong to the night before. */
-  function slotOf(d){
-    var day = d.getDay(), h = d.getHours();
-    if (h < 6) return DAYS[(day + 6) % 7] + '-night';
-    return DAYS[day] + '-' + (h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'night');
-  }
-
   function midnight(d){ var x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
   function dayKey(d){ return midnight(d).getTime(); }
   function chosen(){
@@ -577,7 +569,9 @@
     note.style.color = '#c0392b';
     if (!bookPartner || !bookPartner.id) { note.textContent = 'You need a partner first.'; return; }
     var w = chosen();
-    if (!w) { note.textContent = 'Pick a date and a time.'; return; }
+    /* Shouldn't be reachable — a partner always brings a day and an hour with
+       them — but it's the last thing between here and null.toISOString(). */
+    if (!w) { note.textContent = 'Pick a day and a time.'; return; }
     if (w.getTime() < Date.now()) { note.textContent = 'That\u2019s in the past \u2014 pick a future time.'; return; }
 
     var btn = this;

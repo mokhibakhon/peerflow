@@ -14,12 +14,21 @@ static site with no build step.
 | File | What it is |
 |---|---|
 | `index.html` | Landing page (hero, founder's note, how it works, demo slot, what we're starting with, signup) |
-| `conduct.html` | Code of conduct |
 | `signup.html` | 2-step signup: create account, then what you're learning + when you're free |
 | `login.html` | Log-in page |
-| `app.html` | Signed-in "Today" dashboard (match status + optional "improve my match") |
-| `app-sessions.html` | "My partner" — your match and the button to start the call |
-| `assets/` | Shared stylesheet and scripts |
+| `reset.html` | Catches the password-reset link and sets a new password |
+| `conduct.html` | Code of conduct |
+| `app.html` | **Sessions** — the signed-in home. Proposals waiting on an answer, what's booked, and the form to propose a time |
+| `app-sessions.html` | **Partner** — who you're paired with, and what you have in common |
+| `app-people.html` | **People** — everyone signed up, closest match first, with *Ask to partner* |
+| `app-profile.html` | Your name, topic, stage, timezone and free times |
+| `app-settings.html` | Password, account, sign out |
+| `app-badges.html` | What you've done so far |
+| `assets/` | Shared stylesheets and scripts |
+
+Three stylesheets, split by surface: `assets/home.css` (landing),
+`assets/app.css` (signed-in app), `assets/styles.css` (login, signup, reset,
+conduct).
 
 ## Run it locally
 
@@ -31,34 +40,57 @@ runs in offline demo mode; the real auth and database need the deployed site.
 
 Import this repo into [Vercel](https://vercel.com) or Netlify as-is (static
 site, no build command). See `SETUP_GUIDE.md` for the step-by-step, including
-Supabase and OAuth setup.
+Supabase, email and DNS.
 
 ## Backend (Supabase)
 
-The site connects to Supabase for real email/Google auth, profiles, and the
-home-page waitlist. Everything degrades gracefully: if Supabase is unreachable
-(offline, file://, schema not created yet), pages fall back to a safe state
-rather than breaking.
+Auth, profiles, partner requests and sessions all live in Supabase. Everything
+degrades gracefully: if Supabase is unreachable (offline, file://, schema not
+created yet), pages fall back to a safe state rather than breaking.
 
 - `supabase/schema.sql` ([raw file](https://raw.githubusercontent.com/mokhibakhon/peerflow/main/supabase/schema.sql)) — the only schema file;
-  always use the version on `main`. Paste into Supabase → SQL Editor → Run. Creates
-  tables (`tracks`, `profiles`, `waitlist`, `matches`), row-level security, and
-  a signup trigger, and seeds the cybersecurity track.
+  always use the version on `main`. Paste into Supabase → SQL Editor → Run.
+  Creates `tracks`, `profiles`, `partner_requests`, `sessions` (plus the older
+  `waitlist` and `matches`, which nothing reads any more), row-level security,
+  a signup trigger, and the two functions below.
 - `assets/supabase-config.js` — project URL + publishable key (public by
   design). `realOAuth: true` enables real Google sign-in; the GitHub button is
   hidden until that provider is configured.
-- `assets/db.js` — the data layer: auth, profile upsert, waitlist insert, and
-  reading your match.
+- `assets/db.js` — the data layer. Every database error goes through one
+  function that logs the real error to the console and returns a plain
+  sentence, so nothing on screen ever names a table, column or policy.
+
+### Why two SECURITY DEFINER functions
+
+A session is two rows, one per person. Postgres applies `SELECT` policies to
+`UPDATE` and `DELETE` as well, so a policy that lets you see only your own row
+also silently limits an update to that row — accepting or cancelling moved one
+side and left the other showing a session that no longer existed.
+`answer_session` and `drop_session` move both rows, after checking that the
+caller owns one of them. Both are revoked from `public` and `anon`, granted to
+`authenticated`, and pin `search_path`.
 
 For instant sign-ins, disable "Confirm email" in
 Supabase → Authentication → Sign In / Providers → Email.
 
+## How pairing works
+
+There is no automatic matching engine, and no hand-editing of tables.
+
+1. **People** ranks everyone by how close they are to what you're learning —
+   same topic first, then same path, then how many free windows you share.
+2. You press **Ask to partner** and can add a note. They get it in their bell.
+3. They accept, and you're partners. Either of you can have more than one.
+4. On **Sessions**, one of you proposes a time. Nothing is booked until the
+   other accepts; they can also decline or suggest another time. Either side
+   can cancel a booked session, and the other is told.
+
+Video calls are Jitsi rooms, one per pair, and the link opens 15 minutes
+before the session starts.
+
 ## Status
 
-Early. Email and Google sign-in are live; the GitHub button is hidden until
-that OAuth app is configured. Matching is done by hand for now — there is no
-automatic matching engine yet. Until you pair someone, the app shows an honest
-"finding your partner" state instead of a fabricated match. To pair two people,
-insert a row per person into the `matches` table (each row holds the other
-person's name, topic, free times, and a shared `room_url`); they'll then see
-their partner and a button to start the call.
+Early, and live at [peerflow.dev](https://peerflow.dev). Email and Google
+sign-in work, as do password resets. The GitHub button stays hidden until that
+OAuth app is configured. Nothing notifies anyone by email yet — proposals,
+accepts and cancellations only show up in the app.
