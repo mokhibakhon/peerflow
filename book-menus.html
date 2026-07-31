@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Propose a time — five menus</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  body{background:var(--bg)}
+  .wrapx{max-width:820px;margin:0 auto;padding:30px 22px 90px}
+  .optlabel{margin:44px 0 10px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .optlabel b{font-size:24px;letter-spacing:-.02em}
+  .optlabel span{font-size:14px;color:var(--soft)}
+  .lead{font-size:15px;color:var(--soft);max-width:62ch;margin:0 0 14px}
+  .quiet{font-size:13px;color:var(--faint)}
+  .foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px}
+
+  /* ---------- the sentence: size 3, fixed for all five ---------- */
+  .pick{position:relative;display:inline-block}
+  .sent{margin:0;font-size:19px;line-height:1.95;font-weight:500;color:var(--soft);letter-spacing:-.012em}
+  .note{margin:8px 0 0}
+  .trig{position:relative;display:inline-block;border:0;background:none;cursor:pointer;
+    font-family:var(--body);font-size:19px;font-weight:800;color:var(--p6);letter-spacing:-.018em;
+    border-bottom:2px solid var(--p1);border-radius:0;padding:0 16px 2px 0;
+    transition:color .13s,border-color .13s}
+  .trig::after{content:"";position:absolute;top:50%;right:3px;width:7px;height:7px;
+    border-right:2px solid currentColor;border-bottom:2px solid currentColor;opacity:.55;
+    transform:translateY(-75%) rotate(45deg);transition:transform .16s ease}
+  .trig[aria-expanded="true"]::after{transform:translateY(-30%) rotate(-135deg)}
+  .trig:hover{color:var(--p8);border-bottom-color:var(--p4)}
+  .trig[aria-expanded="true"]{color:var(--p8);border-bottom-color:var(--p6)}
+
+  /* ---------- shared shell for the floating menus ---------- */
+  .pop{position:absolute;top:calc(100% + 9px);left:-8px;z-index:40;min-width:236px;
+    background:var(--card);border:1px solid var(--line);border-radius:13px;padding:5px;
+    box-shadow:0 14px 34px rgba(23,26,46,.14),0 2px 6px rgba(23,26,46,.06);
+    max-height:min(56vh,420px);overflow-y:auto;
+    animation:popin .14s cubic-bezier(.2,.9,.3,1)}
+  .pop.right{left:auto;right:-8px}
+  .pop.times{min-width:274px}
+  @keyframes popin{from{opacity:0;transform:translateY(-5px) scale(.985)}}
+
+  /* ---------- 1: rows ---------- */
+  .pop-h{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--faint);padding:8px 11px 5px}
+  .pop-sep{height:1px;background:var(--line);margin:5px}
+  .opt{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;
+    padding:8px 11px;border-radius:8px;font-family:var(--body);font-size:14px;font-weight:600;
+    color:var(--ink);text-align:left;cursor:pointer;line-height:1.25}
+  .opt:hover{background:var(--band)}
+  .opt.on{background:var(--p0);color:var(--p8)}
+  .opt .r{margin-left:auto;font-weight:400;font-size:12.5px;color:var(--faint);white-space:nowrap}
+  .opt.on .r{color:var(--p6)}
+  .opt em{display:block;font-style:normal;font-weight:400;font-size:12px;color:var(--faint);margin-top:1px}
+  .opt.on em{color:var(--p6)}
+  .opt.mild{color:var(--p6);font-size:13.5px}
+  .opt .av{width:22px;height:22px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    background:var(--p1);color:var(--p8);font-size:10.5px;font-weight:800}
+  .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:1px 5px 5px}
+  .tgrid button{border:0;background:var(--band);border-radius:7px;padding:8px 3px;white-space:nowrap;
+    font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
+  .tgrid button:hover{background:#E9E9EF}
+  .tgrid button.on{background:var(--p8);color:#fff}
+  .tgrid.dim button{background:none;color:var(--faint);font-weight:500}
+  .tgrid.dim button:hover{background:var(--band);color:var(--ink)}
+  .tgrid.dim button.on{background:var(--p8);color:#fff}
+
+  /* ---------- 2: tiles ---------- */
+  .tilegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:2px 5px 5px}
+  .tile{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 2px 7px;
+    text-align:center;cursor:pointer;font-family:var(--body);transition:.13s}
+  .tile:hover{border-color:var(--p2);transform:translateY(-1px)}
+  .tile .w,.tile .d,.tile .m{display:block}
+  .tile .w{font-family:var(--mono);font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+  .tile .d{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1.15;color:var(--ink)}
+  .tile .m{font-size:10.5px;color:var(--soft)}
+  .tile.on{background:var(--p8);border-color:var(--p8)}
+  .tile.on .w{color:var(--p2)}.tile.on .d,.tile.on .m{color:#fff}
+  .tilegrid.two{grid-template-columns:repeat(2,1fr)}
+  .tilegrid.three{grid-template-columns:repeat(3,1fr)}
+  .tile.wide{padding:11px 6px}
+  .tile.wide .d{font-size:17px}
+  .tile .av{width:26px;height:26px;border-radius:50%;margin:0 auto 5px;display:grid;place-items:center;
+    background:var(--p1);color:var(--p8);font-size:11px;font-weight:800}
+  .tile.on .av{background:var(--p2);color:var(--p8)}
+
+  /* ---------- 3: clean tick list ---------- */
+  .pop.clean{padding:0;border-radius:14px;min-width:252px}
+  .pop.clean.times{min-width:252px}
+  .cgroup{padding:6px 0}
+  .cgroup+.cgroup{border-top:1px solid var(--line)}
+  .cg-h{font-size:12px;color:var(--faint);padding:7px 16px 5px}
+  .crow{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;
+    padding:11px 16px;font-family:var(--body);font-size:15px;font-weight:600;color:var(--ink);
+    text-align:left;cursor:pointer;line-height:1.3}
+  .crow:hover{background:var(--band)}
+  .crow .r{margin-left:auto;font-weight:400;font-size:13px;color:var(--faint)}
+  .crow em{display:block;font-style:normal;font-weight:400;font-size:12.5px;color:var(--faint);margin-top:1px}
+  .crow.on{color:var(--p8)}
+  .crow.on .r{color:var(--p6)}
+  .crow .tick{width:15px;height:15px;flex:0 0 auto;margin-left:auto;opacity:0}
+  .crow.on .tick{opacity:1}
+  .crow .r+.tick{margin-left:0}
+  .crow .av{width:26px;height:26px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    background:var(--p1);color:var(--p8);font-size:11px;font-weight:800}
+
+  /* ---------- 4: inline panel ---------- */
+  .inpanel{margin-top:16px;border:1px solid var(--line);border-radius:13px;background:#FBFBFC;
+    padding:12px 14px 14px;animation:grow .16s ease}
+  @keyframes grow{from{opacity:0;transform:translateY(-4px)}}
+  .in-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .in-h b{font-size:13.5px;letter-spacing:-.01em}
+  .in-h button{border:0;background:none;font-family:var(--body);font-size:13px;font-weight:600;
+    color:var(--p6);text-decoration:underline;cursor:pointer;padding:0}
+  .inrow{display:flex;flex-wrap:wrap;gap:7px}
+  .inrow button{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:9px 13px;
+    font-family:var(--body);font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer}
+  .inrow button:hover{border-color:var(--p2)}
+  .inrow button.on{background:var(--p0);border-color:var(--p4);color:var(--p8)}
+  .inrow button small{display:block;font-weight:400;font-size:11.5px;color:var(--faint);margin-top:1px}
+  .inrow button.on small{color:var(--p6)}
+  .in-sub{font-size:12px;color:var(--faint);width:100%;margin:10px 0 0}
+
+  /* ---------- 5: sheet ---------- */
+  .veil{position:fixed;inset:0;z-index:90;background:rgba(15,17,32,.44);
+    display:grid;place-items:center;padding:20px;animation:fade .15s ease}
+  @keyframes fade{from{opacity:0}}
+  .sheet{width:min(390px,94vw);max-height:76vh;overflow-y:auto;background:var(--card);
+    border-radius:18px;padding:6px 6px 10px;box-shadow:0 24px 60px rgba(15,17,32,.3);
+    animation:rise .18s cubic-bezier(.2,.9,.3,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(14px) scale(.97)}}
+  .sh-h{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 10px}
+  .sh-h b{font-size:16px;letter-spacing:-.015em}
+  .sh-x{border:0;background:var(--band);width:28px;height:28px;border-radius:50%;cursor:pointer;
+    color:var(--soft);font-size:15px;line-height:1}
+  @media (max-width:560px){
+    .veil{place-items:end center;padding:0}
+    .sheet{width:100%;max-width:none;border-radius:20px 20px 0 0;padding-bottom:22px;max-height:80vh}
+    @keyframes rise{from{opacity:0;transform:translateY(40px)}}
+    .sent,.trig{font-size:17px}
+    .pop{min-width:0;width:max-content;max-width:min(310px,78vw)}
+    .pop.times{min-width:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrapx">
+
+  <h1 style="font-size:28px;letter-spacing:-.03em;margin:0 0 8px">The menu — five ways</h1>
+  <p class="lead">The sentence is the same in all five. Only what happens when you press
+  a green word changes. Press <b>Saturday 1 Aug</b> in each one — the day menu shows the
+  differences best, then try the time.</p>
+
+  <div class="optlabel"><b>1</b><span>Rows — what's there now</span></div>
+  <p class="lead">A list with a small caps heading, the date on the right, a divider before
+  the escape hatch. For reference.</p>
+  <section class="b wide dvar" data-mode="rows"></section>
+
+  <div class="optlabel"><b>2</b><span>Tiles — dates you can see, not read</span></div>
+  <p class="lead">Days become little date squares four across, so a date is a shape rather
+  than a line of text. Lengths and people get the same treatment.</p>
+  <section class="b wide dvar" data-mode="tiles"></section>
+
+  <div class="optlabel"><b>3</b><span>Clean — no small caps, no dividers, a tick</span></div>
+  <p class="lead">Bigger rows, hairlines between groups instead of coloured bands, and a
+  check mark on the one that's chosen. Nothing shouts.</p>
+  <section class="b wide dvar" data-mode="clean"></section>
+
+  <div class="optlabel"><b>4</b><span>Inline — nothing floats over anything</span></div>
+  <p class="lead">The choices open <i>inside</i> the card, under the sentence, and push the
+  rest down. No layer covering the note field, no menu running off the bottom on a phone.</p>
+  <section class="b wide dvar" data-mode="inline"></section>
+
+  <div class="optlabel"><b>5</b><span>Sheet — a proper dialog</span></div>
+  <p class="lead">Dims the page and centres a titled card. On a phone it slides up from the
+  bottom, thumb-height, the way a native app does it.</p>
+  <section class="b wide dvar" data-mode="sheet"></section>
+
+</div>
+
+<script>
+var TODAY = new Date(2026, 6, 31);
+var DOW = ['sun','mon','tue','wed','thu','fri','sat'];
+var SHARED = { tue:'evening', thu:'evening', sat:'afternoon', sun:'morning' };
+var BAND_START = { morning:9, afternoon:12, evening:17, night:22 };
+var BAND_HOURS = { morning:[9,10,11], afternoon:[12,13,14,15], evening:[17,18,19,20], night:[22,23] };
+var ALL_HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+var WHO = [ { n:'Munisa Omonkhonova', short:'Munisa', t:'Linux basics' },
+            { n:'Aziza Karimova',     short:'Aziza',  t:'Linux basics' } ];
+var LENS = [ { v:25, why:'a quick check-in' }, { v:50, why:'the usual' },
+             { v:80, why:'a proper session' } ];
+var TITLE = { who:'Who with', day:'Which day', time:'What time', len:'How long' };
+var TICK = '<svg class="tick" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+  '<path d="M3 8.4l3.2 3.2L13 4.8" stroke="#0F6E56" stroke-width="2.2" ' +
+  'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function hhmm(d){ return d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' }); }
+var OPTS = (function(){
+  var out = [];
+  for (var i = 1; i <= 21 && out.length < 4; i++){
+    var x = new Date(TODAY); x.setDate(TODAY.getDate() + i);
+    var band = SHARED[DOW[x.getDay()]];
+    if (band){ x.setHours(BAND_START[band], 0, 0, 0); out.push({ when:x, band:band }); }
+  }
+  return out;
+})();
+
+var CARD =
+  '<div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span>' +
+  '<div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time</h2></div></div>' +
+  '<p class="sent">Meet <span class="pick" data-k="who"></span> on <span class="pick" data-k="day"></span> ' +
+  'at <span class="pick" data-k="time"></span> for <span class="pick" data-k="len"></span>.</p>' +
+  '<p class="quiet note"></p>' +
+  '<div class="slotx"></div>' +
+  '<div class="field" style="margin:20px 0 0"><label>Note <span class="hint">(optional)</span></label>' +
+  '<input type="text" placeholder="What you’d like to work on"></div>' +
+  '<div class="foot"><button class="btn">Propose this time</button>' +
+  '<span class="quiet">Nothing is booked until Munisa accepts.</span></div>';
+
+function setup(root){
+  var mode = root.getAttribute('data-mode');
+  var who = 0, day = 0, hour = BAND_HOURS[OPTS[0].band][0], len = 50;
+  var open = null, layer = null;
+  root.innerHTML = CARD;
+
+  function dayObj(){ return OPTS[day]; }
+  function at(){ var d = new Date(dayObj().when); d.setHours(hour, 0, 0, 0); return d; }
+  function free(){ return BAND_HOURS[dayObj().band].indexOf(hour) >= 0; }
+  function hourCell(h){ var d = new Date(dayObj().when); d.setHours(h, 0, 0, 0); return hhmm(d); }
+  function others(){ var i = BAND_HOURS[dayObj().band];
+    return ALL_HOURS.filter(function(h){ return i.indexOf(h) < 0; }); }
+
+  /* ---- one body per menu style ---- */
+  function body(kind){
+    if (mode === 'tiles')  return tilesBody(kind);
+    if (mode === 'clean')  return cleanBody(kind);
+    if (mode === 'inline') return inlineBody(kind);
+    if (mode === 'sheet')  return cleanBody(kind);   /* sheet reuses the clean rows */
+    return rowsBody(kind);
+  }
+
+  function rowsBody(kind){
+    if (kind === 'who') return WHO.map(function(w, i){
+      return '<button type="button" class="opt' + (i === who ? ' on' : '') + '" data-v="' + i + '">' +
+        '<span class="av">' + w.short[0] + '</span><span>' + w.n + '<em>' + w.t + '</em></span></button>';
+    }).join('');
+    if (kind === 'day') return '<p class="pop-h">You’re both free</p>' + OPTS.map(function(o, i){
+      return '<button type="button" class="opt' + (i === day ? ' on' : '') + '" data-v="' + i + '">' +
+        o.when.toLocaleDateString('en-GB', { weekday:'long' }) + '<span class="r">' + o.when.getDate() +
+        ' ' + o.when.toLocaleDateString('en-GB', { month:'short' }) + '</span></button>';
+    }).join('') + '<div class="pop-sep"></div>' +
+      '<button type="button" class="opt mild" data-v="x">Any other day…</button>';
+    if (kind === 'time'){
+      var cell = function(h){ return '<button type="button" class="' + (h === hour ? 'on' : '') +
+        '" data-v="' + h + '">' + hourCell(h) + '</button>'; };
+      return '<p class="pop-h">' + dayObj().band + ' — you’re both free</p>' +
+        '<div class="tgrid">' + BAND_HOURS[dayObj().band].map(cell).join('') + '</div>' +
+        '<div class="pop-sep"></div><p class="pop-h">Any other time</p>' +
+        '<div class="tgrid dim">' + others().map(cell).join('') + '</div>';
+    }
+    return LENS.map(function(l){
+      return '<button type="button" class="opt' + (l.v === len ? ' on' : '') + '" data-v="' + l.v + '">' +
+        '<span>' + l.v + ' minutes<em>' + l.why + '</em></span></button>';
+    }).join('');
+  }
+
+  function tilesBody(kind){
+    if (kind === 'who') return '<div class="tilegrid two">' + WHO.map(function(w, i){
+      return '<button type="button" class="tile wide' + (i === who ? ' on' : '') + '" data-v="' + i + '">' +
+        '<span class="av">' + w.short[0] + '</span><span class="d">' + w.short + '</span>' +
+        '<span class="m">' + w.t + '</span></button>';
+    }).join('') + '</div>';
+    if (kind === 'day') return '<p class="pop-h">You’re both free</p><div class="tilegrid">' +
+      OPTS.map(function(o, i){
+        return '<button type="button" class="tile' + (i === day ? ' on' : '') + '" data-v="' + i + '">' +
+          '<span class="w">' + o.when.toLocaleDateString('en-GB', { weekday:'short' }) + '</span>' +
+          '<span class="d">' + o.when.getDate() + '</span>' +
+          '<span class="m">' + o.when.toLocaleDateString('en-GB', { month:'short' }) + '</span></button>';
+      }).join('') + '</div><div class="pop-sep"></div>' +
+      '<button type="button" class="opt mild" data-v="x">Any other day…</button>';
+    if (kind === 'time'){
+      var cell = function(h){ return '<button type="button" class="' + (h === hour ? 'on' : '') +
+        '" data-v="' + h + '">' + hourCell(h) + '</button>'; };
+      return '<p class="pop-h">' + dayObj().band + ' — you’re both free</p>' +
+        '<div class="tgrid">' + BAND_HOURS[dayObj().band].map(cell).join('') + '</div>' +
+        '<div class="pop-sep"></div><p class="pop-h">Any other time</p>' +
+        '<div class="tgrid dim">' + others().map(cell).join('') + '</div>';
+    }
+    return '<div class="tilegrid three">' + LENS.map(function(l){
+      return '<button type="button" class="tile wide' + (l.v === len ? ' on' : '') + '" data-v="' + l.v + '">' +
+        '<span class="d">' + l.v + '</span><span class="m">minutes</span></button>';
+    }).join('') + '</div>';
+  }
+
+  function cleanBody(kind){
+    if (kind === 'who') return '<div class="cgroup">' + WHO.map(function(w, i){
+      return '<button type="button" class="crow' + (i === who ? ' on' : '') + '" data-v="' + i + '">' +
+        '<span class="av">' + w.short[0] + '</span><span>' + w.n + '<em>' + w.t + '</em></span>' +
+        TICK + '</button>';
+    }).join('') + '</div>';
+    if (kind === 'day') return '<div class="cgroup"><p class="cg-h">Days you’re both free</p>' +
+      OPTS.map(function(o, i){
+        return '<button type="button" class="crow' + (i === day ? ' on' : '') + '" data-v="' + i + '">' +
+          o.when.toLocaleDateString('en-GB', { weekday:'long' }) + '<span class="r">' + o.when.getDate() +
+          ' ' + o.when.toLocaleDateString('en-GB', { month:'short' }) + '</span>' + TICK + '</button>';
+      }).join('') + '</div><div class="cgroup">' +
+      '<button type="button" class="crow" data-v="x" style="color:var(--p6)">Any other day…</button></div>';
+    if (kind === 'time'){
+      var cell = function(h){ return '<button type="button" class="' + (h === hour ? 'on' : '') +
+        '" data-v="' + h + '">' + hourCell(h) + '</button>'; };
+      return '<div class="cgroup"><p class="cg-h">' +
+        dayObj().band.charAt(0).toUpperCase() + dayObj().band.slice(1) +
+        ' — you’re both free</p><div class="tgrid">' +
+        BAND_HOURS[dayObj().band].map(cell).join('') + '</div></div>' +
+        '<div class="cgroup"><p class="cg-h">Any other time</p><div class="tgrid dim">' +
+        others().map(cell).join('') + '</div></div>';
+    }
+    return '<div class="cgroup">' + LENS.map(function(l){
+      return '<button type="button" class="crow' + (l.v === len ? ' on' : '') + '" data-v="' + l.v + '">' +
+        '<span>' + l.v + ' minutes<em>' + l.why + '</em></span>' + TICK + '</button>';
+    }).join('') + '</div>';
+  }
+
+  function inlineBody(kind){
+    var rows;
+    if (kind === 'who') rows = WHO.map(function(w, i){
+      return '<button type="button" class="' + (i === who ? 'on' : '') + '" data-v="' + i + '">' +
+        w.short + '<small>' + w.t + '</small></button>'; }).join('');
+    else if (kind === 'day') rows = OPTS.map(function(o, i){
+      return '<button type="button" class="' + (i === day ? 'on' : '') + '" data-v="' + i + '">' +
+        o.when.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' }) +
+        '<small>' + o.band + '</small></button>'; }).join('') +
+      '<button type="button" data-v="x">Any other day…</button>';
+    else if (kind === 'time') rows = BAND_HOURS[dayObj().band].map(function(h){
+      return '<button type="button" class="' + (h === hour ? 'on' : '') + '" data-v="' + h + '">' +
+        hourCell(h) + '</button>'; }).join('') +
+      '<p class="in-sub">Both free ' + dayObj().band + '. Other times: ' +
+      others().slice(0, 6).map(function(h){
+        return '<button type="button" data-v="' + h + '" style="border:0;background:none;padding:0 6px;' +
+          'font-family:var(--body);font-size:12px;color:var(--p6);cursor:pointer">' + hourCell(h) +
+          '</button>'; }).join('') + '</p>';
+    else rows = LENS.map(function(l){
+      return '<button type="button" class="' + (l.v === len ? 'on' : '') + '" data-v="' + l.v + '">' +
+        l.v + ' min<small>' + l.why + '</small></button>'; }).join('');
+    return '<div class="in-h"><b>' + TITLE[kind] + '?</b>' +
+      '<button type="button" data-close="1">Close</button></div><div class="inrow">' + rows + '</div>';
+  }
+
+  /* ---- opening and closing ---- */
+  function close(){
+    if (layer){ layer.remove(); layer = null; }
+    if (open){
+      var p = open.querySelector('.pop'); if (p) p.remove();
+      open.querySelector('.trig').setAttribute('aria-expanded', 'false');
+      open = null;
+    }
+    var panel = root.querySelector('.inpanel');
+    if (panel){
+      panel.remove();
+      [].forEach.call(root.querySelectorAll('.trig'), function(t){ t.setAttribute('aria-expanded', 'false'); });
+    }
+  }
+
+  function openMenu(host, kind){
+    var trig = host.querySelector('.trig');
+
+    if (mode === 'inline'){
+      var panel = document.createElement('div');
+      panel.className = 'inpanel';
+      panel.innerHTML = inlineBody(kind);
+      root.querySelector('.slotx').appendChild(panel);
+      trig.setAttribute('aria-expanded', 'true');
+      wire(panel, kind);
+      return;
+    }
+
+    if (mode === 'sheet'){
+      layer = document.createElement('div');
+      layer.className = 'veil';
+      layer.innerHTML = '<div class="sheet"><div class="sh-h"><b>' + TITLE[kind] + '</b>' +
+        '<button type="button" class="sh-x" data-close="1" aria-label="Close">✕</button></div>' +
+        body(kind) + '</div>';
+      document.body.appendChild(layer);
+      trig.setAttribute('aria-expanded', 'true');
+      open = host;
+      layer.addEventListener('click', function(e){ if (e.target === layer) close(); });
+      wire(layer, kind);
+      return;
+    }
+
+    var pop = document.createElement('div');
+    pop.className = 'pop' + (kind === 'time' ? ' times' : '') + (mode === 'clean' ? ' clean' : '');
+    pop.setAttribute('role', 'listbox');
+    pop.innerHTML = body(kind);
+    host.appendChild(pop);
+    trig.setAttribute('aria-expanded', 'true');
+    open = host;
+    var card = root.getBoundingClientRect();
+    if (pop.getBoundingClientRect().right > card.right - 8) pop.classList.add('right');
+    wire(pop, kind);
+  }
+
+  function wire(scope, kind){
+    scope.addEventListener('click', function(e){
+      if (e.target.closest('[data-close]')){ close(); return; }
+      var b = e.target.closest('[data-v]');
+      if (!b) return;
+      var v = b.getAttribute('data-v');
+      if (kind === 'who')  who = +v;
+      if (kind === 'len')  len = +v;
+      if (kind === 'time') hour = +v;
+      if (kind === 'day'){
+        if (v === 'x'){ close(); return; }
+        day = +v;
+        if (BAND_HOURS[dayObj().band].indexOf(hour) < 0) hour = BAND_HOURS[dayObj().band][0];
+      }
+      close(); paint();
+    });
+  }
+
+  function label(kind){
+    if (kind === 'who')  return WHO[who].short;
+    if (kind === 'day')  return dayObj().when.toLocaleDateString('en-GB',
+                           { weekday:'long', day:'numeric', month:'short' });
+    if (kind === 'time') return hhmm(at());
+    return len + ' minutes';
+  }
+
+  function paint(){
+    [].forEach.call(root.querySelectorAll('.pick'), function(h){
+      h.querySelector('.v').textContent = label(h.getAttribute('data-k'));
+    });
+    root.querySelector('.note').textContent = free()
+      ? 'You’re both free ' + (dayObj().band === 'night' ? 'at night'
+          : 'in the ' + dayObj().band) + ' that day.'
+      : WHO[who].short + ' hasn’t said she’s free then — you can still ask.';
+  }
+
+  [].forEach.call(root.querySelectorAll('.pick'), function(host){
+    var kind = host.getAttribute('data-k');
+    host.innerHTML = '<button type="button" class="trig" aria-haspopup="listbox" ' +
+      'aria-expanded="false"><span class="v"></span></button>';
+    host.querySelector('.trig').addEventListener('click', function(e){
+      e.stopPropagation();
+      var was = this.getAttribute('aria-expanded') === 'true';
+      close();
+      if (!was) openMenu(host, kind);
+    });
+  });
+
+  document.addEventListener('click', function(e){
+    if (mode === 'inline' && root.querySelector('.inpanel') &&
+        root.querySelector('.inpanel').contains(e.target)) return;
+    close();
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+  paint();
+}
+
+[].forEach.call(document.querySelectorAll('.dvar'), setup);
+</script>
+</body>
+</html>
