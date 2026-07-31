@@ -17,6 +17,9 @@
   --live:#0FA36B;
   --live-soft:#E3F4EC;
   --live-deep:#0A7350;
+  /* The band that closes the page. Darker than --live-deep so white text
+     sits on it comfortably at body size. */
+  --deep:#12352C;
   /* One typeface for the whole page. Loaded as a variable font over the
      400-800 range, so headings and body copy come from a single file.
      The fallback is the same stack styles.css uses. */
@@ -169,7 +172,35 @@ h1 em{font-style:normal;color:var(--live)}
 .how-body p{margin:0;font-size:14.5px;color:var(--ink-soft)}
 
 /* ---------- paths ---------- */
-.sec{padding:80px 0 0}
+.sec{padding:88px 0}
+
+/* ---------- bands ----------
+   The page used to be one grey field from the nav to the footer, and the only
+   grouping on it came from white cards — which appear in two different
+   sections, so they read as one long run rather than two ideas. Two full-bleed
+   bands fix that: white behind how-it-works, dark green behind the close.
+
+   Full bleed without leaving .wrap: the shadow paints past the element on
+   both sides and the clip-path lets it. */
+/* Full bleed without leaving .wrap: the shadow paints 100vmax past the
+   element on both sides and the clip-path allows it.
+
+   No hairline on the edges. It was tried three ways and each one failed for
+   its own reason: a border stops at the element's 1012px while the band does
+   not; an extra shadow puts its offset edge 100vmax away rather than at the
+   band; and a pseudo-element reaching that far adds to the page's scroll
+   width, which overflow-x could not reliably take back. White meeting
+   #F3F2F6 is a visible edge on its own, and the closing band is dark green
+   against grey, so neither of them was relying on a line. Doing it properly
+   means moving these two sections out of .wrap in the markup — worth it only
+   if the edges ever start to look soft. */
+#how{
+  background:var(--card);
+  box-shadow:0 0 0 100vmax var(--card);
+  clip-path:inset(0 -100vmax);
+}
+/* var(--line) is chosen against grey; on white the cards need a shade more. */
+#how .how-card{border-color:#DEDDE6}
 .sec-head{margin-bottom:26px}
 .sec-head h2{font-size:clamp(27px,3.2vw,33px);letter-spacing:-0.026em;font-weight:700;margin:8px 0 6px;text-wrap:balance}
 .sec-head p{margin:0;color:var(--ink-soft);font-size:16px}
@@ -207,26 +238,49 @@ h1 em{font-style:normal;color:var(--live)}
 .other{margin-top:18px;font-size:14px;color:var(--ink-soft)}
 .other a{border-bottom:1px solid var(--ink-faint)}
 
-/* ---------- founder ---------- */
-.founder{padding:88px 0 72px;max-width:640px}
+/* ---------- founder ----------
+   The page used to trail off into a pale strip of small grey text. It ends on
+   this instead, which is the most persuasive thing on it. Centred on purpose:
+   everything above is left-aligned, so the change of alignment is the change
+   of pace a pull quote wants. */
+.founder{
+  background:var(--deep);color:#fff;
+  box-shadow:0 0 0 100vmax var(--deep);
+  clip-path:inset(0 -100vmax);
+  padding:88px 0;text-align:center;
+}
+.founder .sec-head{margin-bottom:20px}
+.founder h2{
+  margin:0;font-size:clamp(27px,3.2vw,33px);
+  letter-spacing:-0.026em;font-weight:700;color:#fff;
+}
 .founder blockquote{
-  margin:0;font-size:22px;line-height:1.48;
-  letter-spacing:-0.016em;font-weight:500;
+  margin:0 auto;max-width:740px;font-size:27px;line-height:1.42;
+  letter-spacing:-0.018em;font-weight:500;
 }
 .founder cite{
-  display:block;margin-top:14px;font-style:normal;font-size:14px;
-  color:var(--ink-faint);font-family:var(--mono);
+  display:block;margin-top:18px;font-style:normal;font-size:14px;
+  color:#8FD3BB;font-family:var(--mono);
 }
 
-/* ---------- footer ---------- */
+/* ---------- footer ----------
+   Sits on the same band as the quote, so the page closes once rather than
+   twice. */
 footer{
-  border-top:1px solid var(--line);padding:26px 0 40px;display:flex;
-  justify-content:space-between;font-size:13.5px;color:var(--ink-faint);
+  background:var(--deep);color:#A9BDB6;
+  box-shadow:0 0 0 100vmax var(--deep);
+  clip-path:inset(0 -100vmax);
+  padding:30px 0 46px;display:flex;
+  justify-content:space-between;font-size:13.5px;
   flex-wrap:wrap;gap:10px;
 }
+footer a{color:#CFE7DD}
 
 @media (max-width:760px){
   .how-grid{grid-template-columns:1fr}
+  .sec{padding:56px 0}
+  .founder{padding:60px 0}
+  .founder blockquote{font-size:22px}
 }
 
 @media (max-width:900px){
