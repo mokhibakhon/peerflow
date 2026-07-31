@@ -45,7 +45,12 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+/* 1320 is the number the signed-in app already uses for main and the top
+   bar, so the site stops changing width the moment you log in. At 1060 a
+   1512-wide screen was 30% empty margin and a 1920 one was 45%, while the
+   pictures in how-it-works — drawn to be read at that size — were stuck at
+   327px. The gutter matches the app's 32px too. */
+.wrap{max-width:1320px;margin:0 auto;padding:0 32px}
 a{color:inherit;text-decoration:none}
 
 /* Keyboard users need to see where they are. */
@@ -203,7 +208,10 @@ h1 em{font-style:normal;color:var(--live)}
 #how .how-card{border-color:#DEDDE6}
 .sec-head{margin-bottom:26px}
 .sec-head h2{font-size:clamp(27px,3.2vw,33px);letter-spacing:-0.026em;font-weight:700;margin:8px 0 6px;text-wrap:balance}
-.sec-head p{margin:0;color:var(--ink-soft);font-size:16px}
+/* Capped independently of the container. Width is for pictures and grids;
+   a line of prose still wants about 65 characters however much room it is
+   given. */
+.sec-head p{margin:0;color:var(--ink-soft);font-size:16px;max-width:62ch}
 
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 .path{
