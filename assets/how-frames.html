@@ -70,7 +70,7 @@
     flex:1;min-height:0;display:flex;flex-direction:column}
   .skick{font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;
     color:#0F6E56;margin:0 0 4px}
-  .stitle{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0 0 30px}
+  .stitle{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0 0 46px}
   .ssent{font-size:31px;line-height:1.75;font-weight:500;color:#585C74;letter-spacing:-.018em;margin:0}
   .sw{position:relative;display:inline-block}
   .strig{font-size:31px;font-weight:800;color:#0F6E56;letter-spacing:-.024em;
@@ -80,7 +80,7 @@
     transform:translateY(-75%) rotate(45deg)}
   .strig.open{color:#085041;border-bottom-color:#0F6E56}
   .strig.open::after{transform:translateY(-30%) rotate(-135deg)}
-  .sline{margin:12px 0 0;font-size:17px;color:#9497A9}
+  .sline{margin:20px 0 0;font-size:17px;color:#9497A9}
 
   .smenu{position:absolute;top:calc(100% + 14px);left:-10px;width:330px;z-index:5;
     background:#fff;border:1px solid #E7E6EC;border-radius:16px;padding:7px;
@@ -95,12 +95,13 @@
   .smrow.on .r{color:#0F6E56}
   .smrow.mild{color:#0F6E56;font-size:17px}
 
-  .snote{margin:38px 0 0;padding-top:10px}
+  .sform{margin:auto 0}
+  .snote{margin:40px 0 0}
   .snote label{display:block;font-size:15px;font-weight:600;margin-bottom:8px}
   .snote label span{color:#9497A9;font-weight:400}
   .sbox{border:1px solid #E7E6EC;border-radius:12px;padding:15px 17px;font-size:17px;
     color:#B6B8C4;max-width:520px}
-  .sacts{display:flex;align-items:center;gap:20px;margin-top:26px}
+  .sacts{display:flex;align-items:center;gap:20px;margin-top:34px}
   .sgo{height:54px;border-radius:12px;display:inline-flex;align-items:center;padding:0 28px;
     font-size:18px;font-weight:700;letter-spacing:-.01em;color:#fff;
     background:linear-gradient(180deg,#1D9E75,#0F6E56);
@@ -187,28 +188,20 @@
       <p class="skick">Book</p>
       <p class="stitle">Propose a time</p>
 
-      <p class="ssent">Meet <span class="strig">Sandra</span> on
-        <span class="sw"><span class="strig open">Tuesday, 4 Nov</span>
-          <span class="smenu">
-            <span class="smh">You’re both free</span>
-            <span class="smrow on">Tuesday<span class="r">4 Nov</span></span>
-            <span class="smrow">Thursday<span class="r">6 Nov</span></span>
-            <span class="smrow">Saturday<span class="r">8 Nov</span></span>
-            <span class="smsep"></span>
-            <span class="smrow mild">Any other day…</span>
-          </span>
-        </span> at
+      <div class="sform"><p class="ssent">Meet <span class="strig">Sandra</span> on
+        <span class="strig">Tuesday, 4 Nov</span> at
         <span class="strig">7:00 PM</span> for
         <span class="strig">50 minutes</span>.</p>
       <p class="sline">You’re both free in the evening that day.</p>
 
-      <div class="snote" style="margin-top:auto">
+      <div class="snote">
         <label>Note <span>(optional)</span></label>
         <div class="sbox">What you’d like to work on</div>
       </div>
       <div class="sacts">
         <span class="sgo">Propose this time</span>
         <span class="shint">Sandra can accept or suggest another time.</span>
+      </div>
       </div>
     </div>
   </div>
