@@ -94,8 +94,8 @@ a:focus-visible,button:focus-visible{
 
 /* ---------- hero ---------- */
 .hero{
-  display:grid;grid-template-columns:1.05fr .95fr;gap:56px;
-  align-items:center;padding:64px 0 72px;
+  display:grid;grid-template-columns:1.05fr .95fr;gap:70px;
+  align-items:center;padding:82px 0 92px;
 }
 /* Jakarta is rounder and a touch wider than a display face, so the
    headline wants more weight and slightly less of it on the page. */
@@ -105,7 +105,7 @@ h1{
   text-wrap:balance;
 }
 h1 em{font-style:normal;color:var(--live)}
-.lede{font-size:18px;color:var(--ink-soft);margin:0 0 30px;max-width:30ch}
+.lede{font-size:18px;color:var(--ink-soft);margin:0 0 34px;max-width:38ch}
 
 /* ---------- session card ---------- */
 .session{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px}
@@ -162,7 +162,7 @@ h1 em{font-style:normal;color:var(--live)}
 /* Three cards, picture on top. The pictures are drawn to be read at this
    width — roughly 322px on a full-size screen — rather than being screenshots
    of the real pages shrunk until the words turn into texture. */
-.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .how-card{
   background:var(--card);border:1px solid var(--line);border-radius:16px;
   overflow:hidden;display:flex;flex-direction:column;
@@ -177,7 +177,7 @@ h1 em{font-style:normal;color:var(--live)}
 .how-body p{margin:0;font-size:14.5px;color:var(--ink-soft)}
 
 /* ---------- paths ---------- */
-.sec{padding:88px 0}
+.sec{padding:110px 0}
 
 /* ---------- bands ----------
    The page used to be one grey field from the nav to the footer, and the only
@@ -206,14 +206,14 @@ h1 em{font-style:normal;color:var(--live)}
 }
 /* var(--line) is chosen against grey; on white the cards need a shade more. */
 #how .how-card{border-color:#DEDDE6}
-.sec-head{margin-bottom:26px}
+.sec-head{margin-bottom:32px}
 .sec-head h2{font-size:clamp(27px,3.2vw,33px);letter-spacing:-0.026em;font-weight:700;margin:8px 0 6px;text-wrap:balance}
 /* Capped independently of the container. Width is for pictures and grids;
    a line of prose still wants about 65 characters however much room it is
    given. */
 .sec-head p{margin:0;color:var(--ink-soft);font-size:16px;max-width:62ch}
 
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .path{
   background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
   display:flex;flex-direction:column;transition:transform .18s ease,box-shadow .18s ease;
@@ -255,7 +255,7 @@ h1 em{font-style:normal;color:var(--live)}
   background:var(--deep);color:#fff;
   box-shadow:0 0 0 100vmax var(--deep);
   clip-path:inset(0 -100vmax);
-  padding:88px 0;text-align:center;
+  padding:110px 0;text-align:center;
 }
 .founder .sec-head{margin-bottom:20px}
 .founder h2{
