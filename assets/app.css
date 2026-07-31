@@ -242,13 +242,7 @@ h1 .g{color:var(--p4)}
 .step-body span{display:block;font-size:13px;color:var(--faint)}
 .steps-list li.done .step-body b{color:var(--faint);text-decoration:line-through}
 
-/* ---------- empty states ---------- */
-.empty{text-align:center;padding:26px 10px}
-.empty p{font-size:14px;color:var(--faint);margin:14px auto 0;max-width:44ch}
-.emptycal{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;max-width:300px;margin:0 auto}
-.emptycal i{aspect-ratio:1;border-radius:2px;background:#EAE9EF;display:block}
-.emptycal i.first{background:var(--p1);box-shadow:0 0 0 2px var(--p0)}
-
+/* ---------- invite ---------- */
 .inv{border:1px dashed var(--line);background:#FAFAFB}
 .inv .row{display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
 .inv p{margin:0;font-size:14.5px;color:var(--soft);max-width:60ch}
