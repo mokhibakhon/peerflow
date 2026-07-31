@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Step two — the exchange, five ways</title>
+<title>Step two — the exchange, five colourways</title>
 <link rel="stylesheet" href="app.css">
 <style>
-  /* One idea — two people agreeing a time — drawn five ways. Read at about
-     403px in the card, so everything is near three times its final size and
-     nothing carries more than a handful of shapes. */
+  /* One layout — the exchange with a face on each bubble — in five
+     colourways. Read at about 403px in the card, so everything is near three
+     times its final size. */
   body{margin:0;background:#fff;font-family:var(--body)}
   .frame{width:1280px;height:841px;background:#fff;border:1px solid #E7E6EC;
     border-radius:15px;overflow:hidden;display:flex;flex-direction:column;margin:0 0 40px}
@@ -26,9 +26,36 @@
     font-size:34px;font-weight:800}
   .b{padding:32px 40px;border-radius:36px;font-size:46px;font-weight:600;letter-spacing:-.02em;
     line-height:1.25;max-width:660px}
-  .b.them{background:#F1F0F4;color:var(--ink);border-bottom-left-radius:12px}
-  .b.me{background:#0F6E56;color:#fff;border-bottom-right-radius:12px;
-    box-shadow:0 8px 22px rgba(8,80,65,.22)}
+  .b.them{border-bottom-left-radius:12px}
+  .b.me{border-bottom-right-radius:12px}
+
+  /* 1 — green and grey. What it is now: the question carries the brand, the
+     answer is neutral. */
+  #v-a .b.me{background:#0F6E56;color:#fff;box-shadow:0 8px 22px rgba(8,80,65,.22)}
+  #v-a .b.them{background:#F1F0F4;color:var(--ink)}
+
+  /* 2 — two greens. No grey anywhere, so the card belongs to the same family
+     as the buttons in step one and the tiles in step three. */
+  #v-b .b.me{background:#0F6E56;color:#fff;box-shadow:0 8px 22px rgba(8,80,65,.22)}
+  #v-b .b.them{background:#DFF0EA;color:#0A4A3B}
+
+  /* 3 — flipped. The agreement is the point of the step, so the yes is the
+     loud one and the question is quiet. */
+  #v-c .b.me{background:#E8E7EE;color:#3B3F58}
+  #v-c .b.them{background:#0F6E56;color:#fff;box-shadow:0 8px 22px rgba(8,80,65,.22)}
+  #v-c .tick{background:#fff}
+  #v-c .tick svg path{stroke:#0F6E56}
+
+  /* 4 — ink and green. Two brand colours rather than one: the ink is the
+     nav button, the green is everything else. */
+  #v-d .b.me{background:#171A2E;color:#fff;box-shadow:0 8px 22px rgba(23,26,46,.24)}
+  #v-d .b.them{background:#DFF0EA;color:#0A4A3B}
+
+  /* 5 — outline. Both bubbles white on white, and the only colour on the
+     card is the tick. */
+  #v-e .b.me{background:#fff;color:var(--ink);border:3px solid #0F6E56;
+    box-shadow:0 6px 18px rgba(8,80,65,.10)}
+  #v-e .b.them{background:#fff;color:var(--ink);border:3px solid #E7E6EC}
 
   /* ---------- 2: in a window ---------- */
   .win{width:100%;max-width:940px;border:2px solid #E7E6EC;border-radius:34px;overflow:hidden;
@@ -82,7 +109,6 @@
 </head>
 <body>
 
-<!-- ============ 1: with faces ============ -->
 <div class="frame" id="v-a"><div class="body">
   <div class="thread">
     <div class="line mine">
@@ -96,50 +122,55 @@
   </div>
 </div></div>
 
-<!-- ============ 2: in a window ============ -->
 <div class="frame" id="v-b"><div class="body">
-  <div class="win">
-    <div class="win-h">
-      <span class="av" style="background:#E1F5EE;color:#0F6E56">S</span>
-      <span class="n">Sandra<span>Learning Linux basics</span></span>
-    </div>
-    <div class="win-b">
+  <div class="thread">
+    <div class="line mine">
+      <span class="av" style="background:#EEEDFE;color:#3C3489">Y</span>
       <span class="b me">Tuesday at 7pm?</span>
+    </div>
+    <div class="line">
+      <span class="av" style="background:#E1F5EE;color:#0F6E56">S</span>
       <span class="b them">Works for me<span class="tick"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
     </div>
   </div>
 </div></div>
 
-<!-- ============ 3: exchange, then the result ============ -->
 <div class="frame" id="v-c"><div class="body">
-  <div class="mini">
-    <span class="b me">Tuesday at 7pm?</span>
-    <span class="b them">Works for me</span>
-  </div>
-  <div class="out">
-    <span class="k"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <b>Tuesday, 7:00 PM</b>
-    <span>Booked</span>
+  <div class="thread">
+    <div class="line mine">
+      <span class="av" style="background:#EEEDFE;color:#3C3489">Y</span>
+      <span class="b me">Tuesday at 7pm?</span>
+    </div>
+    <div class="line">
+      <span class="av" style="background:#E1F5EE;color:#0F6E56">S</span>
+      <span class="b them">Works for me<span class="tick"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+    </div>
   </div>
 </div></div>
 
-<!-- ============ 4: two lines, nothing else ============ -->
 <div class="frame" id="v-d"><div class="body">
-  <div class="big">
-    <span class="b me">Tuesday, 7pm?</span>
-    <span class="b them">Yes<span class="tick"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+  <div class="thread">
+    <div class="line mine">
+      <span class="av" style="background:#EEEDFE;color:#3C3489">Y</span>
+      <span class="b me">Tuesday at 7pm?</span>
+    </div>
+    <div class="line">
+      <span class="av" style="background:#E1F5EE;color:#0F6E56">S</span>
+      <span class="b them">Works for me<span class="tick"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+    </div>
   </div>
 </div></div>
 
-<!-- ============ 5: the answer is the picture ============ -->
 <div class="frame" id="v-e"><div class="body">
-  <div class="quiet">
-    <span class="b me">Tuesday at 7pm?</span>
-    <span class="b them">Works for me</span>
-  </div>
-  <div class="hero-time">
-    <b>Tuesday <em>7:00 PM</em></b>
-    <span>Agreed by both of you</span>
+  <div class="thread">
+    <div class="line mine">
+      <span class="av" style="background:#EEEDFE;color:#3C3489">Y</span>
+      <span class="b me">Tuesday at 7pm?</span>
+    </div>
+    <div class="line">
+      <span class="av" style="background:#E1F5EE;color:#0F6E56">S</span>
+      <span class="b them">Works for me<span class="tick"><svg viewBox="0 0 16 16" fill="none"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+    </div>
   </div>
 </div></div>
 
