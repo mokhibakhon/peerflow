@@ -208,22 +208,128 @@ h1 em{font-style:normal;color:var(--live)}
 .pom-txt span{font-size:12.5px;color:var(--ink-soft)}
 
 /* ---------- how it works ---------- */
-/* Three cards, picture on top. The pictures are drawn to be read at this
-   width — roughly 322px on a full-size screen — rather than being screenshots
-   of the real pages shrunk until the words turn into texture. */
-.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+/* Four cards, picture on top. The pictures are made to be read at this width
+   — roughly 300px on a full-size screen — rather than being screenshots of
+   the real pages shrunk until the words turn into texture. */
+.how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .how-card{
   background:var(--card);border:1px solid var(--line);border-radius:16px;
   overflow:hidden;display:flex;flex-direction:column;
 }
-.how-shot{line-height:0;border-bottom:1px solid var(--line);background:#FAFAFB}
-/* width and height are on the img as well, so the row keeps its shape while
-   the pictures are still coming down the wire. */
-.how-shot img{width:100%;height:auto;display:block}
+/* One shape for all four picture areas. The two PNGs are 1280×841 and
+   1280×813, so without this the third card's body would start a few pixels
+   above its neighbours' — and the two drawn panels would have to guess a
+   height. The 813 photo is covered rather than squashed: 1.7% off each side,
+   which is nothing, and it is never distorted. */
+.how-shot{
+  aspect-ratio:1280/841;line-height:0;
+  border-bottom:1px solid var(--line);background:#FAFAFB;
+}
+.how-shot img{width:100%;height:100%;display:block;object-fit:cover;object-position:center top}
 .how-body{padding:20px 22px 24px}
 .how-body .mono{color:var(--live-deep)}
 .how-body h3{margin:8px 0 5px;font-size:18px;font-weight:700;letter-spacing:-0.015em}
 .how-body p{margin:0;font-size:14.5px;color:var(--ink-soft)}
+
+/* The step number, and the same step spelled out beside it. Two ways of
+   saying the same position, because a numeral on its own is easy to skim
+   past and impossible to hear. */
+.how-step{display:flex;align-items:center;gap:9px;margin:0}
+.how-num{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:27px;height:22px;padding:0 7px;border-radius:6px;
+  background:var(--live-deep);color:#fff;
+  font-family:var(--mono);font-size:12px;font-weight:700;
+  letter-spacing:0.04em;font-variant-numeric:tabular-nums;line-height:1;
+}
+
+/* ---------- the two drawn panels ----------
+   Steps one and four have no photograph and no PNG: nothing in assets says
+   "pick a field" or "you finished something". They are built here instead,
+   in the same shell the drawn PNGs use — green PeerFlow bar, white body — at
+   the same 1280:841 shape, so the four cards read as one set.
+
+   Everything inside is sized in cqi (1% of the panel's own width), which is
+   what lets one set of numbers hold from a 250px card in a four-up row to a
+   550px card in a two-up one. The proportions are lifted straight from
+   assets/how-frames.html so the drawn panels and the PNGs match: the bar is
+   96/1280 of the width, the wordmark 30/1280, the mark 32/1280. */
+.how-draw{
+  container-type:inline-size;
+  aspect-ratio:1280/841;background:var(--card);
+  display:flex;flex-direction:column;line-height:1.2;
+}
+.hd-bar{
+  height:7.5cqi;flex:0 0 auto;background:#0F6E56;
+  display:flex;align-items:center;gap:.94cqi;padding:0 2.66cqi;
+}
+.hd-bar svg{width:2.5cqi;height:2.5cqi;flex:0 0 auto;fill:#fff}
+.hd-bar b{font-size:2.34cqi;font-weight:800;letter-spacing:-0.03em;color:#fff}
+.hd-bar b i{font-style:normal;color:#9FE1CB}
+/* The body fills the panel rather than floating in the middle of it: the two
+   PNGs beside these use every pixel under their bar, and a drawn panel that
+   left a white margin top and bottom read as the odd one out at a glance. */
+.hd-body{
+  flex:1;min-height:0;padding:3.2cqi;
+  display:flex;flex-direction:column;gap:2.4cqi;
+}
+
+/* --- 01: four fields, one taken --- */
+.hd-tiles{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2cqi}
+.hd-tile{
+  display:flex;align-items:center;gap:1.1cqi;
+  padding:0 2cqi;border-radius:2.4cqi;
+  border:.3cqi solid #E7E6EC;background:#FBFBFC;color:#82869C;
+  font-size:3.1cqi;font-weight:600;letter-spacing:-0.015em;
+}
+/* The one you took: brand green, and a tick, so it is never colour alone. */
+.hd-tile.on{
+  border-color:#0F6E56;background:#E1F5EE;color:#0A4A3B;font-weight:700;
+}
+.hd-tick{
+  width:3.8cqi;height:3.8cqi;flex:0 0 auto;margin-left:auto;
+  border-radius:50%;background:#0F6E56;padding:.8cqi;
+}
+.hd-goal{
+  flex:0 0 auto;font-size:2.8cqi;color:#82869C;text-align:center;
+  padding-top:2.4cqi;border-top:.2cqi solid #F1F0F4;
+}
+.hd-goal b{color:#171A2E;font-weight:700}
+
+/* --- 04: the thing you made, shipped --- */
+.hd-win{
+  flex:1;min-height:0;display:flex;flex-direction:column;
+  border:.3cqi solid #E7E6EC;border-radius:2.4cqi;overflow:hidden;background:#fff;
+}
+.hd-chrome{
+  flex:0 0 auto;display:flex;align-items:center;gap:1cqi;
+  padding:1.8cqi 2cqi;background:#F3F2F6;border-bottom:.2cqi solid #E7E6EC;
+}
+.hd-chrome i{width:1.7cqi;height:1.7cqi;border-radius:50%;background:#D4D3DC;flex:0 0 auto}
+.hd-url{
+  margin-left:1.2cqi;flex:1;min-width:0;
+  padding:.8cqi 1.8cqi;border-radius:1.6cqi;background:#fff;
+  border:.2cqi solid #E7E6EC;color:#82869C;
+  font-family:var(--mono);font-size:2.3cqi;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* Lines of code rather than letters of it: at 300px wide real characters are
+   a grey smear, and the shape of a file is the part that still reads. The
+   green line is the one the two of you finished. */
+.hd-code{
+  flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;
+  gap:1.9cqi;padding:0 2.4cqi;
+}
+.hd-code span{display:block;height:1.8cqi;border-radius:999px;background:#EDECF2}
+.hd-code span.g{background:#9FE1CB}
+.hd-live{
+  flex:0 0 auto;align-self:center;display:inline-flex;align-items:center;gap:1.2cqi;
+  padding:1.5cqi 3cqi;border-radius:999px;
+  background:linear-gradient(180deg,#1D9E75,#0F6E56);color:#fff;
+  font-size:3cqi;font-weight:700;letter-spacing:-0.015em;
+  box-shadow:0 .5cqi 1.2cqi rgba(8,80,65,.22);
+}
+.hd-live svg{width:3cqi;height:3cqi;flex:0 0 auto}
 
 /* ---------- paths ---------- */
 .sec{padding:110px 0}
@@ -333,13 +439,23 @@ footer{
 }
 footer a{color:#CFE7DD}
 
+/* Four across only while four across is still worth reading. Below 1180 the
+   cards drop under 265px and the pictures start to close up, so the row folds
+   into a 2×2 block — which is also what a tablet gets — and below 680 the two
+   columns would be under 300px each, so it becomes one. */
+@media (max-width:1180px){
+  .how-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:680px){
+  .how-grid{grid-template-columns:1fr}
+}
+
 @media (max-width:760px){
   /* The nav carries four things now, and measured across the range they need
      about 800px to sit apart: at 760 the two anchors go, which is the same
      thing the page already did to every plain link at 520, one step earlier.
      A menu for the narrow widths is a separate job. */
   .nav-right a[href^="#"]{display:none}
-  .how-grid{grid-template-columns:1fr}
   .sec{padding:56px 0}
   .founder{padding:60px 0}
   .founder blockquote{font-size:22px}
