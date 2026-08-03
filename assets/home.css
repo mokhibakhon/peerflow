@@ -245,19 +245,19 @@ h1{
 .pom-txt span{font-size:12.5px;color:var(--ink-soft)}
 
 /* ---------- how it works ---------- */
-/* Three cards, picture on top. The pictures are made to be read at this width
-   — roughly 400px on a full-size screen now the row is three wide rather than
-   four — rather than being screenshots of the real pages shrunk until the
-   words turn into texture. */
-.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+/* Four cards, picture on top. The pictures are made to be read at this width
+   — roughly 300px on a full-size screen — rather than being screenshots of
+   the real pages shrunk until the words turn into texture. */
+.how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .how-card{
   background:var(--card);border:1px solid var(--line);border-radius:16px;
   overflow:hidden;display:flex;flex-direction:column;
 }
-/* One shape for all three picture areas. Both PNGs are natively 1280:841 and
-   the drawn panel is declared at it, so cover has nothing to crop — this is
-   here to give the drawn panel a height to fill and to keep that guarantee if
-   a picture is ever swapped for one of a different shape. */
+/* One shape for all four picture areas. The two PNGs are 1280×841 and
+   1280×813, so without this the third card's body would start a few pixels
+   above its neighbours' — and the two drawn panels would have to guess a
+   height. The 813 photo is covered rather than squashed: 1.7% off each side,
+   which is nothing, and it is never distorted. */
 .how-shot{
   aspect-ratio:1280/841;line-height:0;
   border-bottom:1px solid var(--line);background:#FAFAFB;
@@ -268,11 +268,11 @@ h1{
 .how-body h3{margin:8px 0 5px;font-size:18px;font-weight:700;letter-spacing:-0.015em}
 .how-body p{margin:0;font-size:14.5px;color:var(--ink-soft)}
 
-/* ---------- the drawn panel ----------
-   Step one has no photograph and no PNG: nothing in assets says "pick a
-   field". It is built here instead, in the same shell the drawn PNGs use —
-   green PeerFlow bar, white body — at the same 1280:841 shape, so the three
-   cards read as one set.
+/* ---------- the two drawn panels ----------
+   Steps one and four have no photograph and no PNG: nothing in assets says
+   "pick a field" or "you finished something". They are built here instead,
+   in the same shell the drawn PNGs use — green PeerFlow bar, white body — at
+   the same 1280:841 shape, so the four cards read as one set.
 
    Everything inside is sized in cqi (1% of the panel's own width), which is
    what lets one set of numbers hold from a 250px card in a four-up row to a
@@ -299,7 +299,7 @@ h1{
   display:flex;flex-direction:column;gap:2.4cqi;
 }
 
-/* --- the path picker: four fields, one taken --- */
+/* --- 01: four fields, one taken --- */
 .hd-tiles{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2cqi}
 .hd-tile{
   display:flex;align-items:center;gap:1.1cqi;
@@ -320,6 +320,41 @@ h1{
   padding-top:2.4cqi;border-top:.2cqi solid #F1F0F4;
 }
 .hd-goal b{color:#171A2E;font-weight:700}
+
+/* --- 04: the thing you made, shipped --- */
+.hd-win{
+  flex:1;min-height:0;display:flex;flex-direction:column;
+  border:.3cqi solid #E7E6EC;border-radius:2.4cqi;overflow:hidden;background:#fff;
+}
+.hd-chrome{
+  flex:0 0 auto;display:flex;align-items:center;gap:1cqi;
+  padding:1.8cqi 2cqi;background:#F3F2F6;border-bottom:.2cqi solid #E7E6EC;
+}
+.hd-chrome i{width:1.7cqi;height:1.7cqi;border-radius:50%;background:#D4D3DC;flex:0 0 auto}
+.hd-url{
+  margin-left:1.2cqi;flex:1;min-width:0;
+  padding:.8cqi 1.8cqi;border-radius:1.6cqi;background:#fff;
+  border:.2cqi solid #E7E6EC;color:#82869C;
+  font-family:var(--mono);font-size:2.3cqi;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* Lines of code rather than letters of it: at 300px wide real characters are
+   a grey smear, and the shape of a file is the part that still reads. The
+   green line is the one the two of you finished. */
+.hd-code{
+  flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;
+  gap:1.9cqi;padding:0 2.4cqi;
+}
+.hd-code span{display:block;height:1.8cqi;border-radius:999px;background:#EDECF2}
+.hd-code span.g{background:#9FE1CB}
+.hd-live{
+  flex:0 0 auto;align-self:center;display:inline-flex;align-items:center;gap:1.2cqi;
+  padding:1.5cqi 3cqi;border-radius:999px;
+  background:linear-gradient(180deg,#1D9E75,#0F6E56);color:#fff;
+  font-size:3cqi;font-weight:700;letter-spacing:-0.015em;
+  box-shadow:0 .5cqi 1.2cqi rgba(8,80,65,.22);
+}
+.hd-live svg{width:3cqi;height:3cqi;flex:0 0 auto}
 
 /* ---------- paths ---------- */
 .sec{padding:110px 0}
@@ -445,6 +480,17 @@ footer{
 }
 footer a{color:#CFE7DD}
 
+/* Four across only while four across is still worth reading. Below 1180 the
+   cards drop under 265px and the pictures start to close up, so the row folds
+   into a 2×2 block — which is also what a tablet gets — and below 680 the two
+   columns would be under 300px each, so it becomes one. */
+@media (max-width:1180px){
+  .how-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:680px){
+  .how-grid{grid-template-columns:1fr}
+}
+
 @media (max-width:760px){
   /* The one place the two navigations swap. Above this the inline row is the
      nav and the button does not exist; at and below it the row's links go and
@@ -472,11 +518,6 @@ footer a{color:#CFE7DD}
   /* Stacked, the card would run the full width of the page and the two camera
      tiles would tower over the sentence they exist to illustrate. */
   .session{max-width:460px}
-  /* Three cards go straight from one row to one column — never two and a
-     spare, which is what any intermediate step would leave. The single column
-     is capped and centred for the same reason the session card is: run full
-     width on a tablet and each picture is 550px tall for a two-line caption. */
-  .how-grid{grid-template-columns:min(100%,420px);justify-content:center}
 }
 @media (max-width:520px){
   /* Eight paths, one per row, was 2,500px of scrolling before the page could
