@@ -52,32 +52,31 @@
   <!-- ================= HERO ================= -->
   <header class="hero">
     <div class="hero-copy">
-      <!-- The em on the second half is the same green emphasis the headline
-           has always carried; it doesn't change a word of the sentence. -->
-      <h1>Learn IT with one committed partner—<em>not alone.</em></h1>
-      <p class="lede">Choose your learning path, get matched by level and schedule,
-      and follow a structured four-week plan together.</p>
+      <!-- No coloured half and no dash. The non-breaking space is the only
+           typographic thing left in here: it stops the line breaking between
+           "not" and "alone", which was the break that read badly. -->
+      <h1>Learn IT together, not&nbsp;alone.</h1>
+      <p class="lede">Choose your learning path and find someone at a similar level
+      with a compatible schedule.</p>
 
       <div class="cta-row">
         <a class="btn" href="signup.html">Join the next cycle</a>
         <a class="btn-ghost" href="#how">See how matching works</a>
       </div>
 
-      <p class="trust">Free to join · Beginner friendly · Structured four-week cycles</p>
+      <p class="trust">Free to join · Beginner friendly · One partner, not a group</p>
     </div>
 
     <!--
-      An illustration of a session in progress. It has to carry four things the
-      headline claims — that it's one person and not a group, that the subject
-      is IT, that the four weeks are real, and that the two of you keep showing
-      up — so it is two camera tiles, a named path, a standing weekly slot and
-      the cycle strip. Nobody here is a real user, so the whole card is hidden
-      from screen readers rather than announced as live data.
+      An illustration of a session in progress. It carries three things the
+      page claims — that it's one person and not a group, that the subject is
+      IT, and that the time is a standing one — so it is two camera tiles, a
+      named path and a weekly slot. Nobody here is a real user, so the whole
+      card is hidden from screen readers rather than announced as live data.
 
       The pomodoro stays, because a session that runs on one is the thing being
-      illustrated, but it sits at the bottom in a smaller dial now: it is a
-      detail of the session, not the point of the card.
-      The clock is driven by home.js.
+      illustrated, but it sits at the bottom in a small dial: it is a detail of
+      the session, not the point of the card. The clock is driven by home.js.
     -->
     <aside class="session" aria-hidden="true">
       <div class="session-head">
@@ -99,13 +98,6 @@
       <div class="rows">
         <div class="row"><span>Both learning</span><b>Cybersecurity</b></div>
         <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
-      </div>
-
-      <div class="cycle">
-        <div class="cycle-top"><span>Four-week cycle</span><b>Week two</b></div>
-        <div class="weeks">
-          <span class="wk done"></span><span class="wk done"></span><span class="wk"></span><span class="wk"></span>
-        </div>
       </div>
 
       <div class="pom">
@@ -136,10 +128,11 @@
        the repo; nothing else references it. -->
   <section id="how" class="sec">
     <!-- No mono kicker above the heading here, the way the other sections
-         have one — it would only repeat the heading. -->
+         have one — it would only repeat the heading. No line under it either:
+         the four cards say it themselves, and a sentence in front of them was
+         only delaying them. -->
     <div class="sec-head">
-      <h2>How PeerFlow works</h2>
-      <p>Set a clear goal, find a compatible learning partner and build a consistent weekly routine.</p>
+      <h2>How it works</h2>
     </div>
 
     <div class="how-grid">
@@ -169,7 +162,7 @@
           </div>
         </div>
         <div class="how-body">
-          <p class="how-step"><span class="how-num">01</span><span class="mono">Step one</span></p>
+          <span class="mono">Step one</span>
           <h3>Choose your path</h3>
           <p>Select one IT field and define what you want to complete over the next four weeks.</p>
         </div>
@@ -182,7 +175,7 @@
                alt="A list of people learning the same thing, each with a Send request button">
         </div>
         <div class="how-body">
-          <p class="how-step"><span class="how-num">02</span><span class="mono">Step two</span></p>
+          <span class="mono">Step two</span>
           <h3>Find a compatible learner</h3>
           <p>See people with a similar goal, experience level and weekly availability.</p>
         </div>
@@ -195,7 +188,7 @@
                alt="Two people in a video session, cameras on">
         </div>
         <div class="how-body">
-          <p class="how-step"><span class="how-num">03</span><span class="mono">Step three</span></p>
+          <span class="mono">Step three</span>
           <h3>Agree on a weekly time</h3>
           <p>Choose a regular meeting time and help each other stay accountable.</p>
         </div>
@@ -233,7 +226,7 @@
           </div>
         </div>
         <div class="how-body">
-          <p class="how-step"><span class="how-num">04</span><span class="mono">Step four</span></p>
+          <span class="mono">Step four</span>
           <h3>Build something real</h3>
           <p>Use your sessions to work toward a small practical project you can show.</p>
         </div>

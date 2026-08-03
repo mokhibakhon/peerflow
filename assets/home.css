@@ -101,12 +101,16 @@ a:focus-visible,button:focus-visible{
 }
 /* Jakarta is rounder and a touch wider than a display face, so the
    headline wants more weight and slightly less of it on the page. */
+/* No text-wrap:balance any more. It earned its place on the old headline,
+   which was long enough that balancing stopped the last line being a stub.
+   On five words it does the opposite: given room for three lines it makes
+   three short ones — "Learn IT" / "together," / "not alone." — where filling
+   greedily gives the clean two-line break at the comma. Measured at every
+   width from 320 to 1920; balance produced three lines at seven of them. */
 h1{
-  font-size:clamp(36px,4.9vw,55px);line-height:1.06;
+  font-size:clamp(34px,4.6vw,55px);line-height:1.06;
   letter-spacing:-0.03em;font-weight:800;margin:0 0 20px;
-  text-wrap:balance;
 }
-h1 em{font-style:normal;color:var(--live)}
 /* A grid column is min-content wide by default, so one long unbroken word in
    the headline would push the card off the side rather than wrap. */
 .hero-copy{min-width:0}
@@ -139,9 +143,13 @@ h1 em{font-style:normal;color:var(--live)}
    yet, and an invented one would be the first dishonest thing on the page. */
 .trust{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-faint)}
 
-/* ---------- session card ---------- */
-.session{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px}
-.session-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+/* ---------- session card ----------
+   Four blocks now the cycle strip has gone: the state, the two faces, the two
+   facts, the clock. Everything below is a few pixels looser than it was — the
+   card lost about seventy pixels of height with the strip, and keeping the old
+   tight rhythm in a shorter card left it looking clipped rather than calm. */
+.session{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 26px}
+.session-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .live{
   display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
   letter-spacing:0.08em;text-transform:uppercase;color:var(--live-deep);
@@ -167,34 +175,20 @@ h1 em{font-style:normal;color:var(--live)}
 }
 
 /* Same label/value row as the rest of the site. */
-.rows{margin-top:16px;display:grid;gap:11px;font-size:14px}
+.rows{margin-top:20px;display:grid;gap:14px;font-size:14px}
 .row{display:flex;justify-content:space-between;align-items:center}
 .row span{color:var(--ink-soft)}
 .row b{font-weight:600}
 
-/* Four weeks as four segments. It is the only part of the card that says
-   anything about time beyond today, which is what the headline promises and
-   what a single ticking clock could never show on its own. */
-.cycle{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
-.cycle-top{
-  display:flex;justify-content:space-between;align-items:baseline;
-  font-size:14px;color:var(--ink-soft);margin-bottom:9px;
-}
-.cycle-top b{font-weight:600;color:var(--ink)}
-.weeks{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.wk{display:block;height:6px;border-radius:999px;background:#EDECF2}
-.wk.done{background:var(--live)}
-
 /* Pomodoro: a small dial beside the time, not a big ring floating in space.
-   Smaller than it was — the card now has to carry the path, the standing slot
-   and the four weeks as well, and at 52px with a 22px readout the clock was
-   the last thing you saw and the loudest, which put the emphasis on one
-   evening rather than on the cycle. home.js drives the arc via
+   It stays at 38px with a 16px readout even though there is room for more —
+   at 52px with a 22px readout it was the last thing you saw and the loudest,
+   which made a session look like a stopwatch. home.js drives the arc via
    stroke-dashoffset; 270.18 is the circumference of the r=43 circle in the
    SVG, and that stays true at any rendered size because it is viewBox units. */
 .pom{
   display:flex;align-items:center;gap:12px;
-  margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+  margin-top:18px;padding-top:18px;border-top:1px solid var(--line);
 }
 .pom-ring{width:38px;height:38px;flex:0 0 auto}
 .pom-ring svg{width:100%;height:100%;display:block;transform:rotate(-90deg)}
@@ -230,18 +224,6 @@ h1 em{font-style:normal;color:var(--live)}
 .how-body .mono{color:var(--live-deep)}
 .how-body h3{margin:8px 0 5px;font-size:18px;font-weight:700;letter-spacing:-0.015em}
 .how-body p{margin:0;font-size:14.5px;color:var(--ink-soft)}
-
-/* The step number, and the same step spelled out beside it. Two ways of
-   saying the same position, because a numeral on its own is easy to skim
-   past and impossible to hear. */
-.how-step{display:flex;align-items:center;gap:9px;margin:0}
-.how-num{
-  display:inline-flex;align-items:center;justify-content:center;
-  min-width:27px;height:22px;padding:0 7px;border-radius:6px;
-  background:var(--live-deep);color:#fff;
-  font-family:var(--mono);font-size:12px;font-weight:700;
-  letter-spacing:0.04em;font-variant-numeric:tabular-nums;line-height:1;
-}
 
 /* ---------- the two drawn panels ----------
    Steps one and four have no photograph and no PNG: nothing in assets says
@@ -361,6 +343,9 @@ h1 em{font-style:normal;color:var(--live)}
 }
 /* var(--line) is chosen against grey; on white the cards need a shade more. */
 #how .how-card{border-color:#DEDDE6}
+/* This head is a heading and nothing else. Without the line of prose that
+   used to sit under it, 32px left the h2 resting on the cards. */
+#how .sec-head{margin-bottom:42px}
 .sec-head{margin-bottom:32px}
 .sec-head h2{font-size:clamp(27px,3.2vw,33px);letter-spacing:-0.026em;font-weight:700;margin:8px 0 6px;text-wrap:balance}
 /* Capped independently of the container. Width is for pictures and grids;
@@ -371,18 +356,31 @@ h1 em{font-style:normal;color:var(--live)}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .path{
   background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
-  display:flex;flex-direction:column;transition:transform .18s ease,box-shadow .18s ease;
+  display:flex;flex-direction:column;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
 }
-.path:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(23,26,46,.09)}
-.path svg{width:100%;display:block}
-.path-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
-.path h3{margin:0;font-size:17px;font-weight:600;letter-spacing:-0.012em}
+/* focus-within as well as hover: the button inside is the only thing on the
+   card you can reach with a keyboard, and it used to get the focus ring while
+   the card around it stayed flat — the pointer got feedback and the keyboard
+   didn't. */
+.path:hover,.path:focus-within{
+  transform:translateY(-3px);border-color:#CFCEDA;
+  box-shadow:0 10px 24px rgba(23,26,46,.09);
+}
+/* The illustration runs to the card edge, so it needs a line under it or it
+   bleeds into the label. */
+.path svg{width:100%;display:block;border-bottom:1px solid var(--line)}
+.path-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:11px;flex:1}
+/* 700 rather than 600: the count above it is uppercase mono and the button
+   below it is 600, and at 600 the name of the path was the least emphatic
+   thing in its own card. */
+.path h3{margin:0;font-size:17.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.25}
 .path .cta{
   margin-top:auto;text-align:center;border:1px solid var(--ink);border-radius:9px;
-  padding:9px;font-size:13.5px;font-weight:600;line-height:1.2;
+  padding:11px 10px;font-size:14px;font-weight:600;line-height:1.2;
   transition:background .15s ease,color .15s ease,box-shadow .15s ease;
 }
-.path:hover .cta{background:var(--ink);color:#fff;
+.path:hover .cta,.path:focus-within .cta{background:var(--ink);color:#fff;
   box-shadow:0 2px 8px rgba(23,26,46,.2), inset 0 1px 0 rgba(255,255,255,.12)}
 .path .cta:active{transform:translateY(1px)}
 
@@ -472,7 +470,14 @@ footer a{color:#CFE7DD}
   .session{max-width:460px}
 }
 @media (max-width:520px){
-  .grid{grid-template-columns:1fr}
+  /* Eight paths, one per row, was 2,500px of scrolling before the page could
+     get to anything else — and each card gave a 212px illustration to a
+     one-word label. Two up holds all the way down instead, with the type
+     stepped down to suit the narrower column. */
+  .grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .path-body{padding:12px 13px 14px;gap:9px}
+  .path h3{font-size:15px}
+  .path .cta{padding:10px 6px;font-size:12.5px}
   .nav-right a:not(.btn){display:none}
   .nav{padding:18px 0}
   .logo{font-size:17px;gap:9px}
@@ -494,6 +499,13 @@ footer a{color:#CFE7DD}
 @media (max-width:380px){
   .nav{gap:10px}
   .nav-right .btn-sm{padding:9px 12px;font-size:13px}
+  /* The clamp floor of 34px puts "Learn IT together," a few pixels wider than
+     the text column on a 360- or 375-wide phone, which drops "not alone." onto
+     a third line on its own. 29px is the largest size that holds the comma
+     break down to about 340px — measured, not guessed. Below that it goes to
+     three lines again, and the headline it would take to prevent that is
+     barely larger than the sentence underneath it. */
+  h1{font-size:29px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
