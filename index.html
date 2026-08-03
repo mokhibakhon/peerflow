@@ -45,22 +45,29 @@
       <a href="#how">How it works</a>
       <a href="#paths">Learning paths</a>
       <a href="login.html">Log in</a>
-      <a class="btn btn-sm" href="signup.html">Find a partner</a>
+      <a class="btn btn-sm" href="signup.html">Find my partner</a>
     </div>
   </nav>
 
   <!-- ================= HERO ================= -->
   <header class="hero">
     <div class="hero-copy">
-      <!-- No coloured half and no dash. The non-breaking space is the only
-           typographic thing left in here: it stops the line breaking between
-           "not" and "alone", which was the break that read badly. -->
-      <h1>Learn IT together, not&nbsp;alone.</h1>
-      <p class="lede">Choose your learning path and find someone at a similar level
-      with a compatible schedule.</p>
+      <!-- Green, but the whole line rather than a coloured half — colouring one
+           phrase is what made the old headline look broken in two.
+
+           --live-deep, not --live: the bright accent green is 2.9:1 against
+           this background, which fails even the relaxed large-text bar, and a
+           headline is the one thing on a page nobody should have to squint at.
+           --live-deep is 5.2:1 and reads as the same brand green.
+
+           The colour is inline because this task may not touch home.css; it
+           belongs in a rule there next to the other h1 styles. -->
+      <h1 style="color:var(--live-deep)">Learn IT with one person who shows&nbsp;up.</h1>
+      <p class="lede">Pick your field, see who else is learning it, and choose
+      someone to meet each week.</p>
 
       <div class="cta-row">
-        <a class="btn" href="signup.html">Find a partner</a>
+        <a class="btn" href="signup.html">Find my partner</a>
       </div>
 
       <p class="trust">Free to join · Beginner friendly · One partner, not a group</p>
@@ -140,7 +147,7 @@
       <article class="how-card">
         <div class="how-shot">
           <div class="how-draw" role="img"
-               aria-label="Four learning paths with one of them selected, and a four-week goal underneath">
+               aria-label="Four learning paths with one of them selected">
             <div class="hd-bar">
               <svg viewBox="0 0 173 171" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
               <b>peer<i>flow</i></b>
@@ -154,16 +161,17 @@
                 <span class="hd-tile">Data</span>
                 <span class="hd-tile">DevOps</span>
               </div>
-              <!-- "Your goal", not "finish in": the four weeks are the target
-                   you set in step one, not something the site promises. -->
-              <span class="hd-goal">Your goal · <b>four weeks</b></span>
+              <!-- No timeframe here at all. The product has no four-week
+                   system, so the picture shouldn't imply one; the line just
+                   names what the tiles above it are. -->
+              <span class="hd-goal">Choose your <b>learning path</b></span>
             </div>
           </div>
         </div>
         <div class="how-body">
           <span class="mono">Step one</span>
           <h3>Choose your path</h3>
-          <p>Select one IT field and define what you want to complete over the next four weeks.</p>
+          <p>Choose the IT field you want to learn and describe what you are working toward.</p>
         </div>
       </article>
 
