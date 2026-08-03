@@ -8,18 +8,96 @@
      already has an account, so they become one way into the app plus the
      same account chip the app uses. The hero and path buttons are left
      pointing at signup.html, which sends a finished account straight
-     through to the app on its own. */
+     through to the app on its own.
+
+     There are two copies of those links now — the inline row and the mobile
+     menu panel — and only one of the two is ever on screen. Both still have to
+     be swapped, because which one is showing depends on how wide the window is
+     when you look, and a window can be resized after this has run. Hence
+     querySelectorAll against .nav rather than querySelector against
+     .nav-right; the match is still on href, never on the label. */
 
   if (!window.pf || !pf.currentUser) return;
 
   pf.currentUser().then(function(user){
     if (!user) return;
 
-    var login = document.querySelector('.nav-right a[href="login.html"]');
-    if (login) login.remove();
+    var logins = document.querySelectorAll('.nav a[href="login.html"]');
+    Array.prototype.forEach.call(logins, function(a){ a.remove(); });
 
-    var cta = document.querySelector('.nav-right a[href="signup.html"]');
-    if (cta) { cta.href = 'app.html'; cta.textContent = 'Open app'; }
+    var ctas = document.querySelectorAll('.nav a[href="signup.html"]');
+    Array.prototype.forEach.call(ctas, function(a){
+      a.href = 'app.html';
+      a.textContent = 'Open app';
+    });
+  });
+})();
+
+(function(){
+  /* The mobile menu.
+
+     The panel starts closed in the markup with the `hidden` attribute rather
+     than a class, so it is display:none from the first byte and can't flash
+     open while this file is still on its way down. Opening and closing is the
+     same attribute, which keeps one source of truth: hidden means closed,
+     aria-expanded reports it, and nothing else has to agree.
+
+     No inline handlers, and the listeners on document are added only while the
+     panel is open, so a closed menu costs nothing. */
+
+  var btn   = document.querySelector('.menu-btn');
+  var panel = document.getElementById('nav-menu');
+  if (!btn || !panel) return;
+
+  function isOpen(){ return !panel.hidden; }
+
+  function open(){
+    panel.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('click', onOutside, true);
+  }
+
+  /* toButton is for the cases where the menu closes without the user going
+     anywhere — Escape, or pressing the button again. Focus has to come back
+     to something, and the button is where they were. Following a link is not
+     one of those cases: the page is already moving. */
+  function close(toButton){
+    panel.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('keydown', onKey);
+    document.removeEventListener('click', onOutside, true);
+    if (toButton) btn.focus();
+  }
+
+  function onKey(e){
+    if (e.key === 'Escape' || e.key === 'Esc') { e.preventDefault(); close(true); }
+  }
+
+  /* Capture phase, so this runs before anything inside the panel can stop it.
+     Clicks on the button itself are left alone — the button's own handler
+     toggles, and closing here first would make it reopen immediately. */
+  function onOutside(e){
+    if (panel.contains(e.target) || btn.contains(e.target)) return;
+    close(false);
+  }
+
+  btn.addEventListener('click', function(){
+    if (isOpen()) close(true); else open();
+  });
+
+  /* Closing on the link itself rather than on the panel covers both kinds of
+     destination: another page, and a #hash that only scrolls. The second one
+     never unloads anything, so without this the panel would sit open over the
+     section it just jumped to. */
+  Array.prototype.forEach.call(panel.querySelectorAll('a'), function(a){
+    a.addEventListener('click', function(){ close(false); });
+  });
+
+  /* Widening the window past the breakpoint hides the panel by CSS but would
+     leave aria-expanded lying about it. */
+  window.addEventListener('resize', function(){
+    if (isOpen() && getComputedStyle(btn).display === 'none') close(false);
   });
 })();
 

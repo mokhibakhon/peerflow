@@ -67,8 +67,9 @@ a:focus-visible,button:focus-visible{
 
 /* ---------- nav ---------- */
 /* space-between does nothing once the two sides add up to more than the row,
-   so the gap is there to guarantee the wordmark and the buttons never touch. */
-.nav{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:26px 0}
+   so the gap is there to guarantee the wordmark and the buttons never touch.
+   position:relative is what the mobile panel hangs off. */
+.nav{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:26px 0}
 /* The wordmark keeps its own greens (#0b8f66 mark, #097a57 "flow") rather
    than the page's --live — it's the brand, not an accent. */
 .logo{display:flex;align-items:center;gap:11px;font-weight:400;font-size:20px;letter-spacing:-0.015em}
@@ -93,6 +94,60 @@ a:focus-visible,button:focus-visible{
 }
 .btn:active{transform:translateY(1px);box-shadow:0 1px 2px rgba(23,26,46,.26)}
 .btn-sm{padding:11px 20px;font-size:15px}
+
+/* ---------- mobile navigation ----------
+   Off entirely above the breakpoint. Everything here is switched on by the
+   one @media block near the bottom of this file, so there is no width where
+   the inline row and the panel are both on screen. */
+.menu-btn,.nav-menu{display:none}
+
+/* A real button with a real word in it. Outlined rather than filled: the hero
+   already has the dark primary button, and two of those in the first 200px of
+   a phone screen is one too many. 40px tall with the padding below, which is
+   a comfortable thumb target. */
+.menu-btn{
+  align-items:center;gap:8px;flex:0 0 auto;
+  padding:10px 14px;border-radius:10px;cursor:pointer;
+  font-family:var(--body);font-size:15px;font-weight:600;line-height:1.2;
+  color:var(--ink);background:var(--card);border:1px solid var(--line);
+  box-shadow:0 1px 2px rgba(23,26,46,.06);
+  transition:border-color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+.menu-btn svg{width:16px;height:16px;flex:0 0 auto}
+/* Open state is carried by the icon swapping to a cross as well as by the
+   colour, so it does not depend on seeing green. */
+.menu-btn .menu-ico-x{display:none}
+.menu-btn[aria-expanded="true"]{
+  color:var(--live-deep);background:var(--live-soft);border-color:#BFE6D5;
+}
+.menu-btn[aria-expanded="true"] .menu-ico{display:none}
+.menu-btn[aria-expanded="true"] .menu-ico-x{display:block}
+
+/* The panel. Same 14px radius and the same shadow as the account dropdown in
+   the app, so the two surfaces open the same way. Anchored to the right edge
+   of .nav and capped so it can never reach the gutters. */
+.nav-menu{
+  position:absolute;top:100%;right:0;z-index:60;
+  width:min(260px,calc(100vw - 64px));
+  flex-direction:column;gap:2px;padding:8px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 12px 34px rgba(23,26,46,.13);
+  animation:navpop .14s ease-out;
+}
+/* The whole row is the target, not just the words in it. */
+.nav-menu a{
+  display:block;padding:12px 13px;border-radius:9px;
+  font-size:15px;font-weight:600;color:var(--live-deep);
+}
+.nav-menu a:hover{background:var(--live-soft)}
+/* The primary action, full width at the foot of the panel. */
+.nav-menu a.btn{
+  margin-top:6px;text-align:center;color:#fff;
+  padding:13px;font-size:15px;border-radius:10px;
+}
+.nav-menu a.btn:hover{transform:none}
+/* Killed wholesale by the prefers-reduced-motion rule at the end of the file. */
+@keyframes navpop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
 /* ---------- hero ---------- */
 .hero{
@@ -437,11 +492,18 @@ footer a{color:#CFE7DD}
 }
 
 @media (max-width:760px){
-  /* The nav carries four things now, and measured across the range they need
-     about 800px to sit apart: at 760 the two anchors go, which is the same
-     thing the page already did to every plain link at 520, one step earlier.
-     A menu for the narrow widths is a separate job. */
-  .nav-right a[href^="#"]{display:none}
+  /* The one place the two navigations swap. Above this the inline row is the
+     nav and the button does not exist; at and below it the row's links go and
+     the button appears. Nothing is visible in both states, so there is no
+     width showing the same four links twice.
+
+     .nav-right itself stays in the layout rather than being display:none'd:
+     usermenu.js appends the signed-in account chip to it, and the chip should
+     still sit in the top bar on a phone. Signed out it has no visible children
+     and collapses to nothing. */
+  .nav-right > a{display:none}
+  .menu-btn{display:inline-flex}
+  .nav-menu{display:flex}
   .sec{padding:56px 0}
   .founder{padding:60px 0}
   .founder blockquote{font-size:22px}
@@ -466,11 +528,9 @@ footer a{color:#CFE7DD}
   .path-body{padding:12px 13px 14px;gap:9px}
   .path h3{font-size:15px}
   .path .cta{padding:10px 6px;font-size:12.5px}
-  .nav-right a:not(.btn){display:none}
   .nav{padding:18px 0}
   .logo{font-size:17px;gap:9px}
   .logo svg{width:26px;height:26px}
-  .btn-sm{padding:9px 16px;font-size:14px}
   .cta-row .btn{font-size:14.5px;padding:12px 18px}
   /* Half a phone wide, a 16:10 tile is 83px tall, and the centred initials
      landed straight on top of the name pinned in the corner — true before
@@ -481,12 +541,11 @@ footer a{color:#CFE7DD}
   .tav{width:34px;height:34px;font-size:11px}
   .tname{position:static;left:auto;bottom:auto}
 }
-/* Narrower than a 2016 phone the wordmark and the nav button no longer fit on
-   one line between the gutters. Shaving the button and the gap rather than the
-   brand, and only this far down. */
 @media (max-width:380px){
+  /* The wordmark and the Menu button together are about 210px at 320, against
+     256px of usable row, so nothing needs shaving any more — the gap is kept
+     small only so the two never look crowded. */
   .nav{gap:10px}
-  .nav-right .btn-sm{padding:9px 12px;font-size:13px}
   /* The clamp floor of 34px puts "Learn IT together," a few pixels wider than
      the text column on a 360- or 375-wide phone, which drops "not alone." onto
      a third line on its own. 29px is the largest size that holds the comma
@@ -544,7 +603,7 @@ footer a{color:#CFE7DD}
   .um-label,.um-chev{display:none}
   .um-btn{padding:4px}
 }
-/* The nav hides plain links this narrow; the chip has to survive it. */
-@media (max-width:520px){
-  .nav-right .um-wrap{display:flex}
-}
+/* The chip used to need defending here, because the rule that emptied the nav
+   at this width was `a:not(.btn)` and could be read as catching it. The mobile
+   rule is `.nav-right > a` now, which only ever matches links, so the chip —
+   a div — survives on its own and sits beside the Menu button. */

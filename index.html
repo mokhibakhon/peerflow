@@ -37,15 +37,43 @@
       <svg width="26" height="26" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
       <span>peer<b>flow</b></span>
     </a>
-    <!-- home.js finds the two auth links by href and swaps them for a way into
-         the app once you're signed in, so login.html and signup.html have to
-         stay exactly as they are written here. The section anchors above them
-         are free to change. -->
+    <!-- Two navigations, one set of links, and only ever one of them on screen:
+         .nav-right is the inline row above 760px, .nav-menu is the panel the
+         Menu button opens below it. They are never both visible, so there is no
+         width where the page shows the same four links twice.
+
+         home.js finds both auth links by href — now with querySelectorAll, so
+         it reaches the copies in both — which is why login.html and signup.html
+         have to stay written exactly like this in both places. The section
+         anchors beside them are free to change.
+
+         .nav-right keeps existing on mobile even though its links are hidden:
+         usermenu.js appends the signed-in account chip to it, and that chip
+         still belongs in the top bar on a phone. -->
     <div class="nav-right">
       <a href="#how">How it works</a>
       <a href="#paths">Learning paths</a>
       <a href="login.html">Log in</a>
       <a class="btn btn-sm" href="signup.html">Find my partner</a>
+    </div>
+
+    <!-- aria-expanded is written closed here rather than left to JS, so the
+         button is honest about its state from the first paint. -->
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav-menu">
+      <svg class="menu-ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor"
+           stroke-width="1.9" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+      <svg class="menu-ico-x" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor"
+           stroke-width="1.9" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      Menu
+    </button>
+
+    <!-- hidden, not a class: it is display:none from the first byte of markup,
+         so the panel cannot flash open before home.js has run. -->
+    <div class="nav-menu" id="nav-menu" hidden>
+      <a href="#how">How it works</a>
+      <a href="#paths">Learning paths</a>
+      <a href="login.html">Log in</a>
+      <a class="btn" href="signup.html">Find my partner</a>
     </div>
   </nav>
 
