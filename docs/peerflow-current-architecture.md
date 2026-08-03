@@ -126,7 +126,8 @@ Six tables. Four are live; two are legacy and read by nothing the app calls.
 
 ### `profiles` — one row per user, created by trigger on signup
 `id` (PK → `auth.users`), `name`, `first_name`, `last_name`, `track_id`,
-`topic`, `level`, `goal`, `timezone`, `availability` (text[]), `created_at`.
+`topic`, `level`, `goal`, `timezone`, `availability` (jsonb, default `'[]'`),
+`created_at`.
 
 `availability` holds slots of the form `day-band`, e.g. `tue-evening`. Four
 bands: morning 6–12, afternoon 12–17, evening 17–22, night 22–02. Twenty-eight
