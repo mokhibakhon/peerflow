@@ -119,27 +119,15 @@ h1{
    read like a list. */
 .lede{font-size:18px;color:var(--ink-soft);margin:0 0 30px;max-width:42ch}
 
-/* Two ways in, side by side: sign up, or go and read how the matching works
-   first. They wrap onto separate lines before either one leaves the screen. */
+/* One way in. There was a second, quieter button beside it pointing at
+   how-it-works; it promised matching the product doesn't do, and a hero reads
+   harder with one action in it than with two. The row stays as the wrapper —
+   it carries the hero button's size and the gap down to the trust line — and
+   .btn-ghost went with the button it styled. */
 .cta-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:0 0 20px}
-.cta-row .btn,.btn-ghost{font-size:15px;padding:13px 22px}
+.cta-row .btn{font-size:15px;padding:13px 22px}
 
-/* The quiet twin of .btn — same shape, same lift, no fill, so it reads as the
-   second choice without turning into a plain link. */
-.btn-ghost{
-  display:inline-block;line-height:1.2;border-radius:10px;font-weight:600;
-  font-family:var(--body);text-decoration:none;white-space:nowrap;
-  color:var(--live-deep);background:var(--card);border:1px solid var(--line);
-  box-shadow:0 1px 2px rgba(23,26,46,.06);
-  transition:border-color .15s ease,box-shadow .15s ease,transform .1s ease;
-}
-.btn-ghost:hover{
-  transform:translateY(-1px);border-color:#BFE6D5;
-  box-shadow:0 4px 12px rgba(23,26,46,.09);
-}
-.btn-ghost:active{transform:translateY(1px);box-shadow:0 1px 2px rgba(23,26,46,.06)}
-
-/* Three plain facts under the buttons. No numbers — there is nothing to count
+/* Three plain facts under the button. No numbers — there is nothing to count
    yet, and an invented one would be the first dishonest thing on the page. */
 .trust{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-faint)}
 
@@ -483,7 +471,7 @@ footer a{color:#CFE7DD}
   .logo{font-size:17px;gap:9px}
   .logo svg{width:26px;height:26px}
   .btn-sm{padding:9px 16px;font-size:14px}
-  .cta-row .btn,.btn-ghost{font-size:14.5px;padding:12px 18px}
+  .cta-row .btn{font-size:14.5px;padding:12px 18px}
   /* Half a phone wide, a 16:10 tile is 83px tall, and the centred initials
      landed straight on top of the name pinned in the corner — true before
      this hero and true after it. Below 520 the name comes out of the corner
