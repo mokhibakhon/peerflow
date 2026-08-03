@@ -396,57 +396,36 @@ h1{
    given. */
 .sec-head p{margin:0;color:var(--ink-soft);font-size:16px;max-width:62ch}
 
-/* ---------- the path picker ----------
-   Eight rows, not eight posters. Each card used to give 58% of its area to a
-   saturated illustration and put the path name — the only information on it —
-   underneath in the smallest type, with an identical button beneath that. So
-   choosing between eight things meant reading past eight adverts, and the
-   section was the largest and loudest on the page.
-
-   One horizontal card at every width instead: icon, name, count, arrow. The
-   name is the strongest thing in it, the whole card is the link, and the
-   height is set by the 52px icon, so every card in a row matches without
-   anything having to stretch. */
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .path{
-  display:flex;align-items:center;gap:14px;padding:13px 14px;
-  background:var(--card);border:1px solid var(--line);border-radius:14px;
-  transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;
+  background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  display:flex;flex-direction:column;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
 }
-/* No :focus-within needed now — the card is the link, so it takes focus
-   itself and the global a:focus-visible ring lands on the whole thing. */
-.path:hover{
-  transform:translateY(-2px);border-color:#CFCEDA;
-  box-shadow:0 4px 14px rgba(23,26,46,.07);
+/* focus-within as well as hover: the button inside is the only thing on the
+   card you can reach with a keyboard, and it used to get the focus ring while
+   the card around it stayed flat — the pointer got feedback and the keyboard
+   didn't. */
+.path:hover,.path:focus-within{
+  transform:translateY(-3px);border-color:#CFCEDA;
+  box-shadow:0 10px 24px rgba(23,26,46,.09);
 }
-.path:active{transform:translateY(0)}
-
-/* The artwork, boxed. A pale tint of the path's own colour on the container
-   rather than the full-strength panel it used to be: enough for eight cards
-   to stay distinguishable at a glance, not enough for any one of them to
-   shout. --tint and --edge come from the style attribute on each card. */
-.path-ico{
-  flex:0 0 auto;width:52px;height:52px;border-radius:13px;
-  display:grid;place-items:center;
-  background:var(--tint);border:1px solid var(--edge);
+/* The illustration runs to the card edge, so it needs a line under it or it
+   bleeds into the label. */
+.path svg{width:100%;display:block;border-bottom:1px solid var(--line)}
+.path-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:11px;flex:1}
+/* 700 rather than 600: the count above it is uppercase mono and the button
+   below it is 600, and at 600 the name of the path was the least emphatic
+   thing in its own card. */
+.path h3{margin:0;font-size:17.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.25}
+.path .cta{
+  margin-top:auto;text-align:center;border:1px solid var(--ink);border-radius:9px;
+  padding:11px 10px;font-size:14px;font-weight:600;line-height:1.2;
+  transition:background .15s ease,color .15s ease,box-shadow .15s ease;
 }
-.path-ico svg{width:34px;height:34px;display:block}
-
-.path-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-/* Ink, not green: this has to be the strongest element in the card, and ink
-   on white is 15:1 where the brand green is 5.2:1. The green in this card is
-   the learner count under it. */
-.path h3{
-  margin:0;font-size:15.5px;font-weight:700;letter-spacing:-0.015em;
-  line-height:1.25;color:var(--ink);
-}
-
-/* Decorative, and inside the one link rather than being a second one. */
-.path-arrow{
-  flex:0 0 auto;width:15px;height:15px;color:var(--ink-faint);
-  transition:transform .15s ease,color .15s ease;
-}
-.path:hover .path-arrow{color:var(--live-deep);transform:translateX(2px)}
+.path:hover .cta,.path:focus-within .cta{background:var(--ink);color:#fff;
+  box-shadow:0 2px 8px rgba(23,26,46,.2), inset 0 1px 0 rgba(255,255,255,.12)}
+.path .cta:active{transform:translateY(1px)}
 
 /* How many people are on this path right now. Filled in by home.js from
    real sign-ups — it stays invisible (but keeps its space, so the cards
@@ -535,21 +514,20 @@ footer a{color:#CFE7DD}
      of the 28px they were left with. */
   .nav-right{gap:20px}
   .hero{grid-template-columns:1fr;gap:36px;padding:40px 0 52px}
-  /* Four across → two. The card is a row, so it only needs enough width for
-     the longest name on one line; two columns holds that to about 600. */
   .grid{grid-template-columns:repeat(2,1fr)}
   /* Stacked, the card would run the full width of the page and the two camera
      tiles would tower over the sentence they exist to illustrate. */
   .session{max-width:460px}
 }
-/* After the 900 block, not before it — same specificity, so at 400px both
-   match and the one written later is the one that lands. Below 600 a two-up
-   row leaves "AI & machine learning" about 90px, so it goes to one card per
-   row, which is the shape the card was drawn for anyway. */
-@media (max-width:600px){
-  .grid{grid-template-columns:1fr}
-}
 @media (max-width:520px){
+  /* Eight paths, one per row, was 2,500px of scrolling before the page could
+     get to anything else — and each card gave a 212px illustration to a
+     one-word label. Two up holds all the way down instead, with the type
+     stepped down to suit the narrower column. */
+  .grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .path-body{padding:12px 13px 14px;gap:9px}
+  .path h3{font-size:15px}
+  .path .cta{padding:10px 6px;font-size:12.5px}
   .nav{padding:18px 0}
   .logo{font-size:17px;gap:9px}
   .logo svg{width:26px;height:26px}
@@ -576,14 +554,7 @@ footer a{color:#CFE7DD}
      barely larger than the sentence underneath it. */
   h1{font-size:29px}
 }
-@media (prefers-reduced-motion:reduce){
-  *{transition:none!important;animation:none!important}
-  /* The blanket rule above kills the transition but not the transform itself,
-     so a hover would still jump. The border and the arrow colour already say
-     the card is live. */
-  .path:hover{transform:none}
-  .path:hover .path-arrow{transform:none}
-}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* ============================================================
    Account chip — only appears once you're signed in, and matches
