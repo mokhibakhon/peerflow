@@ -150,20 +150,25 @@
   </header>
 
   <!-- ================= HOW IT WORKS =================
-       Four steps, four pictures. Two of them are the drawn PNGs from
-       assets/how-frames.html — pictures made for this width rather than
-       screenshots shrunk until the words turn to texture — and two are drawn
-       here in CSS, because no existing picture says "pick a field" or "you
-       finished something". They share the same shell as the PNGs: the green
-       PeerFlow bar over a white body, at the same 1280:841 shape, so all four
-       cards line up whatever the row width is.
+       Three steps, because the product has three: pick a field, pick a person,
+       keep meeting. There was a fourth about finishing a project, which was an
+       outcome rather than a step and promised something the product does not
+       do.
 
-       assets/how-2-time.png is no longer used by this section. It is still in
-       the repo; nothing else references it. -->
+       Two of the pictures are the drawn PNGs from assets/how-frames.html —
+       made to be read at this width rather than screenshots shrunk until the
+       words turn to texture — and the first is drawn here in CSS, because
+       nothing in assets says "pick a field". All three are the same 1280:841
+       shape and share the same shell, the green PeerFlow bar over a white
+       body, so the row lines up exactly at any width and nothing is cropped.
+
+       assets/how-3-call.png is no longer used. It is still in the repo and
+       nothing else references it; it is the only photograph we have and it
+       deserves a better place than a 300px thumbnail. -->
   <section id="how" class="sec">
     <!-- No mono kicker above the heading here, the way the other sections
          have one — it would only repeat the heading. No line under it either:
-         the four cards say it themselves, and a sentence in front of them was
+         the three cards say it themselves, and a sentence in front of them was
          only delaying them. -->
     <div class="sec-head">
       <h2>How it works</h2>
@@ -198,7 +203,7 @@
         </div>
         <div class="how-body">
           <span class="mono">Step one</span>
-          <h3>Choose your path</h3>
+          <h3>Pick your path</h3>
           <p>Choose the IT field you want to learn and describe what you are working toward.</p>
         </div>
       </article>
@@ -211,59 +216,21 @@
         </div>
         <div class="how-body">
           <span class="mono">Step two</span>
-          <h3>Find a compatible learner</h3>
-          <p>See people with a similar goal, experience level and weekly availability.</p>
+          <h3>Choose who you learn with</h3>
+          <p>See learners with similar goals, experience and availability, then send a partner request.</p>
         </div>
       </article>
 
       <!-- ---- 03 ---- -->
       <article class="how-card">
         <div class="how-shot">
-          <img src="assets/how-3-call.png" width="1280" height="813" loading="lazy"
-               alt="Two people in a video session, cameras on">
+          <img src="assets/how-2-time.png" width="1280" height="841" loading="lazy"
+               alt="A message reading &quot;Tuesday at 7pm?&quot; and the reply &quot;Works for me&quot;">
         </div>
         <div class="how-body">
           <span class="mono">Step three</span>
-          <h3>Agree on a weekly time</h3>
-          <p>Choose a regular meeting time and help each other stay accountable.</p>
-        </div>
-      </article>
-
-      <!-- ---- 04 · drawn here: the thing you made, shipped ---- -->
-      <article class="how-card">
-        <div class="how-shot">
-          <div class="how-draw" role="img"
-               aria-label="A small portfolio site open in a browser window, marked published">
-            <div class="hd-bar">
-              <svg viewBox="0 0 173 171" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-              <b>peer<i>flow</i></b>
-            </div>
-            <div class="hd-body">
-              <div class="hd-win">
-                <div class="hd-chrome">
-                  <i></i><i></i><i></i>
-                  <span class="hd-url">portfolio-site</span>
-                </div>
-                <div class="hd-code">
-                  <span style="width:78%"></span>
-                  <span style="width:54%" class="g"></span>
-                  <span style="width:66%"></span>
-                  <span style="width:41%"></span>
-                  <span style="width:71%"></span>
-                  <span style="width:48%" class="g"></span>
-                </div>
-              </div>
-              <span class="hd-live">
-                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-                Published
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="how-body">
-          <span class="mono">Step four</span>
-          <h3>Build something real</h3>
-          <p>Use your sessions to work toward a small practical project you can show.</p>
+          <h3>Meet every week</h3>
+          <p>Agree on a regular time, join your session and help each other keep moving.</p>
         </div>
       </article>
 
