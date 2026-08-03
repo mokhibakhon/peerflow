@@ -493,9 +493,9 @@ footer a{color:#CFE7DD}
   .tav{width:34px;height:34px;font-size:11px}
   .tname{position:static;left:auto;bottom:auto}
 }
-/* Narrower than a 2016 phone the wordmark and "Join the next cycle" no longer
-   fit on one line between the gutters. Shaving the button and the gap rather
-   than the brand, and only this far down. */
+/* Narrower than a 2016 phone the wordmark and the nav button no longer fit on
+   one line between the gutters. Shaving the button and the gap rather than the
+   brand, and only this far down. */
 @media (max-width:380px){
   .nav{gap:10px}
   .nav-right .btn-sm{padding:9px 12px;font-size:13px}
