@@ -66,7 +66,9 @@ a:focus-visible,button:focus-visible{
 }
 
 /* ---------- nav ---------- */
-.nav{display:flex;align-items:center;justify-content:space-between;padding:26px 0}
+/* space-between does nothing once the two sides add up to more than the row,
+   so the gap is there to guarantee the wordmark and the buttons never touch. */
+.nav{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:26px 0}
 /* The wordmark keeps its own greens (#0b8f66 mark, #097a57 "flow") rather
    than the page's --live — it's the brand, not an accent. */
 .logo{display:flex;align-items:center;gap:11px;font-weight:400;font-size:20px;letter-spacing:-0.015em}
@@ -105,7 +107,37 @@ h1{
   text-wrap:balance;
 }
 h1 em{font-style:normal;color:var(--live)}
-.lede{font-size:18px;color:var(--ink-soft);margin:0 0 34px;max-width:38ch}
+/* A grid column is min-content wide by default, so one long unbroken word in
+   the headline would push the card off the side rather than wrap. */
+.hero-copy{min-width:0}
+/* 42ch rather than 38: the supporting line is a full sentence about the path,
+   the match and the four weeks, and at 38 it broke into four short lines that
+   read like a list. */
+.lede{font-size:18px;color:var(--ink-soft);margin:0 0 30px;max-width:42ch}
+
+/* Two ways in, side by side: sign up, or go and read how the matching works
+   first. They wrap onto separate lines before either one leaves the screen. */
+.cta-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:0 0 20px}
+.cta-row .btn,.btn-ghost{font-size:15px;padding:13px 22px}
+
+/* The quiet twin of .btn — same shape, same lift, no fill, so it reads as the
+   second choice without turning into a plain link. */
+.btn-ghost{
+  display:inline-block;line-height:1.2;border-radius:10px;font-weight:600;
+  font-family:var(--body);text-decoration:none;white-space:nowrap;
+  color:var(--live-deep);background:var(--card);border:1px solid var(--line);
+  box-shadow:0 1px 2px rgba(23,26,46,.06);
+  transition:border-color .15s ease,box-shadow .15s ease,transform .1s ease;
+}
+.btn-ghost:hover{
+  transform:translateY(-1px);border-color:#BFE6D5;
+  box-shadow:0 4px 12px rgba(23,26,46,.09);
+}
+.btn-ghost:active{transform:translateY(1px);box-shadow:0 1px 2px rgba(23,26,46,.06)}
+
+/* Three plain facts under the buttons. No numbers — there is nothing to count
+   yet, and an invented one would be the first dishonest thing on the page. */
+.trust{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-faint)}
 
 /* ---------- session card ---------- */
 .session{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px}
@@ -140,23 +172,40 @@ h1 em{font-style:normal;color:var(--live)}
 .row span{color:var(--ink-soft)}
 .row b{font-weight:600}
 
-/* Pomodoro: a small dial beside the time, not a big ring floating in space.
-   home.js drives the arc via stroke-dashoffset; 270.18 is the circumference
-   of the r=43 circle in the SVG. */
-.pom{
-  display:flex;align-items:center;gap:14px;
-  margin-top:16px;padding-top:16px;border-top:1px solid var(--line);
+/* Four weeks as four segments. It is the only part of the card that says
+   anything about time beyond today, which is what the headline promises and
+   what a single ticking clock could never show on its own. */
+.cycle{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.cycle-top{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-size:14px;color:var(--ink-soft);margin-bottom:9px;
 }
-.pom-ring{width:52px;height:52px;flex:0 0 auto}
+.cycle-top b{font-weight:600;color:var(--ink)}
+.weeks{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.wk{display:block;height:6px;border-radius:999px;background:#EDECF2}
+.wk.done{background:var(--live)}
+
+/* Pomodoro: a small dial beside the time, not a big ring floating in space.
+   Smaller than it was — the card now has to carry the path, the standing slot
+   and the four weeks as well, and at 52px with a 22px readout the clock was
+   the last thing you saw and the loudest, which put the emphasis on one
+   evening rather than on the cycle. home.js drives the arc via
+   stroke-dashoffset; 270.18 is the circumference of the r=43 circle in the
+   SVG, and that stays true at any rendered size because it is viewBox units. */
+.pom{
+  display:flex;align-items:center;gap:12px;
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+}
+.pom-ring{width:38px;height:38px;flex:0 0 auto}
 .pom-ring svg{width:100%;height:100%;display:block;transform:rotate(-90deg)}
 .pom-ring circle{fill:none;stroke-width:11;stroke-linecap:round}
 .pom-track{stroke:var(--live-soft)}
 .pom-arc{stroke:var(--live);stroke-dasharray:270.18;stroke-dashoffset:0}
 .pom-txt b{
-  display:block;font-family:var(--mono);font-size:22px;font-weight:600;color:var(--ink);
-  font-variant-numeric:tabular-nums;letter-spacing:0.02em;line-height:1.15;
+  display:block;font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:0.02em;line-height:1.2;
 }
-.pom-txt span{font-size:13px;color:var(--ink-soft)}
+.pom-txt span{font-size:12.5px;color:var(--ink-soft)}
 
 /* ---------- how it works ---------- */
 /* Three cards, picture on top. The pictures are drawn to be read at this
@@ -285,6 +334,11 @@ footer{
 footer a{color:#CFE7DD}
 
 @media (max-width:760px){
+  /* The nav carries four things now, and measured across the range they need
+     about 800px to sit apart: at 760 the two anchors go, which is the same
+     thing the page already did to every plain link at 520, one step earlier.
+     A menu for the narrow widths is a separate job. */
+  .nav-right a[href^="#"]{display:none}
   .how-grid{grid-template-columns:1fr}
   .sec{padding:56px 0}
   .founder{padding:60px 0}
@@ -292,8 +346,14 @@ footer a{color:#CFE7DD}
 }
 
 @media (max-width:900px){
+  /* 20 rather than 28 so the four links still have real space at 768 instead
+     of the 28px they were left with. */
+  .nav-right{gap:20px}
   .hero{grid-template-columns:1fr;gap:36px;padding:40px 0 52px}
   .grid{grid-template-columns:repeat(2,1fr)}
+  /* Stacked, the card would run the full width of the page and the two camera
+     tiles would tower over the sentence they exist to illustrate. */
+  .session{max-width:460px}
 }
 @media (max-width:520px){
   .grid{grid-template-columns:1fr}
@@ -302,6 +362,22 @@ footer a{color:#CFE7DD}
   .logo{font-size:17px;gap:9px}
   .logo svg{width:26px;height:26px}
   .btn-sm{padding:9px 16px;font-size:14px}
+  .cta-row .btn,.btn-ghost{font-size:14.5px;padding:12px 18px}
+  /* Half a phone wide, a 16:10 tile is 83px tall, and the centred initials
+     landed straight on top of the name pinned in the corner — true before
+     this hero and true after it. Below 520 the name comes out of the corner
+     and sits under the initials instead, so the two can't meet however narrow
+     the screen gets. */
+  .tile{aspect-ratio:4/3;flex-direction:column;gap:7px}
+  .tav{width:34px;height:34px;font-size:11px}
+  .tname{position:static;left:auto;bottom:auto}
+}
+/* Narrower than a 2016 phone the wordmark and "Join the next cycle" no longer
+   fit on one line between the gutters. Shaving the button and the gap rather
+   than the brand, and only this far down. */
+@media (max-width:380px){
+  .nav{gap:10px}
+  .nav-right .btn-sm{padding:9px 12px;font-size:13px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
