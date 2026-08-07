@@ -150,16 +150,21 @@
   </header>
 
   <!-- ================= HOW IT WORKS =================
-       Four steps, four pictures. Two of them are the drawn PNGs from
-       assets/how-frames.html — pictures made for this width rather than
-       screenshots shrunk until the words turn to texture — and two are drawn
-       here in CSS, because no existing picture says "pick a field" or "you
-       finished something". They share the same shell as the PNGs: the green
-       PeerFlow bar over a white body, at the same 1280:841 shape, so all four
-       cards line up whatever the row width is.
+       Four steps drawn as four moments on one sheet of paper. The row used to
+       be a screenshot, a photograph and two mocked-up panels side by side —
+       four visual languages in one row, which is exactly what it looked like.
 
-       assets/how-2-time.png is no longer used by this section. It is still in
-       the repo; nothing else references it. -->
+       Now every card is the same map: same cream, same grid, same two
+       contours, same fold creases, ink pin for you and brand green for the
+       route and for the person you chose. The paper is repeated inside each
+       SVG rather than shared, because inline SVGs in one document cannot
+       reliably borrow a <defs> from one another. All four are 400×263, the
+       same 1280:841 shape the cards were always cut to.
+
+       assets/how-1-find.png, how-2-time.png and how-3-call.png are all
+       unreferenced now. They stay in the repo. how-3-call.png is the only
+       photograph of real people on the site and deserves a better home than a
+       300px thumbnail — the hero, or a band above the founder note. -->
   <section id="how" class="sec">
     <!-- No mono kicker above the heading here, the way the other sections
          have one — it would only repeat the heading. No line under it either:
@@ -246,8 +251,41 @@
       <!-- ---- 02 ---- -->
       <article class="how-card">
         <div class="how-shot">
-          <img src="assets/how-1-find.png" width="1280" height="841" loading="lazy"
-               alt="A list of people learning the same thing, each with a Send request button">
+          <svg class="how-map" viewBox="0 0 400 263" role="img"
+               aria-label="Several learners marked on the map, with the one you chose in green joined to your own pin">
+            <!-- The same sheet of paper in all four cards: same cream, same
+                 grid, same two contours, same fold creases. Repeated rather
+                 than shared because inline SVGs in one document cannot borrow
+                 a <defs> from each other reliably. -->
+            <rect width="400" height="263" fill="#FCF8F0"/>
+            <g stroke="#F1E9DA" stroke-width="2">
+              <path d="M0 66h400M0 197h400M67 0v263M200 0v263M333 0v263"/>
+            </g>
+            <g fill="none" stroke="#EFE3CC" stroke-width="3">
+              <path d="M0 38C56 34 78 64 132 60S200 18 258 26s94 50 142 40"/>
+              <path d="M0 246C64 242 86 212 146 216s76 42 136 34 74-28 118-32"/>
+            </g>
+            <g stroke-width="2">
+              <path d="M133.5 0v263M267.5 0v263M0 131.5h400" stroke="#EADFC8"/>
+              <path d="M131 0v263M265 0v263M0 129h400" stroke="#FFFDF7"/>
+            </g>
+
+            <!-- other learners on the same terrain, not chosen -->
+            <path d="M150 74c0 0-11-15-11-22a11 11 0 1 1 22 0c0 7-11 22-11 22z" fill="#DCCFB4"/><circle cx="150" cy="52" r="4.0" fill="#FCF8F0"/>
+            <path d="M332 214c0 0-11-15-11-22a11 11 0 1 1 22 0c0 7-11 22-11 22z" fill="#DCCFB4"/><circle cx="332" cy="192" r="4.0" fill="#FCF8F0"/>
+
+            <!-- the line between the two of you -->
+            <path d="M108 178C150 158 196 146 250 132" fill="none" stroke="#0F6E56"
+                  stroke-width="5" stroke-linecap="round" stroke-dasharray="2 12"/>
+
+            <path d="M94 208c0 0-15-21-15-31a15 15 0 1 1 30 0c0 10-15 31-15 31z" fill="#171A2E"/><circle cx="94" cy="177" r="5.5" fill="#FCF8F0"/>
+            <path d="M268 126c0 0-15-21-15-31a15 15 0 1 1 30 0c0 10-15 31-15 31z" fill="#0F6E56"/><circle cx="268" cy="95" r="5.5" fill="#FCF8F0"/>
+
+            <g font-family="Plus Jakarta Sans, system-ui, sans-serif" font-weight="800">
+              <text x="66" y="236" font-size="15" fill="#171A2E">You</text>
+              <text x="292" y="118" font-size="17" fill="#0A4A3B">Sandra</text>
+            </g>
+          </svg>
         </div>
         <div class="how-body">
           <span class="mono">Step two</span>
@@ -259,8 +297,44 @@
       <!-- ---- 03 ---- -->
       <article class="how-card">
         <div class="how-shot">
-          <img src="assets/how-3-call.png" width="1280" height="813" loading="lazy"
-               alt="Two people in a video session, cameras on">
+          <svg class="how-map" viewBox="0 0 400 263" role="img"
+               aria-label="A note pinned to the map reading Tuesdays at 19:00, with Tuesday marked in green">
+            <!-- The same sheet of paper in all four cards: same cream, same
+                 grid, same two contours, same fold creases. Repeated rather
+                 than shared because inline SVGs in one document cannot borrow
+                 a <defs> from each other reliably. -->
+            <rect width="400" height="263" fill="#FCF8F0"/>
+            <g stroke="#F1E9DA" stroke-width="2">
+              <path d="M0 66h400M0 197h400M67 0v263M200 0v263M333 0v263"/>
+            </g>
+            <g fill="none" stroke="#EFE3CC" stroke-width="3">
+              <path d="M0 38C56 34 78 64 132 60S200 18 258 26s94 50 142 40"/>
+              <path d="M0 246C64 242 86 212 146 216s76 42 136 34 74-28 118-32"/>
+            </g>
+            <g stroke-width="2">
+              <path d="M133.5 0v263M267.5 0v263M0 131.5h400" stroke="#EADFC8"/>
+              <path d="M131 0v263M265 0v263M0 129h400" stroke="#FFFDF7"/>
+            </g>
+
+            <g transform="rotate(-1.6 200 130)">
+              <rect x="58" y="54" width="284" height="152" rx="14" fill="#171A2E" opacity=".07"
+                    transform="translate(3,4)"/>
+              <rect x="58" y="54" width="284" height="152" rx="14" fill="#fff"
+                    stroke="#E6DBC4" stroke-width="2"/>
+              <g font-family="Plus Jakarta Sans, system-ui, sans-serif" font-size="15" font-weight="700" fill="#B7A886" text-anchor="middle">
+                <text x="97" y="122">M</text><text x="166" y="122">W</text>
+                <text x="200" y="122">T</text><text x="234" y="122">F</text>
+                <text x="269" y="122">S</text><text x="303" y="122">S</text>
+              </g>
+              <circle cx="131" cy="116" r="19" fill="#0F6E56"/>
+              <text x="131" y="122" font-family="Plus Jakarta Sans, system-ui, sans-serif" font-size="15" font-weight="800" fill="#fff"
+                    text-anchor="middle">T</text>
+              <text x="200" y="172" font-family="Plus Jakarta Sans, system-ui, sans-serif" font-size="19" font-weight="800" fill="#171A2E"
+                    text-anchor="middle">Tuesdays, 19:00</text>
+              <circle cx="200" cy="54" r="9" fill="#0F6E56"/>
+              <circle cx="200" cy="51" r="3" fill="#9FE1CB"/>
+            </g>
+          </svg>
         </div>
         <div class="how-body">
           <span class="mono">Step three</span>
@@ -272,33 +346,45 @@
       <!-- ---- 04 · drawn here: the thing you made, shipped ---- -->
       <article class="how-card">
         <div class="how-shot">
-          <div class="how-draw" role="img"
-               aria-label="A small portfolio site open in a browser window, marked published">
-            <div class="hd-bar">
-              <svg viewBox="0 0 173 171" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-              <b>peer<i>flow</i></b>
-            </div>
-            <div class="hd-body">
-              <div class="hd-win">
-                <div class="hd-chrome">
-                  <i></i><i></i><i></i>
-                  <span class="hd-url">portfolio-site</span>
-                </div>
-                <div class="hd-code">
-                  <span style="width:78%"></span>
-                  <span style="width:54%" class="g"></span>
-                  <span style="width:66%"></span>
-                  <span style="width:41%"></span>
-                  <span style="width:71%"></span>
-                  <span style="width:48%" class="g"></span>
-                </div>
-              </div>
-              <span class="hd-live">
-                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-                Published
-              </span>
-            </div>
-          </div>
+          <svg class="how-map" viewBox="0 0 400 263" role="img"
+               aria-label="A cairn built at the end of the route, with a flag on top">
+            <!-- The same sheet of paper in all four cards: same cream, same
+                 grid, same two contours, same fold creases. Repeated rather
+                 than shared because inline SVGs in one document cannot borrow
+                 a <defs> from each other reliably. -->
+            <rect width="400" height="263" fill="#FCF8F0"/>
+            <g stroke="#F1E9DA" stroke-width="2">
+              <path d="M0 66h400M0 197h400M67 0v263M200 0v263M333 0v263"/>
+            </g>
+            <g fill="none" stroke="#EFE3CC" stroke-width="3">
+              <path d="M0 38C56 34 78 64 132 60S200 18 258 26s94 50 142 40"/>
+              <path d="M0 246C64 242 86 212 146 216s76 42 136 34 74-28 118-32"/>
+            </g>
+            <g stroke-width="2">
+              <path d="M133.5 0v263M267.5 0v263M0 131.5h400" stroke="#EADFC8"/>
+              <path d="M131 0v263M265 0v263M0 129h400" stroke="#FFFDF7"/>
+            </g>
+
+            <g fill="none" stroke="#EDE1C8" stroke-width="2.5">
+              <ellipse cx="262" cy="150" rx="112" ry="62"/>
+              <ellipse cx="262" cy="150" rx="76" ry="42"/>
+              <ellipse cx="262" cy="150" rx="42" ry="23"/>
+            </g>
+
+            <path d="M62 222C112 208 128 180 176 172S222 178 232 184" fill="none"
+                  stroke="#0F6E56" stroke-width="8" stroke-linecap="round"/>
+            <g fill="#FCF8F0" stroke="#0F6E56" stroke-width="4"><circle cx="176" cy="172" r="6"/></g>
+            <path d="M62 244c0 0-12-17-12-25a12 12 0 1 1 24 0c0 8-12 25-12 25z" fill="#171A2E"/><circle cx="62" cy="219" r="4.4" fill="#FCF8F0"/>
+
+            <!-- a cairn: the thing walkers build at the top to say they got
+                 there, and the only object in this language you make yourself -->
+            <ellipse cx="262" cy="200" rx="46" ry="8" fill="#171A2E" opacity=".12"/>
+            <rect x="234" y="176" width="56" height="20" rx="7" fill="#0F6E56"/>
+            <rect x="242" y="157" width="40" height="20" rx="7" fill="#1D9E75"/>
+            <rect x="250" y="138" width="24" height="20" rx="7" fill="#9FE1CB"/>
+            <path d="M262 138V96" stroke="#171A2E" stroke-width="5" stroke-linecap="round"/>
+            <path d="M262 96h36l-9 10 9 10h-36z" fill="#0F6E56"/>
+          </svg>
         </div>
         <div class="how-body">
           <span class="mono">Step four</span>
