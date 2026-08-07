@@ -282,22 +282,23 @@ h1{
    reads as the reason rather than the pitch: here is what happens on your
    own, and then a person saying why they built the alternative.
 
-   A white band, full bleed, the same way #how is one — see the long note by
-   the bands further down for why it is a shadow and a clip-path rather than
-   a background on a wider element. That makes three alternating fields down
-   the page: grey hero, white how-it-works, grey paths, white here, then the
-   dark green close. The band edge is also what separates this section from
-   the paths above it; before it was white, 110px of .sec padding on each side
-   left 220px of undivided grey there and still read as one field.
+   A white band, full bleed, the same way the closing band is one — see the
+   long note by the bands further down for why it is a shadow and a clip-path
+   rather than a background on a wider element.
 
-   88 over 96 inside the band rather than .sec's 110/110. The rules are a
-   lighter thing to frame than a row of cards, and the founder band's edge
-   lands directly under this one, so the bottom keeps slightly more. */
+   This is the page's first white band, and putting it here is what set the
+   rest of the order: grey hero, white here, grey how-it-works, white paths,
+   dark green close. No two fields of the same colour touch anywhere down the
+   page. how-it-works used to hold this white and gave it up in the swap.
+
+   92 both ways rather than .sec's 110. Grey sits on both sides of this band,
+   so it wants to read as one even block, and three ruled lines are a lighter
+   thing to frame than a row of cards. */
 #problem{
   background:var(--card);
   box-shadow:0 0 0 100vmax var(--card);
   clip-path:inset(0 -100vmax);
-  padding:88px 0 96px;
+  padding:92px 0;
 }
 #problem .sec-head{margin-bottom:26px}
 .probs{list-style:none;margin:0;padding:0}
@@ -432,13 +433,10 @@ h1{
    against grey, so neither of them was relying on a line. Doing it properly
    means moving these two sections out of .wrap in the markup — worth it only
    if the edges ever start to look soft. */
-#how{
-  background:var(--card);
-  box-shadow:0 0 0 100vmax var(--card);
-  clip-path:inset(0 -100vmax);
-}
-/* var(--line) is chosen against grey; on white the cards need a shade more. */
-#how .how-card{border-color:#DEDDE6}
+/* No band here any more. It held the page's white for a long time, but with
+   the problem section moved above it that put two white fields against each
+   other, so the white moved on to #paths and this one went back to the grey.
+   Its cards keep var(--line), which is the border picked for grey. */
 /* This head is a heading and nothing else. Without the line of prose that
    used to sit under it, 32px left the h2 resting on the cards. */
 #how .sec-head{margin-bottom:42px}
@@ -491,6 +489,17 @@ h1{
 .waiting b{width:6px;height:6px;border-radius:50%;background:var(--live);display:block;flex:0 0 auto}
 .waiting.none{color:var(--ink-faint)}
 .waiting.none b{background:#C9CBD6}
+
+/* The band #how used to carry. Eight cards is the biggest single block on
+   the page and it was the one section still sitting flat on the grey with
+   nothing marking where it started. */
+#paths{
+  background:var(--card);
+  box-shadow:0 0 0 100vmax var(--card);
+  clip-path:inset(0 -100vmax);
+}
+/* var(--line) is chosen against grey; on white the cards need a shade more. */
+#paths .path{border-color:#DEDDE6}
 
 .other{margin-top:18px;font-size:14px;color:var(--ink-soft)}
 .other a{border-bottom:1px solid var(--ink-faint)}
