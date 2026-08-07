@@ -272,12 +272,16 @@ h1{
    ground, one flat object with a soft ellipse under it, and two small rounded
    squares floating in opposite corners.
 
+   Light, on #F7FBF9 — the same white-with-a-green-cast sheet the step-one map
+   is drawn on, one section below. The deep grounds the learning paths use are
+   right down there, at the bottom of the page, with a white band between them
+   and here; three of them directly above how-it-works put a dark slab between
+   the hero and a section that is all light cards.
+
    One ground for all three, where the path cards have eight. The eight say
    "these are different — pick one"; colour on that row is what tells them
    apart. The three problems are not a menu, they are one situation described
-   three ways, so they share #2A2E45 — the same ink the body copy is set in,
-   lifted enough to draw on. It also keeps the brightest row on the page the
-   one that answers them. */
+   three ways, so they share a sheet and let the drawing do the work. */
 #problem{padding-bottom:78px}
 #problem .sec-head{margin-bottom:34px}
 .probs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
@@ -289,7 +293,7 @@ h1{
 }
 .prob svg{
   width:100%;display:block;border-bottom:1px solid var(--line);
-  background:#2A2E45;
+  background:#F7FBF9;
 }
 .prob-body{padding:16px 18px 20px;display:flex;flex-direction:column;gap:9px}
 /* 600 and 15.5px rather than .path h3's 700 at 17.5: that h3 is one word and
