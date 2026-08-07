@@ -150,24 +150,25 @@ a:focus-visible,button:focus-visible{
 @keyframes navpop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
 /* ---------- hero ---------- */
+/* 1.14/0.86 with a 56px gap rather than 1.05/0.95 with 70.
+   "person who shows up." wants about 640px at 55px, and the old split gave
+   the copy 623 at 1440 — twenty pixels short, so the headline fell into three
+   lines with a stubby middle one. Widening the column fixes the break at full
+   size, where shrinking the type would have fixed it by making the headline
+   smaller, which is not the same thing.
+
+   Measured: two lines at 1280, 1366, 1440 and 1920. The session card gives up
+   47px for it (563 to 516 at 1440), which it can afford. Below 900 the hero
+   is one column and none of this applies. */
 .hero{
-  display:grid;grid-template-columns:1.05fr .95fr;gap:70px;
+  display:grid;grid-template-columns:1.14fr .86fr;gap:56px;
   align-items:center;padding:82px 0 92px;
 }
 /* Jakarta is rounder and a touch wider than a display face, so the
    headline wants more weight and slightly less of it on the page.
 
-   50 rather than 55 for the top of the clamp. At 55 the headline fell into
-   three lines with a stubby middle one — "Learn IT with one" / "person who" /
-   "shows up." — because the copy column is 623px at 1440 and the long line
-   wants about 640. At 50 it settles into two: a short first line over a long
-   second, which is the shape it should have.
-
-   50 and not 52 because 52 still breaks at 1280, which is a very common
-   laptop. Measured across 1024–1920: 50 holds the two-line shape at 1280,
-   1366, 1440 and 1920. Between about 1000 and 1200 it goes to three lines
-   whatever the size, because the hero grid gives the copy only 1.05 of 2
-   columns and there is not enough room there for any headline this long. */
+   The size is not the lever for how this wraps — the column width is. See
+   the note on .hero above. */
 /* No text-wrap:balance any more. It earned its place on the old headline,
    which was long enough that balancing stopped the last line being a stub.
    On five words it does the opposite: given room for three lines it makes
@@ -175,7 +176,7 @@ a:focus-visible,button:focus-visible{
    greedily gives the clean two-line break at the comma. Measured at every
    width from 320 to 1920; balance produced three lines at seven of them. */
 h1{
-  font-size:clamp(34px,4.6vw,50px);line-height:1.06;
+  font-size:clamp(34px,4.6vw,55px);line-height:1.06;
   letter-spacing:-0.03em;font-weight:800;margin:0 0 20px;
 }
 /* A grid column is min-content wide by default, so one long unbroken word in
