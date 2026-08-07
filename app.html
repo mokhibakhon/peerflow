@@ -137,6 +137,60 @@
       <p id="bk-note" class="bk-status"></p>
     </section>
 
+    <!-- ============ calendar ============ -->
+    <!-- A week, not a month: one standing slot a week would leave a month
+         grid mostly empty. Real sessions come from fetchSessions; the washed
+         cells are the hours you and your partner have both marked free in
+         your profiles, and clicking one fills in the form below rather than
+         asking you to reassemble the time out of four menus.
+
+         Hidden until we know enough to draw it. -->
+    <section class="b wide" id="cal-card" hidden>
+      <div class="cal-head">
+        <div class="bh" style="margin:0">
+          <span class="gl" style="background:var(--p0)">
+            <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M7 2v3M15 2v3" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <div><span class="mono" style="color:var(--p6)">Your week</span><h2>Calendar</h2></div>
+        </div>
+        <div class="cal-nav">
+          <button class="cal-step" type="button" id="cal-prev" aria-label="Previous week">&lsaquo;</button>
+          <span class="cal-range" id="cal-range"></span>
+          <button class="cal-step" type="button" id="cal-next" aria-label="Next week">&rsaquo;</button>
+          <button class="small" type="button" id="cal-today" style="margin-left:8px">Today</button>
+        </div>
+      </div>
+
+      <div class="cal-scroll"><div class="cal-grid" id="cal-grid"></div></div>
+
+      <div class="cal-key">
+        <span class="k1"><i></i>Booked</span>
+        <span class="k2"><i></i>Waiting on an answer</span>
+        <span class="k3"><i></i>You&rsquo;re both free &mdash; click to propose</span>
+      </div>
+      <p class="cal-empty" id="cal-empty" hidden></p>
+    </section>
+
+    <!-- ============ the plan ============ -->
+    <!-- Not a curriculum. Twelve weeks in an order that works, each pointing
+         at somebody else's free material — PeerFlow holds the order, they
+         hold the lesson.
+
+         Where you are in it is counted from sessions you have actually had,
+         not from ticking boxes: it needs no table of its own, and it cannot
+         disagree with your partner's copy because you both did the same
+         sessions. -->
+    <section class="b wide" id="plan-card" hidden>
+      <div class="bh">
+        <span class="gl" style="background:var(--p0)">
+          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="3" y="2" width="16" height="18" rx="3" fill="#5DCAA5"/><path d="M7 7h8M7 11h8M7 15h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        <div><span class="mono" style="color:var(--p6)" id="plan-k">Your plan</span><h2 id="plan-h">Twelve weeks</h2></div>
+      </div>
+      <div class="plan-rows" id="plan-rows"></div>
+      <p class="plan-foot" id="plan-foot"></p>
+    </section>
+
     <!-- ============ invite ============ -->
     <section class="b wide inv">
       <div class="row">
@@ -157,6 +211,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
+<script src="assets/plans.js"></script>
 <script src="assets/authgate.js"></script>
 <script src="assets/appshell.js"></script>
 <script>
@@ -763,6 +818,206 @@
     });
   });
 
+
+  /* ================= calendar =================
+     Draws one week. Sessions are the real ones from fetchSessions; the washed
+     cells are the hours you and your partner have both marked free, worked
+     out from the same availability the booking form already reads.
+
+     Availability is stored as day-band pairs ("tue-evening"), so a band has
+     to be turned into hours before it can be a row in a grid. These are the
+     same ranges the booking menus use. */
+  var CAL_BANDS = { morning:[6,11], afternoon:[12,16], evening:[17,21], night:[22,23] };
+  var calMonday = null, calSessions = [];
+
+  /* clockOf gives "4:00 PM", which wraps in a 56px gutter. A row only needs
+     the hour, and toLocaleTimeString still decides 16 vs 4 PM by locale. */
+  function calHour(h){
+    var d = new Date(); d.setHours(h, 0, 0, 0);
+    return d.toLocaleTimeString(undefined, { hour:'numeric' });
+  }
+
+  function mondayOf(d){
+    var x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    /* getDay() is 0 for Sunday, and a week that starts on Sunday would put
+       the weekend on both ends of the grid. */
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x;
+  }
+  function addDays(d, n){ var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function sameDay(a, b){ return dayKey(a) === dayKey(b); }
+
+  /* Every hour the two of you share, as {0..6 → [hours]}. Empty when either
+     of you hasn't filled availability in — which is a real state, not a bug,
+     so the grid says so underneath rather than drawing nothing. */
+  function sharedHoursByDay(){
+    var out = {}, list = shared();
+    list.forEach(function(slot){
+      var parts = slot.split('-'), d = DAYS.indexOf(parts[0]), band = CAL_BANDS[parts[1]];
+      if (d < 0 || !band) return;
+      if (!out[d]) out[d] = [];
+      for (var h = band[0]; h <= band[1]; h++) if (out[d].indexOf(h) < 0) out[d].push(h);
+    });
+    return out;
+  }
+
+  /* Which hours the grid covers. Fixed rows would either cut a 7am session
+     off the top or draw sixteen empty rows, so the window is whatever this
+     week actually contains — the shared hours and the booked ones — padded
+     by one and never fewer than five rows. */
+  function calHourWindow(week){
+    var hrs = [], byDay = sharedHoursByDay(), k;
+    for (k in byDay) if (byDay.hasOwnProperty(k)) hrs = hrs.concat(byDay[k]);
+    week.forEach(function(s){ hrs.push(s.startsAt.getHours()); });
+    if (!hrs.length) return [17, 21];
+    var lo = Math.max(0, Math.min.apply(null, hrs) - 1);
+    var hi = Math.min(23, Math.max.apply(null, hrs) + 1);
+    while (hi - lo < 4) { if (hi < 23) hi++; else if (lo > 0) lo--; else break; }
+    /* Twelve rows is already a tall card; past that it is a scrolling wall. */
+    if (hi - lo > 11) hi = lo + 11;
+    return [lo, hi];
+  }
+
+  function weekOf(monday){
+    var end = addDays(monday, 7).getTime(), start = monday.getTime();
+    return calSessions.filter(function(s){
+      var t = s.startsAt.getTime();
+      return t >= start && t < end &&
+             (s.status === 'confirmed' || s.status === 'proposed');
+    });
+  }
+
+  function renderCal(){
+    var grid = $('cal-grid');
+    if (!grid) return;
+    var week = weekOf(calMonday), win = calHourWindow(week), byDay = sharedHoursByDay();
+    var today = new Date(), now = Date.now(), html = '', i, h;
+
+    var last = addDays(calMonday, 6);
+    var fmt = { day:'numeric', month:'short' };
+    $('cal-range').textContent =
+      calMonday.toLocaleDateString(undefined, fmt) + ' – ' +
+      last.toLocaleDateString(undefined, fmt);
+
+    html += '<div class="cal-corner"></div>';
+    for (i = 0; i < 7; i++){
+      var d = addDays(calMonday, i);
+      html += '<div class="cal-day' + (sameDay(d, today) ? ' today' : '') + '">' +
+        '<span>' + esc(d.toLocaleDateString(undefined, { weekday:'short' })) + '</span>' +
+        '<b>' + d.getDate() + '</b></div>';
+    }
+
+    for (h = win[0]; h <= win[1]; h++){
+      html += '<div class="cal-h">' + esc(calHour(h)) + '</div>';
+      for (i = 0; i < 7; i++){
+        var day = addDays(calMonday, i);
+        var cellStart = new Date(day); cellStart.setHours(h, 0, 0, 0);
+        var past = cellStart.getTime() + 3600000 <= now;
+        /* getDay(), not the column index: sharedHoursByDay is keyed by the
+           real weekday so it stays right whatever day the week starts on. */
+        var free = (byDay[day.getDay()] || []).indexOf(h) >= 0;
+
+        var ev = null;
+        for (var j = 0; j < week.length; j++){
+          if (sameDay(week[j].startsAt, day) && week[j].startsAt.getHours() === h){ ev = week[j]; break; }
+        }
+
+        var cls = 'cal-cell' + (free && !ev ? ' free' : '') + (past ? ' past' : '');
+        var body = '';
+        if (ev){
+          var kind = ev.status === 'proposed' ? 'waiting'
+                   : (ev.startsAt.getTime() + ev.durationMin * 60000 <= now ? 'done' : 'booked');
+          var sub = kind === 'waiting'
+            ? (ev.mine ? 'Waiting on ' + (ev.partnerName || 'them') : 'Needs your answer')
+            : ev.durationMin + ' min' + (ev.partnerName ? ' · ' + ev.partnerName : '');
+          body = '<span class="cal-ev ' + kind + '">' +
+                 '<b>' + esc(ev.topic || 'Session') + '</b>' +
+                 '<i>' + esc(sub) + '</i></span>';
+        }
+
+        /* A real button when it does something, a plain div when it doesn't —
+           a focusable cell that ignores Enter is worse than no focus stop. */
+        html += (free && !ev && !past)
+          ? '<button type="button" class="' + cls + '" data-cal-day="' + day.getTime() +
+            '" data-cal-hour="' + h + '" aria-label="Propose ' +
+            esc(day.toLocaleDateString(undefined, { weekday:'long' })) + ' at ' +
+            esc(clockOf(h)) + '"></button>'
+          : '<div class="' + cls + '">' + body + '</div>';
+      }
+    }
+    grid.innerHTML = html;
+
+    var none = !shared().length;
+    $('cal-empty').hidden = !none;
+    if (none) $('cal-empty').textContent = bookPartner
+      ? 'Once you and ' + shortName() + ' have both said when you’re free, the hours you share light up here.'
+      : 'Set your weekly availability in your profile and the hours you share with a partner light up here.';
+  }
+
+  /* Clicking a free hour hands it to the form below rather than opening a
+     dialog of its own — same proposal, one fewer thing to learn. */
+  document.getElementById('cal-grid').addEventListener('click', function(e){
+    var cell = e.target.closest('[data-cal-day]');
+    if (!cell) return;
+    bkDay  = new Date(parseInt(cell.getAttribute('data-cal-day'), 10));
+    bkHour = parseInt(cell.getAttribute('data-cal-hour'), 10);
+    paintSentence();
+    var card = document.getElementById('book-card');
+    if (card.hidden) return;
+    try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
+    var trig = card.querySelector('#bk-sent .pick[data-k="day"] .trig');
+    if (trig) trig.focus();
+  });
+
+  document.getElementById('cal-prev').addEventListener('click', function(){
+    calMonday = addDays(calMonday, -7); renderCal();
+  });
+  document.getElementById('cal-next').addEventListener('click', function(){
+    calMonday = addDays(calMonday, 7); renderCal();
+  });
+  document.getElementById('cal-today').addEventListener('click', function(){
+    calMonday = mondayOf(new Date()); renderCal();
+  });
+
+  /* ================= the plan =================
+     Where you are is counted from sessions you have actually had, not from
+     ticking boxes. That needs no table of its own, and it cannot drift out of
+     step with your partner's copy, because you both sat through the same
+     sessions. It also means the plan cannot be edited yet — so there are no
+     Add and Reorder buttons here pretending otherwise. */
+  function renderPlan(trackId, doneCount){
+    var plan = (window.PF_PLANS || {})[trackId];
+    if (!plan || !plan.length) return;
+
+    var here = Math.min(doneCount, plan.length - 1);
+    var names = (window.pf && pf.trackNames) || {};
+
+    $('plan-h').textContent = names[trackId]
+      ? names[trackId] + ' in twelve weeks'
+      : 'Twelve weeks';
+    $('plan-k').textContent = doneCount >= plan.length
+      ? 'Plan finished'
+      : 'Week ' + (here + 1) + ' of ' + plan.length;
+
+    $('plan-rows').innerHTML = plan.map(function(w, i){
+      var state = i < doneCount ? 'done' : (i === here && doneCount < plan.length ? 'now' : '');
+      var label = state === 'now' ? 'This week' : 'Week ' + (i + 1);
+      return '<div class="plan-row ' + state + '">' +
+        '<span class="plan-n">' + label + '</span>' +
+        '<span class="plan-t">' + esc(w.t) + '</span>' +
+        (w.src ? '<span class="plan-src">' + esc(w.src) + '</span>' : '') +
+      '</div>';
+    }).join('');
+
+    $('plan-foot').textContent = doneCount >= plan.length
+      ? 'You have been through all twelve. Pick the next thing together — you are past what we would have suggested.'
+      : 'A suggested order, not a course. Every week points at somebody else’s free material; ' +
+        'you are ' + doneCount + ' session' + (doneCount === 1 ? '' : 's') + ' in.';
+
+    $('plan-card').hidden = false;
+  }
+
   /* Answers from signup that never reached the database (no session at the
      time, e.g. email confirmation was on). Save them now that we're signed in. */
   function flushPending(){
@@ -948,6 +1203,32 @@
             $('up-h').hidden = false;
           }
           syncSessCard();
+
+          /* ----- calendar -----
+             Everything except proposals somebody already answered: a declined
+             time is not on anybody's week. */
+          calSessions = all.filter(function(x){
+            return x.status === 'confirmed' || x.status === 'proposed';
+          });
+          calMonday = mondayOf(new Date());
+          /* Drawn once you have a partner. Alone, every cell would be empty
+             and none of them could be clicked, which is a grid explaining
+             that it has nothing to say. */
+          if (partner){
+            $('cal-card').hidden = false;
+            renderCal();
+          }
+
+          /* ----- the plan -----
+             Counted from sessions that actually happened: confirmed, and the
+             end of them is behind us. A booking next Tuesday has not taught
+             anybody anything yet. */
+          var done = sessions.filter(function(x){
+            return x.startsAt.getTime() + x.durationMin * 60000 <= now;
+          }).length;
+          var trackId = (profile && profile.track_id) || '';
+          if (!trackId){ try { trackId = localStorage.getItem('pf_track') || ''; } catch(err){} }
+          renderPlan(trackId, done);
         });
     });
   });

@@ -762,3 +762,124 @@ html{scroll-behavior:smooth}
 .askbox input:focus{border-color:var(--p4);outline:none}
 .askbox .btn{padding:9px 16px;font-size:13.5px}
 .ask-err{flex:1 0 100%;margin:2px 0 0;font-size:13px;color:#B4471F}
+
+/* ============================================================
+   CALENDAR AND PLAN
+
+   Both are additions to the dashboard. Every selector here is new,
+   so nothing above this line changes behaviour.
+   ============================================================ */
+
+/* ---------- calendar ----------
+   A week, not a month: one standing slot a week would leave a month grid
+   twenty-eight squares empty around two blocks.
+
+   The shading is the point. A calendar that only drew what is booked would
+   show one block and acres of nothing, so the empty half carries the work
+   instead — the hours you and your partner have both said you are free are
+   washed, and clicking one fills in the booking form below. */
+.cal-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.cal-nav{display:flex;align-items:center;gap:4px;margin-left:auto}
+.cal-step{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--soft);display:flex;align-items:center;
+  justify-content:center;font-size:15px;line-height:1;padding:0}
+.cal-step:hover{background:var(--band);color:var(--ink)}
+.cal-range{font-size:14.5px;font-weight:600;letter-spacing:-.01em;padding:0 6px;white-space:nowrap}
+
+/* min-width:0 on both, and it is load-bearing. .cal-grid keeps a 574px floor
+   so seven columns stay legible, .cal-scroll scrolls it — but a plain block
+   still reports its content's min-content width to its parent, and #cal-card
+   is a grid item whose automatic minimum size is that. Without these the
+   floor climbed the tree and set the width of every .wide card in .grid: at a
+   390px viewport the sessions card came out 642px and the page scrolled
+   sideways. */
+.cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0;
+  border:1px solid var(--line);border-radius:12px}
+#cal-card{min-width:0}
+.cal-grid{display:grid;grid-template-columns:56px repeat(7,minmax(74px,1fr));min-width:574px}
+.cal-corner,.cal-day{background:#FBFBFC;border-bottom:1px solid var(--line)}
+.cal-corner{border-right:1px solid var(--line)}
+.cal-day{padding:8px 3px 9px;text-align:center;border-right:1px solid var(--line)}
+.cal-day:last-child{border-right:0}
+.cal-day span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--faint)}
+.cal-day b{display:block;margin-top:2px;font-size:15px;font-weight:700;letter-spacing:-.02em}
+.cal-day.today span{color:var(--p6)}
+.cal-day.today b{width:26px;height:26px;margin:2px auto 0;border-radius:50%;background:var(--p6);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+
+.cal-h{padding:6px 8px 0;text-align:right;font-family:var(--mono);font-size:10px;line-height:1;
+  white-space:nowrap;
+  color:var(--faint);background:#FBFBFC;
+  border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cal-cell{position:relative;min-height:70px;padding:0;border:0;background:transparent;
+  border-right:1px solid #F1F0F5;border-bottom:1px solid #F1F0F5;width:100%;
+  font-family:var(--body);text-align:left}
+.cal-cell:last-child{border-right:0}
+/* An hour you have both said you are free: an invitation, so it is faint. */
+.cal-cell.free{background:#F4FBF8;cursor:pointer}
+.cal-cell.free:hover{background:#E3F4EC}
+.cal-cell.free::after{content:"+";position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;color:var(--p4);font-size:19px;font-weight:600;
+  opacity:0;transition:opacity .12s ease}
+.cal-cell.free:hover::after,.cal-cell.free:focus-visible::after{opacity:1}
+/* Gone, not disabled. Hatching every hour before now covered half the grid on
+   a Friday and read as broken; a flat wash says the same thing quietly. The
+   shared-hours tint still shows through underneath, because "we were both
+   free and did not book it" is worth seeing when you look back. */
+.cal-cell.past{background:#FAFAFB;cursor:default}
+.cal-cell.past.free{background:#F6FAF8;cursor:default}
+.cal-cell.past.free:hover::after{opacity:0}
+
+/* The blocks. Three states, told apart by shape as well as colour. */
+.cal-ev{position:absolute;left:3px;right:3px;top:3px;bottom:3px;border-radius:8px;
+  padding:6px 8px;overflow:hidden;font-size:12px;line-height:1.3;text-align:left}
+.cal-ev b{display:block;font-size:12.5px;font-weight:700;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-ev i{display:block;font-style:normal;color:var(--soft);margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-ev.booked{background:var(--p0);border-left:3px solid var(--p6);color:var(--p8)}
+.cal-ev.booked i{color:#2E6B58}
+.cal-ev.waiting{background:repeating-linear-gradient(135deg,#fff,#fff 6px,#FAFAFC 6px,#FAFAFC 12px);
+  border:1.5px dashed #C8C7D3}
+.cal-ev.waiting b{color:var(--ink)}
+.cal-ev.done{background:#F4F4F7;border-left:3px solid #C8C7D3;color:var(--soft)}
+.cal-ev.done b{color:var(--soft);font-weight:600}
+
+.cal-key{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:12px;
+  font-size:12px;color:var(--soft)}
+.cal-key i{display:inline-block;width:12px;height:12px;border-radius:4px;
+  margin-right:6px;vertical-align:-2px}
+.cal-key .k1 i{background:var(--p0);box-shadow:inset 3px 0 0 var(--p6)}
+.cal-key .k2 i{border:1.5px dashed #C8C7D3}
+.cal-key .k3 i{background:#F4FBF8;border:1px solid #DBEDE5}
+.cal-empty{margin:12px 0 0;font-size:13px;color:var(--soft)}
+
+/* ---------- the plan ---------- */
+.plan-rows{margin-top:4px}
+.plan-row{display:flex;align-items:center;gap:13px;padding:10px 0;
+  border-bottom:1px solid #F1F0F5}
+.plan-row:last-child{border-bottom:0}
+.plan-n{width:54px;flex:0 0 auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--faint);line-height:1.25}
+.plan-row.done .plan-n{color:var(--p4)}
+.plan-t{flex:1;min-width:0;font-size:14.5px}
+.plan-row.done .plan-t{color:var(--faint);text-decoration:line-through}
+/* The week you are on is lifted out of the list, not just bolded — it is the
+   one row you should find without reading the others. */
+.plan-row.now{background:var(--p0);margin:0 -12px;padding:12px;border-radius:10px;
+  border-bottom:0}
+.plan-row.now .plan-n{color:var(--p6)}
+.plan-row.now .plan-t{font-weight:700}
+/* Where the material comes from. This column is the whole idea: PeerFlow
+   holds the order, somebody else holds the lesson. */
+.plan-src{font-size:12px;color:var(--p6);font-weight:600;flex:0 0 auto}
+.plan-foot{margin:14px 0 0;padding-top:13px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--soft)}
+
+@media (max-width:560px){
+  .plan-src{display:none}
+  .plan-n{width:46px}
+  .plan-t{font-size:14px}
+  .cal-range{font-size:13.5px}
+}
