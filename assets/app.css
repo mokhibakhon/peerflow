@@ -342,7 +342,17 @@ h1 .g{color:var(--p4)}
   .avail-grid .hd{font-size:11px}
   .avail-grid .hd b{font-size:9px}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* The hero's buttons name things that sit further down this same page, so
+   they are anchors rather than links to another page. Two things that needs:
+   the jump has to clear the sticky top bar, and it should move rather than
+   teleport, or landing on a card that was already on screen looks like
+   nothing happened. */
+html{scroll-behavior:smooth}
+#sess-card,#book-card{scroll-margin-top:80px}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  html{scroll-behavior:auto}
+}
 
 /* ============================================================
    Ported from styles.css so usermenu.js and notify.js work

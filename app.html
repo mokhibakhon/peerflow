@@ -892,8 +892,8 @@
               s: when(next.startsAt) + ' · ' + next.durationMin + ' minutes' +
                  (next.partnerName ? ' with ' + next.partnerName : ''),
               a: (next.roomUrl && isOpen(next))
-                   ? '<a class="btn" href="' + esc(next.roomUrl) + '" target="_blank" rel="noopener">Join the call</a><a class="ghost" href="app-sessions.html">All sessions</a>'
-                   : '<a class="btn" href="app-sessions.html">See the booking</a>',
+                   ? '<a class="btn" href="' + esc(next.roomUrl) + '" target="_blank" rel="noopener">Join the call</a><a class="ghost" href="#sess-card">All sessions</a>'
+                   : '<a class="btn" href="#sess-card">See the booking</a>',
               ag: next.roomUrl && !isOpen(next) ? 'The call link opens 15 minutes before you start.' : ''
             });
           } else if (waiting){
@@ -903,7 +903,7 @@
                  '</span> proposed a time.',
               s: when(waiting.startsAt) + ' · ' + waiting.durationMin + ' minutes. ' +
                  'Nothing is booked until you say yes.',
-              a: '<a class="btn" href="app-sessions.html">Answer it</a>'
+              a: '<a class="btn" href="#sess-card">Answer it</a>'
             });
           } else if (turned){
             hero({
@@ -913,7 +913,7 @@
                                                              : 'can’t make that time.'),
               s: (turned.status === 'cancelled' ? 'They cancelled ' : 'They turned down ') +
                  when(turned.startsAt) + '. Pick another and send it over.',
-              a: '<a class="btn" href="app-sessions.html">Propose another time</a>'
+              a: '<a class="btn" href="#book-card">Propose another time</a>'
             });
           } else if (partner && pending.length){
             var mine = pending[0];
@@ -925,14 +925,14 @@
               paired:true, partner: mineWho,
               h: 'Waiting on <span class="g">' + esc(mineWho || 'your partner') + '</span>.',
               s: 'You proposed ' + when(mine.startsAt) + '. It lands on both your calendars once they accept.',
-              a: '<a class="ghost" href="app-sessions.html">See the proposal</a>'
+              a: '<a class="ghost" href="#sess-card">See the proposal</a>'
             });
           } else if (partner){
             hero({
               paired:true, partner:pname,
               h: 'You’re paired with <span class="g">' + esc(allNames) + '</span>.',
               s: 'Nothing booked yet. Propose a time and it lands on both your calendars once they accept.',
-              a: '<a class="btn" href="app-sessions.html">Propose a time</a>'
+              a: '<a class="btn" href="#book-card">Propose a time</a>'
             });
           } else {
             hero({
