@@ -509,37 +509,6 @@ h1{
    this instead, which is the most persuasive thing on it. Centred on purpose:
    everything above is left-aligned, so the change of alignment is the change
    of pace a pull quote wants. */
-/* ---------- what learners say ----------
-   Two cards on the grey, the same shell the rest of the page uses. No band
-   of its own: white paths above and the dark green close below already put
-   an edge on both sides of this section.
-
-   The quote is the card. It is set at 17px against the 14.5 the how-it-works
-   cards use for body copy, because a sentence somebody said carries further
-   than a sentence describing a feature, and there are only two of them. */
-.says{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
-.say{
-  margin:0;background:var(--card);border:1px solid var(--line);border-radius:16px;
-  padding:26px 28px 24px;display:flex;flex-direction:column;
-}
-/* No quote marks drawn in. The italic and the attribution underneath already
-   say this is speech, and a pair of big grey commas is decoration standing in
-   for the thing the sentence is doing itself. */
-.say blockquote{
-  margin:0 0 20px;font-size:17px;line-height:1.55;font-style:italic;
-  letter-spacing:-0.01em;color:var(--ink);text-wrap:pretty;
-}
-/* margin-top:auto so the two attributions line up even when one quote runs a
-   line longer than the other. */
-.say figcaption{display:flex;align-items:center;gap:12px;margin-top:auto}
-.say-av{
-  width:40px;height:40px;border-radius:50%;flex:0 0 auto;
-  display:flex;align-items:center;justify-content:center;
-  color:#fff;font-size:13px;font-weight:600;letter-spacing:0.02em;
-}
-.say figcaption b{display:block;font-size:15px;font-weight:700;letter-spacing:-0.01em}
-.say figcaption span span{display:block;font-size:13.5px;color:var(--ink-soft)}
-
 .founder{
   background:var(--deep);color:#fff;
   box-shadow:0 0 0 100vmax var(--deep);
@@ -582,11 +551,6 @@ footer a{color:#CFE7DD}
 }
 @media (max-width:680px){
   .how-grid{grid-template-columns:1fr}
-  /* Two quotes side by side stop being readable well before this, but the
-     row above folds here and one seam is better than two. */
-  .says{grid-template-columns:1fr;gap:14px}
-  .say{padding:22px 22px 20px}
-  .say blockquote{font-size:16px;margin-bottom:17px}
 }
 /* The drawing shrinks before the sentence does — it is the supporting half
    of the row, and the words are the half worth keeping legible. Below 600 the
