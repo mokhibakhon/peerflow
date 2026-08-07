@@ -262,38 +262,41 @@ h1{
 .pom-txt span{font-size:12.5px;color:var(--ink-soft)}
 
 /* ---------- sound familiar? ----------
-   Three problems, no colour. The reference for this section gave each card
-   its own pastel — pink, orange, yellow — which would have put three hues on
-   the page that appear nowhere else in it, and would have made the problems
-   the loudest row above the fold. These are ink on white with a hairline,
-   and the icons sit on one neutral chip rather than three tinted ones.
+   Built to the same rule as every other card on this page: a full-bleed
+   illustration on top, a hairline under it, then a white body with a mono
+   kicker over the text. That is what .path and .how-card both do, and it is
+   what the first version of this section got wrong — a small grey icon in a
+   plain box shares no shape with anything else here.
 
-   Shorter than .sec's 110px at the bottom: this section and how-it-works are
-   one thought, so 110 under here and 110 over there opened a hole between
-   them. 110 above, 78 below, and the white band picks the argument up. */
+   The drawings use the learning-path recipe too: a 200×130 panel, a deep
+   ground, one flat object with a soft ellipse under it, and two small rounded
+   squares floating in opposite corners.
+
+   One ground for all three, where the path cards have eight. The eight say
+   "these are different — pick one"; colour on that row is what tells them
+   apart. The three problems are not a menu, they are one situation described
+   three ways, so they share #2A2E45 — the same ink the body copy is set in,
+   lifted enough to draw on. It also keeps the brightest row on the page the
+   one that answers them. */
 #problem{padding-bottom:78px}
 #problem .sec-head{margin-bottom:34px}
-.probs{
-  list-style:none;margin:0;padding:0;
-  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
-}
+.probs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+/* Same shell as .path, minus the hover lift: that card rises because there
+   is a button inside it to press, and there is nothing to press in here. */
 .prob{
   background:var(--card);border:1px solid var(--line);border-radius:16px;
-  padding:24px 24px 26px;
+  overflow:hidden;display:flex;flex-direction:column;
 }
-/* Neutral, not tinted. Green on this page means the part that works — the
-   route on the map, the Step one kicker, every button — so it is not spent
-   here. */
-.prob-ico{
-  display:flex;align-items:center;justify-content:center;
-  width:44px;height:44px;border-radius:12px;
-  background:#F0F0F5;color:var(--ink-soft);
+.prob svg{
+  width:100%;display:block;border-bottom:1px solid var(--line);
+  background:#2A2E45;
 }
-.prob-ico svg{width:23px;height:23px;display:block}
-.prob p{
-  margin:16px 0 0;font-size:15.5px;line-height:1.5;
-  color:var(--ink);font-weight:500;letter-spacing:-0.008em;
-  text-wrap:pretty;
+.prob-body{padding:16px 18px 20px;display:flex;flex-direction:column;gap:9px}
+/* 600 and 15.5px rather than .path h3's 700 at 17.5: that h3 is one word and
+   has to carry a card, this one is a whole sentence and would shout. */
+.prob h3{
+  margin:0;font-size:15.5px;font-weight:600;line-height:1.45;
+  letter-spacing:-0.01em;color:var(--ink);text-wrap:pretty;
 }
 
 /* ---------- how it works ---------- */
@@ -524,14 +527,32 @@ footer a{color:#CFE7DD}
 @media (max-width:680px){
   .how-grid{grid-template-columns:1fr}
 }
-/* The problem cards hold three across further down than the how-it-works row
-   does, because they are text and a small icon rather than a picture that has
-   to stay legible. At 680 the three sentences start taking four and five lines
-   each, so they stack — the same width the row above them stacks at. */
+/* Stacked below 680, but turned on their side rather than left as three
+   full-width panels — a 616px-wide drawing of a battery over one sentence is
+   the picture running the page. Illustration to the left at a fixed 132,
+   sentence beside it, and the hairline moves from under the panel to the side
+   of it.
+
+   The svg keeps its 200:130 shape, so a card whose text runs taller than 86px
+   would letterbox. .prob svg carries the ground colour as its background for
+   exactly that: the strip fills with the same ink and the seam never shows. */
 @media (max-width:680px){
   .probs{grid-template-columns:1fr;gap:14px}
-  .prob{padding:20px 20px 22px}
-  .prob p{margin-top:13px}
+  .prob{flex-direction:row}
+  /* 112, not 132. At 132 the sentence beside it had 162px to wrap in and ran
+     to four lines on a 390 phone, which made the card taller, which made the
+     panel taller, which made the drawing look lost in it. */
+  .prob svg{
+    width:112px;flex:0 0 112px;align-self:stretch;
+    border-bottom:0;border-right:1px solid var(--line);
+  }
+  .prob-body{justify-content:center;padding:14px 16px 15px}
+  .prob h3{font-size:15px}
+}
+@media (max-width:380px){
+  .prob svg{width:94px;flex-basis:94px}
+  .prob-body{padding:12px 13px 13px}
+  .prob h3{font-size:14.5px}
 }
 
 @media (max-width:760px){
