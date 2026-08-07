@@ -90,7 +90,7 @@
 
            The colour is inline because this task may not touch home.css; it
            belongs in a rule there next to the other h1 styles. -->
-      <h1 style="color:var(--live-deep)">Learn IT with one person who shows&nbsp;up.</h1>
+      <h1 style="color:var(--live-deep)">Learn IT with one person who shows up.</h1>
       <p class="lede">Pick your field, see who else is learning it, and choose
       someone to meet each week.</p>
 
@@ -183,6 +183,11 @@
         <div class="how-shot">
           <svg class="how-map" viewBox="0 0 400 263" role="img"
                aria-label="A paper map with three routes leaving one pin: Backend and Mobile faint and untaken, and Frontend marked out and ending at a flag">
+            <defs><clipPath id="mapclip"><rect y="30" width="400" height="233"/></clipPath></defs>
+            <!-- The drawing keeps its own coordinates; the top 30px is clipped
+                 away so the bar can sit there. 30 of 263 is the same slice of
+                 the height the bar takes in the two PNGs. -->
+            <g clip-path="url(#mapclip)">
             <rect width="400" height="263" fill="#FCF8F0"/>
             <!-- grid, then the two creases on top of it: each crease is a pale
                  highlight beside a darker line, which is what a fold looks
@@ -234,11 +239,16 @@
               <circle cx="356" cy="222" r="16" fill="none" stroke="#C6B594" stroke-width="2"/>
               <path d="M356 210l5 12-5 12-5-12z" fill="#B9A985"/>
             </g>
+                      </g>
+            <rect width="400" height="30" fill="#0F6E56"/>
+            <svg x="11" y="10" width="10" height="10" viewBox="0 0 173 171" fill="#fff"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
+            <text x="26" y="20" font-family="Plus Jakarta Sans, system-ui, sans-serif"
+                  font-size="9.6" font-weight="800" letter-spacing="-0.35" fill="#fff">peer<tspan fill="#9FE1CB">flow</tspan></text>
           </svg>
         </div>
         <div class="how-body">
           <span class="mono">Step one</span>
-          <h3>Choose your path</h3>
+          <h3>Pick your path</h3>
           <p>Choose the IT field you want to learn and describe what you are working toward.</p>
         </div>
       </article>
@@ -315,9 +325,7 @@
        this section changed. -->
   <section id="paths" class="sec">
     <div class="sec-head">
-      <span class="mono">Eight paths</span>
       <h2>Choose your path</h2>
-      <p>Your partner is on the same path, at roughly the same point.</p>
     </div>
 
     <!-- Each .waiting is filled in by home.js from the real number of people
@@ -325,7 +333,7 @@
     <div class="grid">
 
       <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Frontend">
+        <svg viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Frontend">
           <rect width="200" height="130" fill="#3C3489"/>
           <ellipse cx="98" cy="110" rx="56" ry="8" fill="#26215C"/>
           <rect x="26" y="20" width="16" height="16" rx="4" fill="#534AB7"/>
@@ -347,7 +355,7 @@
       </article>
 
       <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Backend">
+        <svg viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Backend">
           <rect width="200" height="130" fill="#0F6E56"/>
           <ellipse cx="100" cy="112" rx="52" ry="8" fill="#085041"/>
           <circle cx="32" cy="30" r="7" fill="#1D9E75"/>
@@ -376,7 +384,7 @@
       </article>
 
       <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Cybersecurity">
+        <svg viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Cybersecurity">
           <rect width="200" height="130" fill="#993C1D"/>
           <ellipse cx="100" cy="112" rx="44" ry="8" fill="#712B13"/>
           <circle cx="32" cy="34" r="6" fill="#D85A30"/>
@@ -395,7 +403,7 @@
       </article>
 
       <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Data and analytics">
+        <svg viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Data and analytics">
           <rect width="200" height="130" fill="#185FA5"/>
           <ellipse cx="100" cy="112" rx="54" ry="8" fill="#0C447C"/>
           <circle cx="30" cy="32" r="7" fill="#378ADD"/>
@@ -418,7 +426,7 @@
       </article>
 
       <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Mobile">
+        <svg viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Mobile">
           <rect width="200" height="130" fill="#993556"/>
           <ellipse cx="100" cy="112" rx="46" ry="8" fill="#72243E"/>
           <circle cx="34" cy="36" r="6" fill="#D4537E"/>
@@ -441,7 +449,7 @@
       </article>
 
       <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="DevOps and cloud">
+        <svg viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice" role="img" aria-label="DevOps and cloud">
           <rect width="200" height="130" fill="#35414F"/>
           <ellipse cx="100" cy="112" rx="48" ry="8" fill="#232C36"/>
           <circle cx="32" cy="88" r="6" fill="#6C7C8E"/>
@@ -461,7 +469,7 @@
       </article>
 
       <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="AI and machine learning">
+        <svg viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice" role="img" aria-label="AI and machine learning">
           <rect width="200" height="130" fill="#58256B"/>
           <ellipse cx="100" cy="112" rx="46" ry="8" fill="#3C1749"/>
           <circle cx="32" cy="32" r="6" fill="#9B5BB4"/>
@@ -483,7 +491,7 @@
       </article>
 
       <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="UX and UI design">
+        <svg viewBox="0 0 200 130" preserveAspectRatio="xMidYMid slice" role="img" aria-label="UX and UI design">
           <rect width="200" height="130" fill="#854F0B"/>
           <ellipse cx="100" cy="112" rx="52" ry="8" fill="#633806"/>
           <circle cx="30" cy="92" r="6" fill="#EF9F27"/>
@@ -516,6 +524,15 @@
     </div>
     <blockquote>I grew up in a small town. I didn't need another course — I needed someone who'd show up on Tuesday because I was expecting them.</blockquote>
     <cite>Founder</cite>
+  </section>
+
+  <!-- ================= CLOSING =================
+       The founder note is the most persuasive thing on the page and it used to
+       be followed by the footer and nothing else. Same dark band, so the two
+       read as one closing movement rather than a new section. -->
+  <section class="close">
+    <p>Ready to stop learning alone?</p>
+    <a class="btn" href="signup.html">Find my partner</a>
   </section>
 
   <footer>
