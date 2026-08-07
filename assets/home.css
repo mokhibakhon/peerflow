@@ -266,18 +266,28 @@ h1{
    the head of each line, and the sentence at 19px — the largest body type on
    the page outside the hero, because these three lines are the whole section.
 
-   Boxes were the wrong instinct here. Everything below this point is already
-   in a card — four in how-it-works, eight learning paths — so a fourth row of
-   cards read as more of the same and the problem stopped registering as a
-   different kind of statement. Rules say "these three things" without
-   claiming to be another card deck.
+   Boxes were the wrong instinct here. This section is surrounded by cards —
+   four in how-it-works, eight learning paths — so a third deck read as more
+   of the same and the problem stopped registering as a different kind of
+   statement. Rules say "these three things" without claiming to be another
+   card deck.
 
    The drawings replace the kickers that used to sit here (Drop-off, Matching,
    Momentum). Each one shows the sentence rather than labelling it: a climb
    that rises and then dots away, one person beside the pale outline of the
    partner who is not there, five weeks with two of them practised. They share
-   a 56×32 box so the three sit on one baseline down the left. */
-#problem{padding-bottom:78px}
+   a 56×32 box so the three sit on one baseline down the left.
+
+   It sits last now, between the learning paths and the founder note, so it
+   reads as the reason rather than the pitch: here is what happens on your
+   own, and then a person saying why they built the alternative.
+
+   Its own padding rather than .sec's 110/110. Above it there is no colour
+   change to break the run — .sec on both sides put 220px of undivided grey
+   between the last path card and this heading — so the top comes in to 70.
+   The bottom stays near 110 because the founder band's edge lands there and
+   an edge wants clearance. */
+#problem{padding:70px 0 96px}
 #problem .sec-head{margin-bottom:26px}
 .probs{list-style:none;margin:0;padding:0}
 /* The last row needs the closing rule, or the list trails off into the grey
