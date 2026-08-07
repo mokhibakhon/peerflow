@@ -262,36 +262,34 @@ h1{
 .pom-txt span{font-size:12.5px;color:var(--ink-soft)}
 
 /* ---------- sound familiar? ----------
-   No picture. Three sentences do not need illustrating, and every drawing
-   this section was given — a grey icon chip, then a dark panel, then a light
-   one — competed with the four pictures directly under it in how-it-works
-   without adding anything the sentence had not already said.
+   No boxes and no word above the sentence. Three rules, a small drawing at
+   the head of each line, and the sentence at 19px — the largest body type on
+   the page outside the hero, because these three lines are the whole section.
 
-   What it keeps is the page's card: white on the grey, one hairline, 16px
-   corner, mono kicker over the text. That is the same shell as .path and
-   .how-card with the picture area taken out, so the row belongs here without
-   pretending to be a fifth illustrated section.
+   Boxes were the wrong instinct here. Everything below this point is already
+   in a card — four in how-it-works, eight learning paths — so a fourth row of
+   cards read as more of the same and the problem stopped registering as a
+   different kind of statement. Rules say "these three things" without
+   claiming to be another card deck.
 
-   Shorter than .sec's 110px at the bottom: this section and how-it-works are
-   one thought, so 110 under here and 110 over there opened a hole between
-   them. 110 above, 78 below, and the white band picks the argument up. */
+   The drawings replace the kickers that used to sit here (Drop-off, Matching,
+   Momentum). Each one shows the sentence rather than labelling it: a climb
+   that rises and then dots away, one person beside the pale outline of the
+   partner who is not there, five weeks with two of them practised. They share
+   a 56×32 box so the three sit on one baseline down the left. */
 #problem{padding-bottom:78px}
-#problem .sec-head{margin-bottom:34px}
-.probs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-/* No hover state, unlike .path: that card lifts because there is a button
-   inside it to press, and there is nothing to press in here. A card that
-   reacts to the pointer but does nothing is a promise the page cannot keep. */
-.prob{
-  background:var(--card);border:1px solid var(--line);border-radius:16px;
-  padding:24px 26px 28px;
-  display:flex;flex-direction:column;gap:10px;
-}
-/* 16px and 600, a step up from .how-body p's 14.5 and the same weight as the
-   lede. There are only three of these and they are the whole section, so they
-   are read, not skimmed past on the way to a picture. */
+#problem .sec-head{margin-bottom:26px}
+.probs{list-style:none;margin:0;padding:0}
+/* The last row needs the closing rule, or the list trails off into the grey
+   with its bottom edge missing. */
+.prob{display:flex;align-items:center;gap:26px;padding:26px 4px;border-top:1px solid var(--line)}
+.prob:last-child{border-bottom:1px solid var(--line)}
+.prob svg{width:100px;flex:0 0 100px;display:block}
+/* Capped at 640 rather than left to run the full 1320: a single line of type
+   that wide is a paragraph you scan rather than a sentence you read. */
 .prob h3{
-  margin:0;font-size:16px;font-weight:600;line-height:1.5;
-  letter-spacing:-0.01em;color:var(--ink);text-wrap:pretty;
+  margin:0;font-size:19px;font-weight:600;line-height:1.45;
+  letter-spacing:-0.015em;color:var(--ink);max-width:640px;text-wrap:pretty;
 }
 
 /* ---------- how it works ---------- */
@@ -522,22 +520,24 @@ footer a{color:#CFE7DD}
 @media (max-width:680px){
   .how-grid{grid-template-columns:1fr}
 }
-/* Three across is the point of the row — the sentences read as a set rather
-   than a list — so it holds three for as long as the words stay readable,
-   and gives up a half-point of type between 1000 and 760 to keep them. It
-   stacks at 760, which is where the navigation swaps to the menu button: the
-   page already changes shape there, so the row changes with it instead of
-   inventing a seam of its own.
-
-   Stacking earlier was worse, not better. At 900 a stacked card is 836px
-   wide holding one line of text. */
-@media (max-width:1000px){
-  .prob{padding:20px 22px 22px;gap:8px}
-  .prob h3{font-size:15px}
+/* The drawing shrinks before the sentence does — it is the supporting half
+   of the row, and the words are the half worth keeping legible. Below 600 the
+   sentence starts wrapping, so the rows grow taller and the padding comes in
+   to stop the list running down the whole screen. */
+@media (max-width:820px){
+  .prob{gap:20px;padding:22px 2px}
+  .prob svg{width:78px;flex-basis:78px}
+  .prob h3{font-size:17.5px}
 }
-@media (max-width:760px){
-  .probs{grid-template-columns:1fr;gap:12px}
-  .prob h3{font-size:15.5px}
+@media (max-width:600px){
+  .prob{gap:16px;padding:19px 0}
+  .prob svg{width:62px;flex-basis:62px}
+  .prob h3{font-size:16px;line-height:1.4}
+}
+@media (max-width:380px){
+  .prob{gap:13px}
+  .prob svg{width:52px;flex-basis:52px}
+  .prob h3{font-size:15px}
 }
 
 @media (max-width:760px){
