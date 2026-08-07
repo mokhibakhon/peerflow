@@ -155,7 +155,19 @@ a:focus-visible,button:focus-visible{
   align-items:center;padding:82px 0 92px;
 }
 /* Jakarta is rounder and a touch wider than a display face, so the
-   headline wants more weight and slightly less of it on the page. */
+   headline wants more weight and slightly less of it on the page.
+
+   50 rather than 55 for the top of the clamp. At 55 the headline fell into
+   three lines with a stubby middle one — "Learn IT with one" / "person who" /
+   "shows up." — because the copy column is 623px at 1440 and the long line
+   wants about 640. At 50 it settles into two: a short first line over a long
+   second, which is the shape it should have.
+
+   50 and not 52 because 52 still breaks at 1280, which is a very common
+   laptop. Measured across 1024–1920: 50 holds the two-line shape at 1280,
+   1366, 1440 and 1920. Between about 1000 and 1200 it goes to three lines
+   whatever the size, because the hero grid gives the copy only 1.05 of 2
+   columns and there is not enough room there for any headline this long. */
 /* No text-wrap:balance any more. It earned its place on the old headline,
    which was long enough that balancing stopped the last line being a stub.
    On five words it does the opposite: given room for three lines it makes
@@ -163,7 +175,7 @@ a:focus-visible,button:focus-visible{
    greedily gives the clean two-line break at the comma. Measured at every
    width from 320 to 1920; balance produced three lines at seven of them. */
 h1{
-  font-size:clamp(34px,4.6vw,55px);line-height:1.06;
+  font-size:clamp(34px,4.6vw,50px);line-height:1.06;
   letter-spacing:-0.03em;font-weight:800;margin:0 0 20px;
 }
 /* A grid column is min-content wide by default, so one long unbroken word in
