@@ -282,18 +282,31 @@ h1{
    reads as the reason rather than the pitch: here is what happens on your
    own, and then a person saying why they built the alternative.
 
-   Its own padding rather than .sec's 110/110. Above it there is no colour
-   change to break the run — .sec on both sides put 220px of undivided grey
-   between the last path card and this heading — so the top comes in to 70.
-   The bottom stays near 110 because the founder band's edge lands there and
-   an edge wants clearance. */
-#problem{padding:70px 0 96px}
+   A white band, full bleed, the same way #how is one — see the long note by
+   the bands further down for why it is a shadow and a clip-path rather than
+   a background on a wider element. That makes three alternating fields down
+   the page: grey hero, white how-it-works, grey paths, white here, then the
+   dark green close. The band edge is also what separates this section from
+   the paths above it; before it was white, 110px of .sec padding on each side
+   left 220px of undivided grey there and still read as one field.
+
+   88 over 96 inside the band rather than .sec's 110/110. The rules are a
+   lighter thing to frame than a row of cards, and the founder band's edge
+   lands directly under this one, so the bottom keeps slightly more. */
+#problem{
+  background:var(--card);
+  box-shadow:0 0 0 100vmax var(--card);
+  clip-path:inset(0 -100vmax);
+  padding:88px 0 96px;
+}
 #problem .sec-head{margin-bottom:26px}
 .probs{list-style:none;margin:0;padding:0}
-/* The last row needs the closing rule, or the list trails off into the grey
-   with its bottom edge missing. */
-.prob{display:flex;align-items:center;gap:26px;padding:26px 4px;border-top:1px solid var(--line)}
-.prob:last-child{border-bottom:1px solid var(--line)}
+/* The last row needs the closing rule, or the list trails off with its bottom
+   edge missing. #DEDDE6 rather than var(--line) for the same reason the
+   how-it-works cards restate their border: --line is picked to read against
+   the grey, and on white it goes faint. */
+.prob{display:flex;align-items:center;gap:26px;padding:26px 4px;border-top:1px solid #DEDDE6}
+.prob:last-child{border-bottom:1px solid #DEDDE6}
 .prob svg{width:100px;flex:0 0 100px;display:block}
 /* Capped at 640 rather than left to run the full 1320: a single line of type
    that wide is a paragraph you scan rather than a sentence you read. */
