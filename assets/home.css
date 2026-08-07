@@ -280,6 +280,10 @@ h1{
   border-bottom:1px solid var(--line);background:#FAFAFB;
 }
 .how-shot img{width:100%;height:100%;display:block;object-fit:cover;object-position:center top}
+/* Step one's picture is an inline SVG rather than a PNG or a drawn panel. Its
+   viewBox is 400×263 — the same 1280:841 shape — so it fills the box exactly
+   and the row still lines up. */
+.how-map{width:100%;height:100%;display:block}
 .how-body{padding:20px 22px 24px}
 .how-body .mono{color:var(--live-deep)}
 .how-body h3{margin:8px 0 5px;font-size:18px;font-weight:700;letter-spacing:-0.015em}
@@ -315,28 +319,6 @@ h1{
   flex:1;min-height:0;padding:3.2cqi;
   display:flex;flex-direction:column;gap:2.4cqi;
 }
-
-/* --- 01: four fields, one taken --- */
-.hd-tiles{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2cqi}
-.hd-tile{
-  display:flex;align-items:center;gap:1.1cqi;
-  padding:0 2cqi;border-radius:2.4cqi;
-  border:.3cqi solid #E7E6EC;background:#FBFBFC;color:#82869C;
-  font-size:3.1cqi;font-weight:600;letter-spacing:-0.015em;
-}
-/* The one you took: brand green, and a tick, so it is never colour alone. */
-.hd-tile.on{
-  border-color:#0F6E56;background:#E1F5EE;color:#0A4A3B;font-weight:700;
-}
-.hd-tick{
-  width:3.8cqi;height:3.8cqi;flex:0 0 auto;margin-left:auto;
-  border-radius:50%;background:#0F6E56;padding:.8cqi;
-}
-.hd-goal{
-  flex:0 0 auto;font-size:2.8cqi;color:#82869C;text-align:center;
-  padding-top:2.4cqi;border-top:.2cqi solid #F1F0F4;
-}
-.hd-goal b{color:#171A2E;font-weight:700}
 
 /* --- 04: the thing you made, shipped --- */
 .hd-win{

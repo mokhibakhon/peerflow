@@ -171,30 +171,78 @@
 
     <div class="how-grid">
 
-      <!-- ---- 01 · drawn here: four fields, one taken ---- -->
+      <!-- ---- 01 · drawn here: a map, one route taken ----
+           Not a mock-up of a screen, unlike the rest of the row. Three routes
+           leave one pin, two of them faint and dashed and named where they
+           end, and the one you took is solid green and finishes at a flag —
+           the two halves of the sentence under the card in one picture.
+
+           Drawn on the same 1280:841 shape as the other three, so the row
+           still lines up. It has no green PeerFlow bar, on purpose.
+
+           Painted out of the page's own palette rather than the cream it was
+           first drawn in: the sheet is white with the faintest green cast,
+           the grid and the fold creases are pale greens, and the route you
+           took is --live-deep, the same green as the "Step one" kicker below
+           it and the buttons in the card next door. The routes you did not
+           take are a desaturated green-grey, so they read as the same family
+           of ink rather than a second colour scheme. -->
       <article class="how-card">
         <div class="how-shot">
-          <div class="how-draw" role="img"
-               aria-label="Four learning paths with one of them selected">
-            <div class="hd-bar">
-              <svg viewBox="0 0 173 171" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-              <b>peer<i>flow</i></b>
-            </div>
-            <div class="hd-body">
-              <div class="hd-tiles">
-                <span class="hd-tile on">Frontend
-                  <svg class="hd-tick" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-                </span>
-                <span class="hd-tile">Cybersecurity</span>
-                <span class="hd-tile">Data</span>
-                <span class="hd-tile">DevOps</span>
-              </div>
-              <!-- No timeframe here at all. The product has no four-week
-                   system, so the picture shouldn't imply one; the line just
-                   names what the tiles above it are. -->
-              <span class="hd-goal">Choose your <b>learning path</b></span>
-            </div>
-          </div>
+          <svg class="how-map" viewBox="0 0 400 263" role="img"
+               aria-label="A map with three routes leaving one pin: Backend and Mobile faint and untaken, and Frontend marked out and ending at a flag">
+            <rect width="400" height="263" fill="#F7FBF9"/>
+            <!-- grid, then the two creases on top of it: each crease is a pale
+                 highlight beside a darker line, which is what a fold looks
+                 like. On the old version they were a single faint line and
+                 vanished at card size. -->
+            <g stroke="#E6F2EC" stroke-width="2">
+              <path d="M0 66h400M0 197h400M67 0v263M200 0v263M333 0v263"/>
+            </g>
+            <g fill="none" stroke="#DCEEE5" stroke-width="3">
+              <path d="M0 38C56 34 78 64 132 60S200 18 258 26s94 50 142 40"/>
+              <path d="M0 246C64 242 86 212 146 216s76 42 136 34 74-28 118-32"/>
+            </g>
+            <g stroke-width="2">
+              <path d="M133.5 0v263M267.5 0v263M0 131.5h400" stroke="#D5E9E0"/>
+              <path d="M131 0v263M265 0v263M0 129h400" stroke="#FFFFFF"/>
+            </g>
+
+            <!-- the two you did not take -->
+            <g fill="none" stroke="#AEC8BF" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 13">
+              <path d="M66 196C122 194 172 182 226 170"/>
+              <path d="M66 196C124 214 180 226 240 230"/>
+            </g>
+            <g fill="#AEC8BF"><circle cx="230" cy="169" r="6"/><circle cx="244" cy="230" r="6"/></g>
+
+            <!-- the one you did -->
+            <path d="M66 196C96 172 112 138 158 126S232 116 262 92" fill="none"
+                  stroke="#0A7350" stroke-width="8" stroke-linecap="round"/>
+            <g fill="#FFFFFF" stroke="#0A7350" stroke-width="4">
+              <circle cx="158" cy="126" r="6"/><circle cx="215" cy="110" r="6"/>
+            </g>
+
+            <path d="M66 218c0 0-15-21-15-31a15 15 0 1 1 30 0c0 10-15 31-15 31z" fill="#171A2E"/>
+            <circle cx="66" cy="186" r="5.5" fill="#FFFFFF"/>
+
+            <path d="M262 92V54" stroke="#171A2E" stroke-width="5" stroke-linecap="round"/>
+            <path d="M262 54h36l-9 10 9 10h-36z" fill="#0A7350"/>
+            <ellipse cx="262" cy="94" rx="12" ry="4" fill="#171A2E" opacity=".16"/>
+
+            <!-- every label sits clear of every line; on the old version
+                 "Mobile" landed on top of the green route. -->
+            <text x="166" y="66" font-family="Plus Jakarta Sans, system-ui, sans-serif"
+                  font-size="17" font-weight="800" fill="#0A5240">Frontend</text>
+            <g font-family="Plus Jakarta Sans, system-ui, sans-serif" font-size="14" font-weight="600" fill="#6F8B83">
+              <text x="244" y="174">Backend</text>
+              <text x="258" y="235">Mobile</text>
+            </g>
+
+            <g opacity=".55">
+              <circle cx="356" cy="222" r="16" fill="none" stroke="#B6D2C7" stroke-width="2"/>
+              <path d="M356 210l5 12-5 12-5-12z" fill="#93BBAC"/>
+            </g>
+          </svg>
         </div>
         <div class="how-body">
           <span class="mono">Step one</span>
