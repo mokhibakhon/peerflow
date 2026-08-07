@@ -261,6 +261,41 @@ h1{
 }
 .pom-txt span{font-size:12.5px;color:var(--ink-soft)}
 
+/* ---------- sound familiar? ----------
+   Three problems, no colour. The reference for this section gave each card
+   its own pastel — pink, orange, yellow — which would have put three hues on
+   the page that appear nowhere else in it, and would have made the problems
+   the loudest row above the fold. These are ink on white with a hairline,
+   and the icons sit on one neutral chip rather than three tinted ones.
+
+   Shorter than .sec's 110px at the bottom: this section and how-it-works are
+   one thought, so 110 under here and 110 over there opened a hole between
+   them. 110 above, 78 below, and the white band picks the argument up. */
+#problem{padding-bottom:78px}
+#problem .sec-head{margin-bottom:34px}
+.probs{
+  list-style:none;margin:0;padding:0;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+}
+.prob{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:24px 24px 26px;
+}
+/* Neutral, not tinted. Green on this page means the part that works — the
+   route on the map, the Step one kicker, every button — so it is not spent
+   here. */
+.prob-ico{
+  display:flex;align-items:center;justify-content:center;
+  width:44px;height:44px;border-radius:12px;
+  background:#F0F0F5;color:var(--ink-soft);
+}
+.prob-ico svg{width:23px;height:23px;display:block}
+.prob p{
+  margin:16px 0 0;font-size:15.5px;line-height:1.5;
+  color:var(--ink);font-weight:500;letter-spacing:-0.008em;
+  text-wrap:pretty;
+}
+
 /* ---------- how it works ---------- */
 /* Four cards, picture on top. The pictures are made to be read at this width
    — roughly 300px on a full-size screen — rather than being screenshots of
@@ -488,6 +523,15 @@ footer a{color:#CFE7DD}
 }
 @media (max-width:680px){
   .how-grid{grid-template-columns:1fr}
+}
+/* The problem cards hold three across further down than the how-it-works row
+   does, because they are text and a small icon rather than a picture that has
+   to stay legible. At 680 the three sentences start taking four and five lines
+   each, so they stack — the same width the row above them stacks at. */
+@media (max-width:680px){
+  .probs{grid-template-columns:1fr;gap:14px}
+  .prob{padding:20px 20px 22px}
+  .prob p{margin-top:13px}
 }
 
 @media (max-width:760px){
