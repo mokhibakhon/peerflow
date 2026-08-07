@@ -34,6 +34,7 @@
    chip that JS has already marked hidden. */
 [hidden]{display:none!important}
 
+
 body{
   margin:0;
   background:var(--paper);
@@ -129,13 +130,13 @@ a:focus-visible,button:focus-visible{
   position:absolute;top:100%;right:0;z-index:60;
   width:min(260px,calc(100vw - 64px));
   flex-direction:column;gap:2px;padding:8px;
-  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
   box-shadow:0 12px 34px rgba(23,26,46,.13);
   animation:navpop .14s ease-out;
 }
 /* The whole row is the target, not just the words in it. */
 .nav-menu a{
-  display:block;padding:12px 13px;border-radius:10px;
+  display:block;padding:12px 13px;border-radius:9px;
   font-size:15px;font-weight:600;color:var(--live-deep);
 }
 .nav-menu a:hover{background:var(--live-soft)}
@@ -155,20 +156,15 @@ a:focus-visible,button:focus-visible{
 }
 /* Jakarta is rounder and a touch wider than a display face, so the
    headline wants more weight and slightly less of it on the page. */
-/* The headline broke as "Learn IT with" / "one person" / "who shows up." at
-   1440, and the cause was not the wrap mode — balance, pretty and greedy all
-   gave three lines, because the copy column is 623px and the second line
-   needs about 640px at 55px. So the size came down rather than the wrapping
-   changing: 52px is the largest that holds two lines, measured, and every
-   size below it wraps identically.
-
-   balance stays on because it costs nothing and keeps the narrow widths even.
-   The non-breaking space that used to hold "shows up" together is gone — it
-   guarded against an orphan under greedy wrapping and fought the balancer. */
+/* No text-wrap:balance any more. It earned its place on the old headline,
+   which was long enough that balancing stopped the last line being a stub.
+   On five words it does the opposite: given room for three lines it makes
+   three short ones — "Learn IT" / "together," / "not alone." — where filling
+   greedily gives the clean two-line break at the comma. Measured at every
+   width from 320 to 1920; balance produced three lines at seven of them. */
 h1{
-  font-size:clamp(34px,4.6vw,52px);line-height:1.06;
+  font-size:clamp(34px,4.6vw,55px);line-height:1.06;
   letter-spacing:-0.03em;font-weight:800;margin:0 0 20px;
-  text-wrap:balance;
 }
 /* A grid column is min-content wide by default, so one long unbroken word in
    the headline would push the card off the side rather than wrap. */
@@ -176,7 +172,7 @@ h1{
 /* 42ch rather than 38: the supporting line is a full sentence about the path,
    the match and the four weeks, and at 38 it broke into four short lines that
    read like a list. */
-.lede{font-size:17px;color:var(--ink-soft);margin:0 0 30px;max-width:42ch}
+.lede{font-size:18px;color:var(--ink-soft);margin:0 0 30px;max-width:42ch}
 
 /* One way in. There was a second, quieter button beside it pointing at
    how-it-works; it promised matching the product doesn't do, and a hero reads
@@ -195,7 +191,7 @@ h1{
    facts, the clock. Everything below is a few pixels looser than it was — the
    card lost about seventy pixels of height with the strip, and keeping the old
    tight rhythm in a shorter card left it looking clipped rather than calm. */
-.session{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px}
+.session{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 26px}
 .session-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .live{
   display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
@@ -267,13 +263,9 @@ h1{
   border-bottom:1px solid var(--line);background:#FAFAFB;
 }
 .how-shot img{width:100%;height:100%;display:block;object-fit:cover;object-position:center top}
-/* Step one's picture is an inline SVG rather than a PNG or a drawn panel. Its
-   viewBox is 400×263 — the same 1280:841 shape — so it fills the box exactly
-   and the row still lines up. */
-.how-map{width:100%;height:100%;display:block}
 .how-body{padding:20px 22px 24px}
 .how-body .mono{color:var(--live-deep)}
-.how-body h3{margin:8px 0 5px;font-size:20px;font-weight:700;letter-spacing:-0.018em}
+.how-body h3{margin:8px 0 5px;font-size:18px;font-weight:700;letter-spacing:-0.015em}
 .how-body p{margin:0;font-size:14.5px;color:var(--ink-soft)}
 
 /* ---------- the two drawn panels ----------
@@ -306,6 +298,28 @@ h1{
   flex:1;min-height:0;padding:3.2cqi;
   display:flex;flex-direction:column;gap:2.4cqi;
 }
+
+/* --- 01: four fields, one taken --- */
+.hd-tiles{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2cqi}
+.hd-tile{
+  display:flex;align-items:center;gap:1.1cqi;
+  padding:0 2cqi;border-radius:2.4cqi;
+  border:.3cqi solid #E7E6EC;background:#FBFBFC;color:#82869C;
+  font-size:3.1cqi;font-weight:600;letter-spacing:-0.015em;
+}
+/* The one you took: brand green, and a tick, so it is never colour alone. */
+.hd-tile.on{
+  border-color:#0F6E56;background:#E1F5EE;color:#0A4A3B;font-weight:700;
+}
+.hd-tick{
+  width:3.8cqi;height:3.8cqi;flex:0 0 auto;margin-left:auto;
+  border-radius:50%;background:#0F6E56;padding:.8cqi;
+}
+.hd-goal{
+  flex:0 0 auto;font-size:2.8cqi;color:#82869C;text-align:center;
+  padding-top:2.4cqi;border-top:.2cqi solid #F1F0F4;
+}
+.hd-goal b{color:#171A2E;font-weight:700}
 
 /* --- 04: the thing you made, shipped --- */
 .hd-win{
@@ -398,18 +412,14 @@ h1{
 }
 /* The illustration runs to the card edge, so it needs a line under it or it
    bleeds into the label. */
-/* Was the full 200:130 drawing, which made the artwork 58% of the card and
-   the path name — the only information on it — the smallest thing there.
-   preserveAspectRatio="slice" on each svg lets it be cropped to a band
-   instead of letterboxed with gaps at the sides. */
-.path svg{width:100%;height:112px;display:block;border-bottom:1px solid var(--line)}
+.path svg{width:100%;display:block;border-bottom:1px solid var(--line)}
 .path-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:11px;flex:1}
 /* 700 rather than 600: the count above it is uppercase mono and the button
    below it is 600, and at 600 the name of the path was the least emphatic
    thing in its own card. */
-.path h3{margin:0;font-size:18px;font-weight:700;letter-spacing:-0.015em;line-height:1.25}
+.path h3{margin:0;font-size:17.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.25}
 .path .cta{
-  margin-top:auto;text-align:center;border:1px solid var(--ink);border-radius:10px;
+  margin-top:auto;text-align:center;border:1px solid var(--ink);border-radius:9px;
   padding:11px 10px;font-size:14px;font-weight:600;line-height:1.2;
   transition:background .15s ease,color .15s ease,box-shadow .15s ease;
 }
@@ -441,7 +451,7 @@ h1{
   background:var(--deep);color:#fff;
   box-shadow:0 0 0 100vmax var(--deep);
   clip-path:inset(0 -100vmax);
-  padding:110px 0 46px;text-align:center;
+  padding:110px 0;text-align:center;
 }
 .founder .sec-head{margin-bottom:20px}
 .founder h2{
@@ -456,21 +466,6 @@ h1{
   display:block;margin-top:18px;font-style:normal;font-size:14px;
   color:#8FD3BB;font-family:var(--mono);
 }
-
-/* ---------- closing ---------- */
-.close{
-  background:var(--deep);
-  box-shadow:0 0 0 100vmax var(--deep);
-  clip-path:inset(0 -100vmax);
-  padding:0 0 96px;text-align:center;
-}
-.close p{margin:0 0 22px;font-size:18px;color:#A9D8C6}
-/* The page's dark button would be invisible on this band, so it inverts. */
-.close .btn{
-  background:#fff;color:var(--deep);font-size:15px;padding:13px 24px;
-  box-shadow:0 1px 2px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.5);
-}
-.close .btn:hover{background:#EFF7F3;box-shadow:0 5px 16px rgba(0,0,0,.24)}
 
 /* ---------- footer ----------
    Sits on the same band as the quote, so the page closes once rather than
@@ -510,7 +505,7 @@ footer a{color:#CFE7DD}
   .menu-btn{display:inline-flex}
   .nav-menu{display:flex}
   .sec{padding:56px 0}
-  .founder{padding:60px 0 32px}
+  .founder{padding:60px 0}
   .founder blockquote{font-size:22px}
 }
 
