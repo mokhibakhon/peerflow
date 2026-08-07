@@ -771,89 +771,103 @@ html{scroll-behavior:smooth}
    ============================================================ */
 
 /* ---------- calendar ----------
-   A week, not a month: one standing slot a week would leave a month grid
-   twenty-eight squares empty around two blocks.
+   Drawn like a calendar people already know: a light grid, hour labels down
+   the left sitting on the line they name, day name over day number, today's
+   number in a filled disc, and sessions as floating rounded blocks with a
+   coloured bar down the left rather than cells that are filled in.
 
-   The shading is the point. A calendar that only drew what is booked would
-   show one block and acres of nothing, so the empty half carries the work
-   instead — the hours you and your partner have both said you are free are
-   washed, and clicking one fills in the booking form below. */
-.cal-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
-.cal-nav{display:flex;align-items:center;gap:4px;margin-left:auto}
-.cal-step{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);
+   Lines are the lightest part of it. Google's grid works because the rules
+   are almost invisible and the blocks do all the talking; a heavy border on
+   every cell — which is what the first version had — turns an empty week into
+   a spreadsheet.
+
+   The one thing here that a normal calendar has no reason to draw: the hours
+   you and your partner have both said you are free are washed, and clicking
+   one proposes that time. Kept faint on purpose so it sits under the blocks
+   rather than competing with them. */
+.cal-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.cal-nav{display:flex;align-items:center;gap:6px;margin-left:auto}
+.cal-step{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
   background:var(--card);color:var(--soft);display:flex;align-items:center;
-  justify-content:center;font-size:15px;line-height:1;padding:0}
+  justify-content:center;font-size:16px;line-height:1;padding:0}
 .cal-step:hover{background:var(--band);color:var(--ink)}
-.cal-range{font-size:14.5px;font-weight:600;letter-spacing:-.01em;padding:0 6px;white-space:nowrap}
+.cal-range{font-size:16px;font-weight:700;letter-spacing:-.02em;padding:0 10px;white-space:nowrap}
 
-/* min-width:0 on both, and it is load-bearing. .cal-grid keeps a 574px floor
-   so seven columns stay legible, .cal-scroll scrolls it — but a plain block
-   still reports its content's min-content width to its parent, and #cal-card
-   is a grid item whose automatic minimum size is that. Without these the
-   floor climbed the tree and set the width of every .wide card in .grid: at a
-   390px viewport the sessions card came out 642px and the page scrolled
-   sideways. */
 .cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0;
-  border:1px solid var(--line);border-radius:12px}
+  border:1px solid var(--line);border-radius:14px;background:var(--card)}
 #cal-card{min-width:0}
-.cal-grid{display:grid;grid-template-columns:56px repeat(7,minmax(74px,1fr));min-width:574px}
-.cal-corner,.cal-day{background:#FBFBFC;border-bottom:1px solid var(--line)}
-.cal-corner{border-right:1px solid var(--line)}
-.cal-day{padding:8px 3px 9px;text-align:center;border-right:1px solid var(--line)}
-.cal-day:last-child{border-right:0}
-.cal-day span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;
-  text-transform:uppercase;color:var(--faint)}
-.cal-day b{display:block;margin-top:2px;font-size:15px;font-weight:700;letter-spacing:-.02em}
-.cal-day.today span{color:var(--p6)}
-.cal-day.today b{width:26px;height:26px;margin:2px auto 0;border-radius:50%;background:var(--p6);
-  color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+.cal-grid{display:grid;grid-template-columns:58px repeat(7,minmax(92px,1fr));min-width:702px}
 
-.cal-h{padding:6px 8px 0;text-align:right;font-family:var(--mono);font-size:10px;line-height:1;
-  white-space:nowrap;
-  color:var(--faint);background:#FBFBFC;
-  border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
-.cal-cell{position:relative;min-height:70px;padding:0;border:0;background:transparent;
-  border-right:1px solid #F1F0F5;border-bottom:1px solid #F1F0F5;width:100%;
+/* the head */
+.cal-corner{border-bottom:1px solid var(--line);border-right:1px solid #F1F0F5}
+.cal-day{padding:11px 6px 13px;text-align:center;
+  border-bottom:1px solid var(--line);border-right:1px solid #F1F0F5}
+.cal-day:last-child{border-right:0}
+/* Sentence case and no tracking: the reference reads as a calendar because
+   its day names look like words, not like labels on a chart. */
+.cal-day span{display:block;font-family:var(--body);font-size:12.5px;font-weight:500;
+  letter-spacing:0;text-transform:none;color:var(--soft)}
+.cal-day b{display:block;margin:4px auto 0;font-size:19px;font-weight:600;letter-spacing:-.02em;
+  width:34px;height:34px;line-height:34px;border-radius:50%}
+.cal-day.today span{color:var(--p6);font-weight:600}
+.cal-day.today b{background:var(--p6);color:#fff}
+
+/* the body. Only a top rule and a day divider — no boxes. */
+.cal-h{padding:5px 9px 0;text-align:right;font-family:var(--body);font-size:11.5px;
+  line-height:1;color:var(--faint);white-space:nowrap;
+  border-right:1px solid #F1F0F5;border-top:1px solid #F1F0F5}
+.cal-cell{position:relative;min-height:78px;padding:0;border:0;background:transparent;
+  border-top:1px solid #F1F0F5;border-right:1px solid #F1F0F5;width:100%;
   font-family:var(--body);text-align:left}
 .cal-cell:last-child{border-right:0}
-/* An hour you have both said you are free: an invitation, so it is faint. */
-.cal-cell.free{background:#F4FBF8;cursor:pointer}
-.cal-cell.free:hover{background:#E3F4EC}
+/* The hours you share. Faint — it is an invitation sitting under the blocks. */
+.cal-cell.free{background:#F5FBF8;cursor:pointer}
+.cal-cell.free:hover{background:#E6F5EE}
 .cal-cell.free::after{content:"+";position:absolute;inset:0;display:flex;align-items:center;
-  justify-content:center;color:var(--p4);font-size:19px;font-weight:600;
+  justify-content:center;color:var(--p4);font-size:20px;font-weight:500;
   opacity:0;transition:opacity .12s ease}
 .cal-cell.free:hover::after,.cal-cell.free:focus-visible::after{opacity:1}
-/* Gone, not disabled. Hatching every hour before now covered half the grid on
-   a Friday and read as broken; a flat wash says the same thing quietly. The
-   shared-hours tint still shows through underneath, because "we were both
-   free and did not book it" is worth seeing when you look back. */
-.cal-cell.past{background:#FAFAFB;cursor:default}
-.cal-cell.past.free{background:#F6FAF8;cursor:default}
+.cal-cell.past{background:#FCFCFD;cursor:default}
+.cal-cell.past.free{background:#F8FBFA;cursor:default}
 .cal-cell.past.free:hover::after{opacity:0}
 
-/* The blocks. Three states, told apart by shape as well as colour. */
-.cal-ev{position:absolute;left:3px;right:3px;top:3px;bottom:3px;border-radius:8px;
-  padding:6px 8px;overflow:hidden;font-size:12px;line-height:1.3;text-align:left}
-.cal-ev b{display:block;font-size:12.5px;font-weight:700;letter-spacing:-.01em;
+/* the blocks. Floating, not filled cells: inset from the rules, rounded, with
+   the bar down the left doing the colour-coding. */
+.cal-ev{position:absolute;left:5px;right:5px;top:4px;height:64px;border-radius:7px;
+  padding:7px 9px;overflow:hidden;font-size:12.5px;line-height:1.35;text-align:left;
+  border-left-width:3px;border-left-style:solid}
+.cal-ev b{display:block;font-size:13px;font-weight:600;letter-spacing:-.005em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal-ev i{display:block;font-style:normal;color:var(--soft);margin-top:1px;
+.cal-ev i{display:block;font-style:normal;font-size:12px;margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal-ev.booked{background:var(--p0);border-left:3px solid var(--p6);color:var(--p8)}
-.cal-ev.booked i{color:#2E6B58}
-.cal-ev.waiting{background:repeating-linear-gradient(135deg,#fff,#fff 6px,#FAFAFC 6px,#FAFAFC 12px);
-  border:1.5px dashed #C8C7D3}
-.cal-ev.waiting b{color:var(--ink)}
-.cal-ev.done{background:#F4F4F7;border-left:3px solid #C8C7D3;color:var(--soft)}
-.cal-ev.done b{color:var(--soft);font-weight:600}
+/* Two hues, and they mean something rather than just telling blocks apart:
+   green is agreed, indigo is still a question. Indigo is the purple the
+   avatars already use. */
+.cal-ev.booked{background:#E7F5EF;border-left-color:var(--p6);color:#0A4A3B}
+.cal-ev.booked i{color:#3B7D68}
+.cal-ev.waiting{background:#EFEDFB;border-left-color:#6A61C9;color:#2E2769}
+.cal-ev.waiting i{color:#635BA8}
+.cal-ev.done{background:#F3F3F6;border-left-color:#C8C7D3;color:var(--soft)}
+.cal-ev.done i{color:var(--faint)}
 
-.cal-key{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:12px;
-  font-size:12px;color:var(--soft)}
-.cal-key i{display:inline-block;width:12px;height:12px;border-radius:4px;
-  margin-right:6px;vertical-align:-2px}
-.cal-key .k1 i{background:var(--p0);box-shadow:inset 3px 0 0 var(--p6)}
-.cal-key .k2 i{border:1.5px dashed #C8C7D3}
-.cal-key .k3 i{background:#F4FBF8;border:1px solid #DBEDE5}
+.cal-key{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:13px;
+  font-size:12.5px;color:var(--soft)}
+.cal-key i{display:inline-block;width:13px;height:13px;border-radius:4px;
+  margin-right:7px;vertical-align:-2px}
+.cal-key .k1 i{background:#E7F5EF;box-shadow:inset 3px 0 0 var(--p6)}
+.cal-key .k2 i{background:#EFEDFB;box-shadow:inset 3px 0 0 #6A61C9}
+.cal-key .k3 i{background:#F5FBF8;border:1px solid #DBEDE5}
 .cal-empty{margin:12px 0 0;font-size:13px;color:var(--soft)}
+
+/* At 320 the card has 212px of usable width and the week nav wanted 252, so
+   it pushed the page five pixels wide. Below 420 it drops to its own line and
+   spreads across it. */
+@media (max-width:420px){
+  .cal-head{gap:10px}
+  .cal-nav{margin-left:0;width:100%;justify-content:space-between}
+  .cal-range{font-size:14.5px;padding:0 2px;flex:1;text-align:center}
+  .cal-nav .small{padding:8px 10px}
+}
 
 /* ---------- the plan ---------- */
 .plan-rows{margin-top:4px}

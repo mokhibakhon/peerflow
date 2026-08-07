@@ -147,12 +147,7 @@
          Hidden until we know enough to draw it. -->
     <section class="b wide" id="cal-card" hidden>
       <div class="cal-head">
-        <div class="bh" style="margin:0">
-          <span class="gl" style="background:var(--p0)">
-            <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M7 2v3M15 2v3" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
-          </span>
-          <div><span class="mono" style="color:var(--p6)">Your week</span><h2>Calendar</h2></div>
-        </div>
+        <h2 style="margin:0;font-size:21px;font-weight:700;letter-spacing:-.025em">Calendar</h2>
         <div class="cal-nav">
           <button class="cal-step" type="button" id="cal-prev" aria-label="Previous week">&lsaquo;</button>
           <span class="cal-range" id="cal-range"></span>
@@ -928,9 +923,13 @@
         if (ev){
           var kind = ev.status === 'proposed' ? 'waiting'
                    : (ev.startsAt.getTime() + ev.durationMin * 60000 <= now ? 'done' : 'booked');
+          /* The start time goes on the block's second line, the way the
+             reference does it — and once a block floats inside a cell rather
+             than filling it, the row label no longer says it for you. */
+          var when2 = ev.startsAt.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
           var sub = kind === 'waiting'
-            ? (ev.mine ? 'Waiting on ' + (ev.partnerName || 'them') : 'Needs your answer')
-            : ev.durationMin + ' min' + (ev.partnerName ? ' · ' + ev.partnerName : '');
+            ? when2 + ' · ' + (ev.mine ? 'waiting' : 'needs an answer')
+            : when2 + (ev.partnerName ? ' · ' + ev.partnerName.split(/\s+/)[0] : '');
           body = '<span class="cal-ev ' + kind + '">' +
                  '<b>' + esc(ev.topic || 'Session') + '</b>' +
                  '<i>' + esc(sub) + '</i></span>';
