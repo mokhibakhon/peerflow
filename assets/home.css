@@ -150,18 +150,22 @@ a:focus-visible,button:focus-visible{
 @keyframes navpop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
 /* ---------- hero ---------- */
-/* 1.14/0.86 with a 56px gap rather than 1.05/0.95 with 70.
-   "person who shows up." wants about 640px at 55px, and the old split gave
-   the copy 623 at 1440 — twenty pixels short, so the headline fell into three
-   lines with a stubby middle one. Widening the column fixes the break at full
-   size, where shrinking the type would have fixed it by making the headline
-   smaller, which is not the same thing.
+/* The gap carries this, not the ratio and not the type size.
 
-   Measured: two lines at 1280, 1366, 1440 and 1920. The session card gives up
-   47px for it (563 to 516 at 1440), which it can afford. Below 900 the hero
-   is one column and none of this applies. */
+   Measured rather than guessed: "person who shows up." is 658px at 55px, and
+   the old split gave the copy column 623 at 1440, so the headline fell into
+   three lines with a stubby middle one. Shrinking the type fixes it by making
+   the headline smaller. Taking the width off the session card fixes it by
+   making the card smaller. Cutting the gap fixes it by taking the space from
+   nowhere — 70px between two columns was more than the hero needed.
+
+   1.08/0.92 at a 28px gap: two lines at 1366, 1440 and 1920, the type still
+   55px, and the card 565px where it was 563 — very slightly wider than
+   before. 1280 and below still take three lines; there is no split that
+   rescues those without shrinking something. Below 900 the hero is one
+   column and none of this applies. */
 .hero{
-  display:grid;grid-template-columns:1.14fr .86fr;gap:56px;
+  display:grid;grid-template-columns:1.08fr .92fr;gap:28px;
   align-items:center;padding:82px 0 92px;
 }
 /* Jakarta is rounder and a touch wider than a display face, so the
