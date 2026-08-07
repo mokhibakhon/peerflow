@@ -262,44 +262,35 @@ h1{
 .pom-txt span{font-size:12.5px;color:var(--ink-soft)}
 
 /* ---------- sound familiar? ----------
-   Built to the same rule as every other card on this page: a full-bleed
-   illustration on top, a hairline under it, then a white body with a mono
-   kicker over the text. That is what .path and .how-card both do, and it is
-   what the first version of this section got wrong — a small grey icon in a
-   plain box shares no shape with anything else here.
+   No picture. Three sentences do not need illustrating, and every drawing
+   this section was given — a grey icon chip, then a dark panel, then a light
+   one — competed with the four pictures directly under it in how-it-works
+   without adding anything the sentence had not already said.
 
-   The drawings use the learning-path recipe too: a 200×130 panel, a deep
-   ground, one flat object with a soft ellipse under it, and two small rounded
-   squares floating in opposite corners.
+   What it keeps is the page's card: white on the grey, one hairline, 16px
+   corner, mono kicker over the text. That is the same shell as .path and
+   .how-card with the picture area taken out, so the row belongs here without
+   pretending to be a fifth illustrated section.
 
-   Light, on #F7FBF9 — the same white-with-a-green-cast sheet the step-one map
-   is drawn on, one section below. The deep grounds the learning paths use are
-   right down there, at the bottom of the page, with a white band between them
-   and here; three of them directly above how-it-works put a dark slab between
-   the hero and a section that is all light cards.
-
-   One ground for all three, where the path cards have eight. The eight say
-   "these are different — pick one"; colour on that row is what tells them
-   apart. The three problems are not a menu, they are one situation described
-   three ways, so they share a sheet and let the drawing do the work. */
+   Shorter than .sec's 110px at the bottom: this section and how-it-works are
+   one thought, so 110 under here and 110 over there opened a hole between
+   them. 110 above, 78 below, and the white band picks the argument up. */
 #problem{padding-bottom:78px}
 #problem .sec-head{margin-bottom:34px}
 .probs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-/* Same shell as .path, minus the hover lift: that card rises because there
-   is a button inside it to press, and there is nothing to press in here. */
+/* No hover state, unlike .path: that card lifts because there is a button
+   inside it to press, and there is nothing to press in here. A card that
+   reacts to the pointer but does nothing is a promise the page cannot keep. */
 .prob{
   background:var(--card);border:1px solid var(--line);border-radius:16px;
-  overflow:hidden;display:flex;flex-direction:column;
+  padding:24px 26px 28px;
+  display:flex;flex-direction:column;gap:10px;
 }
-.prob svg{
-  width:100%;display:block;border-bottom:1px solid var(--line);
-  background:#F7FBF9;
-}
-.prob-body{padding:16px 18px 20px;display:flex;flex-direction:column;gap:9px}
-/* 600 and 15.5px rather than .path h3's 700 at 17.5: that h3 is one word and
-   has to carry a card, this one is a whole sentence and would shout. */
+/* 16px and 600, a step up from .how-body p's 14.5 and the same weight as the
+   lede. There are only three of these and they are the whole section, so they
+   are read, not skimmed past on the way to a picture. */
 .prob h3{
-  margin:0;font-size:15.5px;font-weight:600;line-height:1.45;
+  margin:0;font-size:16px;font-weight:600;line-height:1.5;
   letter-spacing:-0.01em;color:var(--ink);text-wrap:pretty;
 }
 
@@ -531,32 +522,22 @@ footer a{color:#CFE7DD}
 @media (max-width:680px){
   .how-grid{grid-template-columns:1fr}
 }
-/* Stacked below 680, but turned on their side rather than left as three
-   full-width panels — a 616px-wide drawing of a battery over one sentence is
-   the picture running the page. Illustration to the left at a fixed 132,
-   sentence beside it, and the hairline moves from under the panel to the side
-   of it.
+/* Three across is the point of the row — the sentences read as a set rather
+   than a list — so it holds three for as long as the words stay readable,
+   and gives up a half-point of type between 1000 and 760 to keep them. It
+   stacks at 760, which is where the navigation swaps to the menu button: the
+   page already changes shape there, so the row changes with it instead of
+   inventing a seam of its own.
 
-   The svg keeps its 200:130 shape, so a card whose text runs taller than 86px
-   would letterbox. .prob svg carries the ground colour as its background for
-   exactly that: the strip fills with the same ink and the seam never shows. */
-@media (max-width:680px){
-  .probs{grid-template-columns:1fr;gap:14px}
-  .prob{flex-direction:row}
-  /* 112, not 132. At 132 the sentence beside it had 162px to wrap in and ran
-     to four lines on a 390 phone, which made the card taller, which made the
-     panel taller, which made the drawing look lost in it. */
-  .prob svg{
-    width:112px;flex:0 0 112px;align-self:stretch;
-    border-bottom:0;border-right:1px solid var(--line);
-  }
-  .prob-body{justify-content:center;padding:14px 16px 15px}
+   Stacking earlier was worse, not better. At 900 a stacked card is 836px
+   wide holding one line of text. */
+@media (max-width:1000px){
+  .prob{padding:20px 22px 22px;gap:8px}
   .prob h3{font-size:15px}
 }
-@media (max-width:380px){
-  .prob svg{width:94px;flex-basis:94px}
-  .prob-body{padding:12px 13px 13px}
-  .prob h3{font-size:14.5px}
+@media (max-width:760px){
+  .probs{grid-template-columns:1fr;gap:12px}
+  .prob h3{font-size:15.5px}
 }
 
 @media (max-width:760px){
