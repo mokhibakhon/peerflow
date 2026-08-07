@@ -189,3 +189,89 @@ body{background:var(--bg)}
   .src{display:none}
   .wk-n{width:44px}
 }
+
+/* ---------- calendar ----------
+   A week, not a month. The product is one standing slot a week, so a month
+   grid would be 28 empty squares around two blocks.
+
+   The shading is the point of it. A calendar that only draws what is booked
+   would show one block and acres of nothing — this one washes the hours you
+   and your partner have both said you are free, which is the one thing
+   PeerFlow knows that a normal calendar does not. Empty is not blank here:
+   it is either "you are both free, click it" or genuinely nothing. */
+.cal-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:22px 30px 18px}
+.cal-head h3{margin:0;font-size:20px;font-weight:700;letter-spacing:-.022em;flex:0 0 auto}
+.cal-nav{display:flex;align-items:center;gap:4px;margin-left:auto;flex:0 0 auto}
+.cal-nav .step{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--soft);display:flex;align-items:center;justify-content:center}
+.cal-nav .step:hover{background:var(--band);color:var(--ink)}
+.cal-range{font-size:15px;font-weight:600;letter-spacing:-.01em;padding:0 8px;white-space:nowrap}
+
+.cal-grid{display:grid;grid-template-columns:62px repeat(7,minmax(0,1fr));
+  border-top:1px solid var(--line)}
+.cal-corner{border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#FBFBFC}
+.cal-day{
+  padding:10px 4px 11px;text-align:center;background:#FBFBFC;
+  border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.cal-day:last-child{border-right:0}
+.cal-day span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--faint)}
+.cal-day b{display:block;margin-top:3px;font-size:16px;font-weight:700;letter-spacing:-.02em}
+/* Today is a filled disc, the way every calendar marks it. */
+.cal-day.today span{color:var(--p6)}
+.cal-day.today b{width:29px;height:29px;margin:3px auto 0;border-radius:50%;
+  background:var(--p6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+
+.cal-h{
+  padding:0 9px;text-align:right;font-family:var(--mono);font-size:10.5px;color:var(--faint);
+  border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  /* The label sits on the line it names, not in the middle of the band. */
+  line-height:1;padding-top:7px;background:#FBFBFC;
+}
+.cal-cell{position:relative;min-height:74px;border-right:1px solid #F0EFF4;
+  border-bottom:1px solid #F0EFF4}
+.cal-cell:nth-child(8n+1){border-right:1px solid var(--line)}
+.cal-cell.last{border-right:0}
+/* An hour you have both said you are free. Faint on purpose — it is an
+   invitation, not an event. */
+.cal-cell.free{background:#F4FBF8;cursor:pointer}
+.cal-cell.free:hover{background:#E6F5EE}
+.cal-cell.free::after{
+  content:"＋";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:var(--p4);font-size:17px;opacity:0;transition:opacity .12s ease;
+}
+.cal-cell.free:hover::after{opacity:1}
+
+/* the blocks */
+.ev{position:absolute;left:4px;right:4px;top:4px;bottom:4px;border-radius:8px;
+  padding:7px 9px;overflow:hidden;font-size:12.5px;line-height:1.3}
+.ev b{display:block;font-size:13px;font-weight:700;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev span{display:block;color:var(--soft);margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Booked: solid, green, a bar down the left the way a confirmed thing gets. */
+.ev.booked{background:var(--p0);border-left:3px solid var(--p6);color:var(--p8)}
+.ev.booked span{color:#2E6B58}
+/* Waiting on an answer: dashed and unfilled, so a proposal never looks like
+   a booking at a glance. */
+.ev.waiting{background:repeating-linear-gradient(135deg,#FFF,#FFF 6px,#FAFAFC 6px,#FAFAFC 12px);
+  border:1.5px dashed #C4C3D0;color:var(--soft)}
+.ev.waiting b{color:var(--ink)}
+
+.cal-key{display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  padding:14px 30px 20px;font-size:12.5px;color:var(--soft)}
+.cal-key i{display:inline-block;width:13px;height:13px;border-radius:4px;
+  margin-right:7px;vertical-align:-2px}
+.cal-key .k1 i{background:var(--p0);box-shadow:inset 3px 0 0 var(--p6)}
+.cal-key .k2 i{border:1.5px dashed #C4C3D0}
+.cal-key .k3 i{background:#F4FBF8;border:1px solid #DBEDE5}
+
+@media (max-width:880px){
+  /* Seven columns of 62px minimum is 500px of grid before the time gutter,
+     so below this the week scrolls sideways rather than crushing. */
+  .cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .cal-grid{min-width:660px}
+  .cal-head{padding-left:20px;padding-right:20px}
+  .cal-key{padding-left:20px;padding-right:20px}
+}

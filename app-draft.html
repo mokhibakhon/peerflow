@@ -137,6 +137,81 @@
       </div>
     </section>
 
+    <!-- ================= CALENDAR =================
+         A week rather than a month: the product is one standing slot a week,
+         so a month grid would be twenty-eight empty squares around two blocks.
+
+         The washed cells are the reason this exists. A calendar that only drew
+         what is booked would show one block and acres of nothing; this one
+         shades the hours you have both said you are free, and clicking one
+         proposes that time. That is the thing PeerFlow knows and a normal
+         calendar does not, and it is what makes the empty half of the grid
+         worth looking at. -->
+    <section class="pc">
+      <div class="cal-head">
+        <h3>Calendar</h3>
+        <div class="cal-nav">
+          <button class="step" type="button" aria-label="Previous week">&lsaquo;</button>
+          <span class="cal-range">Aug 3 &ndash; Aug 9</span>
+          <button class="step" type="button" aria-label="Next week">&rsaquo;</button>
+          <button class="small" type="button" style="margin-left:8px">Today</button>
+        </div>
+        <button class="btn" type="button">＋ New session</button>
+      </div>
+
+      <div class="cal-scroll">
+        <div class="cal-grid">
+          <div class="cal-corner"></div><div class="cal-day"><span>Mon</span><b>3</b></div><div class="cal-day"><span>Tue</span><b>4</b></div><div class="cal-day"><span>Wed</span><b>5</b></div><div class="cal-day"><span>Thu</span><b>6</b></div><div class="cal-day today"><span>Fri</span><b>7</b></div><div class="cal-day"><span>Sat</span><b>8</b></div><div class="cal-day"><span>Sun</span><b>9</b></div>
+          <div class="cal-h">17:00</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell last"></div>
+          <div class="cal-h">18:00</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell free" title="You&rsquo;re both free — click to propose this time"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell last"></div>
+          <div class="cal-h">19:00</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"><div class="ev booked"><b>SQL injection</b><span>50 min · Amir</span></div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell free" title="You&rsquo;re both free — click to propose this time"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell last"></div>
+          <div class="cal-h">20:00</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell free" title="You&rsquo;re both free — click to propose this time"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"><div class="ev waiting"><b>Firewalls</b><span>Waiting on Amir</span></div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell last"></div>
+          <div class="cal-h">21:00</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell free" title="You&rsquo;re both free — click to propose this time"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell last"></div>
+        </div>
+      </div>
+
+      <div class="cal-key">
+        <span class="k1"><i></i>Booked</span>
+        <span class="k2"><i></i>Waiting on an answer</span>
+        <span class="k3"><i></i>You&rsquo;re both free — click to propose</span>
+      </div>
+    </section>
+
     <!-- ================= THE PLAN ================= -->
     <!-- Not a curriculum. PeerFlow holds the order; the material stays with
          whoever already publishes it, which is what the right-hand column
