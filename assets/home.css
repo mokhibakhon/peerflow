@@ -271,6 +271,72 @@ h1{
 .how-body h3{margin:8px 0 5px;font-size:18px;font-weight:700;letter-spacing:-0.015em}
 .how-body p{margin:0;font-size:14.5px;color:var(--ink-soft)}
 
+/* ---------- the two drawn panels ----------
+   Steps one and four have no photograph and no PNG: nothing in assets says
+   "pick a field" or "you finished something". They are built here instead,
+   in the same shell the drawn PNGs use — green PeerFlow bar, white body — at
+   the same 1280:841 shape, so the four cards read as one set.
+
+   Everything inside is sized in cqi (1% of the panel's own width), which is
+   what lets one set of numbers hold from a 250px card in a four-up row to a
+   550px card in a two-up one. The proportions are lifted straight from
+   assets/how-frames.html so the drawn panels and the PNGs match: the bar is
+   96/1280 of the width, the wordmark 30/1280, the mark 32/1280. */
+.how-draw{
+  container-type:inline-size;
+  aspect-ratio:1280/841;background:var(--card);
+  display:flex;flex-direction:column;line-height:1.2;
+}
+.hd-bar{
+  height:7.5cqi;flex:0 0 auto;background:#0F6E56;
+  display:flex;align-items:center;gap:.94cqi;padding:0 2.66cqi;
+}
+.hd-bar svg{width:2.5cqi;height:2.5cqi;flex:0 0 auto;fill:#fff}
+.hd-bar b{font-size:2.34cqi;font-weight:800;letter-spacing:-0.03em;color:#fff}
+.hd-bar b i{font-style:normal;color:#9FE1CB}
+/* The body fills the panel rather than floating in the middle of it: the two
+   PNGs beside these use every pixel under their bar, and a drawn panel that
+   left a white margin top and bottom read as the odd one out at a glance. */
+.hd-body{
+  flex:1;min-height:0;padding:3.2cqi;
+  display:flex;flex-direction:column;gap:2.4cqi;
+}
+
+/* --- 04: the thing you made, shipped --- */
+.hd-win{
+  flex:1;min-height:0;display:flex;flex-direction:column;
+  border:.3cqi solid #E7E6EC;border-radius:2.4cqi;overflow:hidden;background:#fff;
+}
+.hd-chrome{
+  flex:0 0 auto;display:flex;align-items:center;gap:1cqi;
+  padding:1.8cqi 2cqi;background:#F3F2F6;border-bottom:.2cqi solid #E7E6EC;
+}
+.hd-chrome i{width:1.7cqi;height:1.7cqi;border-radius:50%;background:#D4D3DC;flex:0 0 auto}
+.hd-url{
+  margin-left:1.2cqi;flex:1;min-width:0;
+  padding:.8cqi 1.8cqi;border-radius:1.6cqi;background:#fff;
+  border:.2cqi solid #E7E6EC;color:#82869C;
+  font-family:var(--mono);font-size:2.3cqi;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* Lines of code rather than letters of it: at 300px wide real characters are
+   a grey smear, and the shape of a file is the part that still reads. The
+   green line is the one the two of you finished. */
+.hd-code{
+  flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;
+  gap:1.9cqi;padding:0 2.4cqi;
+}
+.hd-code span{display:block;height:1.8cqi;border-radius:999px;background:#EDECF2}
+.hd-code span.g{background:#9FE1CB}
+.hd-live{
+  flex:0 0 auto;align-self:center;display:inline-flex;align-items:center;gap:1.2cqi;
+  padding:1.5cqi 3cqi;border-radius:999px;
+  background:linear-gradient(180deg,#1D9E75,#0F6E56);color:#fff;
+  font-size:3cqi;font-weight:700;letter-spacing:-0.015em;
+  box-shadow:0 .5cqi 1.2cqi rgba(8,80,65,.22);
+}
+.hd-live svg{width:3cqi;height:3cqi;flex:0 0 auto}
+
 /* ---------- paths ---------- */
 .sec{padding:110px 0}
 
