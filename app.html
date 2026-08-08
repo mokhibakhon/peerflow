@@ -154,6 +154,7 @@
           <button class="cal-step" type="button" id="cal-next" aria-label="Next week">&rsaquo;</button>
           <button class="small" type="button" id="cal-today" style="margin-left:8px">Today</button>
         </div>
+        <button class="btn" type="button" id="cal-new">+ New session</button>
       </div>
 
       <div class="cal-scroll"><div class="cal-grid" id="cal-grid"></div></div>
@@ -828,8 +829,10 @@
   /* clockOf gives "4:00 PM", which wraps in a 56px gutter. A row only needs
      the hour, and toLocaleTimeString still decides 16 vs 4 PM by locale. */
   function calHour(h){
-    var d = new Date(); d.setHours(h, 0, 0, 0);
-    return d.toLocaleTimeString(undefined, { hour:'numeric' });
+    /* Twenty-four hour, not the locale's choice. "4 PM" in a 64px gutter is
+       two words where "16:00" is one, the times on the blocks are written the
+       same way, and it is what this audience reads anyway. */
+    return (h < 10 ? '0' : '') + h + ':00';
   }
 
   function mondayOf(d){
@@ -926,7 +929,8 @@
           /* The start time goes on the block's second line, the way the
              reference does it — and once a block floats inside a cell rather
              than filling it, the row label no longer says it for you. */
-          var when2 = ev.startsAt.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+          var when2 = calHour(ev.startsAt.getHours()).replace(':00',
+            ':' + (ev.startsAt.getMinutes() < 10 ? '0' : '') + ev.startsAt.getMinutes());
           var sub = kind === 'waiting'
             ? when2 + ' · ' + (ev.mine ? 'waiting' : 'needs an answer')
             : when2 + (ev.partnerName ? ' · ' + ev.partnerName.split(/\s+/)[0] : '');
@@ -977,6 +981,16 @@
   });
   document.getElementById('cal-today').addEventListener('click', function(){
     calMonday = mondayOf(new Date()); renderCal();
+  });
+  /* Nowhere new to go: the form that proposes a time is already on this page,
+     so this scrolls to it rather than opening a second way to do the same
+     thing. */
+  document.getElementById('cal-new').addEventListener('click', function(){
+    var card = document.getElementById('book-card');
+    if (card.hidden) return;
+    try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
+    var trig = card.querySelector('#bk-sent .pick[data-k="day"] .trig');
+    if (trig) trig.focus();
   });
 
   /* ================= the plan =================
