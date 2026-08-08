@@ -801,8 +801,8 @@ html{scroll-behavior:smooth}
 .cal-grid{display:grid;grid-template-columns:64px repeat(7,minmax(96px,1fr));min-width:736px}
 
 /* the head — a tinted band, like the hour gutter it meets at the corner */
-.cal-corner{background:#F8F9FB;border-bottom:1px solid var(--line);border-right:1px solid #EDECF2}
-.cal-day{padding:11px 6px 13px;text-align:center;background:#F8F9FB;
+.cal-corner{background:#F1F2F6;border-bottom:1px solid var(--line);border-right:1px solid #EDECF2}
+.cal-day{padding:11px 6px 13px;text-align:center;background:#F1F2F6;
   border-bottom:1px solid var(--line);border-right:1px solid #EDECF2}
 .cal-day:last-child{border-right:0}
 .cal-day span{display:block;font-family:var(--body);font-size:13px;font-weight:400;
@@ -814,22 +814,33 @@ html{scroll-behavior:smooth}
 
 /* the body */
 .cal-h{padding:8px 10px 0;text-align:right;font-family:var(--body);font-size:12.5px;
-  line-height:1;color:var(--faint);white-space:nowrap;background:#F8F9FB;
+  line-height:1;color:var(--faint);white-space:nowrap;background:#F1F2F6;
   border-right:1px solid #EDECF2;border-top:1px solid #F1F0F5}
-.cal-cell{position:relative;min-height:72px;padding:0;border:0;background:transparent;
+/* One background for every cell in the week.
+
+   Hours that have already been and gone used to carry a tint of their own,
+   which meant the grid changed colour partway across — on a Saturday, Monday
+   to Thursday were grey and Friday to Sunday were white, with the seam
+   falling in a different place every day. It read as a rendering fault
+   rather than as information, and the information was not worth much: you
+   can see which day is today from the disc in the header.
+
+   Past hours still cannot be clicked. That is carried by the cursor and by
+   the ＋ not appearing, not by the colour. */
+.cal-cell{position:relative;min-height:72px;padding:0;border:0;background:#FAFAFB;
   border-top:1px solid #F1F0F5;border-right:1px solid #F1F0F5;width:100%;
   font-family:var(--body);text-align:left}
 .cal-cell:last-child{border-right:0}
 /* The hours you share. The one thing here a normal calendar has no reason to
    draw, so it stays faint enough to sit under the blocks. */
-.cal-cell.free{background:#F5FBF8;cursor:pointer}
-.cal-cell.free:hover{background:#E6F5EE}
+.cal-cell.free{background:#F0F9F5;cursor:pointer}
+.cal-cell.free:hover{background:#E1F3EA}
 .cal-cell.free::after{content:"+";position:absolute;inset:0;display:flex;align-items:center;
   justify-content:center;color:var(--p4);font-size:20px;font-weight:500;
   opacity:0;transition:opacity .12s ease}
 .cal-cell.free:hover::after,.cal-cell.free:focus-visible::after{opacity:1}
-.cal-cell.past{background:#FCFCFD;cursor:default}
-.cal-cell.past.free{background:#F8FBFA;cursor:default}
+.cal-cell.past{cursor:default}
+.cal-cell.past.free:hover{background:#F0F9F5}
 .cal-cell.past.free:hover::after{opacity:0}
 
 /* the blocks. Flush to the left edge of the column with a square bar on it,
@@ -846,11 +857,11 @@ html{scroll-behavior:smooth}
    is agreed, indigo is still a question. The indigo is the purple the avatars
    already use. The title takes the hue too — in the reference the text is
    part of the colour coding, not black on a tint. */
-.cal-ev.booked{background:#EAF7F0;border-left-color:var(--p6);color:var(--p6)}
+.cal-ev.booked{background:#E4F5EC;border-left-color:var(--p6);color:var(--p6)}
 .cal-ev.booked i{color:#5C8F7D}
-.cal-ev.waiting{background:#EEEDFB;border-left-color:#6A61C9;color:#4A42B0}
+.cal-ev.waiting{background:#EAE8FA;border-left-color:#6A61C9;color:#4A42B0}
 .cal-ev.waiting i{color:#7C74C4}
-.cal-ev.done{background:#F3F3F6;border-left-color:#C2C1CE;color:var(--soft)}
+.cal-ev.done{background:#EEEEF2;border-left-color:#C2C1CE;color:var(--soft)}
 .cal-ev.done i{color:var(--faint)}
 
 .cal-key{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:13px;
