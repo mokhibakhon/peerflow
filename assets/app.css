@@ -796,80 +796,86 @@ html{scroll-behavior:smooth}
 .cal-range{font-size:16px;font-weight:500;letter-spacing:-.01em;padding:0 12px;white-space:nowrap}
 
 .cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0;
-  border:1px solid var(--line);border-radius:12px;background:var(--card)}
+  border:1px solid var(--line);border-radius:14px;background:var(--card)}
 #cal-card{min-width:0}
-/* The gutter only ever holds "09:00", so 64px was 20px of air. Narrower
-   columns and gutter drop the point at which a week starts scrolling from
-   736px to 620px, which is the difference between fitting and not fitting on
-   a small laptop and a landscape phone. */
-.cal-grid{display:grid;grid-template-columns:52px repeat(7,minmax(81px,1fr));min-width:620px}
+/* A block is now a card with a title, a time and real padding, so a column
+   has to be wide enough to hold one without clipping the first word. 108px is
+   the narrowest that fits "Portfolio Review" before the ellipsis. On a normal
+   desktop the columns stretch well past it and nothing scrolls. */
+.cal-grid{display:grid;grid-template-columns:60px repeat(7,minmax(108px,1fr));min-width:816px}
 
-/* the head — a tinted band, like the hour gutter it meets at the corner */
-.cal-corner{background:#F1F2F6;border-bottom:1px solid var(--line);border-right:1px solid #EDECF2}
-.cal-day{padding:9px 6px 10px;text-align:center;background:#F1F2F6;
-  border-bottom:1px solid var(--line);border-right:1px solid #EDECF2}
-.cal-day:last-child{border-right:0}
-.cal-day span{display:block;font-family:var(--body);font-size:13px;font-weight:400;
-  letter-spacing:0;text-transform:none;color:var(--soft)}
-.cal-day b{display:block;margin:2px auto 0;font-size:17px;font-weight:700;letter-spacing:-.02em;
-  width:29px;height:29px;line-height:29px;border-radius:50%;color:var(--ink)}
-.cal-day.today span{color:var(--p6)}
-.cal-day.today b{background:var(--p6);color:#fff}
+/* ---------- the head ----------
+   White, not a tinted band. The reference keeps the whole grid on one ground
+   and lets the hairlines do the dividing; a grey header band was the heaviest
+   thing on the card and it was decoration, not information. */
+.cal-corner{background:var(--card);border-bottom:1px solid var(--line)}
+.cal-day{padding:14px 6px 15px;text-align:center;background:var(--card);
+  border-bottom:1px solid var(--line);border-left:1px solid #EFEFF3}
+.cal-day span{display:block;font-family:var(--body);font-size:13.5px;font-weight:400;
+  letter-spacing:0;text-transform:none;color:var(--faint)}
+.cal-day b{display:block;margin:4px auto 0;font-size:21px;font-weight:700;
+  letter-spacing:-.02em;color:var(--ink);line-height:1.15}
+/* Today is the number turning green, not a filled disc. The disc was the one
+   heavy shape in an otherwise flat grid, and the colour says it on its own. */
+.cal-day.today span,.cal-day.today b{color:var(--p4)}
 
-/* the body */
-.cal-h{padding:6px 8px 0;text-align:right;font-family:var(--body);font-size:12px;
-  line-height:1;color:var(--faint);white-space:nowrap;background:#F1F2F6;
-  border-right:1px solid #EDECF2;border-top:1px solid #F1F0F5}
+/* ---------- the body ---------- */
+/* The hour sits at the top of its row, in the margin rather than in a tinted
+   gutter — the number labels the line it is next to. */
+.cal-h{padding:9px 10px 0;text-align:right;font-family:var(--body);font-size:13px;
+  line-height:1;color:var(--faint);white-space:nowrap;background:var(--card);
+  border-top:1px solid #F2F2F5}
+
 /* One background for every cell in the week.
 
    Hours that have already been and gone used to carry a tint of their own,
    which meant the grid changed colour partway across — on a Saturday, Monday
    to Thursday were grey and Friday to Sunday were white, with the seam
    falling in a different place every day. It read as a rendering fault
-   rather than as information, and the information was not worth much: you
-   can see which day is today from the disc in the header.
+   rather than as information.
 
    Past hours still cannot be clicked. That is carried by the cursor and by
    the ＋ not appearing, not by the colour. */
-/* 54px, not 72. A block holds a title and a time — about 43px of content —
-   so the old row spent 29px on nothing, and a seven-hour week ran to 500px of
-   mostly empty grid. At 54 the week is a quarter shorter and every row still
-   clears the 44px touch target. */
-.cal-cell{position:relative;min-height:54px;padding:0;border:0;background:#FAFAFB;
-  border-top:1px solid #F1F0F5;border-right:1px solid #F1F0F5;width:100%;
+/* 88px rows. The blocks are cards now — a title, a time and real padding —
+   so the row has to be tall enough to hold one without it looking crushed.
+   Every hour reads as its own band rather than as a line of text. */
+.cal-cell{position:relative;min-height:88px;padding:0;border:0;background:var(--card);
+  border-top:1px solid #F2F2F5;border-left:1px solid #EFEFF3;width:100%;
   font-family:var(--body);text-align:left}
-.cal-cell:last-child{border-right:0}
 /* The hours you share. The one thing here a normal calendar has no reason to
    draw, so it stays faint enough to sit under the blocks. */
-.cal-cell.free{background:#F0F9F5;cursor:pointer}
-.cal-cell.free:hover{background:#E1F3EA}
+.cal-cell.free{background:#F4FBF7;cursor:pointer}
+.cal-cell.free:hover{background:#E9F6F0}
 .cal-cell.free::after{content:"+";position:absolute;inset:0;display:flex;align-items:center;
-  justify-content:center;color:var(--p4);font-size:20px;font-weight:500;
+  justify-content:center;color:var(--p4);font-size:22px;font-weight:400;
   opacity:0;transition:opacity .12s ease}
 .cal-cell.free:hover::after,.cal-cell.free:focus-visible::after{opacity:1}
 .cal-cell.past{cursor:default}
-.cal-cell.past.free:hover{background:#F0F9F5}
+.cal-cell.past.free:hover{background:#F4FBF7}
 .cal-cell.past.free:hover::after{opacity:0}
 
-/* the blocks. Flush to the left edge of the column with a square bar on it,
-   square at that edge and rounded away from it, and shorter than the row so
-   the hour lines still read through. */
-.cal-ev{position:absolute;left:0;right:4px;top:2px;height:44px;
-  border-radius:0 7px 7px 0;border-left:4px solid;
-  padding:5px 9px;overflow:hidden;font-size:12px;line-height:1.25;text-align:left}
-.cal-ev b{display:block;font-size:12.5px;font-weight:600;letter-spacing:-.005em;
+/* ---------- the blocks ----------
+   Inset cards, rounded on all four corners, with a thick bar down the left.
+   The old block was flush to the column edge and square on that side, which
+   made it read as part of the grid; sitting it inside the cell with air
+   around it makes it an object on the calendar instead. */
+.cal-ev{position:absolute;left:5px;right:5px;top:5px;bottom:5px;
+  border-radius:9px;border-left:4px solid;
+  padding:11px 13px;overflow:hidden;line-height:1.3;text-align:left;
+  box-shadow:0 1px 2px rgba(23,26,46,.05)}
+.cal-ev b{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.01em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal-ev i{display:block;font-style:normal;font-size:12px;margin-top:2px;
+.cal-ev i{display:block;font-style:normal;font-size:14px;font-weight:500;margin-top:4px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Two hues that mean something rather than just telling blocks apart: green
    is agreed, indigo is still a question. The indigo is the purple the avatars
-   already use. The title takes the hue too — in the reference the text is
-   part of the colour coding, not black on a tint. */
-.cal-ev.booked{background:#E4F5EC;border-left-color:var(--p6);color:var(--p6)}
-.cal-ev.booked i{color:#5C8F7D}
-.cal-ev.waiting{background:#EAE8FA;border-left-color:#6A61C9;color:#4A42B0}
-.cal-ev.waiting i{color:#7C74C4}
-.cal-ev.done{background:#EEEEF2;border-left-color:#C2C1CE;color:var(--soft)}
+   already use. The title takes the hue too — the text is part of the colour
+   coding, not black on a tint. */
+.cal-ev.booked{background:#E9F6EF;border-left-color:var(--p4);color:#15734F}
+.cal-ev.booked i{color:#4E9B78}
+.cal-ev.waiting{background:#EFEEFB;border-left-color:#5B54D6;color:#453DB4}
+.cal-ev.waiting i{color:#7B74CE}
+.cal-ev.done{background:#F3F3F6;border-left-color:#C7C6D2;color:var(--soft)}
 .cal-ev.done i{color:var(--faint)}
 
 .cal-key{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:13px;
@@ -891,9 +897,17 @@ html{scroll-behavior:smooth}
      as possible and make the rest obviously reachable. Tighter columns get
      four days on screen instead of two and a half; the fade on the right edge
      is the only thing that says the week continues. */
-  .cal-grid{grid-template-columns:42px repeat(7,minmax(68px,1fr));min-width:518px}
-  .cal-day b{width:26px;height:26px;line-height:26px;font-size:15.5px}
+  /* The full-size block does not fit a phone column, so the type steps down
+     and the rows come in — the layout stays the same, it is just smaller. */
+  .cal-grid{grid-template-columns:40px repeat(7,minmax(84px,1fr));min-width:628px}
+  .cal-day{padding:10px 4px 11px}
+  .cal-day b{font-size:17px}
   .cal-day span{font-size:12px}
+  .cal-h{font-size:11.5px;padding:7px 7px 0}
+  .cal-cell{min-height:72px}
+  .cal-ev{left:4px;right:4px;top:4px;bottom:4px;padding:8px 10px;border-radius:8px}
+  .cal-ev b{font-size:13px}
+  .cal-ev i{font-size:12.5px;margin-top:2px}
   /* A gradient overlay was the obvious way to hint at the rest of the week,
      but the cells paint their own backgrounds over the container, and a
      sticky pseudo-element inside a scroller resolves to zero height. Show the
