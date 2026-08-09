@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study room — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body class="rm-page">
+
+<div id="rm-root" aria-live="polite">
+  <div class="rm-sheet"><p style="margin:0">Checking your session…</p></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/authgate.js"></script>
+<script>
+/* PeerFlow — the study room.
+
+   Reached only from a booked session that is close enough to enter: the page
+   takes the session's start time and room from the query string and checks
+   both against a real row before loading any video. A room URL on its own is
+   not a key to anything.
+
+   Three states, in order: set a goal, sit in the room, check out. The check-out
+   is the retention loop — it records what happened and immediately offers the
+   next hour the two of you are free.
+
+   Jitsi stays as the video layer. The room name is the one already stored on
+   the session, so both people land in the same place. */
+(function(){
+  var root = document.getElementById('rm-root');
+  var JOIN_MS = 15 * 60 * 1000;
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+  function firstName(n){ return String(n || '').trim().split(/\s+/)[0] || 'your partner'; }
+  function qs(k){
+    try { return new URLSearchParams(location.search).get(k) || ''; } catch (e) { return ''; }
+  }
+
+  function sheet(html){ root.innerHTML = '<div class="rm-sheet">' + html + '</div>'; }
+
+  function bail(title, body, cta){
+    sheet('<h2>' + esc(title) + '</h2><p>' + esc(body) + '</p>' +
+      '<a class="btn" href="' + (cta || 'app.html') + '">Back to Home</a>');
+  }
+
+  /* ---------- 1. the goal ---------- */
+  /* Asked before the room opens, because a session with a named goal is the
+     one people actually finish. Skippable — nobody should be locked out of
+     studying because they don't want to type. */
+  function askGoal(s, partnerName, then){
+    sheet(
+      '<h2>What will you get done?</h2>' +
+      '<p>One line. ' + esc(firstName(partnerName)) + ' will see it, and you’ll both be ' +
+        'asked about it at the end.</p>' +
+      '<input type="text" id="rm-goal" maxlength="120" value="' + esc(s.goal || '') + '" ' +
+        'placeholder="Finish Wireshark lesson 4">' +
+      '<p class="ex">Other people wrote: “Analyse 20 TCP packets”, “Complete the Linux permissions exercise”.</p>' +
+      '<div class="row">' +
+        '<button class="btn" id="rm-go">Start session</button>' +
+        '<button class="ghost" id="rm-skip">Skip</button>' +
+      '</div>');
+
+    var input = document.getElementById('rm-goal');
+    input.focus();
+
+    function start(save){
+      var goal = save ? input.value.trim() : '';
+      if (goal) {
+        pf.setSessionGoal(s.startsAt.toISOString(), s.roomUrl, goal).then(function(){
+          s.goal = goal; then();
+        });
+      } else { then(); }
+    }
+    document.getElementById('rm-go').addEventListener('click', function(){ start(true); });
+    document.getElementById('rm-skip').addEventListener('click', function(){ start(false); });
+    input.addEventListener('keydown', function(e){ if (e.key === 'Enter') start(true); });
+  }
+
+  /* ---------- 2. the room ---------- */
+  function openRoom(s, partnerName, myName, partnerGoal){
+    root.innerHTML =
+      '<div class="rm-bar">' +
+        '<span class="topic">' + esc(s.topic || 'Study session') + '</span>' +
+        '<div class="goals">' +
+          '<span><b>You:</b> ' + esc(s.goal || 'no goal set') + '</span>' +
+          '<span><b>' + esc(firstName(partnerName)) + ':</b> ' +
+            esc(partnerGoal ? 'goal set' : 'no goal set') + '</span>' +
+        '</div>' +
+        '<span class="rm-timer" id="rm-timer" aria-live="off">--:--</span>' +
+        '<button class="rm-end" id="rm-end" type="button">End session</button>' +
+      '</div>' +
+      '<div id="rm-video"></div>';
+
+    /* Countdown to the end of the booked duration. Runs over rather than
+       stopping — people often keep going, and a frozen clock reads as broken. */
+    var endAt = s.startsAt.getTime() + s.durationMin * 60000;
+    var t = document.getElementById('rm-timer');
+    function tick(){
+      var left = endAt - Date.now();
+      var over = left < 0;
+      var abs = Math.abs(left);
+      var m = Math.floor(abs / 60000), sec = Math.floor((abs % 60000) / 1000);
+      t.textContent = (over ? '+' : '') + (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+      t.className = 'rm-timer' + (over ? ' over' : '');
+    }
+    tick();
+    var timer = setInterval(tick, 1000);
+
+    /* Jitsi. The room name comes from the session row, so both people land in
+       the same place without either of them sharing a link. */
+    var room = String(s.roomUrl || '').split('/').pop() || ('PeerFlow-' + s.id);
+    function mount(){
+      try {
+        // eslint-disable-next-line no-undef
+        var api = new JitsiMeetExternalAPI('meet.jit.si', {
+          roomName: room,
+          parentNode: document.getElementById('rm-video'),
+          userInfo: { displayName: myName || 'PeerFlow learner' },
+          configOverwrite: {
+            prejoinPageEnabled: false,
+            disableDeepLinking: true,
+            startWithAudioMuted: false,
+            startWithVideoMuted: false
+          },
+          interfaceConfigOverwrite: {
+            /* Deliberately short. This is two people studying, not a webinar:
+               no tile view, no stats, no virtual backgrounds, no invitations. */
+            TOOLBAR_BUTTONS: ['microphone', 'camera', 'desktop', 'chat', 'hangup'],
+            SHOW_JITSI_WATERMARK: false,
+            DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
+            MOBILE_APP_PROMO: false
+          }
+        });
+        api.addEventListener('readyToClose', function(){ finish(); });
+      } catch (e) {
+        document.getElementById('rm-video').innerHTML =
+          '<div class="rm-sheet"><h2>Video didn’t load</h2>' +
+          '<p>You can still meet in the room directly.</p>' +
+          '<a class="btn" href="' + esc(s.roomUrl) + '" target="_blank" rel="noopener">Open the room</a></div>';
+      }
+    }
+
+    var sc = document.createElement('script');
+    sc.src = 'https://meet.jit.si/external_api.js';
+    sc.onload = mount;
+    sc.onerror = function(){
+      document.getElementById('rm-video').innerHTML =
+        '<div class="rm-sheet"><h2>Video didn’t load</h2>' +
+        '<p>Check your connection, or open the room directly.</p>' +
+        '<a class="btn" href="' + esc(s.roomUrl) + '" target="_blank" rel="noopener">Open the room</a></div>';
+    };
+    document.head.appendChild(sc);
+
+    function finish(){
+      clearInterval(timer);
+      checkOut(s, partnerName);
+    }
+    document.getElementById('rm-end').addEventListener('click', finish);
+  }
+
+  /* ---------- 3. the check-out ---------- */
+  /* The retention loop. Records what happened, then offers the next shared
+     hour straight away — the moment somebody has just finished studying is the
+     easiest moment they will ever have to agree the next one. */
+  function checkOut(s, partnerName){
+    sheet(
+      '<h2>How did it go?</h2>' +
+      (s.goal ? '<p>You said you’d ' + esc(s.goal) + '.</p>'
+              : '<p>Did you get what you wanted done?</p>') +
+      '<div class="rm-choice" id="rm-done" role="group" aria-label="Did you complete your goal?">' +
+        '<button type="button" data-v="yes">Yes</button>' +
+        '<button type="button" data-v="no">Not yet</button>' +
+      '</div>' +
+      '<div class="row"><button class="btn" id="rm-save">Save and finish</button></div>' +
+      '<p class="bk-status" id="rm-status" hidden></p>');
+
+    var picked = null;
+    var group = document.getElementById('rm-done');
+    group.addEventListener('click', function(e){
+      var b = e.target.closest('[data-v]');
+      if (!b) return;
+      picked = b.getAttribute('data-v') === 'yes';
+      Array.prototype.forEach.call(group.children, function(c){ c.classList.remove('on'); });
+      b.classList.add('on');
+    });
+
+    document.getElementById('rm-save').addEventListener('click', function(){
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      /* Attendance is inferred: you are here, checking out, so you attended.
+         The partner's attendance comes from their own check-out, which is what
+         keeps a no-show honest rather than something either side declares
+         about the other. */
+      pf.finishSession(s.startsAt.toISOString(), s.roomUrl, picked).then(function(r){
+        if (r && r.error) {
+          btn.disabled = false;
+          btn.textContent = 'Save and finish';
+          var st = document.getElementById('rm-status');
+          st.hidden = false; st.textContent = r.error; st.className = 'bk-status bk-warn';
+          return;
+        }
+        again(s, partnerName);
+      });
+    });
+  }
+
+  /* ---------- 4. study again ---------- */
+  function again(s, partnerName){
+    Promise.all([pf.primaryPartner(), pf.getProfile()]).then(function(r){
+      var partner = r[0], profile = r[1] || null;
+      if (!partner) { done('Saved. Nice work.'); return; }
+
+      var shared = pf.sharedSlots(profile && profile.availability,
+                                  (partner.profile || {}).availability);
+      if (!shared.length) { done('Saved. Nice work.'); return; }
+
+      var slot = shared[0], hour = pf.slotHours(slot)[0];
+      sheet(
+        '<h2>Study together again?</h2>' +
+        '<p>You’re both free ' + esc(pf.slotLabel(slot)) + '. Propose it now and it’s ' +
+          'waiting for ' + esc(firstName(partnerName)) + ' when they finish.</p>' +
+        '<div class="row">' +
+          '<button class="btn" id="rm-next">Schedule ' + esc(pf.slotLabel(slot)) + '</button>' +
+          '<a class="ghost" href="app.html">Not now</a>' +
+        '</div>' +
+        '<p class="bk-status" id="rm-status" hidden></p>');
+
+      document.getElementById('rm-next').addEventListener('click', function(){
+        var b = this;
+        b.disabled = true;
+        b.textContent = 'Sending…';
+        var when = pf.nextDateFor(slot, hour);
+        pf.proposeSession({
+          partnerId: partner.profile.id,
+          partnerName: (partner.profile || {}).name || null,
+          myName: (profile && profile.name) || '',
+          topic: s.topic,
+          startsAt: when.toISOString(),
+          durationMin: s.durationMin,
+          roomUrl: partner.roomUrl,
+          pairId: partner.requestId
+        }).then(function(res){
+          if (res && res.error) {
+            b.disabled = false;
+            b.textContent = 'Try again';
+            var st = document.getElementById('rm-status');
+            st.hidden = false; st.textContent = res.error; st.className = 'bk-status bk-warn';
+            return;
+          }
+          pf.notifyPartner(partner.profile.id, 'session_proposal',
+            ((profile && profile.name) || 'Your partner') + ' proposed your next session',
+            pf.slotLabel(slot), 'app-sessions.html');
+          done('Sent. It’s waiting for ' + firstName(partnerName) + ' to accept.');
+        });
+      });
+    }).catch(function(){ done('Saved. Nice work.'); });
+  }
+
+  function done(msg){
+    sheet('<h2>' + esc(msg) + '</h2>' +
+      '<p>Your progress is on the Progress page.</p>' +
+      '<div class="row"><a class="btn" href="app.html">Back to Home</a>' +
+      '<a class="ghost" href="app-progress.html">See progress</a></div>');
+  }
+
+  /* ---------- entry ---------- */
+  if (!window.pf || !pf.ready || !pf.ready()) {
+    bail('Demo mode', 'The study room opens from a booked session on a connected account.');
+    return;
+  }
+
+  var at = qs('at'), room = qs('room');
+  if (!at || !room) {
+    bail('No session to join', 'Open the room from a booked session so we know which one you mean.',
+         'app-sessions.html');
+    return;
+  }
+
+  Promise.all([pf.fetchSessions(), pf.getProfile()]).then(function(r){
+    var list = r[0] || [], profile = r[1] || null;
+    /* The query string is a pointer, never a permission. The session has to
+       exist, belong to this user, and be confirmed. */
+    var s = null;
+    list.forEach(function(x){
+      if (x.startsAt.toISOString() === at && (x.roomUrl || '') === room) s = x;
+    });
+
+    if (!s) {
+      bail('We couldn’t find that session', 'It may have been cancelled or already cleared.',
+           'app-sessions.html');
+      return;
+    }
+    if (s.status !== 'confirmed' && s.status !== 'completed') {
+      bail('That session isn’t booked', 'Both of you have to agree a time before the room opens.',
+           'app-sessions.html');
+      return;
+    }
+
+    var now = Date.now();
+    var start = s.startsAt.getTime();
+    var end = start + s.durationMin * 60000;
+    if (now < start - JOIN_MS) {
+      var mins = Math.ceil((start - JOIN_MS - now) / 60000);
+      bail('Not open yet', 'The room opens fifteen minutes before you start — about ' +
+           mins + ' minute' + (mins === 1 ? '' : 's') + ' from now.', 'app.html');
+      return;
+    }
+    if (now > end + 60 * 60 * 1000) {
+      bail('That session has finished', 'Book another one with your partner.', 'app-partner.html#schedule');
+      return;
+    }
+
+    var myName = (profile && profile.name) || '';
+    /* Confirming on entry: turning up is the strongest possible confirmation,
+       and asking somebody to press "I'm ready" while they are already in the
+       room would be theatre. */
+    if (!s.confirmedAt) pf.confirmAttendance(at, room);
+
+    pf.partnerState(at, room).then(function(ps){
+      askGoal(s, s.partnerName, function(){
+        openRoom(s, s.partnerName, myName, ps && ps.hasGoal);
+      });
+    });
+  }).catch(function(){
+    bail('We couldn’t check that session', 'Refresh the page to try again.', 'app-sessions.html');
+  });
+})();
+</script>
+</body>
+</html>
