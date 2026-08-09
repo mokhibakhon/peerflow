@@ -208,6 +208,38 @@
     }
   }
 
+  /* ---------- announcing a new achievement ---------- */
+  /* The rules are evaluated in the browser from real session rows, so an
+     achievement "unlocks" silently every time the page recomputes. The
+     achievements table records which ones have already been seen, so a badge
+     can be announced once instead of on every load.
+
+     Failures here are deliberately silent: an achievement that didn't get
+     announced must never stop the page rendering the progress it belongs to. */
+  function announceNew(stats, already){
+    if (!stats || !pf.unlockAchievement || !window.pfBadges || !pfBadges.evaluate) return;
+
+    var seen = {};
+    (already || []).forEach(function(a){ seen[a.code] = true; });
+
+    var earned = pfBadges.evaluate(stats).filter(function(b){ return b.earned; });
+    var fresh = earned.filter(function(b){ return !seen[b.id]; });
+    if (!fresh.length) return;
+
+    /* First run on an account that already has history would announce a dozen
+       badges at once. Record them all either way, but stay quiet when this is
+       clearly a backfill rather than a genuine new unlock. */
+    var backfill = !(already || []).length && fresh.length > 2;
+
+    fresh.forEach(function(b){
+      pf.unlockAchievement(b.id).then(function(res){
+        if (!res || !res.fresh || backfill || !pf.notifySelf) return;
+        pf.notifySelf('achievement', 'Achievement unlocked: ' + b.name,
+                      b.sub || b.desc || null, 'app-progress.html');
+      });
+    });
+  }
+
   /* ---------- load ---------- */
   if (!window.pf || !pf.currentUser) return;
 
@@ -218,12 +250,14 @@
       return;
     }
     Promise.all([
-      pf.getProfile(), pf.fetchSessions(), pf.reliability(), pf.badgeStats()
+      pf.getProfile(), pf.fetchSessions(), pf.reliability(), pf.badgeStats(),
+      pf.unlockedAchievements ? pf.unlockedAchievements() : Promise.resolve([])
     ]).then(function(r){
       var profile = r[0] || null;
       renderSummary(r[1], r[2]);
       if (profile) renderPath(profile);
       pfBadges.render(document.getElementById('badges'), r[3]);
+      announceNew(r[3], r[4]);
     });
   });
 })();

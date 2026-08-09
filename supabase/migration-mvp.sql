@@ -216,7 +216,9 @@ begin
    where starts_at = p_starts_at and room_url = p_room
      and status in ('confirmed', 'proposed');
   get diagnostics n = row_count;
-  return n + 1;
+  -- Rows moved to 'completed'. Zero is a normal answer, not a failure: the
+  -- second person to check out finds the session already completed.
+  return n;
 end $$;
 
 -- ---------- reading the other half of a session ----------

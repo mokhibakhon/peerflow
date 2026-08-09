@@ -1015,6 +1015,22 @@ window.pf = (function(){
     }).catch(function(){ return { sent: false }; });
   }
 
+  /* A note to yourself — an unlocked achievement, a reminder. Goes straight
+     into the table under the insert-own-notifications policy, no function
+     needed, because writing to your own list is not a privilege escalation. */
+  function notifySelf(kind, title, body, href){
+    if (!client) return Promise.resolve({ demo: true });
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      return client.from('notifications')
+        .insert({ user_id: uid, kind: kind, title: title, body: body || null, href: href || null })
+        .then(function(r){
+          if (r.error) { try { console.warn('PeerFlow: notifySelf', r.error); } catch(e){} }
+          return { saved: !r.error };
+        });
+    }).catch(function(){ return { saved: false }; });
+  }
+
   function notifyRequest(toId, title, body){
     if (!client || !toId) return Promise.resolve({ demo: true });
     return client.rpc('notify_request', {
@@ -1148,6 +1164,7 @@ window.pf = (function(){
     fetchNotifications: fetchNotifications,
     markNotificationsRead: markNotificationsRead,
     notifyPartner: notifyPartner,
+    notifySelf: notifySelf,
     notifyRequest: notifyRequest,
     /* achievements + progress */
     unlockedAchievements: unlockedAchievements,
