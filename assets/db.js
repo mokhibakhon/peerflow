@@ -233,7 +233,25 @@ window.pf = (function(){
       if ('goal' in profile)         row.goal = profile.goal || null;
       if ('timezone' in profile)     row.timezone = profile.timezone || null;
       if ('availability' in profile) row.availability = profile.availability || [];
+      if ('prefMinutes' in profile)  row.pref_minutes = profile.prefMinutes || 50;
+      if ('stageIndex' in profile)   row.stage_index = Math.max(0, profile.stageIndex | 0);
       return client.from('profiles').upsert(row).then(function(r){
+        /* pref_minutes and stage_index arrive with migration-mvp.sql. Same
+           reasoning as first_name/last_name below: losing somebody's whole
+           profile over a column they never asked for would be absurd. Drop the
+           two new fields and save the rest. */
+        if (r.error && r.error.code === 'PGRST204' &&
+            /pref_minutes|stage_index/.test(r.error.message || '')) {
+          delete row.pref_minutes; delete row.stage_index;
+          try {
+            console.warn('PeerFlow: profiles.pref_minutes/stage_index are missing. ' +
+                         'Run supabase/migration-mvp.sql to store them.');
+          } catch(e){}
+          return client.from('profiles').upsert(row).then(function(r2){
+            return r2.error ? fail(r2.error, 'Could not save your profile. Please try again.')
+                            : { saved: true };
+          });
+        }
         /* PGRST204: the column isn't in this database yet, i.e. schema.sql
            hasn't been re-run since first_name/last_name were added. Losing
            somebody's whole profile over a column they never asked for would

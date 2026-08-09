@@ -169,8 +169,42 @@
       document.getElementById('pg-relnote').textContent = note + '.';
     } else {
       set('pg-attend', '—');
-      document.getElementById('pg-relnote').textContent =
-        'Attendance appears once you have finished your first session.';
+    }
+
+    /* An empty Progress page for the first few weeks is the fastest way to
+       teach somebody not to click this tab. When there is nothing to show yet,
+       say what will fill it and when — pointing at the next booked session if
+       there is one, because that is the thing that turns the dashes into
+       numbers. */
+    var note = document.getElementById('pg-relnote');
+    if (done.length) {
+      if (rel && rel.counted > 0) {
+        var line = rel.attended + ' of ' + rel.counted + ' confirmed sessions attended';
+        if (rel.early) line += ' · ' + rel.early + ' cancelled early';
+        if (rel.late)  line += ' · ' + rel.late + ' cancelled late';
+        note.textContent = line + '.';
+      } else {
+        note.textContent = '';
+      }
+      return;
+    }
+
+    var upcoming = null;
+    (sessions || []).forEach(function(s){
+      if (s.status !== 'confirmed') return;
+      if (s.startsAt.getTime() + s.durationMin * 60000 <= now) return;
+      if (!upcoming || s.startsAt < upcoming.startsAt) upcoming = s;
+    });
+
+    if (upcoming) {
+      var when = upcoming.startsAt.toLocaleDateString([], { weekday:'long' }) + ' at ' +
+                 upcoming.startsAt.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hour12:false });
+      note.innerHTML = 'Your first session is <b>' + esc(when) +
+        '</b>. Come back after it and this fills up.';
+    } else {
+      note.innerHTML = 'Nothing here yet. Book a session with your partner and ' +
+        'your hours, streak and attendance start counting. ' +
+        '<a href="app-partner.html#schedule" style="text-decoration:underline">Propose a time</a>';
     }
   }
 
