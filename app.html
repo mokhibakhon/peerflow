@@ -1224,13 +1224,13 @@
             return x.status === 'confirmed' || x.status === 'proposed';
           });
           calMonday = mondayOf(new Date());
-          /* Drawn once you have a partner. Alone, every cell would be empty
-             and none of them could be clicked, which is a grid explaining
-             that it has nothing to say. */
-          if (partner){
-            $('cal-card').hidden = false;
-            renderCal();
-          }
+          /* Always drawn. It used to appear only once you had a partner, on
+             the reasoning that an empty grid has nothing to say — but a
+             section that is simply absent reads as a bug, and the week still
+             shows your own hours and the note underneath says what will fill
+             it. */
+          $('cal-card').hidden = false;
+          renderCal();
 
           /* ----- the plan -----
              Counted from sessions that actually happened: confirmed, and the
