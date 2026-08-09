@@ -81,6 +81,14 @@
           </div>
           <p class="avail-count" id="p-avail-count"></p>
 
+          <h3 style="margin-top:24px">Session length</h3>
+          <p class="hint">Used as the default whenever you or your partner propose a time.</p>
+          <div class="chips" id="p-dur" role="group" aria-label="Preferred session length">
+            <button type="button" class="chip" data-dur="25" aria-pressed="false">25 min</button>
+            <button type="button" class="chip" data-dur="50" aria-pressed="false">50 min</button>
+            <button type="button" class="chip" data-dur="90" aria-pressed="false">90 min</button>
+          </div>
+
           <div style="margin-top:22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
             <button class="btn primary" id="p-save">Save changes</button>
             <span id="p-note" style="font-size:13.5px;color:var(--muted)"></span>
@@ -127,6 +135,23 @@
   var availCount = document.getElementById('p-avail-count');
   var availAll = document.getElementById('p-avail-all');
   var availCells = availBox.querySelectorAll('.cell');
+
+  /* ---------- preferred session length ---------- */
+  var durBox = document.getElementById('p-dur');
+  var prefMinutes = 50;
+  function setDur(v){
+    prefMinutes = parseInt(v, 10) || 50;
+    Array.prototype.forEach.call(durBox.children, function(c){
+      var on = parseInt(c.getAttribute('data-dur'), 10) === prefMinutes;
+      c.classList.toggle('on', on);
+      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  durBox.addEventListener('click', function(e){
+    var b = e.target.closest('[data-dur]');
+    if (b) setDur(b.getAttribute('data-dur'));
+  });
+  setDur(50);
 
   function countAvail(){
     var n = availBox.querySelectorAll('.cell.sel').length;
@@ -193,6 +218,7 @@
       if (p.track_id) trackSel.value = p.track_id;
       markSel(levelBox, 'data-level', p.level);
       (p.availability || []).forEach(function(v){ markSel(availBox, 'data-slot', v); });
+      setDur(p.pref_minutes || 50);
       countAvail();
       syncAvailAll();
     });
@@ -217,11 +243,17 @@
     if (sel) payload.level = sel.getAttribute('data-level');
     if (avail.length) payload.availability = avail;
 
+    /* Everything above is only added when it has a value, so an empty payload
+       means the form is genuinely blank. The duration always has a value —
+       there is no "unset" state for it — so it is attached after the check,
+       or clicking Save on an empty form would report a save that did nothing. */
     if (!Object.keys(payload).length) {
       note.style.color = 'var(--muted)';
       note.textContent = 'Nothing to save yet.';
       return;
     }
+
+    payload.prefMinutes = prefMinutes;
 
     var btn = this;
     btn.disabled = true; btn.textContent = 'Saving…';

@@ -9,6 +9,30 @@ dashboards where it belongs.
 
 ---
 
+## Database migration — run this after schema.sql
+
+`supabase/migration-mvp.sql` adds everything the one-partner MVP needs:
+archived partnerships, per-person session attendance and goals, notifications,
+achievements, and a learning-path stage.
+
+1. Supabase → **SQL Editor** → paste the whole of `supabase/migration-mvp.sql`
+2. **Run**
+
+It is additive and safe to run more than once. It does not drop or rewrite
+anything created by `schema.sql`; `answer_session` and `drop_session` keep the
+behaviour they already had.
+
+**Until you run it**, the app still works but attendance has nowhere to live:
+Confirm will not stick, and the post-session check-out cannot save. The data
+layer detects the missing columns, falls back to the old ones, and logs a
+warning to the console rather than breaking the page.
+
+Verified against PostgreSQL 16: both files apply cleanly twice on a fresh
+database, `answer_session` moves both copies of a session, `confirm_attendance`
+moves only the caller's, and `notify_partner` refuses anyone you are not
+actually partnered with.
+
+
 ## 1. GitHub repository (2 min) — the prerequisite for everything
 
 1. Go to **github.com/new**

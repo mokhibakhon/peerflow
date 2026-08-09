@@ -50,7 +50,21 @@ button{font-family:var(--body);cursor:pointer}
 .tabs a:hover{background:var(--band);color:var(--ink)}
 .tabs a.on{background:var(--ink);color:#fff}
 .tabs a.on svg path,.tabs a.on svg circle,.tabs a.on svg rect{stroke:#fff}
+/* The header's one primary action. Normally "+ Schedule"; it becomes
+   "Join session" when a booked session is close enough to enter, because at
+   that moment joining is the only thing the learner is here to do. */
+.nav-cta{flex:0 0 auto;display:inline-flex;align-items:center;padding:8px 15px;
+  border-radius:9px;background:var(--p6);color:#fff;font-size:14px;font-weight:600;
+  white-space:nowrap;border:1px solid var(--p6)}
+.nav-cta:hover{background:var(--p8);border-color:var(--p8);color:#fff}
+.nav-cta.join{background:var(--p4);border-color:var(--p4)}
+.nav-cta.join:hover{background:var(--p6);border-color:var(--p6)}
 .nav-right{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+
+/* Focus must be visible on every interactive thing in the shell, not just
+   the ones that happen to be buttons. */
+.tabs a:focus-visible,.nav-cta:focus-visible,.brand:focus-visible{
+  outline:2px solid var(--p4);outline-offset:2px}
 
 main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .mfoot{max-width:1320px;margin:0 auto;padding:0 32px 44px;
@@ -336,6 +350,10 @@ h1 .g{color:var(--p4)}
   .tabs{order:3;width:100%;flex:1 0 100%}
   .tabs a{padding:7px 11px;font-size:14px}
   .tabs a svg{display:none}
+  /* The action stays on the first row beside the brand; the tabs drop below
+     it. Pushed hard right so it doesn't collide with the path chip. */
+  .nav-cta{order:2;margin-left:auto;padding:7px 12px;font-size:13.5px}
+  .nav-right{order:2}
   .slot .when{width:100%}
   .avail-grid{grid-template-columns:36px repeat(4,minmax(0,1fr));gap:4px}
   .avail-grid button{height:42px}
@@ -908,4 +926,232 @@ html{scroll-behavior:smooth}
   .plan-n{width:46px}
   .plan-t{font-size:14px}
   .cal-range{font-size:13.5px}
+}
+
+/* ============================================================
+   Partner page (app-partner.html)
+
+   One relationship, described once. The layout is deliberately a single
+   column of quiet blocks rather than a grid of cards: there is only one
+   partner, so there is nothing to compare against and nothing to scan.
+   ============================================================ */
+.pt-head{display:flex;align-items:center;gap:18px;padding:22px 24px;
+  background:var(--card);border:1px solid var(--line);border-radius:16px}
+.pt-face{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
+  font-size:22px;font-weight:700;flex:0 0 auto}
+.pt-id{min-width:0;flex:1}
+.pt-id h2{font-size:21px;margin:0 0 3px}
+.pt-id .sub{color:var(--soft);font-size:14px}
+.pt-stats{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px}
+.pt-stats div{min-width:0}
+.pt-stats b{display:block;font-size:19px;line-height:1.2}
+.pt-stats span{font-size:12.5px;color:var(--faint)}
+
+.pt-sec{margin-top:22px;padding:22px 24px;background:var(--card);
+  border:1px solid var(--line);border-radius:16px}
+.pt-sec h3{font-size:15px;margin:0 0 4px}
+.pt-sec .lede{color:var(--soft);font-size:13.5px;margin:0 0 16px}
+
+.pt-bar{height:7px;border-radius:99px;background:var(--band);overflow:hidden;margin:12px 0 8px}
+.pt-bar i{display:block;height:100%;background:var(--p4);border-radius:99px}
+
+/* Shared availability: one row per overlapping window, each proposable. */
+.pt-slot{display:flex;align-items:center;gap:14px;padding:12px 0;
+  border-top:1px solid var(--line)}
+.pt-slot:first-of-type{border-top:0}
+.pt-slot .when{flex:1;min-width:0;font-size:15px}
+.pt-slot .hrs{display:flex;gap:6px;flex-wrap:wrap}
+.pt-slot select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);font:inherit;font-size:13.5px;color:var(--ink)}
+
+/* Why you matched — facts, not a score. */
+.pt-why{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.pt-why span{background:var(--p0);color:var(--p8);font-size:13px;
+  padding:6px 11px;border-radius:99px}
+
+/* Ending a partnership is deliberate: quiet until you ask for it. */
+.pt-danger{margin-top:22px;padding:18px 24px;border:1px solid var(--line);
+  border-radius:16px;background:transparent}
+.pt-danger h3{font-size:14px;margin:0 0 4px}
+.pt-danger p{color:var(--soft);font-size:13.5px;margin:0 0 12px;max-width:60ch}
+.pt-danger .btn{background:transparent;border:1px solid var(--line);color:var(--soft)}
+.pt-danger .btn:hover{border-color:#C74A4A;color:#C74A4A;background:transparent}
+.pt-confirm{border:1px solid #E8C9C9;background:#FCF5F5;border-radius:12px;
+  padding:16px 18px;margin-top:12px}
+.pt-confirm p{color:var(--ink);margin:0 0 12px}
+.pt-confirm .row{display:flex;gap:10px;flex-wrap:wrap}
+
+@media (max-width:640px){
+  .pt-head{flex-direction:column;align-items:flex-start;gap:12px}
+  .pt-slot{flex-wrap:wrap}
+  .pt-slot .when{flex:1 0 100%}
+}
+
+/* ---------- Progress: the twelve-week path ---------- */
+/* A list, not a course. Each week is a button because moving the marker is
+   the only progress input the product asks for. */
+.pg-week{display:flex;align-items:baseline;gap:14px;width:100%;text-align:left;
+  padding:11px 12px;border:0;border-top:1px solid var(--line);background:transparent;
+  border-radius:0;font:inherit;color:var(--ink)}
+.pg-week:first-child{border-top:0}
+.pg-week:hover{background:var(--band)}
+.pg-week .wk{flex:0 0 68px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.pg-week .ttl{flex:1;min-width:0;font-size:14.5px}
+.pg-week .st{flex:0 0 auto;font-size:12px;color:var(--faint)}
+.pg-week.done .ttl{color:var(--faint);text-decoration:line-through}
+.pg-week.now{background:var(--p0);border-radius:10px}
+.pg-week.now .ttl{font-weight:700;color:var(--p8)}
+.pg-week.now .st,.pg-week.now .wk{color:var(--p6)}
+@media (max-width:640px){
+  .pg-week{flex-wrap:wrap;gap:4px 12px}
+  .pg-week .ttl{flex:1 0 100%;order:3}
+}
+
+/* ============================================================
+   Home (app.html)
+
+   Answers one question: what do I need to do next. Three blocks, in falling
+   order of urgency, and nothing else. Deliberately not a dashboard — session
+   history, achievements, matching and settings all live on their own pages.
+   ============================================================ */
+.hm-next{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:24px 26px}
+.hm-next.live{border-color:var(--p2);box-shadow:0 0 0 3px var(--p0)}
+.hm-when{font-family:var(--mono);font-size:11px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--p6)}
+.hm-next h2{font-size:23px;margin:6px 0 3px;letter-spacing:-.02em}
+.hm-next .meta{color:var(--soft);font-size:14.5px;margin:0}
+.hm-goal{margin:14px 0 0;padding:12px 14px;background:var(--band);border-radius:10px;
+  font-size:14px;color:var(--soft)}
+.hm-goal b{color:var(--ink);font-weight:600}
+
+/* Attendance: two names, two states. Never colour alone — each carries a word. */
+.hm-att{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 0}
+.hm-att span{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;
+  padding:7px 12px;border-radius:99px;background:var(--band);color:var(--soft)}
+.hm-att span.yes{background:var(--p0);color:var(--p8)}
+.hm-att i{width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto}
+
+.hm-acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
+
+/* Partner snapshot and This week: small, side by side, never competing with
+   the session card above them. */
+.hm-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:16px;margin-top:16px}
+.hm-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+.hm-card h3{font-size:13px;margin:0 0 14px;font-family:var(--mono);font-weight:500;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.hm-who{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.hm-who .pt-face{width:42px;height:42px;font-size:16px}
+.hm-who b{display:block;font-size:16px}
+.hm-who span{font-size:13px;color:var(--soft)}
+.hm-mini{display:flex;gap:22px;flex-wrap:wrap}
+.hm-mini b{display:block;font-size:17px;line-height:1.2}
+.hm-mini span{font-size:12px;color:var(--faint)}
+.hm-week{height:7px;border-radius:99px;background:var(--band);overflow:hidden;margin:14px 0 8px}
+.hm-week i{display:block;height:100%;background:var(--p4);border-radius:99px}
+
+/* An empty state is a prompt, never a shrug. */
+.hm-empty{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:26px;max-width:640px}
+.hm-empty h2{font-size:19px;margin:0 0 6px}
+.hm-empty p{color:var(--soft);font-size:14.5px;margin:0 0 16px;max-width:52ch}
+
+/* ============================================================
+   Sessions (app-sessions.html)
+
+   The operational page: what is booked, what is waiting on somebody, and what
+   already happened. Chronological, one row per session, no cards-within-cards.
+   ============================================================ */
+.se-sec{margin-top:26px}
+.se-sec h2{font-size:15px;margin:0 0 4px}
+.se-sec .lede{color:var(--soft);font-size:13.5px;margin:0 0 14px}
+.se-list{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.se-row{display:flex;align-items:center;gap:16px;padding:16px 20px;border-top:1px solid var(--line);
+  flex-wrap:wrap}
+.se-row:first-child{border-top:0}
+.se-date{flex:0 0 118px;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--p6)}
+.se-what{flex:1;min-width:160px}
+.se-what b{display:block;font-size:15.5px;font-weight:600}
+.se-what span{font-size:13px;color:var(--soft)}
+.se-acts{display:flex;gap:8px;flex-wrap:wrap;flex:0 0 auto}
+.se-tag{font-size:12px;padding:5px 10px;border-radius:99px;background:var(--band);
+  color:var(--soft);white-space:nowrap}
+.se-tag.ok{background:var(--p0);color:var(--p8)}
+.se-tag.wait{background:#FFF4E2;color:#8A5A08}
+.se-tag.off{background:#F6F0F0;color:#8B4A4A}
+.se-empty{padding:26px 20px;color:var(--soft);font-size:14.5px}
+.se-empty b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:4px;font-weight:600}
+@media (max-width:640px){
+  .se-date{flex:1 0 100%}
+  .se-acts{flex:1 0 100%}
+}
+
+/* ============================================================
+   Find Partner (app-people.html)
+
+   A short ranked list, not a directory. Each card has to explain why it is
+   there, because a match nobody understands is a match nobody trusts.
+   ============================================================ */
+.fp-list{display:grid;gap:14px;margin-top:20px}
+.fp-card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:20px 22px;display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.fp-card.top{border-color:var(--p2);box-shadow:0 0 0 3px var(--p0)}
+.fp-body{flex:1;min-width:200px}
+.fp-body h3{font-size:17.5px;margin:0 0 2px}
+.fp-body .sub{color:var(--soft);font-size:13.5px;margin:0 0 10px}
+.fp-why{display:flex;gap:7px;flex-wrap:wrap}
+.fp-why span{background:var(--band);color:var(--soft);font-size:12.5px;
+  padding:5px 10px;border-radius:99px}
+.fp-why span.key{background:var(--p0);color:var(--p8)}
+.fp-score{flex:0 0 auto;text-align:right}
+.fp-score b{display:block;font-size:21px;line-height:1;color:var(--p6)}
+.fp-score span{font-size:11.5px;color:var(--faint)}
+.fp-acts{flex:1 0 100%;display:flex;gap:9px;flex-wrap:wrap;margin-top:4px}
+.fp-note{flex:1 0 100%;margin-top:10px}
+.fp-note textarea{width:100%;min-height:76px;padding:11px 13px;border:1px solid var(--line);
+  border-radius:10px;font:inherit;font-size:14px;resize:vertical;color:var(--ink)}
+.fp-note .hint{font-size:12.5px;color:var(--faint);margin:6px 0 10px}
+@media (max-width:640px){ .fp-score{text-align:left} }
+
+/* ============================================================
+   Study Room (app-room.html)
+
+   Two people studying together, not meeting software. The video fills the
+   page; everything else is a thin strip that names who is here, what each of
+   them said they'd get done, and how long is left.
+   ============================================================ */
+.rm-page{display:flex;flex-direction:column;min-height:100vh;background:#10131C}
+.rm-bar{display:flex;align-items:center;gap:18px;padding:12px 22px;
+  background:#171B26;color:#E7E9F0;flex-wrap:wrap}
+.rm-bar .topic{font-weight:600;font-size:15px}
+.rm-bar .goals{display:flex;gap:18px;flex:1;min-width:0;flex-wrap:wrap;
+  font-size:13px;color:#AAB0C0}
+.rm-bar .goals b{color:#E7E9F0;font-weight:600}
+.rm-timer{font-family:var(--mono);font-size:19px;letter-spacing:.04em;color:#7EE6BC}
+.rm-timer.over{color:#F0A0A0}
+.rm-end{background:#C6455A;border:0;color:#fff;padding:9px 16px;border-radius:9px;
+  font-weight:600;font-size:14px}
+.rm-end:hover{background:#A93548}
+#rm-video{flex:1;min-height:0;background:#10131C}
+#rm-video iframe{display:block;width:100%;height:100%;border:0}
+
+/* The goal prompt and the check-out both sit on the same dark ground. */
+.rm-sheet{max-width:520px;margin:8vh auto;background:var(--card);border-radius:18px;
+  padding:30px 32px}
+.rm-sheet h2{font-size:21px;margin:0 0 6px;letter-spacing:-.02em}
+.rm-sheet p{color:var(--soft);font-size:14.5px;margin:0 0 18px}
+.rm-sheet input[type=text]{width:100%;padding:12px 14px;border:1px solid var(--line);
+  border-radius:10px;font:inherit;font-size:15px;color:var(--ink)}
+.rm-sheet .row{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.rm-sheet .ex{font-size:13px;color:var(--faint);margin:10px 0 0}
+.rm-choice{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 20px}
+.rm-choice button{padding:10px 18px;border:1px solid var(--line);background:var(--card);
+  border-radius:10px;font:inherit;font-size:14.5px;color:var(--ink)}
+.rm-choice button.on{border-color:var(--p4);background:var(--p0);color:var(--p8);font-weight:600}
+@media (max-width:640px){
+  .rm-bar{gap:10px;padding:10px 14px}
+  .rm-bar .goals{flex:1 0 100%;font-size:12.5px}
 }

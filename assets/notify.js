@@ -31,7 +31,17 @@
   var panel = document.getElementById('pf-panel');
   var list  = document.getElementById('pf-list');
 
-  var state = { incoming: [], outgoing: [], proposals: [], loaded: false };
+  var state = { incoming: [], outgoing: [], proposals: [], notes: [], loaded: false };
+
+  /* Kinds the notifications table records but the panel already shows from
+     live rows, with better UI — a partner request needs Accept/Decline
+     buttons, a proposal needs a link to answer it. Rendering both would
+     double every event in the list and in the badge. The stored rows still
+     exist; they are simply not the source the panel reads for these. */
+  var COVERED = { partner_request: 1, session_proposal: 1 };
+  function extraNotes(){
+    return state.notes.filter(function(n){ return !COVERED[n.kind]; });
+  }
 
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -56,7 +66,8 @@
   function unread(){
     var a = state.incoming.filter(function(x){ return x.status === 'pending' && !x.to_seen_at; });
     var b = state.outgoing.filter(function(x){ return x.status !== 'pending' && !x.from_seen_at; });
-    return a.concat(b).concat(theirProposals());
+    var c = extraNotes().filter(function(n){ return !n.read_at; });
+    return a.concat(b).concat(theirProposals()).concat(c);
   }
 
   /* Two kinds of session news: a time waiting on you to answer, and a time of
@@ -100,7 +111,7 @@
       return '<div class="bell-item' + (x.from_seen_at ? '' : ' fresh') + '">' +
         '<p><b>' + who + '</b> accepted your request</p>' +
         '<p class="bell-time">' + ago(x.created_at) + '</p>' +
-        '<div class="bell-actions"><a class="btn primary" href="app-sessions.html">See my partner</a></div>' +
+        '<div class="bell-actions"><a class="btn primary" href="app-partner.html">See my partner</a></div>' +
         '</div>';
     }
     if (x.status === 'declined') {
@@ -129,24 +140,42 @@
       (x.note ? '<p class="bell-msg">“' + esc(x.note) + '”</p>' : '') +
       '<p class="bell-time">' + x.durationMin + ' minutes</p>' +
       /* Sessions, not Partner: answering moved with the rest of scheduling. */
-      '<div class="bell-actions"><a class="btn primary" href="app.html">' +
+      '<div class="bell-actions"><a class="btn primary" href="app-sessions.html">' +
         (turned ? 'Pick another time' : 'Answer it') + '</a></div>' +
+      '</div>';
+  }
+
+  /* A stored notification: attendance confirmations, cancellations, unlocked
+     achievements — the things that have no live row to derive them from. */
+  function itemNote(n){
+    return '<div class="bell-item' + (n.read_at ? '' : ' fresh') + '">' +
+      '<p><b>' + esc(n.title) + '</b></p>' +
+      (n.body ? '<p class="bell-msg">' + esc(n.body) + '</p>' : '') +
+      '<p class="bell-time">' + ago(n.created_at) + '</p>' +
+      (n.href ? '<div class="bell-actions"><a class="btn primary" href="' +
+                esc(n.href) + '">Open</a></div>' : '') +
       '</div>';
   }
 
   function paintList(){
     var items = theirProposals().map(itemProposal)
       .concat(state.incoming.map(itemIncoming))
-      .concat(state.outgoing.map(itemOutgoing));
+      .concat(state.outgoing.map(itemOutgoing))
+      .concat(extraNotes().map(itemNote));
     list.innerHTML = items.length
       ? items.join('')
       : '<p class="bell-empty">Nothing yet. When someone asks to be your partner, it shows up here.</p>';
   }
 
   function load(){
-    return Promise.all([pf.myRequests(), pf.fetchSessions()]).then(function(res){
+    return Promise.all([
+      pf.myRequests(),
+      pf.fetchSessions(),
+      pf.fetchNotifications ? pf.fetchNotifications(25) : Promise.resolve([])
+    ]).then(function(res){
       var r = res[0];
       state.proposals = res[1] || [];
+      state.notes = res[2] || [];
       if (!r) { state.loaded = true; list.innerHTML = '<p class="bell-empty">Could not load notifications.</p>'; return; }
       state.incoming = r.incoming;
       state.outgoing = r.outgoing;
@@ -169,6 +198,14 @@
          not when you glance at the panel. */
       var inc = state.incoming.filter(function(x){ return x.status === 'pending' && !x.to_seen_at; });
       var out = state.outgoing.filter(function(x){ return x.status !== 'pending' && !x.from_seen_at; });
+      var fresh = extraNotes().filter(function(n){ return !n.read_at; });
+      if (fresh.length && pf.markNotificationsRead) {
+        pf.markNotificationsRead(fresh.map(function(n){ return n.id; })).then(function(){
+          var t = new Date().toISOString();
+          fresh.forEach(function(n){ n.read_at = t; });
+          paintBadge();
+        });
+      }
       if (inc.length || out.length) {
         var ids = function(a){ return a.map(function(x){ return x.id; }); };
         pf.markRequestsSeen(ids(inc), ids(out)).then(function(){

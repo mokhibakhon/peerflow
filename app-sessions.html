@@ -3,13 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My partner — PeerFlow</title>
+<title>Sessions — PeerFlow</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Loaded without blocking the first paint: text appears immediately in the
-     fallback face and swaps when the webfont lands. -->
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
@@ -20,162 +18,229 @@
 <main>
   <div class="wrap">
     <div class="app-head">
-      <h1 id="page-h">My partner</h1>
+      <h1>Sessions</h1>
     </div>
 
-    <!-- No partner yet, or the profile isn't finished. -->
-    <div class="card next-card" id="none-card" hidden style="max-width:640px">
-      <div class="when-big" id="match-status">NO PARTNER YET</div>
-      <h2 id="match-title">You don't have a partner yet</h2>
-      <p id="match-sub"></p>
-      <div class="row" id="match-find" hidden style="margin-top:16px">
-        <a class="btn" href="app-people.html">Find someone</a>
+    <p class="bk-status" id="se-status" hidden></p>
+
+    <section class="se-sec">
+      <h2>Upcoming</h2>
+      <p class="lede">Agreed by both of you. The room opens fifteen minutes before.</p>
+      <div class="se-list" id="se-upcoming" aria-live="polite">
+        <p class="se-empty">Loading…</p>
       </div>
-    </div>
+    </section>
 
-    <!-- One card each. Nobody is "the" partner: they're all people who said
-         yes, and promoting whichever came back first made two partners look
-         like one partner and a footnote. -->
-    <div id="partner-list" style="max-width:640px"></div>
+    <section class="se-sec">
+      <h2>Waiting for an answer</h2>
+      <p class="lede">Nothing here is booked yet — a time counts only once both of you agree.</p>
+      <div class="se-list" id="se-waiting"><p class="se-empty">Loading…</p></div>
+    </section>
 
-    <!-- Real numbers from the database, so the wait isn't a black box. -->
-    <div class="card" id="queue-card" style="max-width:640px;margin-top:24px">
-      <h3>Where things stand</h3>
-      <div class="stat-row">
-        <div class="stat"><b id="q-total">—</b><span>people signed up</span></div>
-        <div class="stat"><b id="q-same">—</b><span>learning your topic</span></div>
-      </div>
-      <p class="queue-note" id="q-note">Checking…</p>
-      <a class="btn ghost" href="app-people.html" style="margin-top:16px">See who's here</a>
-    </div>
-
-    <p class="board-note" id="board-note">When you're matched, your partner and a button to start your video call will show up here. You'll meet on video — cameras on — and learn together.</p>
+    <section class="se-sec">
+      <h2>History</h2>
+      <p class="lede">What already happened, most recent first.</p>
+      <div class="se-list" id="se-history"><p class="se-empty">Loading…</p></div>
+    </section>
   </div>
 </main>
+
+<div class="mfoot">
+  <a href="conduct.html">Code of conduct</a>
+  <a href="app-partner.html">Your partner</a>
+  <span>peerflow</span>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
 <script src="assets/authgate.js"></script>
 <script>
-(function(){
-  var track = '', myAvail = [];
-  try { track = localStorage.getItem('pf_track') || ''; } catch(err) {}
+/* PeerFlow — Sessions.
 
-  function esc(v){
-    return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
+   Three lists, in the order they need attention: what is booked, what is
+   waiting on somebody, and what already happened.
+
+   All the answering goes through the existing SECURITY DEFINER functions, so
+   a session accepted or cancelled by one person moves on both calendars. That
+   is the bug this model exists to prevent, and nothing here bypasses it. */
+(function(){
+  var LATE_MS = 2 * 60 * 60 * 1000;
+  var JOIN_MS = 15 * 60 * 1000;
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
   }
+  function firstName(n){ return String(n || '').trim().split(/\s+/)[0] || 'your partner'; }
 
-  /* Honest state: nobody is pairing people by hand and there is no matching
-     engine — you ask someone on the People page and they accept. */
-  function renderNone(hasTrack){
-    document.getElementById('none-card').hidden = false;
-    var status = document.getElementById('match-status');
-    var title = document.getElementById('match-title');
-    var sub = document.getElementById('match-sub');
-    if (hasTrack) {
-      status.textContent = 'NO PARTNER YET';
-      title.textContent = 'You don\u2019t have a partner yet';
-      sub.textContent = 'Ask someone on the People page. They get a notification and can say yes, ' +
-        'and booking opens up on Sessions as soon as one of you does.';
-      document.getElementById('match-find').hidden = false;
+  function dateLabel(d){
+    var day = new Date(d); day.setHours(0,0,0,0);
+    var today = new Date(); today.setHours(0,0,0,0);
+    var diff = Math.round((day - today) / 864e5);
+    var time = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hour12:false });
+    if (diff === 0) return 'Today ' + time;
+    if (diff === 1) return 'Tomorrow ' + time;
+    if (diff === -1) return 'Yesterday ' + time;
+    return d.toLocaleDateString([], { weekday:'short', day:'numeric', month:'short' }) + ' ' + time;
+  }
+
+  function say(msg, bad){
+    var st = document.getElementById('se-status');
+    st.hidden = false;
+    st.textContent = msg;
+    st.className = 'bk-status' + (bad ? ' bk-warn' : '');
+    if (!bad) setTimeout(function(){ st.hidden = true; }, 4000);
+  }
+
+  function empty(box, title, body, cta){
+    box.innerHTML = '<div class="se-empty"><b>' + esc(title) + '</b>' + esc(body) +
+      (cta ? ' <a href="' + cta[1] + '" style="text-decoration:underline">' + esc(cta[0]) + '</a>' : '') +
+      '</div>';
+  }
+
+  /* One row. `acts` is already-escaped markup from the caller. */
+  function row(s, tag, acts){
+    return '<div class="se-row" data-at="' + esc(s.startsAt.toISOString()) +
+             '" data-room="' + esc(s.roomUrl || '') + '">' +
+      '<div class="se-date">' + esc(dateLabel(s.startsAt)) + '</div>' +
+      '<div class="se-what">' +
+        '<b>' + esc(s.topic || 'Study session') + '</b>' +
+        '<span>' + esc(firstName(s.partnerName)) + ' · ' + s.durationMin + ' min' +
+          (s.goal ? ' · ' + esc(s.goal) : '') + '</span>' +
+      '</div>' + (tag || '') +
+      '<div class="se-acts">' + (acts || '') + '</div></div>';
+  }
+
+  function render(sessions){
+    var now = Date.now();
+    var up = [], waiting = [], past = [];
+
+    sessions.forEach(function(s){
+      var over = s.startsAt.getTime() + s.durationMin * 60000 <= now;
+      if (s.status === 'proposed') { waiting.push(s); return; }
+      if (s.status === 'confirmed' && !over) { up.push(s); return; }
+      past.push(s);
+    });
+    past.sort(function(a, b){ return b.startsAt - a.startsAt; });
+
+    /* ---------- upcoming ---------- */
+    var boxUp = document.getElementById('se-upcoming');
+    if (!up.length) {
+      empty(boxUp, 'Nothing booked yet',
+        'When you and your partner agree a time it appears here.',
+        ['Propose a time', 'app-partner.html#schedule']);
     } else {
-      status.textContent = 'ALMOST THERE';
-      title.textContent = 'Finish setting up first';
-      sub.textContent = 'Tell us what you\u2019re learning so we can start finding your partner.';
+      boxUp.innerHTML = up.map(function(s){
+        var joinable = now >= s.startsAt.getTime() - JOIN_MS;
+        var tag = s.confirmedAt
+          ? '<span class="se-tag ok">You confirmed</span>'
+          : '<span class="se-tag">Not confirmed</span>';
+        var acts = '';
+        if (!s.confirmedAt) acts += '<button class="small" data-do="confirm">Confirm</button>';
+        if (joinable) acts += '<a class="small" href="app-room.html?at=' +
+          encodeURIComponent(s.startsAt.toISOString()) + '&room=' +
+          encodeURIComponent(s.roomUrl || '') + '">Join</a>';
+        acts += '<button class="small" data-do="cancel">Can’t attend</button>';
+        return row(s, tag, acts);
+      }).join('');
+    }
+
+    /* ---------- waiting ---------- */
+    var boxW = document.getElementById('se-waiting');
+    if (!waiting.length) {
+      empty(boxW, 'No proposals open', 'Times you or your partner suggest will wait here until somebody answers.');
+    } else {
+      boxW.innerHTML = waiting.map(function(s){
+        if (s.mine) {
+          /* Yours. Nothing to answer — you can only take it back. */
+          return row(s, '<span class="se-tag wait">Waiting for ' + esc(firstName(s.partnerName)) + '</span>',
+            '<button class="small" data-do="withdraw">Withdraw</button>');
+        }
+        return row(s, '<span class="se-tag wait">Needs your answer</span>',
+          '<button class="small" data-do="accept">Accept</button>' +
+          '<a class="small" href="app-partner.html#schedule">Suggest another</a>' +
+          '<button class="small" data-do="decline">Decline</button>');
+      }).join('');
+    }
+
+    /* ---------- history ---------- */
+    var boxH = document.getElementById('se-history');
+    if (!past.length) {
+      empty(boxH, 'Nothing here yet', 'Your first session will appear here after you study together.');
+    } else {
+      boxH.innerHTML = past.slice(0, 25).map(function(s){
+        var tag, acts = '';
+        if (s.status === 'completed') {
+          tag = s.attended
+            ? '<span class="se-tag ok">Completed</span>'
+            : '<span class="se-tag off">You missed it</span>';
+        } else if (s.status === 'cancelled') {
+          var late = s.cancelledAt && (s.startsAt.getTime() - s.cancelledAt.getTime()) < LATE_MS;
+          tag = '<span class="se-tag off">' +
+                (s.cancelledByMe ? 'You cancelled' : 'Cancelled') +
+                (late ? ' late' : ' early') + '</span>';
+          acts = '<button class="small" data-do="clear">Clear</button>';
+        } else if (s.status === 'declined') {
+          tag = '<span class="se-tag off">Declined</span>';
+          acts = '<button class="small" data-do="clear">Clear</button>';
+        } else {
+          /* Confirmed and the time has passed with nobody checking out. */
+          tag = '<span class="se-tag off">No-show</span>';
+        }
+        return row(s, tag, acts);
+      }).join('');
     }
   }
 
-  function levelLabel(v){
-    return { new:'Just starting', tutorials:'Doing tutorials',
-             jobprep:'Job-hunt prep', builder:'Builds projects' }[v] || '';
-  }
+  /* ---------- answering ---------- */
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-do]');
+    if (!b) return;
+    var r = b.closest('.se-row');
+    var at = r.getAttribute('data-at'), room = r.getAttribute('data-room');
+    var what = b.getAttribute('data-do');
+    var was = b.textContent;
+    b.disabled = true; b.textContent = '…';
 
-  function renderPartners(list){
-    document.getElementById('none-card').hidden = true;
-    document.getElementById('page-h').textContent =
-      list.length > 1 ? 'My partners' : 'My partner';
-    document.getElementById('board-note').textContent =
-      'Propose a time on Sessions. The link to the call appears there fifteen ' +
-      'minutes before you start.';
+    function done(res, ok){
+      if (res && res.error) { b.disabled = false; b.textContent = was; say(res.error, true); return; }
+      if (res && res.demo) { b.disabled = false; b.textContent = was; say('Demo mode — nothing was saved.'); return; }
+      say(ok);
+      load();
+    }
 
-    document.getElementById('partner-list').innerHTML = list.map(function(x){
-      var pr = x.profile || {};
-      var nm = pr.name || 'Someone';
-
-      /* Only facts we actually hold. An empty column headed "Stage" is worse
-         than three columns instead of four. */
-      var facts = [];
-      var n = overlap(pr.availability);
-      if (myAvail.length) {
-        facts.push(['Free together', n ? n + (n === 1 ? ' time' : ' times') : 'No overlap']);
-      }
-      if (levelLabel(pr.level)) facts.push(['Stage', levelLabel(pr.level)]);
-      if (pr.timezone)          facts.push(['Timezone', pr.timezone]);
-
-      return '<div class="pcard">' +
-        '<div class="pcard-side"><span>' + esc(nm.trim().charAt(0).toUpperCase()) + '</span></div>' +
-        '<div class="pcard-body">' +
-          '<p class="pcard-nm">' + esc(nm) + '</p>' +
-          '<p class="pcard-tp">' +
-            (pr.topic ? 'Learning ' + esc(pr.topic) : 'Hasn\u2019t said what they\u2019re learning yet') +
-          '</p>' +
-          (facts.length ? '<div class="pcard-facts">' + facts.map(function(f){
-            return '<div class="pcard-fact"><b>' + esc(f[1]) + '</b><span>' + f[0] + '</span></div>';
-          }).join('') + '</div>' : '') +
-          '<div class="pcard-acts"><a class="btn" href="app.html">Propose a time</a></div>' +
-        '</div></div>';
-    }).join('');
-  }
-
-  /* How many of your free windows they are also free in — the same number the
-     People page shows, so the two pages agree about the same pair. */
-  function overlap(theirs){
-    if (!myAvail.length || !theirs || !theirs.length) return 0;
-    var mine = {}, n = 0;
-    myAvail.forEach(function(sl){ mine[sl] = true; });
-    theirs.forEach(function(sl){ if (mine[sl]) n++; });
-    return n;
-  }
-
-  /* Real signup numbers, so waiting isn't a black box. */
-  function loadQueue(topic){
-    pf.learnerStats(topic).then(function(s){
-      var note = document.getElementById('q-note');
-      if (!s) { note.textContent = 'Could not load numbers right now.'; return; }
-      document.getElementById('q-total').textContent = s.total;
-      document.getElementById('q-same').textContent = s.sameTopic;
-      if (s.sameTopic > 0) {
-        note.textContent = s.sameTopic === 1
-          ? 'One other person is learning the same thing as you. That’s your likely partner.'
-          : s.sameTopic + ' other people are learning the same thing as you.';
-      } else if (s.total > 0) {
-        note.textContent = 'Nobody has put down your exact topic yet. Broadening it on your profile ' +
-          '(say "Linux" instead of "Linux kernel modules") usually finds a partner faster.';
-      } else {
-        note.textContent = 'You’re the first person here. Share PeerFlow with one person learning ' +
-          'the same thing and you have your pair immediately.';
-      }
-    });
-  }
-
-  pf.currentUser().then(function(user){
-    if (!user) return;
-    pf.getProfile().then(function(profile){
-      myAvail = (profile && profile.availability) || [];
-      loadQueue(profile && profile.topic);
-      if (profile && profile.track_id) {
-        track = profile.track_id;
-        try { localStorage.setItem('pf_track', track); } catch(e){}
-      }
-      pf.acceptedPartners().then(function(list){
-        if (list && list.length) { renderPartners(list); return; }
-        renderNone(!!track);
-      });
-    });
+    if (what === 'accept')   return pf.acceptSession(at, room).then(function(x){ done(x, 'Booked. It’s on both calendars.'); });
+    if (what === 'decline')  return pf.declineSession(at, room).then(function(x){ done(x, 'Turned down.'); });
+    if (what === 'confirm')  return pf.confirmAttendance(at, room).then(function(x){ done(x, 'Confirmed.'); });
+    if (what === 'cancel')   return pf.cancelBooked(at, room).then(function(x){ done(x, 'Cancelled — your partner has been told.'); });
+    if (what === 'withdraw') return pf.cancelSession(at, room).then(function(x){ done(x, 'Withdrawn.'); });
+    if (what === 'clear')    return pf.cancelSession(at, room).then(function(x){ done(x, 'Cleared.'); });
   });
+
+  /* ---------- load ---------- */
+  function load(){
+    pf.fetchSessions().then(function(list){
+      if (!list) {
+        ['se-upcoming','se-waiting','se-history'].forEach(function(id){
+          empty(document.getElementById(id), 'We couldn’t load your sessions',
+            'Refresh the page to try again.');
+        });
+        return;
+      }
+      render(list);
+    });
+  }
+
+  if (!window.pf || !pf.ready || !pf.ready()) {
+    ['se-upcoming','se-waiting','se-history'].forEach(function(id){
+      empty(document.getElementById(id), 'Demo mode',
+        'Sessions are read from real rows, so there is nothing to preview without an account.');
+    });
+    return;
+  }
+  load();
 })();
 </script>
 <script src="assets/appshell.js"></script>
