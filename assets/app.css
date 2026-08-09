@@ -50,7 +50,21 @@ button{font-family:var(--body);cursor:pointer}
 .tabs a:hover{background:var(--band);color:var(--ink)}
 .tabs a.on{background:var(--ink);color:#fff}
 .tabs a.on svg path,.tabs a.on svg circle,.tabs a.on svg rect{stroke:#fff}
+/* The header's one primary action. Normally "+ Schedule"; it becomes
+   "Join session" when a booked session is close enough to enter, because at
+   that moment joining is the only thing the learner is here to do. */
+.nav-cta{flex:0 0 auto;display:inline-flex;align-items:center;padding:8px 15px;
+  border-radius:9px;background:var(--p6);color:#fff;font-size:14px;font-weight:600;
+  white-space:nowrap;border:1px solid var(--p6)}
+.nav-cta:hover{background:var(--p8);border-color:var(--p8);color:#fff}
+.nav-cta.join{background:var(--p4);border-color:var(--p4)}
+.nav-cta.join:hover{background:var(--p6);border-color:var(--p6)}
 .nav-right{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+
+/* Focus must be visible on every interactive thing in the shell, not just
+   the ones that happen to be buttons. */
+.tabs a:focus-visible,.nav-cta:focus-visible,.brand:focus-visible{
+  outline:2px solid var(--p4);outline-offset:2px}
 
 main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .mfoot{max-width:1320px;margin:0 auto;padding:0 32px 44px;
@@ -336,6 +350,10 @@ h1 .g{color:var(--p4)}
   .tabs{order:3;width:100%;flex:1 0 100%}
   .tabs a{padding:7px 11px;font-size:14px}
   .tabs a svg{display:none}
+  /* The action stays on the first row beside the brand; the tabs drop below
+     it. Pushed hard right so it doesn't collide with the path chip. */
+  .nav-cta{order:2;margin-left:auto;padding:7px 12px;font-size:13.5px}
+  .nav-right{order:2}
   .slot .when{width:100%}
   .avail-grid{grid-template-columns:36px repeat(4,minmax(0,1fr));gap:4px}
   .avail-grid button{height:42px}
