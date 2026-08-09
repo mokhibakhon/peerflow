@@ -798,22 +798,26 @@ html{scroll-behavior:smooth}
 .cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0;
   border:1px solid var(--line);border-radius:12px;background:var(--card)}
 #cal-card{min-width:0}
-.cal-grid{display:grid;grid-template-columns:64px repeat(7,minmax(96px,1fr));min-width:736px}
+/* The gutter only ever holds "09:00", so 64px was 20px of air. Narrower
+   columns and gutter drop the point at which a week starts scrolling from
+   736px to 620px, which is the difference between fitting and not fitting on
+   a small laptop and a landscape phone. */
+.cal-grid{display:grid;grid-template-columns:52px repeat(7,minmax(81px,1fr));min-width:620px}
 
 /* the head — a tinted band, like the hour gutter it meets at the corner */
 .cal-corner{background:#F1F2F6;border-bottom:1px solid var(--line);border-right:1px solid #EDECF2}
-.cal-day{padding:11px 6px 13px;text-align:center;background:#F1F2F6;
+.cal-day{padding:9px 6px 10px;text-align:center;background:#F1F2F6;
   border-bottom:1px solid var(--line);border-right:1px solid #EDECF2}
 .cal-day:last-child{border-right:0}
 .cal-day span{display:block;font-family:var(--body);font-size:13px;font-weight:400;
   letter-spacing:0;text-transform:none;color:var(--soft)}
-.cal-day b{display:block;margin:3px auto 0;font-size:20px;font-weight:700;letter-spacing:-.02em;
-  width:34px;height:34px;line-height:34px;border-radius:50%;color:var(--ink)}
+.cal-day b{display:block;margin:2px auto 0;font-size:17px;font-weight:700;letter-spacing:-.02em;
+  width:29px;height:29px;line-height:29px;border-radius:50%;color:var(--ink)}
 .cal-day.today span{color:var(--p6)}
 .cal-day.today b{background:var(--p6);color:#fff}
 
 /* the body */
-.cal-h{padding:8px 10px 0;text-align:right;font-family:var(--body);font-size:12.5px;
+.cal-h{padding:6px 8px 0;text-align:right;font-family:var(--body);font-size:12px;
   line-height:1;color:var(--faint);white-space:nowrap;background:#F1F2F6;
   border-right:1px solid #EDECF2;border-top:1px solid #F1F0F5}
 /* One background for every cell in the week.
@@ -827,7 +831,11 @@ html{scroll-behavior:smooth}
 
    Past hours still cannot be clicked. That is carried by the cursor and by
    the ＋ not appearing, not by the colour. */
-.cal-cell{position:relative;min-height:72px;padding:0;border:0;background:#FAFAFB;
+/* 54px, not 72. A block holds a title and a time — about 43px of content —
+   so the old row spent 29px on nothing, and a seven-hour week ran to 500px of
+   mostly empty grid. At 54 the week is a quarter shorter and every row still
+   clears the 44px touch target. */
+.cal-cell{position:relative;min-height:54px;padding:0;border:0;background:#FAFAFB;
   border-top:1px solid #F1F0F5;border-right:1px solid #F1F0F5;width:100%;
   font-family:var(--body);text-align:left}
 .cal-cell:last-child{border-right:0}
@@ -846,12 +854,12 @@ html{scroll-behavior:smooth}
 /* the blocks. Flush to the left edge of the column with a square bar on it,
    square at that edge and rounded away from it, and shorter than the row so
    the hour lines still read through. */
-.cal-ev{position:absolute;left:0;right:5px;top:2px;height:58px;
+.cal-ev{position:absolute;left:0;right:4px;top:2px;height:44px;
   border-radius:0 7px 7px 0;border-left:4px solid;
-  padding:7px 10px;overflow:hidden;font-size:13px;line-height:1.3;text-align:left}
-.cal-ev b{display:block;font-size:13.5px;font-weight:600;letter-spacing:-.005em;
+  padding:5px 9px;overflow:hidden;font-size:12px;line-height:1.25;text-align:left}
+.cal-ev b{display:block;font-size:12.5px;font-weight:600;letter-spacing:-.005em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal-ev i{display:block;font-style:normal;font-size:13px;margin-top:2px;
+.cal-ev i{display:block;font-style:normal;font-size:12px;margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Two hues that mean something rather than just telling blocks apart: green
    is agreed, indigo is still a question. The indigo is the purple the avatars
@@ -879,6 +887,23 @@ html{scroll-behavior:smooth}
   .cal-head{gap:10px}
   .cal-nav{margin-left:0;width:100%;justify-content:space-between}
   .cal-range{font-size:15px;padding:0 2px;flex:1;text-align:center}
+  /* A seven-day grid cannot fit a phone, so the goal is to show as much of it
+     as possible and make the rest obviously reachable. Tighter columns get
+     four days on screen instead of two and a half; the fade on the right edge
+     is the only thing that says the week continues. */
+  .cal-grid{grid-template-columns:42px repeat(7,minmax(68px,1fr));min-width:518px}
+  .cal-day b{width:26px;height:26px;line-height:26px;font-size:15.5px}
+  .cal-day span{font-size:12px}
+  /* A gradient overlay was the obvious way to hint at the rest of the week,
+     but the cells paint their own backgrounds over the container, and a
+     sticky pseudo-element inside a scroller resolves to zero height. Show the
+     scrollbar instead: it is the one affordance that cannot be painted over,
+     and the half-column cut off at the right edge does the rest. */
+  .cal-scroll{scrollbar-width:thin;scrollbar-color:#CFCEDA transparent;
+    padding-bottom:2px}
+  .cal-scroll::-webkit-scrollbar{height:7px}
+  .cal-scroll::-webkit-scrollbar-track{background:transparent}
+  .cal-scroll::-webkit-scrollbar-thumb{background:#CFCEDA;border-radius:99px}
 }
 
 /* ---------- the plan ---------- */
