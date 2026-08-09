@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Progress — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+
+<main>
+  <div class="wrap">
+    <div class="app-head">
+      <h1>Progress</h1>
+    </div>
+
+    <p class="signedout-note" id="signedout" hidden>
+      You're not signed in, so we can't work out what you've done.
+      <a href="login.html">Log in</a> to see it.
+    </p>
+
+    <!-- Summary: the numbers that don't belong on Home. -->
+    <div class="pt-sec" id="pg-summary" aria-live="polite">
+      <div class="pt-stats">
+        <div><b id="pg-hours">—</b><span>hours focused</span></div>
+        <div><b id="pg-sessions">—</b><span>sessions completed</span></div>
+        <div><b id="pg-attend">—</b><span>attendance</span></div>
+        <div><b id="pg-streak">—</b><span>current streak</span></div>
+        <div><b id="pg-best">—</b><span>best streak</span></div>
+      </div>
+      <p class="lede" id="pg-relnote" style="margin:14px 0 0"></p>
+    </div>
+
+    <!-- Learning path: light context, not a course. -->
+    <section class="pt-sec">
+      <h3 id="pg-pathname">Your learning path</h3>
+      <p class="lede" id="pg-pathsub">Loading…</p>
+      <div id="pg-path"></div>
+    </section>
+
+    <!-- Achievements live here rather than in their own nav item. -->
+    <section class="pt-sec">
+      <h3>Achievements</h3>
+      <p class="lede">Every one comes from something that actually happened — a
+        session you finished, a partner who accepted, the week you turned up again.</p>
+      <div id="badges"><p class="badge-empty">Loading…</p></div>
+    </section>
+  </div>
+</main>
+
+<div class="mfoot">
+  <a href="conduct.html">Code of conduct</a>
+  <a href="app-profile.html">Your profile</a>
+  <span>peerflow</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/authgate.js"></script>
+<script src="assets/appshell.js"></script>
+<script src="assets/badges.js"></script>
+<script src="assets/plans.js"></script>
+<script>
+/* PeerFlow — Progress.
+
+   Everything that does not belong on Home: totals, the learning path, and the
+   achievements that used to have their own navigation item. All of it is
+   counted from real session rows — there is no separate progress table to get
+   out of step with what actually happened. */
+(function(){
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+  function set(id, v){ var n = document.getElementById(id); if (n) n.textContent = v; }
+
+  /* ---------- the twelve-week path ---------- */
+  /* Done / current / next, drawn off the stage index on the profile and the
+     ordering already in plans.js. Clicking a week moves the marker, which is
+     the only progress input the product asks for. */
+  function renderPath(profile){
+    var box  = document.getElementById('pg-path');
+    var name = document.getElementById('pg-pathname');
+    var sub  = document.getElementById('pg-pathsub');
+    var plan = (window.PF_PLANS && profile && PF_PLANS[profile.track_id]) || null;
+
+    if (!plan) {
+      name.textContent = 'Your learning path';
+      sub.innerHTML = 'Pick a path in <a href="app-profile.html" style="text-decoration:underline">your profile</a> ' +
+                      'and the weeks will appear here.';
+      box.innerHTML = '';
+      return;
+    }
+
+    var trackName = (pf.trackNames && pf.trackNames[profile.track_id]) || profile.track_id;
+    var stage = Math.max(0, Math.min(plan.length - 1, (profile.stage_index | 0)));
+    name.textContent = trackName + ' in twelve weeks';
+    sub.textContent = 'Week ' + (stage + 1) + ' of ' + plan.length +
+                      ' · tap a week to move your marker.';
+
+    box.innerHTML = plan.map(function(w, i){
+      var state = i < stage ? 'Done' : i === stage ? 'Current' : (i === stage + 1 ? 'Next' : 'Later');
+      var cls = i < stage ? 'done' : i === stage ? 'now' : '';
+      return '<button class="pg-week ' + cls + '" data-week="' + i + '" type="button">' +
+               '<span class="wk">Week ' + (i + 1) + '</span>' +
+               '<span class="ttl">' + esc(w.t) + '</span>' +
+               '<span class="st">' + state + '</span>' +
+             '</button>';
+    }).join('');
+
+    box.addEventListener('click', function(e){
+      var b = e.target.closest('[data-week]');
+      if (!b) return;
+      var i = parseInt(b.getAttribute('data-week'), 10);
+      profile.stage_index = i;
+      renderPath(profile);
+      pf.saveStage(i);
+    });
+  }
+
+  /* ---------- totals ---------- */
+  function renderSummary(sessions, rel){
+    var now = Date.now();
+    var done = (sessions || []).filter(function(s){
+      return s.status === 'completed' ||
+             (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
+    });
+
+    var minutes = done.reduce(function(a, s){ return a + (s.durationMin || 0); }, 0);
+    set('pg-hours', (minutes / 60).toFixed(1));
+    set('pg-sessions', String(done.length));
+
+    /* Weekly streaks, current and best. */
+    var WEEK = 7 * 864e5, weeks = {};
+    done.forEach(function(s){ weeks[Math.floor(s.startsAt.getTime() / WEEK)] = true; });
+    var idx = Object.keys(weeks).map(Number).sort(function(a, b){ return a - b; });
+    var best = idx.length ? 1 : 0, run = best;
+    for (var i = 1; i < idx.length; i++) {
+      run = (idx[i] === idx[i - 1] + 1) ? run + 1 : 1;
+      if (run > best) best = run;
+    }
+    var cur = 0;
+    if (idx.length) {
+      var thisWeek = Math.floor(now / WEEK);
+      if (thisWeek - idx[idx.length - 1] <= 1) {
+        cur = 1;
+        for (var j = idx.length - 1; j > 0; j--) {
+          if (idx[j] - idx[j - 1] === 1) cur++; else break;
+        }
+      }
+    }
+    set('pg-streak', cur ? cur + 'w' : '0');
+    set('pg-best', best ? best + 'w' : '0');
+
+    if (rel && rel.counted > 0) {
+      set('pg-attend', rel.pct + '%');
+      var note = rel.attended + ' of ' + rel.counted + ' confirmed sessions attended';
+      if (rel.early) note += ' · ' + rel.early + ' cancelled early';
+      if (rel.late)  note += ' · ' + rel.late + ' cancelled late';
+      document.getElementById('pg-relnote').textContent = note + '.';
+    } else {
+      set('pg-attend', '—');
+      document.getElementById('pg-relnote').textContent =
+        'Attendance appears once you have finished your first session.';
+    }
+  }
+
+  /* ---------- load ---------- */
+  if (!window.pf || !pf.currentUser) return;
+
+  pf.currentUser().then(function(user){
+    if (!user) {
+      document.getElementById('signedout').hidden = false;
+      pfBadges.render(document.getElementById('badges'), null);
+      return;
+    }
+    Promise.all([
+      pf.getProfile(), pf.fetchSessions(), pf.reliability(), pf.badgeStats()
+    ]).then(function(r){
+      var profile = r[0] || null;
+      renderSummary(r[1], r[2]);
+      if (profile) renderPath(profile);
+      pfBadges.render(document.getElementById('badges'), r[3]);
+    });
+  });
+})();
+</script>
+<script src="assets/usermenu.js"></script>
+<script src="assets/notify.js"></script>
+</body>
+</html>

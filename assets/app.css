@@ -927,3 +927,83 @@ html{scroll-behavior:smooth}
   .plan-t{font-size:14px}
   .cal-range{font-size:13.5px}
 }
+
+/* ============================================================
+   Partner page (app-partner.html)
+
+   One relationship, described once. The layout is deliberately a single
+   column of quiet blocks rather than a grid of cards: there is only one
+   partner, so there is nothing to compare against and nothing to scan.
+   ============================================================ */
+.pt-head{display:flex;align-items:center;gap:18px;padding:22px 24px;
+  background:var(--card);border:1px solid var(--line);border-radius:16px}
+.pt-face{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
+  font-size:22px;font-weight:700;flex:0 0 auto}
+.pt-id{min-width:0;flex:1}
+.pt-id h2{font-size:21px;margin:0 0 3px}
+.pt-id .sub{color:var(--soft);font-size:14px}
+.pt-stats{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px}
+.pt-stats div{min-width:0}
+.pt-stats b{display:block;font-size:19px;line-height:1.2}
+.pt-stats span{font-size:12.5px;color:var(--faint)}
+
+.pt-sec{margin-top:22px;padding:22px 24px;background:var(--card);
+  border:1px solid var(--line);border-radius:16px}
+.pt-sec h3{font-size:15px;margin:0 0 4px}
+.pt-sec .lede{color:var(--soft);font-size:13.5px;margin:0 0 16px}
+
+.pt-bar{height:7px;border-radius:99px;background:var(--band);overflow:hidden;margin:12px 0 8px}
+.pt-bar i{display:block;height:100%;background:var(--p4);border-radius:99px}
+
+/* Shared availability: one row per overlapping window, each proposable. */
+.pt-slot{display:flex;align-items:center;gap:14px;padding:12px 0;
+  border-top:1px solid var(--line)}
+.pt-slot:first-of-type{border-top:0}
+.pt-slot .when{flex:1;min-width:0;font-size:15px}
+.pt-slot .hrs{display:flex;gap:6px;flex-wrap:wrap}
+.pt-slot select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);font:inherit;font-size:13.5px;color:var(--ink)}
+
+/* Why you matched — facts, not a score. */
+.pt-why{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.pt-why span{background:var(--p0);color:var(--p8);font-size:13px;
+  padding:6px 11px;border-radius:99px}
+
+/* Ending a partnership is deliberate: quiet until you ask for it. */
+.pt-danger{margin-top:22px;padding:18px 24px;border:1px solid var(--line);
+  border-radius:16px;background:transparent}
+.pt-danger h3{font-size:14px;margin:0 0 4px}
+.pt-danger p{color:var(--soft);font-size:13.5px;margin:0 0 12px;max-width:60ch}
+.pt-danger .btn{background:transparent;border:1px solid var(--line);color:var(--soft)}
+.pt-danger .btn:hover{border-color:#C74A4A;color:#C74A4A;background:transparent}
+.pt-confirm{border:1px solid #E8C9C9;background:#FCF5F5;border-radius:12px;
+  padding:16px 18px;margin-top:12px}
+.pt-confirm p{color:var(--ink);margin:0 0 12px}
+.pt-confirm .row{display:flex;gap:10px;flex-wrap:wrap}
+
+@media (max-width:640px){
+  .pt-head{flex-direction:column;align-items:flex-start;gap:12px}
+  .pt-slot{flex-wrap:wrap}
+  .pt-slot .when{flex:1 0 100%}
+}
+
+/* ---------- Progress: the twelve-week path ---------- */
+/* A list, not a course. Each week is a button because moving the marker is
+   the only progress input the product asks for. */
+.pg-week{display:flex;align-items:baseline;gap:14px;width:100%;text-align:left;
+  padding:11px 12px;border:0;border-top:1px solid var(--line);background:transparent;
+  border-radius:0;font:inherit;color:var(--ink)}
+.pg-week:first-child{border-top:0}
+.pg-week:hover{background:var(--band)}
+.pg-week .wk{flex:0 0 68px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.pg-week .ttl{flex:1;min-width:0;font-size:14.5px}
+.pg-week .st{flex:0 0 auto;font-size:12px;color:var(--faint)}
+.pg-week.done .ttl{color:var(--faint);text-decoration:line-through}
+.pg-week.now{background:var(--p0);border-radius:10px}
+.pg-week.now .ttl{font-weight:700;color:var(--p8)}
+.pg-week.now .st,.pg-week.now .wk{color:var(--p6)}
+@media (max-width:640px){
+  .pg-week{flex-wrap:wrap;gap:4px 12px}
+  .pg-week .ttl{flex:1 0 100%;order:3}
+}
