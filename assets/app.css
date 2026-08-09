@@ -1007,3 +1007,84 @@ html{scroll-behavior:smooth}
   .pg-week{flex-wrap:wrap;gap:4px 12px}
   .pg-week .ttl{flex:1 0 100%;order:3}
 }
+
+/* ============================================================
+   Home (app.html)
+
+   Answers one question: what do I need to do next. Three blocks, in falling
+   order of urgency, and nothing else. Deliberately not a dashboard — session
+   history, achievements, matching and settings all live on their own pages.
+   ============================================================ */
+.hm-next{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:24px 26px}
+.hm-next.live{border-color:var(--p2);box-shadow:0 0 0 3px var(--p0)}
+.hm-when{font-family:var(--mono);font-size:11px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--p6)}
+.hm-next h2{font-size:23px;margin:6px 0 3px;letter-spacing:-.02em}
+.hm-next .meta{color:var(--soft);font-size:14.5px;margin:0}
+.hm-goal{margin:14px 0 0;padding:12px 14px;background:var(--band);border-radius:10px;
+  font-size:14px;color:var(--soft)}
+.hm-goal b{color:var(--ink);font-weight:600}
+
+/* Attendance: two names, two states. Never colour alone — each carries a word. */
+.hm-att{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 0}
+.hm-att span{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;
+  padding:7px 12px;border-radius:99px;background:var(--band);color:var(--soft)}
+.hm-att span.yes{background:var(--p0);color:var(--p8)}
+.hm-att i{width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto}
+
+.hm-acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
+
+/* Partner snapshot and This week: small, side by side, never competing with
+   the session card above them. */
+.hm-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:16px;margin-top:16px}
+.hm-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+.hm-card h3{font-size:13px;margin:0 0 14px;font-family:var(--mono);font-weight:500;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.hm-who{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.hm-who .pt-face{width:42px;height:42px;font-size:16px}
+.hm-who b{display:block;font-size:16px}
+.hm-who span{font-size:13px;color:var(--soft)}
+.hm-mini{display:flex;gap:22px;flex-wrap:wrap}
+.hm-mini b{display:block;font-size:17px;line-height:1.2}
+.hm-mini span{font-size:12px;color:var(--faint)}
+.hm-week{height:7px;border-radius:99px;background:var(--band);overflow:hidden;margin:14px 0 8px}
+.hm-week i{display:block;height:100%;background:var(--p4);border-radius:99px}
+
+/* An empty state is a prompt, never a shrug. */
+.hm-empty{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:26px;max-width:640px}
+.hm-empty h2{font-size:19px;margin:0 0 6px}
+.hm-empty p{color:var(--soft);font-size:14.5px;margin:0 0 16px;max-width:52ch}
+
+/* ============================================================
+   Sessions (app-sessions.html)
+
+   The operational page: what is booked, what is waiting on somebody, and what
+   already happened. Chronological, one row per session, no cards-within-cards.
+   ============================================================ */
+.se-sec{margin-top:26px}
+.se-sec h2{font-size:15px;margin:0 0 4px}
+.se-sec .lede{color:var(--soft);font-size:13.5px;margin:0 0 14px}
+.se-list{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.se-row{display:flex;align-items:center;gap:16px;padding:16px 20px;border-top:1px solid var(--line);
+  flex-wrap:wrap}
+.se-row:first-child{border-top:0}
+.se-date{flex:0 0 118px;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--p6)}
+.se-what{flex:1;min-width:160px}
+.se-what b{display:block;font-size:15.5px;font-weight:600}
+.se-what span{font-size:13px;color:var(--soft)}
+.se-acts{display:flex;gap:8px;flex-wrap:wrap;flex:0 0 auto}
+.se-tag{font-size:12px;padding:5px 10px;border-radius:99px;background:var(--band);
+  color:var(--soft);white-space:nowrap}
+.se-tag.ok{background:var(--p0);color:var(--p8)}
+.se-tag.wait{background:#FFF4E2;color:#8A5A08}
+.se-tag.off{background:#F6F0F0;color:#8B4A4A}
+.se-empty{padding:26px 20px;color:var(--soft);font-size:14.5px}
+.se-empty b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:4px;font-weight:600}
+@media (max-width:640px){
+  .se-date{flex:1 0 100%}
+  .se-acts{flex:1 0 100%}
+}

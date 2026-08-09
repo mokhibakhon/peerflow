@@ -219,6 +219,45 @@ begin
   return n + 1;
 end $$;
 
+-- ---------- reading the other half of a session ----------
+-- "read own sessions" limits SELECT to your own row, which is right: nobody
+-- should be able to read the sessions of people they have nothing to do with.
+-- But an attendance panel has to say whether the OTHER person has confirmed,
+-- and that lives on their row.
+--
+-- This returns exactly three facts about the partner's copy of one meeting the
+-- caller already owns a copy of — confirmed, attended, and whether they have
+-- set a goal. Not the goal text, not their name, not anything else on the row.
+create or replace function public.session_partner_state(
+  p_starts_at timestamptz,
+  p_room      text
+) returns table (confirmed boolean, attended boolean, has_goal boolean)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not exists (
+    select 1 from public.sessions
+    where user_id = auth.uid() and starts_at = p_starts_at and room_url = p_room
+  ) then
+    raise exception 'no such session for this user';
+  end if;
+
+  return query
+    select (s.confirmed_at is not null),
+           coalesce(s.attended, false),
+           (s.goal is not null and s.goal <> '')
+      from public.sessions s
+     where s.starts_at = p_starts_at
+       and s.room_url  = p_room
+       and s.user_id  <> auth.uid()
+     limit 1;
+end $$;
+
+revoke all on function public.session_partner_state(timestamptz, text) from public, anon;
+grant execute on function public.session_partner_state(timestamptz, text) to authenticated;
+
 revoke all on function public.confirm_attendance(timestamptz, text, text) from public, anon;
 revoke all on function public.set_session_goal(timestamptz, text, text)   from public, anon;
 revoke all on function public.finish_session(timestamptz, text, boolean)  from public, anon;

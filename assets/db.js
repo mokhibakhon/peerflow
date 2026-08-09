@@ -886,6 +886,22 @@ window.pf = (function(){
       'Could not confirm. Please try again.');
   }
 
+  /* Whether the other person has confirmed and turned up. Their row is not
+     readable directly — "read own sessions" is deliberately narrow — so this
+     goes through a function that returns three booleans about a meeting the
+     caller already owns a copy of, and nothing else from their row.
+     Resolves null when unknown, which reads as "not confirmed yet" rather
+     than as "did not attend". */
+  function partnerState(startsAt, roomUrl){
+    if (!client) return Promise.resolve(null);
+    return client.rpc('session_partner_state', { p_starts_at: startsAt, p_room: roomUrl })
+      .then(function(r){
+        if (r.error || !r.data || !r.data.length) return null;
+        var row = r.data[0];
+        return { confirmed: !!row.confirmed, attended: !!row.attended, hasGoal: !!row.has_goal };
+      }).catch(function(){ return null; });
+  }
+
   function setSessionGoal(startsAt, roomUrl, goal){
     return rpcSession('set_session_goal',
       { p_starts_at: startsAt, p_room: roomUrl, p_goal: goal || '' },
@@ -1106,6 +1122,7 @@ window.pf = (function(){
     rankedMatches: rankedMatches,
     /* attendance */
     confirmAttendance: confirmAttendance,
+    partnerState: partnerState,
     setSessionGoal: setSessionGoal,
     finishSession: finishSession,
     reliability: reliability,
