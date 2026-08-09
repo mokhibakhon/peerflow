@@ -26,7 +26,7 @@
       <a href="login.html">Log in</a> to see it.
     </p>
 
-    <!-- Summary: the numbers that don't belong on Home. -->
+    <!-- Totals, counted from real session rows. -->
     <div class="pt-sec" id="pg-summary" aria-live="polite">
       <div class="pt-stats">
         <div><b id="pg-hours">—</b><span>hours focused</span></div>
@@ -45,7 +45,7 @@
       <div id="pg-path"></div>
     </section>
 
-    <!-- Achievements live here rather than in their own nav item. -->
+    <!-- The same wall as app-badges.html, next to the numbers behind it. -->
     <section class="pt-sec">
       <h3>Achievements</h3>
       <p class="lede">Every one comes from something that actually happened — a
@@ -71,10 +71,12 @@
 <script>
 /* PeerFlow — Progress.
 
-   Everything that does not belong on Home: totals, the learning path, and the
-   achievements that used to have their own navigation item. All of it is
-   counted from real session rows — there is no separate progress table to get
-   out of step with what actually happened. */
+   Totals, the twelve-week learning path, and achievements in one place. All of
+   it is counted from real session rows — there is no separate progress table
+   to get out of step with what actually happened.
+
+   Badges also still have their own page at app-badges.html; this one shows the
+   same wall alongside the numbers that earn it. */
 (function(){
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -204,7 +206,7 @@
     } else {
       note.innerHTML = 'Nothing here yet. Book a session with your partner and ' +
         'your hours, streak and attendance start counting. ' +
-        '<a href="app-partner.html#schedule" style="text-decoration:underline">Propose a time</a>';
+        '<a href="app.html" style="text-decoration:underline">Propose a time</a>';
     }
   }
 

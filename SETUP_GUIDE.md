@@ -9,29 +9,28 @@ dashboards where it belongs.
 
 ---
 
-## Database migration — run this after schema.sql
+## Database migration — required for the Progress page
 
-`supabase/migration-mvp.sql` adds everything the one-partner MVP needs:
-archived partnerships, per-person session attendance and goals, notifications,
-achievements, and a learning-path stage.
+`supabase/migration-mvp.sql` adds the columns and tables the Progress page
+reads: `profiles.stage_index` for the twelve-week marker, and the
+`achievements` and `notifications` tables so a badge is announced once rather
+than on every page load. It also adds attendance columns to `sessions`, which
+is where the attendance percentage comes from.
 
 1. Supabase → **SQL Editor** → paste the whole of `supabase/migration-mvp.sql`
 2. **Run**
 
 It is additive and safe to run more than once. It does not drop or rewrite
-anything created by `schema.sql`; `answer_session` and `drop_session` keep the
-behaviour they already had.
+anything created by `schema.sql`, and `answer_session` / `drop_session` keep
+the behaviour they already had.
 
-**Until you run it**, the app still works but attendance has nowhere to live:
-Confirm will not stick, and the post-session check-out cannot save. The data
-layer detects the missing columns, falls back to the old ones, and logs a
-warning to the console rather than breaking the page.
+Without it, Progress still loads — hours, sessions and streaks are counted
+from session rows — but attendance shows as a dash, the week marker will not
+save, and achievements are recomputed silently each time. The data layer
+detects the missing columns and logs a console warning rather than breaking.
 
 Verified against PostgreSQL 16: both files apply cleanly twice on a fresh
-database, `answer_session` moves both copies of a session, `confirm_attendance`
-moves only the caller's, and `notify_partner` refuses anyone you are not
-actually partnered with.
-
+database.
 
 ## 1. GitHub repository (2 min) — the prerequisite for everything
 

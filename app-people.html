@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Find Partner — PeerFlow</title>
+<title>People — PeerFlow</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Loaded without blocking the first paint: text appears immediately in the
+     fallback face and swaps when the webfont lands. -->
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
@@ -18,202 +20,303 @@
 <main>
   <div class="wrap">
     <div class="app-head">
-      <h1>Find your partner</h1>
+      <h1>People on PeerFlow</h1>
     </div>
 
-    <p class="empty-hint" style="max-width:620px">
-      The people closest to what you’re learning, strongest first. Send one
-      request — you’re looking for a single partner, not a list of contacts.
+    <p class="empty-hint" style="max-width:640px">
+      Everyone who has finished signing up. The person at the top is whoever is
+      closest to what you're learning — a suggestion, not a match. Nobody here is
+      made up, and you can ask anyone on the list instead.
     </p>
 
-    <p class="bk-status" id="fp-status" hidden></p>
+    <div class="stat-row">
+      <div class="stat"><b id="st-total">—</b><span>people here</span></div>
+      <div class="stat"><b id="st-same">—</b><span>on your path</span></div>
+    </div>
 
-    <div class="fp-list" id="fp-list" aria-live="polite">
-      <div class="fp-card"><div class="fp-body"><p class="sub">Finding your matches…</p></div></div>
+    <div id="people">
+      <div class="b"><p class="n">Loading…</p></div>
     </div>
   </div>
 </main>
-
-<div class="mfoot">
-  <a href="conduct.html">Code of conduct</a>
-  <a href="app-profile.html">Your profile</a>
-  <span>peerflow</span>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
 <script src="assets/authgate.js"></script>
 <script>
-/* PeerFlow — Find Partner.
-
-   A short ranked list, deliberately not a directory. The scoring lives in
-   db.js (rankedMatches) so the same rules can be reused; this page's job is to
-   explain each result and send one request.
-
-   Nothing here is invented. An empty list means nobody else on this path has
-   signed up yet, and the page says exactly that instead of padding itself
-   with people who don't exist. */
 (function(){
-  var list = document.getElementById('fp-list');
-  var LEVEL = { 'new':'Just starting', tutorials:'Working through tutorials',
-                builder:'Building things', jobprep:'Preparing for work' };
+  var name = '', myTopic = '';
+  try {
+    name = localStorage.getItem('pf_name') || '';
+    myTopic = localStorage.getItem('pf_topic') || '';
+  } catch(err) {}
+
+  var pathLabel = { frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity', data:'Data & analytics', mobile:'Mobile', devops:'DevOps & cloud', aiml:'AI & ML', design:'UX/UI design' };
+  var levelLabel = { new:'Just starting', tutorials:'Doing tutorials', jobprep:'Job-hunt prep', builder:'Builds projects' };
+  /* Same tones as the account chip: a soft tint with a dark letter, keyed off
+     the name so someone's avatar is stable wherever they appear. Solid
+     saturated circles were shouting over the names next to them. */
+  var TONES = [
+    ['#EEEDFE','#3C3489'], ['#E1F5EE','#0F6E56'], ['#FBEAF0','#A94168'],
+    ['#E6F1FB','#185FA5'], ['#FAEEDA','#854F0B'], ['#FAECE7','#993C1D'],
+    ['#F5EAF8','#58256B'], ['#EDF0F3','#35414F']
+  ];
+  function tone(name){
+    var str = String(name || '?'), h = 0;
+    for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    return TONES[h % TONES.length];
+  }
 
   function esc(s){
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return String(s).replace(/[&<>"']/g, function(c){
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
   }
-  function say(msg, bad){
-    var st = document.getElementById('fp-status');
-    st.hidden = false;
-    st.textContent = msg;
-    st.className = 'bk-status' + (bad ? ' bk-warn' : '');
+
+  var list = document.getElementById('people');
+
+  /* What's already been asked, so nobody is offered a duplicate request. */
+  var reqByUser = {};
+
+  /* The right-hand slot is either the one action on this page or the state
+     you're already in with that person. Button and chips are built to the
+     same height and radius so the column stays straight as rows change
+     state, and each chip carries a glyph so it reads at a glance. */
+  var ICON = {
+    tick: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8.6l3 3L12.8 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    sent: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    wait: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.6V8l2.4 1.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    no:   '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.6 5.6l4.8 4.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  };
+  function chip(kind, icon, label){
+    return '<span class="pstate ' + kind + '">' + ICON[icon] + label + '</span>';
   }
 
-  /* Which reasons deserve the accent colour: the ones that actually decide a
-     good match, rather than every fact we happen to know. */
-  var KEY = /^(Same path|Same stage|\d+ shared)/;
+  function actionFor(userId){
+    var r = reqByUser[userId];
+    if (!r) return '<button class="askbtn" data-ask="' + esc(userId) + '">Send request</button>';
+    if (r.status === 'accepted') return chip('ok',   'tick', 'Partners');
+    if (r.status === 'declined') return chip('no',   'no',   'Declined');
+    return r.direction === 'out'
+      ? chip('sent', 'sent', 'Asked')
+      : chip('wait', 'wait', 'Waiting on you');
+  }
 
-  function card(m, top){
-    return '<article class="fp-card' + (top ? ' top' : '') + '" data-id="' + esc(m.id) + '">' +
-      '<div class="fp-body">' +
-        '<h3>' + esc(m.name) + '</h3>' +
-        '<p class="sub">' + esc(m.trackName || 'Path not set') +
-          (m.level ? ' · ' + esc(LEVEL[m.level] || m.level) : '') +
-          (m.topic ? ' · ' + esc(m.topic) : '') + '</p>' +
-        '<div class="fp-why">' +
-          m.why.map(function(w){
-            return '<span class="' + (KEY.test(w) ? 'key' : '') + '">' + esc(w) + '</span>';
-          }).join('') +
-        '</div>' +
+  var me = { track: '', topic: myTopic, avail: [] };
+
+  /* How many of the times you're free they are free too. This is the fact
+     that decides whether a partnership can physically happen, so it goes
+     on the row rather than being something you find out after asking. */
+  function overlap(theirs){
+    if (!me.avail.length || !theirs || !theirs.length) return 0;
+    var mine = {}, n = 0;
+    me.avail.forEach(function(s){ mine[s] = true; });
+    theirs.forEach(function(s){ if (mine[s]) n++; });
+    return n;
+  }
+
+  /* Why this person is worth your attention, strongest reason first. The
+     ranking is the whole point of the page — a list in signup order buries
+     the one person on your topic under everyone who joined after them. */
+  function reason(p){
+    if (me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase()) return 'topic';
+    if (me.track && p.track_id === me.track) return 'path';
+    return '';
+  }
+  function score(p){
+    var r = reason(p);
+    return (r === 'topic' ? 200 : r === 'path' ? 100 : 0) + Math.min(overlap(p.availability), 20);
+  }
+
+  function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
+
+  /* "3 blocks" is our word for a cell in the availability grid, not a
+     reader's. The cell says the whole thing instead, so the column needs no
+     decoding: "3 times you're both free". */
+  function howMany(n){ return n === 1 ? '1 time' : n + ' times'; }
+  function timesShort(p){
+    if (!me.avail.length) return '';
+    var n = overlap(p.availability);
+    return n ? '<span class="overlap ok">' + howMany(n) + ' you\u2019re both free</span>'
+             : '<span class="overlap none">No times in common</span>';
+  }
+
+  /* The top pick argues its case: the facts that made it the top pick sit on
+     the card, so the suggestion is checkable rather than trust-me. */
+  function heroCard(p){
+    var nm = p.name || 'Someone', t = tone(nm), why = reason(p), shared = overlap(p.availability);
+    var tag = why === 'topic' ? 'Closest to what you’re learning'
+            : why === 'path'  ? 'Closest on your path'
+                              : 'Free when you’re free';
+
+    var facts = [];
+    if (why === 'topic')     facts.push(['Same topic', p.topic]);
+    else if (why === 'path') facts.push(['Same path', pathLabel[p.track_id] || '']);
+    else if (p.topic)        facts.push(['Learning', p.topic]);
+    if (me.avail.length) {
+      facts.push(shared ? ['You’re both free', howMany(shared)]
+                        : ['Times you’re both free', 'None yet']);
+    }
+    if (levelLabel[p.level]) facts.push(['Stage', levelLabel[p.level]]);
+    if (p.timezone)          facts.push(['Timezone', p.timezone]);
+
+    return '<div class="top-pick" data-id="' + esc(p.id) + '">' +
+      '<p class="tp-tag">' + tag + '</p>' +
+      '<div class="tp-top">' +
+        '<span class="tp-av" style="background:' + t[0] + ';color:' + t[1] + '">' + initial(nm) + '</span>' +
+        '<div><p class="tp-nm">' + esc(nm) + '</p><p class="tp-sub">' +
+          (p.topic ? 'Learning ' + esc(p.topic) : 'Hasn’t said what they’re learning yet') +
+        '</p></div>' +
       '</div>' +
-      '<div class="fp-score"><b>' + m.match + '%</b><span>match</span></div>' +
-      '<div class="fp-acts">' +
-        '<button class="btn" data-ask="' + esc(m.id) + '">Send request</button>' +
+      '<div class="tp-facts">' + facts.map(function(f){
+        return '<div class="tp-fact"><b>' + esc(f[1]) + '</b><span>' + f[0] + '</span></div>';
+      }).join('') + '</div>' +
+      '<div class="tp-acts">' + actionFor(p.id) + '</div>' +
+    '</div>';
+  }
+
+  function tableRow(p){
+    var nm = p.name || 'Someone', t = tone(nm), why = reason(p);
+    var tags = why === 'topic' ? '<span class="same-tag">same topic</span>'
+             : why === 'path'  ? '<span class="same-tag alt">same path</span>' : '';
+    var sub = [pathLabel[p.track_id] || '', levelLabel[p.level] || '']
+                .filter(Boolean).join(' \u00b7 ');
+
+    return '<div class="pt-row" data-id="' + esc(p.id) + '">' +
+      '<div class="pt-who">' +
+        '<span class="pt-av" style="background:' + t[0] + ';color:' + t[1] + '">' + initial(nm) + '</span>' +
+        '<div style="min-width:0"><div class="pt-nm"><span class="who">' + esc(nm) + '</span>' + tags + '</div>' +
+        (sub ? '<div class="pt-sub">' + esc(sub) + '</div>' : '') + '</div>' +
       '</div>' +
-    '</article>';
+      '<div class="pt-tp">' + (p.topic ? esc(p.topic) : '<span class="pt-sub">Not said yet</span>') + '</div>' +
+      timesShort(p) +
+      actionFor(p.id) +
+    '</div>';
   }
 
-  /* The ask box. An optional note is the difference between a cold request and
-     one somebody can say yes to, so it is offered but never required. */
-  function askBox(m){
-    return '<div class="fp-note">' +
-      '<label class="hint" for="fp-msg">Add a note (optional) — what you’re working on and when you usually study.</label>' +
-      '<textarea id="fp-msg" maxlength="400" placeholder="I’m working through networking fundamentals and usually study Tuesday and Thursday evenings."></textarea>' +
-      '<div class="fp-acts" style="margin-top:0">' +
-        '<button class="btn" data-send="' + esc(m.id) + '">Send to ' + esc(m.name.split(' ')[0]) + '</button>' +
-        '<button class="ghost" data-cancel="1">Cancel</button>' +
-      '</div></div>';
+  function render(people){
+    var ranked = people.slice().sort(function(x, y){ return score(y) - score(x); });
+
+    /* Only lead with someone if there is a real reason to. Heroing whoever
+       happens to be first, with nothing in common and no shared time, would
+       be a recommendation the page cannot back up. Anyone already settled
+       with you — partnered or declined — is not a suggestion either. */
+    var hero = null;
+    for (var i = 0; i < ranked.length; i++) {
+      var st = (reqByUser[ranked[i].id] || {}).status;
+      if (st === 'accepted' || st === 'declined') continue;
+      if (score(ranked[i]) > 0) hero = ranked.splice(i, 1)[0];
+      break;
+    }
+
+    var html = hero ? heroCard(hero) : '';
+    if (ranked.length) {
+      html += '<div class="ptable' + (me.avail.length ? '' : ' no-times') + '">' +
+        '<div class="pt-hd"><span>Person</span><span>Learning</span>' +
+        (me.avail.length ? '<span>Schedules</span>' : '') + '<span></span></div>' +
+        ranked.map(tableRow).join('') +
+      '</div>';
+    }
+    list.innerHTML = html;
   }
 
-  function renderEmpty(profile){
-    var track = (profile && pf.trackNames && pf.trackNames[profile.track_id]) || '';
-    if (!profile || !profile.track_id) {
-      list.innerHTML = '<div class="hm-empty">' +
-        '<h2>Tell us what you’re learning</h2>' +
-        '<p>We match on your path, your stage and the hours you’re free. Fill those ' +
-          'in and your matches will appear here.</p>' +
-        '<a class="btn" href="app-profile.html">Complete my profile</a></div>';
+  Promise.all([pf.myRequests(), pf.getProfile()]).then(function(r){
+    var reqs = r[0], profile = r[1];
+    if (reqs) {
+      reqs.outgoing.forEach(function(x){ reqByUser[x.to_user]   = { status: x.status, direction: 'out' }; });
+      reqs.incoming.forEach(function(x){ reqByUser[x.from_user] = { status: x.status, direction: 'in'  }; });
+    }
+    if (profile) {
+      me.track = profile.track_id || '';
+      me.topic = profile.topic || myTopic;
+      me.avail = profile.availability || [];
+    }
+    return pf.fetchPeers(60);
+  }).then(function(people){
+    if (people === null) {
+      list.innerHTML = '<div class="b"><p class="n">Could not load people — check your connection and refresh.</p></div>';
       return;
     }
-    list.innerHTML = '<div class="hm-empty">' +
-      '<h2>Nobody on ' + esc(track || 'your path') + ' yet</h2>' +
-      '<p>You’re early. Nobody else studying this has finished signing up — we won’t ' +
-        'invent a partner to fill the gap. Invite someone you know and you’ll both ' +
-        'have a match straight away.</p>' +
-      '<button class="btn" id="fp-invite">Copy invite link</button></div>';
+    if (!people.length) {
+      list.innerHTML = '<div class="b"><p class="n">' +
+        'No one else has finished signing up yet — you’re first. That’s genuinely useful to know: ' +
+        'share PeerFlow with one person learning the same thing and you’ve got your pair.</p></div>';
+      return;
+    }
+    render(people);
+    document.getElementById('st-total').textContent = people.length + 1;
+    document.getElementById('st-same').textContent =
+      me.track ? people.filter(function(p){ return p.track_id === me.track; }).length : 0;
+  });
 
-    var b = document.getElementById('fp-invite');
-    if (b) b.addEventListener('click', function(){
-      var url = location.origin + location.pathname.replace(/[^/]*$/, '') + 'signup.html';
-      try {
-        navigator.clipboard.writeText(url).then(function(){ b.textContent = 'Link copied'; });
-      } catch (e) { b.textContent = url; }
-    });
-  }
-
-  /* ---------- actions ---------- */
+  /* Asking opens a one-line note first. sendPartnerRequest has always taken a
+     message and always been given an empty one, so requests arrived as a bare
+     name with nothing to say yes or no to. The note is optional — Send works
+     empty — but a sentence about what you're stuck on is the difference
+     between a request someone accepts and one they ignore. */
   list.addEventListener('click', function(e){
-    var ask = e.target.closest('[data-ask]');
-    if (ask) {
-      var art = ask.closest('.fp-card');
-      var m = MATCHES[ask.getAttribute('data-ask')];
-      if (!m) return;
-      ask.closest('.fp-acts').outerHTML = askBox(m);
-      var ta = art.querySelector('#fp-msg');
-      if (ta) ta.focus();
+    var open = e.target.closest('[data-ask]');
+    if (open) {
+      var r = open.closest('[data-id]');
+      var id = open.getAttribute('data-ask');
+      open.replaceWith(document.createComment('asking'));
+      var box = document.createElement('div');
+      box.className = 'askbox';
+      box.innerHTML =
+        '<input type="text" maxlength="140" placeholder="Say what you\u2019re working on (optional)">' +
+        /* Just "Send" — the row button is the one that says "Send request",
+           and two buttons a centimetre apart carrying the same three words
+           is a question about which one you are really pressing. */
+        '<button class="btn" data-send="' + esc(id) + '">Send</button>' +
+        '<button class="small" data-cancel>Cancel</button>' +
+        '<p class="ask-err" hidden></p>';
+      slot(r).appendChild(box);
+      box.querySelector('input').focus();
       return;
     }
 
     var cancel = e.target.closest('[data-cancel]');
-    if (cancel) {
-      var artC = cancel.closest('.fp-card');
-      var id = artC.getAttribute('data-id');
-      artC.querySelector('.fp-note').outerHTML =
-        '<div class="fp-acts"><button class="btn" data-ask="' + esc(id) + '">Send request</button></div>';
-      return;
-    }
+    if (cancel) { redraw(cancel.closest('[data-id]')); return; }
 
     var send = e.target.closest('[data-send]');
-    if (send) {
-      var artS = send.closest('.fp-card');
-      var toId = send.getAttribute('data-send');
-      var note = (artS.querySelector('#fp-msg') || {}).value || '';
-      send.disabled = true;
-      send.textContent = 'Sending…';
-
-      pf.sendPartnerRequest(toId, note.trim() || null).then(function(r){
-        if (r && r.error) {
-          send.disabled = false;
-          send.textContent = 'Send request';
-          say(r.error, true);
-          return;
-        }
-        if (r && r.demo) { say('Demo mode — nothing was sent.'); return; }
-
-        var m = MATCHES[toId] || { name: 'them' };
-        artS.querySelector('.fp-note').outerHTML =
-          '<div class="fp-acts"><span class="se-tag wait">Request sent — waiting for ' +
-          esc(m.name.split(' ')[0]) + '</span></div>';
-        say('Sent. You’ll get a notification when they answer.');
-
-        /* Best-effort: the request itself is the record, so a notification
-           that doesn't land must not look like a failure. */
-        pf.notifyRequest(toId, (MY_NAME || 'Someone') + ' wants to study with you',
-                         note.trim() || null);
-      });
-    }
+    if (!send) return;
+    var uid = send.getAttribute('data-send');
+    var wrap = send.closest('.askbox');
+    var msg = wrap.querySelector('input').value.trim();
+    var err = wrap.querySelector('.ask-err');
+    send.disabled = true;
+    send.textContent = 'Sending…';
+    err.hidden = true;
+    pf.sendPartnerRequest(uid, msg).then(function(res){
+      if (res && res.sent) {
+        reqByUser[uid] = { status: 'pending', direction: 'out' };
+        redraw(send.closest('[data-id]'));
+        return;
+      }
+      send.disabled = false;
+      send.textContent = 'Send';
+      err.textContent = res && res.demo
+        ? 'You need to be signed in to send a request.'
+        : (res && res.error) || 'Could not send the request — please try again.';
+      err.hidden = false;
+    });
   });
 
-  /* ---------- load ---------- */
-  var MATCHES = {}, MY_NAME = '';
+  /* The action lives directly in a table row, but inside its own strip on
+     the top pick, so both the ask box and the redrawn button go wherever
+     the action already was rather than at the end of the card. */
+  function slot(r){ return r.querySelector('.tp-acts') || r; }
 
-  if (!window.pf || !pf.ready || !pf.ready()) {
-    list.innerHTML = '<div class="hm-empty"><h2>Demo mode</h2>' +
-      '<p>Matches are real people who have signed up, so there is nothing to show ' +
-        'without a connected account.</p>' +
-      '<a class="btn" href="signup.html">Create an account</a></div>';
-    return;
+  /* Put a row back to its resting state after sending or cancelling. */
+  function redraw(r){
+    if (!r) return;
+    var s = slot(r), box = s.querySelector('.askbox');
+    if (box) box.remove();
+    s.querySelectorAll('.pstate,[data-ask]').forEach(function(n){ n.remove(); });
+    s.insertAdjacentHTML('beforeend', actionFor(r.getAttribute('data-id')));
   }
 
-  /* Already partnered? This page is for people who aren't. Send them to the
-     partner they already have rather than tempting them to browse. */
-  Promise.all([pf.primaryPartner(), pf.getProfile()]).then(function(r){
-    if (r[0]) { location.replace('app-partner.html'); return; }
-    var profile = r[1] || null;
-    MY_NAME = (profile && profile.name) || '';
-
-    pf.rankedMatches(8).then(function(matches){
-      if (!matches || !matches.length) { renderEmpty(profile); return; }
-      MATCHES = {};
-      matches.forEach(function(m){ MATCHES[m.id] = m; });
-      list.innerHTML = matches.map(function(m, i){ return card(m, i === 0); }).join('');
-    });
-  }).catch(function(){
-    list.innerHTML = '<div class="hm-empty"><h2>We couldn’t load your matches</h2>' +
-      '<p>Refresh the page to try again.</p></div>';
-  });
 })();
 </script>
 <script src="assets/appshell.js"></script>

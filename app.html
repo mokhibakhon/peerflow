@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home — PeerFlow</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sessions — PeerFlow</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Loaded without blocking the first paint: text appears immediately in the
+     fallback face and swaps when the webfont lands. -->
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
@@ -16,353 +18,1235 @@
 <body>
 
 <main>
-  <div class="wrap">
-    <div class="app-head">
-      <h1 id="hm-hello">Home</h1>
-    </div>
 
-    <div id="hm-root" aria-live="polite">
-      <div class="hm-next"><p class="meta">Loading…</p></div>
+  <p class="signedout" id="signedout" hidden>
+    You're not signed in, so we can't load your sessions.
+    <a href="login.html">Log in</a> to see them — or
+    <a href="signup.html">finish signing up</a> if you're new.
+  </p>
+
+  <!-- ============ hero: where you are right now ============ -->
+  <section class="hero">
+    <div class="txt">
+      <div class="pair">
+        <div class="ava a1" id="me-av" aria-hidden="true">·</div>
+        <div class="ava a2 pending" id="pt-av" aria-hidden="true">?</div>
+      </div>
+      <h1 id="state">Loading your sessions…</h1>
+      <p class="sub" id="sub"></p>
+      <div class="acts" id="acts"></div>
+      <p class="agenda" id="agenda" hidden></p>
     </div>
+    <div class="art" aria-hidden="true">
+      <svg viewBox="0 0 210 190" xmlns="http://www.w3.org/2000/svg">
+        <rect width="210" height="190" fill="#0F6E56"/>
+        <circle cx="30" cy="30" r="7" fill="#1D9E75"/>
+        <rect x="176" y="24" width="12" height="12" rx="3" fill="#1D9E75"/>
+        <ellipse cx="105" cy="170" rx="78" ry="9" fill="#04342C"/>
+        <path d="M36 74c0-13 9-22 20-22s20 9 20 22" fill="#5DCAA5"/>
+        <circle cx="56" cy="44" r="13" fill="#9FE1CB"/>
+        <!-- The second figure is drawn solid once a partner exists and left
+             as a dashed outline while you're still looking. -->
+        <g id="mate">
+          <path d="M116 74c0-13 9-22 20-22s20 9 20 22" fill="#5DCAA5"/>
+          <circle cx="136" cy="44" r="13" fill="#9FE1CB"/>
+        </g>
+        <g id="mate-ghost" hidden>
+          <path d="M116 74c0-13 9-22 20-22s20 9 20 22" fill="none" stroke="#1D9E75" stroke-width="2" stroke-dasharray="4 5"/>
+          <circle cx="136" cy="44" r="13" fill="none" stroke="#1D9E75" stroke-width="2" stroke-dasharray="4 5"/>
+        </g>
+        <path id="link" d="M78 86q27-16 54 0" fill="none" stroke="#5DCAA5" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>
+        <circle id="knot" cx="105" cy="79" r="4" fill="#E1F5EE"/>
+        <rect x="20" y="92" width="70" height="46" rx="5" fill="#E1F5EE"/>
+        <rect x="26" y="98" width="58" height="34" rx="3" fill="#1D9E75"/>
+        <rect x="32" y="106" width="30" height="4" rx="2" fill="#9FE1CB"/>
+        <rect x="32" y="114" width="40" height="4" rx="2" fill="#9FE1CB"/>
+        <rect x="32" y="122" width="22" height="4" rx="2" fill="#5DCAA5"/>
+        <rect x="49" y="138" width="12" height="8" fill="#9FE1CB"/>
+        <rect x="36" y="146" width="38" height="5" rx="2.5" fill="#E1F5EE"/>
+        <g id="screen2">
+          <rect x="120" y="92" width="70" height="46" rx="5" fill="#E1F5EE"/>
+          <rect x="126" y="98" width="58" height="34" rx="3" fill="#1D9E75"/>
+          <rect x="132" y="106" width="38" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="132" y="114" width="26" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="132" y="122" width="34" height="4" rx="2" fill="#5DCAA5"/>
+          <rect x="149" y="138" width="12" height="8" fill="#9FE1CB"/>
+          <rect x="136" y="146" width="38" height="5" rx="2.5" fill="#E1F5EE"/>
+        </g>
+        <g id="screen2-ghost" hidden>
+          <rect x="120" y="92" width="70" height="46" rx="5" fill="none" stroke="#1D9E75" stroke-width="2" stroke-dasharray="5 6"/>
+          <rect x="149" y="138" width="12" height="8" fill="none" stroke="#1D9E75" stroke-width="2"/>
+          <rect x="136" y="146" width="38" height="5" rx="2.5" fill="none" stroke="#1D9E75" stroke-width="2"/>
+        </g>
+      </svg>
+    </div>
+    <div class="topicline" id="topicline" hidden>
+      <span id="topictext"></span>
+      <a class="change" href="app-profile.html">change topic</a>
+    </div>
+  </section>
+
+  <div class="grid">
+
+
+    <!-- ============ sessions ============ -->
+    <!-- One card, not two. A time waiting on an answer and a time already
+         agreed are the same thing at different stages, and splitting them
+         across two cards made the page look busier than it is. Full width,
+         because at half the rows wrapped onto three lines each. -->
+    <!-- Hidden until there's something in it. A card headed "Your time —
+         Sessions" with nothing under it is a label for an absence; the hero
+         already says nothing is booked. -->
+    <section class="b wide" id="sess-card" hidden>
+      <div class="bh">
+        <span class="gl" style="background:var(--p0)">
+          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><rect x="6" y="11" width="4" height="4" rx="1" fill="#0F6E56"/><path d="M7 2v3M15 2v3" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        <div><span class="mono" style="color:var(--p6)">Your time</span><h2 id="sess-h">Sessions</h2></div>
+      </div>
+
+      <p class="mono sub-h" id="prop-h" hidden>Waiting on an answer</p>
+      <div id="prop-list"></div>
+
+      <p class="mono sub-h" id="up-h" hidden>Booked</p>
+      <div id="upcoming"></div>
+    </section>
+
+    <!-- Proposing, shown once you actually have a partner. -->
+    <section class="b wide" id="book-card" hidden>
+      <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time</h2></div></div>
+      <!-- The whole form is one sentence. Every green word opens a menu, and
+           the line underneath says whether your partner has told us they're
+           free then. Labels, boxes and a row of three fields said the same
+           thing in four times the space and never once said it out loud. -->
+      <p id="bk-sent">Meet
+        <span class="pick" data-k="who"></span> on
+        <span class="pick" data-k="day"></span> at
+        <span class="pick" data-k="time"></span> for
+        <span class="pick" data-k="len"></span>.</p>
+      <p class="bk-line" id="bk-warn"></p>
+
+      <div class="field" style="margin:20px 0 0">
+        <label for="bk-msg">Note <span class="hint">(optional)</span></label>
+        <input id="bk-msg" type="text" maxlength="140" placeholder="What you'd like to work on">
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
+        <button class="btn primary" id="bk-save">Propose this time</button>
+        <span class="bk-hint" id="bk-hint">Nothing is booked until they accept.</span>
+      </div>
+      <p id="bk-note" class="bk-status"></p>
+    </section>
+
+    <!-- ============ calendar ============ -->
+    <!-- A week, not a month: one standing slot a week would leave a month
+         grid mostly empty. Real sessions come from fetchSessions; the washed
+         cells are the hours you and your partner have both marked free in
+         your profiles, and clicking one fills in the form below rather than
+         asking you to reassemble the time out of four menus.
+
+         Hidden until we know enough to draw it. -->
+    <section class="b wide" id="cal-card" hidden>
+      <div class="cal-head">
+        <h2 style="margin:0;font-size:21px;font-weight:700;letter-spacing:-.025em">Calendar</h2>
+        <div class="cal-nav">
+          <button class="cal-step" type="button" id="cal-prev" aria-label="Previous week">&lsaquo;</button>
+          <span class="cal-range" id="cal-range"></span>
+          <button class="cal-step" type="button" id="cal-next" aria-label="Next week">&rsaquo;</button>
+          <button class="small" type="button" id="cal-today" style="margin-left:8px">Today</button>
+        </div>
+        <button class="btn" type="button" id="cal-new">+ New session</button>
+      </div>
+
+      <div class="cal-scroll"><div class="cal-grid" id="cal-grid"></div></div>
+
+      <div class="cal-key">
+        <span class="k1"><i></i>Booked</span>
+        <span class="k2"><i></i>Waiting on an answer</span>
+        <span class="k3"><i></i>You&rsquo;re both free &mdash; click to propose</span>
+      </div>
+      <p class="cal-empty" id="cal-empty" hidden></p>
+    </section>
+
+    <!-- ============ the plan ============ -->
+    <!-- Not a curriculum. Twelve weeks in an order that works, each pointing
+         at somebody else's free material — PeerFlow holds the order, they
+         hold the lesson.
+
+         Where you are in it is counted from sessions you have actually had,
+         not from ticking boxes: it needs no table of its own, and it cannot
+         disagree with your partner's copy because you both did the same
+         sessions. -->
+    <section class="b wide" id="plan-card" hidden>
+      <div class="bh">
+        <span class="gl" style="background:var(--p0)">
+          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="3" y="2" width="16" height="18" rx="3" fill="#5DCAA5"/><path d="M7 7h8M7 11h8M7 15h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        <div><span class="mono" style="color:var(--p6)" id="plan-k">Your plan</span><h2 id="plan-h">Twelve weeks</h2></div>
+      </div>
+      <div class="plan-rows" id="plan-rows"></div>
+      <p class="plan-foot" id="plan-foot"></p>
+    </section>
+
+    <!-- ============ invite ============ -->
+    <section class="b wide inv">
+      <div class="row">
+        <p><b>Know someone else learning this?</b> Send them in — more people on your path means better partners for both of you.</p>
+        <button class="small" id="copy-invite">Copy invite link</button>
+      </div>
+    </section>
+
   </div>
 </main>
 
 <div class="mfoot">
   <a href="conduct.html">Code of conduct</a>
-  <a href="app-profile.html">Your profile</a>
+  <a href="mailto:hello@peerflow.dev">Report a problem</a>
   <span>peerflow</span>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
+<script src="assets/plans.js"></script>
 <script src="assets/authgate.js"></script>
+<script src="assets/appshell.js"></script>
 <script>
-/* PeerFlow — Home.
-
-   One question: what do I need to do next. The next session, a small partner
-   snapshot, and this week. Everything else — history, achievements, matching,
-   the calendar, settings — has its own page, and putting any of it here is
-   what turned the old dashboard into a wall.
-
-   Every state on this page is a real state with a next step attached. "No
-   partner" links to finding one; "partner but nothing booked" offers the next
-   hour you are both free. There is no dead empty text anywhere. */
 (function(){
-  var root = document.getElementById('hm-root');
+  var $ = function(id){ return document.getElementById(id); };
 
   function esc(s){
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return String(s).replace(/[&<>"']/g, function(c){
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
   }
-  var TONES = [
-    ['#EEEDFE','#3C3489'], ['#E1F5EE','#0F6E56'], ['#FBEAF0','#A94168'],
-    ['#E6F1FB','#185FA5'], ['#FAEEDA','#854F0B'], ['#FAECE7','#993C1D'],
-    ['#F5EAF8','#58256B'], ['#EDF0F3','#35414F']
-  ];
-  function tone(n){
-    var s = String(n || '?'), h = 0;
-    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    return TONES[h % TONES.length];
+  function initial(s){ return (String(s || '').trim()[0] || '·').toUpperCase(); }
+  function when(d){
+    try { return d.toLocaleString(undefined, { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); }
+    catch(e){ return String(d); }
   }
-  function initial(n){ return (String(n || '').trim().charAt(0) || 'S').toUpperCase(); }
-  function firstName(n){ return String(n || '').trim().split(/\s+/)[0] || ''; }
-
-  var JOIN_MS = 15 * 60 * 1000;      // the existing join window
-  var READY_MS = 10 * 60 * 1000;     // "are you still joining?"
-
-  /* "Today · 19:00", "Tomorrow · 19:00", "Thu 14 Aug · 19:00". */
-  function whenLabel(d){
-    var day = new Date(d); day.setHours(0,0,0,0);
-    var today = new Date(); today.setHours(0,0,0,0);
-    var diff = Math.round((day - today) / 864e5);
-    var time = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hour12:false });
-    if (diff === 0) return 'Today · ' + time;
-    if (diff === 1) return 'Tomorrow · ' + time;
-    return d.toLocaleDateString([], { weekday:'short', day:'numeric', month:'short' }) + ' · ' + time;
+  function relative(d){
+    var mins = Math.round((d.getTime() - Date.now()) / 60000);
+    if (mins <= 0) return 'now';
+    if (mins < 60) return 'in ' + mins + ' minute' + (mins === 1 ? '' : 's');
+    var hrs = Math.round(mins / 60);
+    if (hrs < 24) return 'in ' + hrs + ' hour' + (hrs === 1 ? '' : 's');
+    var days = Math.round(hrs / 24);
+    return 'in ' + days + ' day' + (days === 1 ? '' : 's');
+  }
+  /* The room opens 15 minutes before the start and closes at the end. */
+  function isOpen(s){
+    var start = s.startsAt.getTime(), now = Date.now();
+    return now >= start - 15 * 60000 && now <= start + s.durationMin * 60000;
   }
 
-  /* ---------- the next session ---------- */
-  function nextSessionHtml(s, partnerState, partnerName){
-    var now = Date.now();
-    var start = s.startsAt.getTime();
-    var end = start + s.durationMin * 60000;
-    var joinable = now >= start - JOIN_MS && now <= end;
-    var asking = now >= start - READY_MS && now < end;   // "are you still joining?"
-    var mine = !!s.confirmedAt;
-    var theirs = partnerState ? partnerState.confirmed : false;
+  /* ---------- hero ---------- */
+  /* Four honest states. Nothing here is written until we know which one
+     you're in, so the page never claims a partner you don't have. */
+  function hero(opts){
+    $('state').innerHTML = opts.h;
+    $('sub').textContent = opts.s;
+    $('acts').innerHTML = opts.a || '';
+    $('agenda').textContent = opts.ag || '';
+    $('agenda').hidden = !opts.ag;
 
-    var who = firstName(partnerName) || 'Your partner';
-
-    var acts = [];
-    if (!mine) acts.push('<button class="btn" data-act="confirm">' +
-      (asking ? 'I’m ready' : 'Confirm') + '</button>');
-    if (joinable) acts.push('<a class="btn' + (mine ? '' : ' dark') + '" data-act="join" href="' +
-      'app-room.html?at=' + encodeURIComponent(s.startsAt.toISOString()) +
-      '&room=' + encodeURIComponent(s.roomUrl || '') + '">Join session</a>');
-    acts.push('<button class="ghost" data-act="cancel">' +
-      (asking ? 'I need to cancel' : 'Can’t attend') + '</button>');
-
-    return '<div class="hm-next' + (joinable ? ' live' : '') + '">' +
-      '<div class="hm-when">' + esc(whenLabel(s.startsAt)) + ' · ' + s.durationMin + ' minutes</div>' +
-      '<h2>' + esc(s.topic || 'Study session') + (partnerName ? ' with ' + esc(who) : '') + '</h2>' +
-      '<p class="meta">' + (joinable
-          ? 'The room is open.'
-          : asking ? 'Starting soon — are you still joining?'
-                   : 'Nothing to do yet. Confirm when you know you’ll be there.') + '</p>' +
-      (s.goal ? '<p class="hm-goal"><b>Your goal:</b> ' + esc(s.goal) + '</p>' : '') +
-      '<div class="hm-att">' +
-        '<span class="' + (theirs ? 'yes' : '') + '"><i></i>' + esc(who) + ' — ' +
-          (theirs ? 'Confirmed' : 'Not confirmed') + '</span>' +
-        '<span class="' + (mine ? 'yes' : '') + '"><i></i>You — ' +
-          (mine ? 'Confirmed' : 'Not confirmed') + '</span>' +
-      '</div>' +
-      '<div class="hm-acts">' + acts.join('') + '</div>' +
-      '<p class="bk-status" id="hm-status" hidden></p>' +
-    '</div>';
+    var paired = !!opts.paired;
+    $('mate').hidden = !paired;
+    $('screen2').hidden = !paired;
+    $('mate-ghost').hidden = paired;
+    $('screen2-ghost').hidden = paired;
+    $('link').setAttribute('stroke', paired ? '#5DCAA5' : '#0F6E56');
+    $('knot').setAttribute('opacity', paired ? '1' : '0');
+    $('pt-av').className = 'ava a2' + (paired ? '' : ' pending');
+    $('pt-av').textContent = paired ? initial(opts.partner) : '?';
   }
 
-  /* ---------- the small cards ---------- */
-  function partnerCardHtml(partner, sessions, rel){
-    if (!partner) {
-      return '<div class="hm-card">' +
-        '<h3>Partner</h3>' +
-        '<p class="meta" style="margin:0 0 14px">You don’t have a study partner yet.</p>' +
-        '<a class="btn" href="app-people.html">Find my partner</a></div>';
+  /* ---------- sessions list ---------- */
+  function slot(s, past){
+    var label = [s.partnerName ? 'with ' + s.partnerName : '', s.topic || ''].filter(Boolean).join(' · ');
+    var right = past ? ''
+      : (s.roomUrl && isOpen(s))
+        ? '<a class="btn" href="' + esc(s.roomUrl) + '" target="_blank" rel="noopener">Join</a>'
+        : '<span class="rel">' + esc(relative(s.startsAt)) + '</span>';
+    var key = ' data-at="' + esc(s.startsAt.toISOString()) + '" data-room="' + esc(s.roomUrl || '') + '"';
+    return '<div class="slot">' +
+      '<span class="when">' + esc(when(s.startsAt)) + '</span>' +
+      '<span class="what">' + esc(label || 'Session') + '<span>' + s.durationMin + ' min</span></span>' +
+      right +
+      /* A booked session had no way out of it: Cancel only ever appeared on a
+         proposal you'd made, so once the other person accepted, neither of you
+         could call it off without editing the database by hand. */
+      (past ? '' : '<button class="small" data-cancel-booked' + key + '>Cancel</button>') +
+      '<p class="slot-err" hidden></p></div>';
+  }
+
+  /* Ask once, same as the proposal cards — this takes the session off your
+     partner's calendar too. */
+  document.getElementById('upcoming').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-cancel-booked]');
+    if (!btn) {
+      Array.prototype.forEach.call(this.querySelectorAll('[data-armed="1"]'), function(b){
+        b.removeAttribute('data-armed'); b.classList.remove('danger'); b.textContent = 'Cancel';
+      });
+      return;
     }
-    var p = partner.profile || {};
-    var name = p.name || 'Your partner';
-    var t = tone(name);
-    var trackName = (pf.trackNames && pf.trackNames[p.track_id]) || p.track_id || '';
-    var now = Date.now();
-    var done = (sessions || []).filter(function(s){
-      return (s.partnerName || '') === name &&
-        (s.status === 'completed' ||
-         (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now));
+    if (btn.getAttribute('data-armed') !== '1') {
+      btn.setAttribute('data-armed', '1');
+      btn.classList.add('danger');
+      btn.textContent = 'Sure? Cancel it';
+      return;
+    }
+    var row = btn.closest('.slot'), err = row.querySelector('.slot-err');
+    btn.disabled = true; btn.textContent = 'Cancelling…';
+    err.hidden = true;
+    /* cancelBooked, not cancelSession: this one has to leave a trace, so the
+       other person is told rather than watching it vanish. */
+    pf.cancelBooked(btn.getAttribute('data-at'), btn.getAttribute('data-room')).then(function(res){
+      if (res && res.saved) { window.location.reload(); return; }
+      btn.disabled = false; btn.textContent = 'Cancel';
+      btn.removeAttribute('data-armed'); btn.classList.remove('danger');
+      err.textContent = (res && res.error) || 'Could not cancel that — please try again.';
+      err.hidden = false;
     });
-    var WEEK = 7 * 864e5, weeks = {};
-    done.forEach(function(s){ weeks[Math.floor(s.startsAt.getTime() / WEEK)] = true; });
-    var idx = Object.keys(weeks).map(Number).sort(function(a,b){ return a-b; });
-    var streak = 0;
-    if (idx.length && Math.floor(now / WEEK) - idx[idx.length-1] <= 1) {
-      streak = 1;
-      for (var i = idx.length - 1; i > 0; i--) {
-        if (idx[i] - idx[i-1] === 1) streak++; else break;
-      }
-    }
-    var att = (rel && rel.counted > 0) ? rel.pct + '%' : '—';
+  });
 
-    return '<div class="hm-card">' +
-      '<h3>Partner</h3>' +
-      '<div class="hm-who">' +
-        '<span class="pt-face" style="background:' + t[0] + ';color:' + t[1] + '">' +
-          esc(initial(name)) + '</span>' +
-        '<div><b>' + esc(name) + '</b><span>' + esc(trackName) + '</span></div>' +
-      '</div>' +
-      '<div class="hm-mini">' +
-        '<div><b>' + done.length + '</b><span>sessions</span></div>' +
-        '<div><b>' + esc(att) + '</b><span>attendance</span></div>' +
-        '<div><b>' + streak + '</b><span>week streak</span></div>' +
-      '</div></div>';
+  /* ----- the sentence -----
+     Availability is four bands a day, not clock times, so a window can't be
+     booked as-is. The day menu lists the days you're both free, the time menu
+     turns that day's shared bands into actual hours, and anything outside
+     both is still reachable — it just isn't offered first. */
+  var DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
+  var BAND_START  = { morning:6, afternoon:12, evening:17, night:22 };
+  /* Hours offered inside a band. Night stops at 23 rather than running into
+     the next day, because a menu of times under a date has to belong to that
+     date. */
+  var BAND_HOURS  = { morning:[6,7,8,9,10,11], afternoon:[12,13,14,15,16],
+                      evening:[17,18,19,20,21], night:[22,23] };
+  var DAY_HOURS   = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+  var LENGTHS = [ { v:25, why:'a quick check-in' },
+                  { v:50, why:'the usual' },
+                  { v:80, why:'a proper session' } ];
+
+  var myAvail = [], bookPartner = null, myName = '', bookPartners = [];
+  var bkDay = null, bkHour = 19, bkLen = 50, bkOpen = null;
+
+  /* Everything below moved here from the Partner page. Proposing a time, the
+     times waiting on an answer and the sessions they turn into are one thing,
+     and it was odd to start it on a page about who your partner is. */
+
+  function nextWhen(slot){
+    var parts = slot.split('-');
+    var day = DAYS.indexOf(parts[0]), hour = BAND_START[parts[1]];
+    if (day < 0 || hour == null) return null;
+    var d = new Date();
+    d.setHours(hour, 0, 0, 0);
+    d.setDate(d.getDate() + ((day - d.getDay() + 7) % 7));
+    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 7);
+    return d;
   }
 
-  function weekCardHtml(sessions){
-    var now = new Date();
-    var monday = new Date(now); monday.setHours(0,0,0,0);
-    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-    var sunday = new Date(monday); sunday.setDate(sunday.getDate() + 7);
+  function midnight(d){ var x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+  function dayKey(d){ return midnight(d).getTime(); }
+  function chosen(){
+    if (!bkDay) return null;
+    var d = new Date(bkDay); d.setHours(bkHour, 0, 0, 0); return d;
+  }
 
-    var week = (sessions || []).filter(function(s){
-      return s.startsAt >= monday && s.startsAt < sunday &&
-             s.status !== 'declined' && s.status !== 'cancelled';
+  function shared(){
+    var theirs = (bookPartner && bookPartner.availability) || [];
+    if (!myAvail.length || !theirs.length) return [];
+    var mine = {};
+    myAvail.forEach(function(x){ mine[x] = true; });
+    return theirs.filter(function(x){ return mine[x]; });
+  }
+
+  /* Days you're both free, next time each comes round. Two bands on the same
+     weekday are one day with two windows, not two entries. */
+  function freeDays(){
+    var by = {}, out = [];
+    shared().forEach(function(sl){
+      var d = nextWhen(sl);
+      if (!d) return;
+      var k = dayKey(d);
+      if (!by[k]) { by[k] = { date: midnight(d), bands: [] }; out.push(by[k]); }
+      if (by[k].bands.indexOf(sl.split('-')[1]) < 0) by[k].bands.push(sl.split('-')[1]);
     });
-    var planned = week.length;
-    var doneN = week.filter(function(s){
-      return s.status === 'completed' ||
-             (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= Date.now());
-    }).length;
-    var minutes = week.reduce(function(a, s){
-      var over = s.status === 'completed' ||
-        (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= Date.now());
-      return a + (over ? (s.durationMin || 0) : 0);
-    }, 0);
-    var pct = planned ? Math.round((doneN / planned) * 100) : 0;
-
-    return '<div class="hm-card">' +
-      '<h3>This week</h3>' +
-      '<div class="hm-mini">' +
-        '<div><b>' + doneN + ' of ' + planned + '</b><span>sessions done</span></div>' +
-        '<div><b>' + (minutes / 60).toFixed(1) + 'h</b><span>focused</span></div>' +
-      '</div>' +
-      '<div class="hm-week"><i style="width:' + pct + '%"></i></div>' +
-      '<p class="meta" style="font-size:13px;margin:0">' +
-        (planned ? pct + '% of what you planned this week.'
-                 : 'Nothing booked this week yet.') + '</p>' +
-    '</div>';
+    return out.sort(function(a, b){ return a.date - b.date; });
   }
 
-  /* ---------- the "nothing booked" prompt ---------- */
-  /* A partner and no session is the single most important empty state in the
-     product, so it does the work: it names the next hour the two of you are
-     free and offers it in one click. */
-  function nothingBookedHtml(partner, profile){
-    var name = firstName((partner.profile || {}).name) || 'your partner';
-    var shared = pf.sharedSlots(profile && profile.availability,
-                                (partner.profile || {}).availability);
-    if (!shared.length) {
-      return '<div class="hm-empty">' +
-        '<h2>Nothing booked with ' + esc(name) + '</h2>' +
-        '<p>You don’t have hours in common yet. Add a few more weekly windows ' +
-          'and the times you share will show up here.</p>' +
-        '<a class="btn" href="app-profile.html">Edit availability</a></div>';
-    }
-    var slot = shared[0];
-    var hour = pf.slotHours(slot)[0];
-    return '<div class="hm-empty">' +
-      '<h2>Nothing booked with ' + esc(name) + '</h2>' +
-      '<p>You’re both free ' + esc(pf.slotLabel(slot)) + '. Propose it and ' +
-        esc(name) + ' can accept in one tap.</p>' +
-      '<button class="btn" id="hm-quick" data-slot="' + esc(slot) + '" data-hour="' + hour + '">' +
-        'Propose ' + esc(pf.slotLabel(slot)) + '</button> ' +
-      '<a class="ghost" href="app-partner.html#schedule">Pick another time</a>' +
-      '<p class="bk-status" id="hm-status" hidden></p></div>';
+  /* The bands you share on whichever day is chosen. Empty is a real answer:
+     it means this day isn't one of the shared ones. */
+  function bandsOn(d){
+    if (!d) return [];
+    var day = DAYS[d.getDay()], list = shared(), out = [];
+    ['morning','afternoon','evening','night'].forEach(function(b){
+      if (list.indexOf(day + '-' + b) >= 0) out.push(b);
+    });
+    return out;
+  }
+  function hoursOn(d){
+    var out = [];
+    bandsOn(d).forEach(function(b){
+      BAND_HOURS[b].forEach(function(h){ if (out.indexOf(h) < 0) out.push(h); });
+    });
+    return out.sort(function(a, b){ return a - b; });
+  }
+  function bothFree(){ return chosen() ? hoursOn(bkDay).indexOf(bkHour) >= 0 : false; }
+
+  function clockOf(h){ var d = new Date(); d.setHours(h, 0, 0, 0);
+    return d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }); }
+  function dayLong(d){ return d.toLocaleDateString(undefined,
+    { weekday:'long', day:'numeric', month:'short' }); }
+  /* The sentence takes a first name — "Meet Munisa Omonkhonova on Tuesday"
+     puts a surname in the middle of a line that reads as speech. The menu
+     still shows the whole name, because that's where you tell people apart. */
+  function shortName(){
+    var n = (bookPartner && bookPartner.name || '').trim();
+    return n ? n.split(/\s+/)[0] : 'your partner';
   }
 
-  /* ---------- actions ---------- */
-  function say(msg, bad){
-    var st = document.getElementById('hm-status');
-    if (!st) return;
-    st.hidden = false;
-    st.textContent = msg;
-    st.className = 'bk-status' + (bad ? ' bk-warn' : '');
-  }
+  /* ----- what each menu contains ----- */
+  function menuBody(kind){
+    var i;
 
-  function wire(next, partner, profile){
-    root.addEventListener('click', function(e){
-      var b = e.target.closest('[data-act]');
-      if (b && next) {
-        var act = b.getAttribute('data-act');
-        if (act === 'join') return;                 // it's a link; let it through
-        e.preventDefault();
+    if (kind === 'who') return bookPartners.map(function(p, n){
+      return '<button type="button" class="opt' + (p === bookPartner ? ' on' : '') +
+        '" data-v="' + n + '"><span class="av">' + esc(initial(p.name || '?')) + '</span>' +
+        '<span>' + esc(p.name || 'Your partner') +
+        (p.topic ? '<em>' + esc(p.topic) + '</em>' : '') + '</span></button>';
+    }).join('');
 
-        if (act === 'confirm') {
-          b.disabled = true; b.textContent = 'Confirming…';
-          pf.confirmAttendance(next.startsAt.toISOString(), next.roomUrl).then(function(r){
-            if (r && r.error) { b.disabled = false; b.textContent = 'Confirm'; say(r.error, true); return; }
-            if (partner) pf.notifyPartner(partner.profile.id, 'attendance',
-              ((profile && profile.name) || 'Your partner') + ' confirmed',
-              whenLabel(next.startsAt), 'app-sessions.html');
-            load();
-          });
-          return;
-        }
-
-        if (act === 'cancel') {
-          /* Cancelling a confirmed session tells the other person rather than
-             removing it from their calendar without explanation. How close to
-             the start it happened is recorded, so reliability can tell an
-             early cancellation from a no-show. */
-          b.disabled = true; b.textContent = 'Cancelling…';
-          pf.cancelBooked(next.startsAt.toISOString(), next.roomUrl).then(function(r){
-            if (r && r.error) { b.disabled = false; b.textContent = 'Can’t attend'; say(r.error, true); return; }
-            if (partner) pf.notifyPartner(partner.profile.id, 'session_cancelled',
-              ((profile && profile.name) || 'Your partner') + ' cancelled',
-              whenLabel(next.startsAt), 'app-sessions.html');
-            load();
-          });
-          return;
+    if (kind === 'day'){
+      var days = freeDays(), out = '';
+      if (days.length){
+        out += '<p class="pop-h">You’re both free</p>' + days.map(function(x){
+          return '<button type="button" class="opt' +
+            (bkDay && dayKey(x.date) === dayKey(bkDay) ? ' on' : '') +
+            '" data-day="' + x.date.getTime() + '">' +
+            esc(x.date.toLocaleDateString(undefined, { weekday:'long' })) +
+            '<span class="r">' + esc(x.date.getDate()) + ' ' +
+            esc(x.date.toLocaleDateString(undefined, { month:'short' })) + '</span></button>';
+        }).join('');
+      } else {
+        /* Nobody has said when they're free, so there is nothing to lead with.
+           The next week is a better offer than an empty menu. */
+        out += '<p class="pop-h">Next seven days</p>';
+        for (i = 1; i <= 7; i++){
+          var d = midnight(new Date(Date.now() + i * 86400000));
+          out += '<button type="button" class="opt' +
+            (bkDay && dayKey(d) === dayKey(bkDay) ? ' on' : '') +
+            '" data-day="' + d.getTime() + '">' +
+            esc(d.toLocaleDateString(undefined, { weekday:'long' })) +
+            '<span class="r">' + esc(d.getDate()) + ' ' +
+            esc(d.toLocaleDateString(undefined, { month:'short' })) + '</span></button>';
         }
       }
+      return out + '<div class="pop-sep"></div>' +
+        '<div class="pop-any"><input type="date" id="bk-any" aria-label="Another day" min="' +
+        isoDate(new Date()) + '">' +
+        '<button type="button" class="small" data-any="1">Use this day</button></div>';
+    }
 
-      /* One-tap propose from the empty state. */
-      var q = e.target.closest('#hm-quick');
-      if (q && partner) {
-        var when = pf.nextDateFor(q.getAttribute('data-slot'), parseInt(q.getAttribute('data-hour'), 10));
-        if (!when) return;
-        q.disabled = true; q.textContent = 'Sending…';
-        pf.proposeSession({
-          partnerId: partner.profile.id,
-          partnerName: (partner.profile || {}).name || null,
-          myName: (profile && profile.name) || '',
-          topic: (profile && profile.topic) ||
-                 (pf.trackNames || {})[profile && profile.track_id] || null,
-          startsAt: when.toISOString(),
-          durationMin: (profile && profile.pref_minutes) || 50,
-          roomUrl: partner.roomUrl,
-          pairId: partner.requestId
-        }).then(function(r){
-          if (r && r.error) { q.disabled = false; say(r.error, true); return; }
-          if (r && r.demo) { say('Demo mode — this would send that time.'); return; }
-          pf.notifyPartner(partner.profile.id, 'session_proposal',
-            ((profile && profile.name) || 'Your partner') + ' proposed a time',
-            whenLabel(when), 'app-sessions.html');
-          say('Sent. Waiting for them to accept.');
-          q.textContent = 'Proposed';
+    if (kind === 'time'){
+      var mine = hoursOn(bkDay);
+      var cell = function(h){
+        return '<button type="button" class="' + (h === bkHour ? 'on' : '') +
+          '" data-hour="' + h + '">' + esc(clockOf(h)) + '</button>';
+      };
+      if (!mine.length) return '<p class="pop-h">Any time</p><div class="tgrid dim">' +
+        DAY_HOURS.map(cell).join('') + '</div>';
+      var rest = DAY_HOURS.filter(function(h){ return mine.indexOf(h) < 0; });
+      return '<p class="pop-h">' + esc(bandsOn(bkDay).join(' and ')) +
+        ' — you’re both free</p><div class="tgrid">' + mine.map(cell).join('') + '</div>' +
+        (rest.length ? '<div class="pop-sep"></div><p class="pop-h">Any other time</p>' +
+          '<div class="tgrid dim">' + rest.map(cell).join('') + '</div>' : '');
+    }
+
+    return LENGTHS.map(function(l){
+      return '<button type="button" class="opt' + (l.v === bkLen ? ' on' : '') +
+        '" data-len="' + l.v + '"><span>' + l.v + ' minutes<em>' + l.why +
+        '</em></span></button>';
+    }).join('');
+  }
+
+  function isoDate(d){
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function pad2(n){ return String(n).padStart(2, '0'); }
+
+  /* ----- the words in the sentence ----- */
+  function pickLabel(kind){
+    if (kind === 'who')  return shortName();
+    if (kind === 'day')  return bkDay ? dayLong(bkDay) : 'a day';
+    if (kind === 'time') return clockOf(bkHour);
+    return bkLen + ' minutes';
+  }
+
+  function closeMenu(){
+    if (!bkOpen) return;
+    var p = bkOpen.querySelector('.pop');
+    if (p) p.remove();
+    var t = bkOpen.querySelector('.trig');
+    if (t) t.setAttribute('aria-expanded', 'false');
+    bkOpen = null;
+  }
+
+  /* A time outside every shared window isn't wrong — people make exceptions —
+     so this line is a note, never a block. */
+  function paintSentence(){
+    Array.prototype.forEach.call(document.querySelectorAll('#bk-sent .pick'), function(host){
+      var kind = host.getAttribute('data-k');
+      var v = host.querySelector('.v');
+      if (v) v.textContent = pickLabel(kind);
+    });
+    document.getElementById('bk-hint').textContent = bookPartner
+      ? 'Nothing is booked until ' + shortName() + ' accepts.'
+      : 'Nothing is booked until they accept.';
+    var line = document.getElementById('bk-warn');
+    if (!bookPartner || !chosen()) { line.textContent = ''; line.className = 'bk-line'; return; }
+    if (bothFree()){
+      var bands = bandsOn(bkDay);
+      line.className = 'bk-line';
+      line.textContent = 'You’re both free ' +
+        (bands[0] === 'night' ? 'at night' : 'in the ' + bands.join(' and ')) + ' that day.';
+    } else if (!shared().length){
+      line.className = 'bk-line warn';
+      line.textContent = 'You haven’t both said when you’re free, so we can’t check this one.';
+    } else {
+      line.className = 'bk-line warn';
+      line.textContent = shortName() + ' hasn’t said they’re free then. You can still propose it.';
+    }
+  }
+
+  /* One partner is not a choice, so it reads as a plain word. Two or more and
+     it becomes a menu like the rest of the sentence. */
+  function buildPicks(){
+    Array.prototype.forEach.call(document.querySelectorAll('#bk-sent .pick'), function(host){
+      var kind = host.getAttribute('data-k');
+      if (kind === 'who' && bookPartners.length < 2){
+        host.innerHTML = '<b class="v flat"></b>';
+        return;
+      }
+      if (host.querySelector('.trig')) return;
+      host.innerHTML = '<button type="button" class="trig" aria-haspopup="listbox" ' +
+        'aria-expanded="false"><span class="v"></span></button>';
+    });
+  }
+
+  document.getElementById('bk-sent').addEventListener('click', function(e){
+    var host = e.target.closest('.pick');
+    if (!host) return;
+    var kind = host.getAttribute('data-k');
+
+    /* opening and closing */
+    if (e.target.closest('.trig')){
+      e.stopPropagation();
+      var was = bkOpen === host;
+      closeMenu();
+      if (was) return;
+      var pop = document.createElement('div');
+      pop.className = 'pop' + (kind === 'time' ? ' times' : '');
+      pop.setAttribute('role', 'listbox');
+      pop.innerHTML = menuBody(kind);
+      host.appendChild(pop);
+      host.querySelector('.trig').setAttribute('aria-expanded', 'true');
+      bkOpen = host;
+      var card = document.getElementById('book-card').getBoundingClientRect();
+      if (pop.getBoundingClientRect().right > card.right - 8) pop.classList.add('right');
+      var any = pop.querySelector('#bk-any');
+      if (any && bkDay) any.value = isoDate(bkDay);
+      return;
+    }
+
+    /* choosing */
+    var el = e.target.closest('[data-v],[data-day],[data-hour],[data-len],[data-any]');
+    if (!el) return;
+
+    if (el.hasAttribute('data-any')){
+      var field = document.getElementById('bk-any');
+      var picked = field && field.value ? new Date(field.value + 'T00:00') : null;
+      if (!picked || isNaN(picked.getTime())) return;
+      bkDay = midnight(picked);
+    } else if (el.hasAttribute('data-day')){
+      bkDay = new Date(parseInt(el.getAttribute('data-day'), 10));
+    } else if (el.hasAttribute('data-hour')){
+      bkHour = parseInt(el.getAttribute('data-hour'), 10);
+    } else if (el.hasAttribute('data-len')){
+      bkLen = parseInt(el.getAttribute('data-len'), 10);
+    } else {
+      pickPartner(parseInt(el.getAttribute('data-v'), 10) || 0);
+      closeMenu();
+      return;
+    }
+
+    /* Moving the day can strand the hour outside every shared window. Snap to
+       that day's first shared hour when there is one, and leave the hour alone
+       when there isn't — an ordinary day shouldn't jump to 6am. */
+    if (el.hasAttribute('data-day') || el.hasAttribute('data-any')){
+      var hs = hoursOn(bkDay);
+      if (hs.length && hs.indexOf(bkHour) < 0) bkHour = hs[0];
+    }
+    closeMenu();
+    paintSentence();
+  });
+
+  document.addEventListener('click', closeMenu);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMenu(); });
+
+  /* Free windows and the note are both about one specific person, so changing
+     who this is for has to redraw them. */
+  function pickPartner(i){
+    bookPartner = bookPartners[i] || null;
+    if (!bookPartner) return;
+    document.getElementById('bk-note').textContent = '';
+    buildPicks();
+    var first = freeDays()[0];
+    if (first){
+      bkDay = first.date;
+      bkHour = hoursOn(bkDay)[0];
+    } else if (!bkDay){
+      /* Tomorrow evening, not tomorrow at whatever time it happens to be now —
+         the form used to open at 04:13 if that's when you loaded the page. */
+      bkDay = midnight(new Date(Date.now() + 86400000));
+      bkHour = 19;
+    }
+    paintSentence();
+  }
+
+  /* ----- proposing -----
+     Nothing reaches either calendar as a real session here. Both rows go in
+     as 'proposed'; the other person turns them into a booking. */
+  document.getElementById('bk-save').addEventListener('click', function(){
+    var note = document.getElementById('bk-note');
+    note.style.color = '#c0392b';
+    if (!bookPartner || !bookPartner.id) { note.textContent = 'You need a partner first.'; return; }
+    var w = chosen();
+    /* Shouldn't be reachable — a partner always brings a day and an hour with
+       them — but it's the last thing between here and null.toISOString(). */
+    if (!w) { note.textContent = 'Pick a day and a time.'; return; }
+    if (w.getTime() < Date.now()) { note.textContent = 'That\u2019s in the past \u2014 pick a future time.'; return; }
+
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Sending\u2026';
+    note.textContent = '';
+    pf.proposeSession({
+      partnerId: bookPartner.id,
+      partnerName: bookPartner.name,
+      myName: myName,
+      topic: bookPartner.topic || '',
+      startsAt: w.toISOString(),
+      durationMin: bkLen,
+      note: document.getElementById('bk-msg').value.trim(),
+      roomUrl: bookPartner.roomUrl,
+      pairId: bookPartner.requestId
+    }).then(function(res){
+      btn.disabled = false; btn.textContent = 'Propose this time';
+      if (res && res.saved) {
+        note.style.color = 'var(--green-dark)';
+        note.textContent = 'Sent \u2014 waiting on ' + shortName() + '.';
+        document.getElementById('bk-msg').value = '';
+        loadProposals();
+      } else {
+        note.textContent = (res && res.error) ||
+          (res && res.demo ? 'You need to be signed in to propose a time.'
+                           : 'Could not send that \u2014 please try again.');
+      }
+    });
+  });
+
+  /* ----- proposals waiting on one of you ----- */
+  function propWhen(d){
+    return d.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' }) +
+      ', ' + d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function loadProposals(){
+    return pf.fetchSessions().then(renderProposals);
+  }
+
+  /* The card exists to hold sessions. With nothing waiting and nothing booked
+     it has nothing to head, so it goes rather than standing there empty. Both
+     sub-headings already track their own list, so they answer the question. */
+  function syncSessCard(){
+    var prop = document.getElementById('prop-h').hidden;
+    var up   = document.getElementById('up-h').hidden;
+    document.getElementById('sess-card').hidden = prop && up;
+  }
+
+  function renderProposals(list){
+    return Promise.resolve().then(function(){
+      var head = document.getElementById('prop-h');
+      if (!list) { head.hidden = true; syncSessCard(); return; }
+      var now = Date.now();
+      var open = list.filter(function(x){
+        if (x.startsAt.getTime() <= now) return false;
+        if (x.status === 'proposed') return true;
+        /* A decline is only news to the person who proposed the time, and a
+           cancellation only to the one who didn't do it. Whoever acted
+           already knows, and doesn't need it sitting on their page until
+           somebody clears it. */
+        if (x.status === 'declined')  return x.mine;
+        return x.status === 'cancelled' && !x.cancelledByMe;
+      });
+      /* Empty the list as well as hiding it, so nothing answered is left
+         sitting in the DOM waiting to reappear. */
+      if (!open.length) {
+        head.hidden = true;
+        document.getElementById('prop-list').innerHTML = '';
+        syncSessCard();
+        return;
+      }
+
+      document.getElementById('prop-list').innerHTML = open.map(function(x){
+        var who = esc(x.partnerName || 'your partner');
+        var turned = x.status === 'declined' || x.status === 'cancelled';
+        var head = x.status === 'cancelled'
+          ? '<b>' + who + '</b> cancelled <b>' + esc(propWhen(x.startsAt)) + '</b>'
+          : x.status === 'declined'
+            ? '<b>' + who + '</b> can\u2019t do <b>' + esc(propWhen(x.startsAt)) + '</b>'
+            : x.mine
+              ? 'You proposed <b>' + esc(propWhen(x.startsAt)) + '</b>'
+              : '<b>' + who + '</b> proposed <b>' + esc(propWhen(x.startsAt)) + '</b>';
+        var key = ' data-at="' + esc(x.startsAt.toISOString()) + '" data-room="' + esc(x.roomUrl || '') +
+                  '" data-len="' + x.durationMin + '"';
+        var acts = turned
+          ? '<button class="btn" data-swap' + key + '>Propose another time</button>' +
+            '<button class="small" data-drop' + key + '>Dismiss</button>'
+          : x.mine
+            ? '<span class="prop-wait">Waiting on ' + who + '</span>' +
+              '<button class="small" data-drop' + key + '>Cancel</button>'
+            : '<button class="btn" data-accept' + key + '>Accept</button>' +
+              '<button class="small" data-no' + key + '>Decline</button>' +
+              '<button class="small" data-swap' + key + '>Suggest another time</button>';
+        return '<div class="prop' + (turned ? ' turned' : '') + '">' +
+          '<p class="prop-h">' + head + '</p>' +
+          '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') + '</p>' +
+          (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
+          '<div class="prop-acts">' + acts + '</div><p class="prop-err" hidden></p></div>';
+      }).join('');
+      head.hidden = false;
+      syncSessCard();
+    });
+  }
+
+  /* Cancelling and declining both take a time off somebody else's calendar,
+     and a single click is a thin thing to stand between a mis-tap and that.
+     The button asks once, in place — no dialog to dismiss, and clicking
+     anything else on the card backs out of it. */
+  function armed(btn){ return btn.getAttribute('data-armed') === '1'; }
+
+  function disarmAll(scope){
+    Array.prototype.forEach.call(scope.querySelectorAll('[data-armed="1"]'), function(b){
+      b.removeAttribute('data-armed');
+      b.classList.remove('danger');
+      b.textContent = b.getAttribute('data-label') || b.textContent;
+    });
+  }
+
+  function arm(btn, question){
+    disarmAll(btn.closest('.prop'));
+    btn.setAttribute('data-label', btn.textContent);
+    btn.setAttribute('data-armed', '1');
+    btn.classList.add('danger');
+    btn.textContent = question;
+  }
+
+  document.getElementById('prop-list').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-accept],[data-drop],[data-swap],[data-no]');
+    if (!btn) { disarmAll(this); return; }
+    var box = btn.closest('.prop'), err = box.querySelector('.prop-err');
+
+    /* Dismissing a decline destroys nothing the other person can see, so it
+       goes straight through; the other two ask first. */
+    var destructive = (btn.hasAttribute('data-no')) ||
+                      (btn.hasAttribute('data-drop') && !box.classList.contains('turned'));
+    if (destructive && !armed(btn)) {
+      arm(btn, btn.hasAttribute('data-no') ? 'Sure? Turn it down' : 'Sure? Cancel it');
+      return;
+    }
+    disarmAll(box);
+    var at = btn.getAttribute('data-at'), room = btn.getAttribute('data-room');
+    var accept = btn.hasAttribute('data-accept');
+    var swap   = btn.hasAttribute('data-swap');
+    var no     = btn.hasAttribute('data-no');
+    var turned = box.classList.contains('turned');
+
+    /* Suggesting another time is a decline that hands you the pen: their
+       proposal comes off the table and the form opens on it, so you're
+       moving a time rather than starting from a blank date picker. */
+    if (swap) {
+      var d = new Date(at);
+      if (!isNaN(d.getTime())) { bkDay = midnight(d); bkHour = d.getHours(); }
+      var len = parseInt(btn.getAttribute('data-len'), 10);
+      if (len) bkLen = len;
+      paintSentence();
+    }
+
+    Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = true; });
+    err.hidden = true;
+
+    /* Declining marks the pair 'declined' so the proposer finds out. Deleting
+       is for the proposer's own Cancel, and for dismissing a decline once it
+       has been read — the two cases where nobody is left uninformed.
+       Suggesting another time declines their time first, for the same reason:
+       vanishing it would tell them nothing. */
+    var act = accept ? pf.acceptSession(at, room)
+            : (no || (swap && !turned)) ? pf.declineSession(at, room)
+            : pf.cancelSession(at, room);
+
+    act.then(function(res){
+      if (res && res.saved) {
+        if (accept) { window.location.href = 'app.html'; return; }
+        loadProposals().then(function(){
+          if (!swap) return;
+          var note = document.getElementById('bk-note');
+          note.style.color = 'var(--muted)';
+          note.textContent = 'Their time is off the table \u2014 pick another and send it back.';
+          var card = document.getElementById('book-card');
+          try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err2){}
+          var firstPick = card.querySelector('#bk-sent .pick[data-k="day"] .trig');
+          if (firstPick) firstPick.focus();
         });
+        return;
       }
+      Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = false; });
+      err.textContent = (res && res.error) || 'That didn\u2019t go through \u2014 please try again.';
+      err.hidden = false;
+    });
+  });
+
+
+  /* ================= calendar =================
+     Draws one week. Sessions are the real ones from fetchSessions; the washed
+     cells are the hours you and your partner have both marked free, worked
+     out from the same availability the booking form already reads.
+
+     Availability is stored as day-band pairs ("tue-evening"), so a band has
+     to be turned into hours before it can be a row in a grid. These are the
+     same ranges the booking menus use. */
+  var CAL_BANDS = { morning:[6,11], afternoon:[12,16], evening:[17,21], night:[22,23] };
+  var calMonday = null, calSessions = [];
+
+  /* clockOf gives "4:00 PM", which wraps in a 56px gutter. A row only needs
+     the hour, and toLocaleTimeString still decides 16 vs 4 PM by locale. */
+  function calHour(h){
+    /* Twenty-four hour, not the locale's choice. "4 PM" in a 64px gutter is
+       two words where "16:00" is one, the times on the blocks are written the
+       same way, and it is what this audience reads anyway. */
+    return (h < 10 ? '0' : '') + h + ':00';
+  }
+
+  function mondayOf(d){
+    var x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    /* getDay() is 0 for Sunday, and a week that starts on Sunday would put
+       the weekend on both ends of the grid. */
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x;
+  }
+  function addDays(d, n){ var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function sameDay(a, b){ return dayKey(a) === dayKey(b); }
+
+  /* Every hour the two of you share, as {0..6 → [hours]}. Empty when either
+     of you hasn't filled availability in — which is a real state, not a bug,
+     so the grid says so underneath rather than drawing nothing. */
+  function sharedHoursByDay(){
+    var out = {}, list = shared();
+    list.forEach(function(slot){
+      var parts = slot.split('-'), d = DAYS.indexOf(parts[0]), band = CAL_BANDS[parts[1]];
+      if (d < 0 || !band) return;
+      if (!out[d]) out[d] = [];
+      for (var h = band[0]; h <= band[1]; h++) if (out[d].indexOf(h) < 0) out[d].push(h);
+    });
+    return out;
+  }
+
+  /* Which hours the grid covers. Fixed rows would either cut a 7am session
+     off the top or draw sixteen empty rows, so the window is whatever this
+     week actually contains — the shared hours and the booked ones — padded
+     by one and never fewer than five rows. */
+  function calHourWindow(week){
+    var hrs = [], byDay = sharedHoursByDay(), k;
+    for (k in byDay) if (byDay.hasOwnProperty(k)) hrs = hrs.concat(byDay[k]);
+    week.forEach(function(s){ hrs.push(s.startsAt.getHours()); });
+    if (!hrs.length) return [17, 21];
+    var lo = Math.max(0, Math.min.apply(null, hrs) - 1);
+    var hi = Math.min(23, Math.max.apply(null, hrs) + 1);
+    while (hi - lo < 4) { if (hi < 23) hi++; else if (lo > 0) lo--; else break; }
+    /* Twelve rows is already a tall card; past that it is a scrolling wall. */
+    if (hi - lo > 11) hi = lo + 11;
+    return [lo, hi];
+  }
+
+  function weekOf(monday){
+    var end = addDays(monday, 7).getTime(), start = monday.getTime();
+    return calSessions.filter(function(s){
+      var t = s.startsAt.getTime();
+      return t >= start && t < end &&
+             (s.status === 'confirmed' || s.status === 'proposed');
     });
   }
+
+  function renderCal(){
+    var grid = $('cal-grid');
+    if (!grid) return;
+    var week = weekOf(calMonday), win = calHourWindow(week), byDay = sharedHoursByDay();
+    var today = new Date(), now = Date.now(), html = '', i, h;
+
+    var last = addDays(calMonday, 6);
+    var fmt = { day:'numeric', month:'short' };
+    $('cal-range').textContent =
+      calMonday.toLocaleDateString(undefined, fmt) + ' – ' +
+      last.toLocaleDateString(undefined, fmt);
+
+    html += '<div class="cal-corner"></div>';
+    for (i = 0; i < 7; i++){
+      var d = addDays(calMonday, i);
+      html += '<div class="cal-day' + (sameDay(d, today) ? ' today' : '') + '">' +
+        '<span>' + esc(d.toLocaleDateString(undefined, { weekday:'short' })) + '</span>' +
+        '<b>' + d.getDate() + '</b></div>';
+    }
+
+    for (h = win[0]; h <= win[1]; h++){
+      html += '<div class="cal-h">' + esc(calHour(h)) + '</div>';
+      for (i = 0; i < 7; i++){
+        var day = addDays(calMonday, i);
+        var cellStart = new Date(day); cellStart.setHours(h, 0, 0, 0);
+        var past = cellStart.getTime() + 3600000 <= now;
+        /* getDay(), not the column index: sharedHoursByDay is keyed by the
+           real weekday so it stays right whatever day the week starts on. */
+        var free = (byDay[day.getDay()] || []).indexOf(h) >= 0;
+
+        var ev = null;
+        for (var j = 0; j < week.length; j++){
+          if (sameDay(week[j].startsAt, day) && week[j].startsAt.getHours() === h){ ev = week[j]; break; }
+        }
+
+        var cls = 'cal-cell' + (free && !ev ? ' free' : '') + (past ? ' past' : '');
+        var body = '';
+        if (ev){
+          var kind = ev.status === 'proposed' ? 'waiting'
+                   : (ev.startsAt.getTime() + ev.durationMin * 60000 <= now ? 'done' : 'booked');
+          /* The start time goes on the block's second line, the way the
+             reference does it — and once a block floats inside a cell rather
+             than filling it, the row label no longer says it for you. */
+          var when2 = calHour(ev.startsAt.getHours()).replace(':00',
+            ':' + (ev.startsAt.getMinutes() < 10 ? '0' : '') + ev.startsAt.getMinutes());
+          var sub = kind === 'waiting'
+            ? when2 + ' · ' + (ev.mine ? 'waiting' : 'needs an answer')
+            : when2 + (ev.partnerName ? ' · ' + ev.partnerName.split(/\s+/)[0] : '');
+          body = '<span class="cal-ev ' + kind + '">' +
+                 '<b>' + esc(ev.topic || 'Session') + '</b>' +
+                 '<i>' + esc(sub) + '</i></span>';
+        }
+
+        /* A real button when it does something, a plain div when it doesn't —
+           a focusable cell that ignores Enter is worse than no focus stop. */
+        html += (free && !ev && !past)
+          ? '<button type="button" class="' + cls + '" data-cal-day="' + day.getTime() +
+            '" data-cal-hour="' + h + '" aria-label="Propose ' +
+            esc(day.toLocaleDateString(undefined, { weekday:'long' })) + ' at ' +
+            esc(clockOf(h)) + '"></button>'
+          : '<div class="' + cls + '">' + body + '</div>';
+      }
+    }
+    grid.innerHTML = html;
+
+    var none = !shared().length;
+    $('cal-empty').hidden = !none;
+    if (none) $('cal-empty').textContent = bookPartner
+      ? 'Once you and ' + shortName() + ' have both said when you’re free, the hours you share light up here.'
+      : 'Set your weekly availability in your profile and the hours you share with a partner light up here.';
+  }
+
+  /* Clicking a free hour hands it to the form below rather than opening a
+     dialog of its own — same proposal, one fewer thing to learn. */
+  document.getElementById('cal-grid').addEventListener('click', function(e){
+    var cell = e.target.closest('[data-cal-day]');
+    if (!cell) return;
+    bkDay  = new Date(parseInt(cell.getAttribute('data-cal-day'), 10));
+    bkHour = parseInt(cell.getAttribute('data-cal-hour'), 10);
+    paintSentence();
+    var card = document.getElementById('book-card');
+    if (card.hidden) return;
+    try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
+    var trig = card.querySelector('#bk-sent .pick[data-k="day"] .trig');
+    if (trig) trig.focus();
+  });
+
+  document.getElementById('cal-prev').addEventListener('click', function(){
+    calMonday = addDays(calMonday, -7); renderCal();
+  });
+  document.getElementById('cal-next').addEventListener('click', function(){
+    calMonday = addDays(calMonday, 7); renderCal();
+  });
+  document.getElementById('cal-today').addEventListener('click', function(){
+    calMonday = mondayOf(new Date()); renderCal();
+  });
+  /* Nowhere new to go: the form that proposes a time is already on this page,
+     so this scrolls to it rather than opening a second way to do the same
+     thing. */
+  document.getElementById('cal-new').addEventListener('click', function(){
+    var card = document.getElementById('book-card');
+    if (card.hidden) return;
+    try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
+    var trig = card.querySelector('#bk-sent .pick[data-k="day"] .trig');
+    if (trig) trig.focus();
+  });
+
+  /* ================= the plan =================
+     Where you are is counted from sessions you have actually had, not from
+     ticking boxes. That needs no table of its own, and it cannot drift out of
+     step with your partner's copy, because you both sat through the same
+     sessions. It also means the plan cannot be edited yet — so there are no
+     Add and Reorder buttons here pretending otherwise. */
+  function renderPlan(trackId, doneCount){
+    var plan = (window.PF_PLANS || {})[trackId];
+    if (!plan || !plan.length) return;
+
+    var here = Math.min(doneCount, plan.length - 1);
+    var names = (window.pf && pf.trackNames) || {};
+
+    $('plan-h').textContent = names[trackId]
+      ? names[trackId] + ' in twelve weeks'
+      : 'Twelve weeks';
+    $('plan-k').textContent = doneCount >= plan.length
+      ? 'Plan finished'
+      : 'Week ' + (here + 1) + ' of ' + plan.length;
+
+    $('plan-rows').innerHTML = plan.map(function(w, i){
+      var state = i < doneCount ? 'done' : (i === here && doneCount < plan.length ? 'now' : '');
+      var label = state === 'now' ? 'This week' : 'Week ' + (i + 1);
+      return '<div class="plan-row ' + state + '">' +
+        '<span class="plan-n">' + label + '</span>' +
+        '<span class="plan-t">' + esc(w.t) + '</span>' +
+        (w.src ? '<span class="plan-src">' + esc(w.src) + '</span>' : '') +
+      '</div>';
+    }).join('');
+
+    $('plan-foot').textContent = doneCount >= plan.length
+      ? 'You have been through all twelve. Pick the next thing together — you are past what we would have suggested.'
+      : 'A suggested order, not a course. Every week points at somebody else’s free material; ' +
+        'you are ' + doneCount + ' session' + (doneCount === 1 ? '' : 's') + ' in.';
+
+    $('plan-card').hidden = false;
+  }
+
+  /* Answers from signup that never reached the database (no session at the
+     time, e.g. email confirmation was on). Save them now that we're signed in. */
+  function flushPending(){
+    var raw = '';
+    try { raw = localStorage.getItem('pf_pending') || ''; } catch(err) { return; }
+    if (!raw) return;
+    var profile;
+    try { profile = JSON.parse(raw); } catch(err) { return; }
+    pf.saveProfile(profile).then(function(res){
+      if (res && res.saved) { try { localStorage.removeItem('pf_pending'); } catch(e){} }
+    });
+  }
+
+  $('copy-invite').addEventListener('click', function(){
+    var btn = this;
+    var url = location.origin + '/signup.html';
+    function done(ok){ btn.textContent = ok ? 'Copied' : url; setTimeout(function(){ btn.textContent = 'Copy invite link'; }, 2200); }
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function(){ done(true); }, function(){ done(false); });
+    else done(false);
+  });
+
 
   /* ---------- load ---------- */
-  function load(){
-    Promise.all([pf.primaryPartner(), pf.getProfile(), pf.fetchSessions(), pf.reliability()])
-    .then(function(r){
-      var partner = r[0], profile = r[1] || null, sessions = r[2] || [], rel = r[3];
+  pf.currentUser().then(function(user){
+    if (!user){
+      $('signedout').hidden = false;
+      hero({ h:'You’re signed out.', s:'Log in and your partner, sessions and history come back exactly as you left them.',
+             a:'<a class="btn" href="login.html">Log in</a><a class="ghost" href="signup.html">Sign up</a>' });
+      $('sess-card').hidden = true;
+      return;
+    }
+    flushPending();
 
-      var hello = document.getElementById('hm-hello');
-      var fn = firstName(profile && profile.name);
-      if (fn) hello.textContent = 'Hello, ' + fn;
+    /* Session first, cache second — the other way round showed the previous
+       account's initial after switching accounts. */
+    var cached = '';
+    try { cached = localStorage.getItem('pf_name') || ''; } catch(err){}
+    var meta = user.user_metadata || {};
+    var name = meta.name || meta.full_name || cached || (user.email || '').split('@')[0];
+    $('me-av').textContent = initial(name);
 
-      /* The soonest confirmed session that hasn't finished. Proposals are not
-         "next up" — nobody has agreed to them yet, so they live on Sessions. */
-      var now = Date.now(), next = null;
-      sessions.forEach(function(s){
-        if (s.status !== 'confirmed') return;
-        if (s.startsAt.getTime() + s.durationMin * 60000 <= now) return;
-        if (!next || s.startsAt < next.startsAt) next = s;
-      });
-
-      function paint(pstate){
-        var top;
-        if (next) top = nextSessionHtml(next, pstate, next.partnerName);
-        else if (partner) top = nothingBookedHtml(partner, profile);
-        else top = '<div class="hm-empty">' +
-          '<h2>Find your study partner</h2>' +
-          '<p>Tell us what you’re learning and when you’re free, and we’ll show ' +
-            'you the people closest to it. One partner, not a group.</p>' +
-          '<a class="btn" href="app-people.html">Find my partner</a></div>';
-
-        root.innerHTML = top +
-          '<div class="hm-row">' +
-            partnerCardHtml(partner, sessions, rel) +
-            weekCardHtml(sessions) +
-          '</div>';
-        wire(next, partner, profile);
+    /* All three at once. The profile used to be awaited on its own before the
+       partner and sessions queries were even sent, which made the page wait
+       out two round trips end to end instead of one. Nothing in the partner
+       or session queries depends on the profile. */
+    Promise.all([pf.getProfile(), pf.acceptedPartners(), pf.fetchSessions()])
+      .then(function(rows){
+      var profile = rows[0];
+      /* Genuinely new user with nothing saved anywhere: finish onboarding. */
+      /* profile === false means the query failed, which is not the same as
+         "this person never onboarded". Bouncing someone with a flaky
+         connection into signup would make them answer everything again. */
+      var onboarded = profile && (profile.track_id || profile.topic);
+      if (!onboarded && profile !== false){
+        var ls = '';
+        try { ls = localStorage.getItem('pf_track') || ''; } catch(err){}
+        if (!ls){ window.location.replace('signup.html'); return; }
       }
 
-      if (next) {
-        pf.partnerState(next.startsAt.toISOString(), next.roomUrl).then(paint);
-      } else {
-        paint(null);
+      myName  = (profile && profile.name) || name || '';
+      myAvail = (profile && profile.availability) || [];
+
+      var topic = (profile && profile.topic) || '';
+      if (topic){
+        $('topictext').innerHTML = 'You’re on <b>' + esc(topic) + '</b>';
+        $('topicline').hidden = false;
       }
-    }).catch(function(){
-      root.innerHTML = '<div class="hm-empty"><h2>We couldn’t load your day</h2>' +
-        '<p>Refresh the page to try again.</p></div>';
+
+      Promise.resolve(rows)
+        .then(function(r){
+          var partners = r[1] || [], all = r[2] || [];
+          var now = Date.now();
+          /* A proposal is not a session. It doesn't go on the calendar, it
+             isn't "coming up", and it doesn't tick the checklist — until
+             somebody accepts it, nothing has been agreed. */
+          var sessions = all.filter(function(s){ return s.status === 'confirmed'; });
+          var pending = all.filter(function(s){
+            return s.status === 'proposed' && s.startsAt.getTime() > now;
+          });
+          var waiting = pending.filter(function(s){ return !s.mine; })[0] || null;
+          /* A time of yours they turned down, or one they cancelled. Only
+             news to the person who didn't do it. */
+          var turned = all.filter(function(s){
+            if (s.startsAt.getTime() <= now) return false;
+            if (s.status === 'declined')  return s.mine;
+            return s.status === 'cancelled' && !s.cancelledByMe;
+          })[0] || null;
+          var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
+          var partner = partners[0] || null;
+          /* acceptedPartners() gives {requestId, profile, roomUrl} — the name
+             lives on .profile, not on the row itself. */
+          var pname = partner && partner.profile && partner.profile.name;
+          /* "You're paired with Munisa" was a lie the moment a second person
+             accepted. Name them all. */
+          var names = partners.map(function(x){ return x.profile && x.profile.name; }).filter(Boolean);
+          var allNames = names.length < 2 ? (names[0] || 'your partner')
+            : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+
+          /* Every accepted partner, not just the first. Nothing stops two
+             people accepting you, and the form used to be wired to
+             partners[0] — so a second partner existed in the database and
+             was unreachable from the page. */
+          bookPartners = partners.filter(function(x){ return x.profile && x.profile.id; })
+            .map(function(x){
+              return {
+                id: x.profile.id,
+                name: x.profile.name,
+                topic: x.profile.topic,
+                availability: x.profile.availability || [],
+                roomUrl: x.roomUrl,
+                requestId: x.requestId
+              };
+            });
+          if (bookPartners.length){
+            $('book-card').hidden = false;
+            /* Who it's for is a word in the sentence, and only a menu when
+               there's more than one person it could be. */
+            pickPartner(0);
+          }
+          renderProposals(all);
+
+          if (upcoming.length){
+            var next = upcoming[0];
+            hero({
+              paired:true, partner: next.partnerName || pname,
+              h: 'Next session <span class="g">' + esc(relative(next.startsAt)) + '</span>.',
+              s: when(next.startsAt) + ' · ' + next.durationMin + ' minutes' +
+                 (next.partnerName ? ' with ' + next.partnerName : ''),
+              a: (next.roomUrl && isOpen(next))
+                   ? '<a class="btn" href="' + esc(next.roomUrl) + '" target="_blank" rel="noopener">Join the call</a><a class="ghost" href="#sess-card">All sessions</a>'
+                   : '<a class="btn" href="#sess-card">See the booking</a>',
+              ag: next.roomUrl && !isOpen(next) ? 'The call link opens 15 minutes before you start.' : ''
+            });
+          } else if (waiting){
+            hero({
+              paired:true, partner: waiting.partnerName || pname,
+              h: '<span class="g">' + esc(waiting.partnerName || pname || 'Your partner') +
+                 '</span> proposed a time.',
+              s: when(waiting.startsAt) + ' · ' + waiting.durationMin + ' minutes. ' +
+                 'Nothing is booked until you say yes.',
+              a: '<a class="btn" href="#sess-card">Answer it</a>'
+            });
+          } else if (turned){
+            hero({
+              paired:true, partner: turned.partnerName || pname,
+              h: '<span class="g">' + esc(turned.partnerName || pname || 'Your partner') +
+                 '</span> ' + (turned.status === 'cancelled' ? 'cancelled your session.'
+                                                             : 'can’t make that time.'),
+              s: (turned.status === 'cancelled' ? 'They cancelled ' : 'They turned down ') +
+                 when(turned.startsAt) + '. Pick another and send it over.',
+              a: '<a class="btn" href="#book-card">Propose another time</a>'
+            });
+          } else if (partner && pending.length){
+            var mine = pending[0];
+            /* Name whoever this proposal is actually with. pname is the first
+               partner in the list, which is the wrong person as soon as you
+               have two and proposed to the second. */
+            var mineWho = mine.partnerName || pname;
+            hero({
+              paired:true, partner: mineWho,
+              h: 'Waiting on <span class="g">' + esc(mineWho || 'your partner') + '</span>.',
+              s: 'You proposed ' + when(mine.startsAt) + '. It lands on both your calendars once they accept.',
+              a: '<a class="ghost" href="#sess-card">See the proposal</a>'
+            });
+          } else if (partner){
+            hero({
+              paired:true, partner:pname,
+              h: 'You’re paired with <span class="g">' + esc(allNames) + '</span>.',
+              s: 'Nothing booked yet. Propose a time and it lands on both your calendars once they accept.',
+              a: '<a class="btn" href="#book-card">Propose a time</a>'
+            });
+          } else {
+            hero({
+              paired:false,
+              h: 'No partner yet.',
+              s: 'Look through everyone who has signed up and ask someone learning what you’re learning. They get a notification and can accept.',
+              a: '<a class="btn" href="app-people.html">Find someone</a>'
+            });
+          }
+
+          if (upcoming.length){
+            $('upcoming').innerHTML = upcoming.map(function(s){ return slot(s, false); }).join('');
+            $('up-h').hidden = false;
+          }
+          syncSessCard();
+
+          /* ----- calendar -----
+             Everything except proposals somebody already answered: a declined
+             time is not on anybody's week. */
+          calSessions = all.filter(function(x){
+            return x.status === 'confirmed' || x.status === 'proposed';
+          });
+          calMonday = mondayOf(new Date());
+          /* Drawn once you have a partner. Alone, every cell would be empty
+             and none of them could be clicked, which is a grid explaining
+             that it has nothing to say. */
+          if (partner){
+            $('cal-card').hidden = false;
+            renderCal();
+          }
+
+          /* ----- the plan -----
+             Counted from sessions that actually happened: confirmed, and the
+             end of them is behind us. A booking next Tuesday has not taught
+             anybody anything yet. */
+          var done = sessions.filter(function(x){
+            return x.startsAt.getTime() + x.durationMin * 60000 <= now;
+          }).length;
+          var trackId = (profile && profile.track_id) || '';
+          if (!trackId){ try { trackId = localStorage.getItem('pf_track') || ''; } catch(err){} }
+          renderPlan(trackId, done);
+        });
     });
-  }
-
-  if (!window.pf || !pf.ready || !pf.ready()) {
-    root.innerHTML = '<div class="hm-empty"><h2>Demo mode</h2>' +
-      '<p>Home shows your next session, your partner and your week. All of it is ' +
-        'read from real rows, so there is nothing to preview without a connected ' +
-        'account.</p><a class="btn" href="signup.html">Create an account</a></div>';
-    return;
-  }
-  load();
+  });
 })();
 </script>
-<script src="assets/appshell.js"></script>
 <script src="assets/usermenu.js"></script>
 <script src="assets/notify.js"></script>
 </body>

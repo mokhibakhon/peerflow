@@ -142,19 +142,9 @@
     <p class="step-err" id="avail-err" hidden>Pick at least two blocks — one is very hard to pair.</p>
     <p class="tz-note">Your timezone: <b id="tz">detecting…</b> — detected automatically.
       Hours are shown in your own time, and your partner sees theirs.</p>
-
-    <!-- How long a session runs. Asked here rather than every time you book,
-         because it's a habit, not a per-session decision. -->
-    <h2 class="q">How long should a session be?</h2>
-    <div class="chips" id="dur-choices" role="group" aria-label="Preferred session length">
-      <button type="button" class="chip" data-dur="25" aria-pressed="false">25 min</button>
-      <button type="button" class="chip on" data-dur="50" aria-pressed="true">50 min</button>
-      <button type="button" class="chip" data-dur="90" aria-pressed="false">90 min</button>
-    </div>
-
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
-      <button class="btn primary big" id="finish">Show my matches</button>
+      <button class="btn primary big" id="finish">Find my partner</button>
     </div>
     <p id="su2-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px;max-width:430px"></p>
   </section>
@@ -482,22 +472,6 @@
     syncAvailAll();
   });
 
-  /* ---------- preferred session length ---------- */
-  /* A habit, not a per-session decision, so it is asked once here and used as
-     the default duration everywhere a session is proposed. */
-  var durBox = document.getElementById('dur-choices');
-  var prefMinutes = 50;
-  durBox.addEventListener('click', function(e){
-    var b = e.target.closest('[data-dur]');
-    if (!b) return;
-    prefMinutes = parseInt(b.getAttribute('data-dur'), 10) || 50;
-    Array.prototype.forEach.call(durBox.children, function(c){
-      var on = c === b;
-      c.classList.toggle('on', on);
-      c.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-  });
-
   /* ---------- timezone ---------- */
   try {
     document.getElementById('tz').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || 'your local time';
@@ -527,8 +501,7 @@
       topic: state.topic,
       level: state.level,
       timezone: tz,
-      availability: availability,
-      prefMinutes: prefMinutes
+      availability: availability
     };
 
     try {
@@ -545,9 +518,7 @@
     var btn = this;
     btn.disabled = true; btn.textContent = 'Saving…';
     var left = false, errored = false;
-    /* Straight into the matches. Finishing signup is the most motivated a
-       learner will ever be, and landing them on an empty Home spends it. */
-    function go(){ if (left || errored) return; left = true; window.location.href = 'app-people.html'; }
+    function go(){ if (left || errored) return; left = true; window.location.href = 'app.html'; }
 
     pf.saveProfile(profile).then(function(res){
       if (res && res.error) {
