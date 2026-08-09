@@ -233,25 +233,7 @@ window.pf = (function(){
       if ('goal' in profile)         row.goal = profile.goal || null;
       if ('timezone' in profile)     row.timezone = profile.timezone || null;
       if ('availability' in profile) row.availability = profile.availability || [];
-      if ('prefMinutes' in profile)  row.pref_minutes = profile.prefMinutes || 50;
-      if ('stageIndex' in profile)   row.stage_index = Math.max(0, profile.stageIndex | 0);
       return client.from('profiles').upsert(row).then(function(r){
-        /* pref_minutes and stage_index arrive with migration-mvp.sql. Same
-           reasoning as first_name/last_name below: losing somebody's whole
-           profile over a column they never asked for would be absurd. Drop the
-           two new fields and save the rest. */
-        if (r.error && r.error.code === 'PGRST204' &&
-            /pref_minutes|stage_index/.test(r.error.message || '')) {
-          delete row.pref_minutes; delete row.stage_index;
-          try {
-            console.warn('PeerFlow: profiles.pref_minutes/stage_index are missing. ' +
-                         'Run supabase/migration-mvp.sql to store them.');
-          } catch(e){}
-          return client.from('profiles').upsert(row).then(function(r2){
-            return r2.error ? fail(r2.error, 'Could not save your profile. Please try again.')
-                            : { saved: true };
-          });
-        }
         /* PGRST204: the column isn't in this database yet, i.e. schema.sql
            hasn't been re-run since first_name/last_name were added. Losing
            somebody's whole profile over a column they never asked for would
@@ -322,22 +304,16 @@ window.pf = (function(){
       if (!uid) return null;
       /* The attendance columns arrive with migration-mvp.sql. Asking for them
          on a database that hasn't run it yet fails the whole select, so the
-         request falls back to the original column list and the UI simply has
-         no attendance data to show — which is what an un-migrated project
-         genuinely has. */
+         request falls back to the original column list — an un-migrated
+         project keeps working and simply has no attendance to show. */
       var FULL = 'id,partner_name,topic,starts_at,duration_min,room_url,status,' +
-                 'proposed_by,note,cancelled_by,confirmed_at,goal,goal_done,' +
-                 'attended,completed_at,cancelled_at';
+                 'proposed_by,note,cancelled_by,attended,completed_at,cancelled_at';
       var BASE = 'id,partner_name,topic,starts_at,duration_min,room_url,status,' +
                  'proposed_by,note,cancelled_by';
-
       function read(cols){
-        return client.from('sessions')
-          .select(cols)
-          .eq('user_id', uid)
-          .order('starts_at', { ascending: true });
+        return client.from('sessions').select(cols)
+          .eq('user_id', uid).order('starts_at', { ascending: true });
       }
-
       return read(FULL).then(function(r){
         if (r.error && (r.error.code === '42703' || r.error.code === 'PGRST204' ||
                         /column .* does not exist/i.test(String(r.error.message || '')))) {
@@ -370,11 +346,8 @@ window.pf = (function(){
               /* Who called it off, so the person who did isn't told about
                  their own decision. */
               cancelledByMe: !!s.cancelled_by && s.cancelled_by === uid,
-              /* Attendance. Undefined on an un-migrated database, which reads
-                 as "not confirmed" everywhere and never as "did not attend". */
-              confirmedAt: s.confirmed_at ? new Date(s.confirmed_at) : null,
-              goal: s.goal || null,
-              goalDone: (s.goal_done === true || s.goal_done === false) ? s.goal_done : null,
+              /* Undefined on an un-migrated database, which reads everywhere
+                 as "unknown" and never as "did not attend". */
               attended: (s.attended === true || s.attended === false) ? s.attended : null,
               completedAt: s.completed_at ? new Date(s.completed_at) : null,
               cancelledAt: s.cancelled_at ? new Date(s.cancelled_at) : null
@@ -700,247 +673,17 @@ window.pf = (function(){
   }
 
   /* ================================================================
-     MVP additions: one primary partnership, attendance, reliability,
-     notifications, achievements, learning stage.
+     Progress page support.
 
-     Everything below follows the same two rules as the code above it: the
-     server decides what may be read or written (RLS and the SECURITY DEFINER
-     functions), and nothing here throws — a missing table or a file:// page
-     resolves to null or demo data so the UI can say something useful instead
-     of breaking.
+     app-progress.html is the one page kept from the MVP rebuild, so these
+     are the only functions from it that remain: attendance counts, the
+     learning-path stage, and recording an achievement so it can be
+     announced once rather than on every page load.
      ================================================================ */
-
-  /* ---------- availability vocabulary ---------- */
-  /* Slots are stored as "tue-evening" day/band pairs, the shape signup writes
-     and the calendar already reads. Bands match app.html's CAL_BANDS. */
-  var DAY_ORDER = ['mon','tue','wed','thu','fri','sat','sun'];
-  var DAY_LABEL = { mon:'Monday', tue:'Tuesday', wed:'Wednesday', thu:'Thursday',
-                    fri:'Friday', sat:'Saturday', sun:'Sunday' };
-  var BAND_HOURS = { morning:[6,11], afternoon:[12,16], evening:[17,21], night:[22,23] };
-  var BAND_LABEL = { morning:'morning', afternoon:'afternoon', evening:'evening', night:'night' };
-
-  /* The slots two people both marked free, in week order. */
-  function sharedSlots(mine, theirs){
-    var a = mine || [], b = theirs || [];
-    var set = {};
-    b.forEach(function(s){ set[s] = true; });
-    return a.filter(function(s){ return set[s]; }).sort(function(x, y){
-      var dx = DAY_ORDER.indexOf(String(x).split('-')[0]);
-      var dy = DAY_ORDER.indexOf(String(y).split('-')[0]);
-      if (dx !== dy) return dx - dy;
-      return String(x).localeCompare(String(y));
-    });
-  }
-
-  function slotLabel(slot){
-    var p = String(slot || '').split('-');
-    var d = DAY_LABEL[p[0]] || p[0] || '';
-    var b = BAND_LABEL[p[1]] || p[1] || '';
-    return (d + ' ' + b).trim();
-  }
-
-  /* A band turned into the concrete hours you can actually propose. */
-  function slotHours(slot){
-    var band = BAND_HOURS[String(slot || '').split('-')[1]];
-    if (!band) return [];
-    var out = [];
-    for (var h = band[0]; h <= band[1]; h++) out.push(h);
-    return out;
-  }
-
-  /* The next real date/time for a slot+hour, always in the future. */
-  function nextDateFor(slot, hour){
-    var day = DAY_ORDER.indexOf(String(slot || '').split('-')[0]);
-    if (day < 0) return null;
-    var now = new Date();
-    var d = new Date(now);
-    d.setSeconds(0, 0);
-    d.setMinutes(0);
-    d.setHours(hour);
-    var todayIdx = (now.getDay() + 6) % 7;          // Monday = 0
-    var delta = (day - todayIdx + 7) % 7;
-    if (delta === 0 && d.getTime() <= now.getTime()) delta = 7;
-    d.setDate(d.getDate() + delta);
-    return d;
-  }
-
-  /* ---------- one primary partnership ---------- */
-
-  /* The current partner, or null. The MVP is built around one active
-     partnership; if several accepted rows exist (older data), the most
-     recently accepted one wins so behaviour stays predictable. */
-  function primaryPartner(){
-    return acceptedPartners().then(function(list){
-      if (!list || !list.length) return null;
-      return list[0];
-    }).catch(function(){ return null; });
-  }
-
-  /* Walk away from a partnership. The row moves to 'ended' rather than being
-     deleted: the sessions the two of you sat stay attributable, and the pair
-     can still be shown in history. acceptedPartners() filters on 'accepted',
-     so the partner disappears from the app the moment this lands. */
-  function endPartnership(requestId){
-    if (!client) return Promise.resolve({ demo: true });
-    return currentUid().then(function(uid){
-      if (!uid) return { demo: true };
-      return client.from('partner_requests')
-        .update({ status: 'ended', ended_at: new Date().toISOString(), ended_by: uid })
-        .eq('id', requestId)
-        .then(function(r){
-          if (r.error) {
-            if (/violates check constraint/i.test(String(r.error.message || ''))) {
-              return fail(r.error, 'This needs a database update that hasn’t been applied yet.');
-            }
-            return fail(r.error, 'Could not end that partnership. Please try again.');
-          }
-          return { saved: true };
-        });
-    }).catch(function(e){
-      return fail(e, 'Could not end that partnership — check your connection and try again.');
-    });
-  }
-
-  /* ---------- ranked matches ---------- */
-
-  /* A small ranked set, not a directory. Scores the people who have finished
-     signing up against the signed-in learner and returns the strongest few,
-     each carrying the reasons it scored well so the card can explain itself.
-
-     Weighting follows the product order: same path first, then stage, then
-     timezone, then how many hours you actually share. */
-  function rankedMatches(limit){
-    if (!client) return Promise.resolve(null);
-    return Promise.all([getProfile(), fetchPeers(60), myRequests()]).then(function(r){
-      var me = r[0], peers = r[1] || [], reqs = r[2];
-      if (!me) return null;
-
-      /* Anyone already asked, already partnered with, or who asked you, is
-         not a match to show again. */
-      var busy = {};
-      if (reqs) {
-        reqs.incoming.concat(reqs.outgoing).forEach(function(x){
-          if (x.status === 'pending' || x.status === 'accepted') {
-            busy[x.from_user] = true; busy[x.to_user] = true;
-          }
-        });
-      }
-
-      var myAvail = me.availability || [];
-      var LEVELS = ['new','tutorials','builder','jobprep'];
-      var myLevel = LEVELS.indexOf(me.level);
-
-      var scored = peers.filter(function(p){ return !busy[p.id]; }).map(function(p){
-        var why = [], score = 0;
-
-        if (p.track_id && me.track_id && p.track_id === me.track_id) {
-          score += 40; why.push('Same path');
-        }
-        if (p.topic && me.topic &&
-            String(p.topic).trim().toLowerCase() === String(me.topic).trim().toLowerCase()) {
-          score += 15; why.push('Same topic');
-        }
-        var theirLevel = LEVELS.indexOf(p.level);
-        if (myLevel >= 0 && theirLevel >= 0) {
-          var gap = Math.abs(myLevel - theirLevel);
-          if (gap === 0) { score += 20; why.push('Same stage'); }
-          else if (gap === 1) { score += 10; why.push('Close stage'); }
-        }
-        if (p.timezone && me.timezone && p.timezone === me.timezone) {
-          score += 10; why.push('Same timezone');
-        }
-        var shared = sharedSlots(myAvail, p.availability || []);
-        if (shared.length) {
-          score += Math.min(15, shared.length * 5);
-          why.push(shared.length + ' shared study window' + (shared.length === 1 ? '' : 's'));
-        }
-
-        return {
-          id: p.id,
-          name: p.name || 'Someone',
-          trackId: p.track_id,
-          trackName: trackNames[p.track_id] || p.track_id || '',
-          topic: p.topic,
-          level: p.level,
-          timezone: p.timezone,
-          shared: shared,
-          why: why,
-          score: score,
-          /* A percentage people can read, capped so nothing ever claims 100%. */
-          match: Math.max(40, Math.min(98, Math.round(score)))
-        };
-      });
-
-      scored.sort(function(a, b){
-        if (b.score !== a.score) return b.score - a.score;
-        return b.shared.length - a.shared.length;
-      });
-      /* A handful of strong matches, deliberately not an endless list. */
-      return scored.slice(0, limit || 8);
-    }).catch(function(){ return null; });
-  }
-
-  /* ---------- attendance ---------- */
-
-  function rpcSession(fn, args, msg){
-    if (!client) return Promise.resolve({ demo: true });
-    return client.rpc(fn, args).then(function(r){
-      if (r.error) {
-        if (r.error.code === 'PGRST202' ||
-            /function .* does not exist/i.test(String(r.error.message || ''))) {
-          return fail(r.error, 'This needs a database update that hasn’t been applied yet.');
-        }
-        return fail(r.error, msg);
-      }
-      return { saved: true, rows: r.data };
-    }).catch(function(e){ return fail(e, msg); });
-  }
-
-  /* "I'm ready" — confirms only the caller's own row, so a partner can never
-     confirm on your behalf. An optional goal is saved at the same time. */
-  function confirmAttendance(startsAt, roomUrl, goal){
-    return rpcSession('confirm_attendance',
-      { p_starts_at: startsAt, p_room: roomUrl, p_goal: goal || null },
-      'Could not confirm. Please try again.');
-  }
-
-  /* Whether the other person has confirmed and turned up. Their row is not
-     readable directly — "read own sessions" is deliberately narrow — so this
-     goes through a function that returns three booleans about a meeting the
-     caller already owns a copy of, and nothing else from their row.
-     Resolves null when unknown, which reads as "not confirmed yet" rather
-     than as "did not attend". */
-  function partnerState(startsAt, roomUrl){
-    if (!client) return Promise.resolve(null);
-    return client.rpc('session_partner_state', { p_starts_at: startsAt, p_room: roomUrl })
-      .then(function(r){
-        if (r.error || !r.data || !r.data.length) return null;
-        var row = r.data[0];
-        return { confirmed: !!row.confirmed, attended: !!row.attended, hasGoal: !!row.has_goal };
-      }).catch(function(){ return null; });
-  }
-
-  function setSessionGoal(startsAt, roomUrl, goal){
-    return rpcSession('set_session_goal',
-      { p_starts_at: startsAt, p_room: roomUrl, p_goal: goal || '' },
-      'Could not save that goal. Please try again.');
-  }
-
-  /* Checking out. Marks the caller present and moves the shared status to
-     'completed'; the partner's attendance stays unknown until they check out
-     too, which is what makes a no-show visible rather than assumed. */
-  function finishSession(startsAt, roomUrl, goalDone){
-    return rpcSession('finish_session',
-      { p_starts_at: startsAt, p_room: roomUrl,
-        p_goal_done: (goalDone === true || goalDone === false) ? goalDone : null },
-      'Could not save that. Please try again.');
-  }
-
-  /* ---------- reliability ---------- */
 
   /* Plain counts, not an opaque score. Early cancellations are recorded but
      deliberately weigh far less than a no-show. */
-  var LATE_MS = 2 * 60 * 60 * 1000;   // cancelling inside two hours is "late"
+  var LATE_MS = 2 * 60 * 60 * 1000;
 
   function reliability(){
     return fetchSessions().then(function(list){
@@ -958,8 +701,7 @@ window.pf = (function(){
         if (s.status === 'cancelled') {
           var when = s.cancelledAt ? s.cancelledAt.getTime() : null;
           var late = when !== null && (s.startsAt.getTime() - when) < LATE_MS;
-          if (late) { out.late++; out.counted++; }
-          else out.early++;
+          if (late) { out.late++; out.counted++; } else out.early++;
           return;
         }
         /* A confirmed session whose time has passed with nobody checking out
@@ -975,106 +717,6 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
-  /* ---------- notifications ---------- */
-
-  function fetchNotifications(limit){
-    if (!client) return Promise.resolve(null);
-    return currentUid().then(function(uid){
-      if (!uid) return null;
-      return client.from('notifications')
-        .select('id,kind,title,body,href,read_at,created_at')
-        .eq('user_id', uid)
-        .order('created_at', { ascending: false })
-        .limit(limit || 25)
-        .then(function(r){ return r.error ? null : (r.data || []); });
-    }).catch(function(){ return null; });
-  }
-
-  function markNotificationsRead(ids){
-    if (!client) return Promise.resolve({ demo: true });
-    if (!ids || !ids.length) return Promise.resolve({ saved: true });
-    return client.from('notifications')
-      .update({ read_at: new Date().toISOString() })
-      .in('id', ids)
-      .then(function(r){ return r.error ? { error: 'Could not update.' } : { saved: true }; })
-      .catch(function(){ return { error: 'Could not update.' }; });
-  }
-
-  /* Writing to somebody else's list goes through the database function, which
-     refuses unless the two of you are actually partnered. Failures here are
-     never surfaced: a notification that didn't send must not block the action
-     that triggered it. */
-  function notifyPartner(toId, kind, title, body, href){
-    if (!client || !toId) return Promise.resolve({ demo: true });
-    return client.rpc('notify_partner', {
-      p_to: toId, p_kind: kind, p_title: title,
-      p_body: body || null, p_href: href || null
-    }).then(function(r){
-      if (r.error) { try { console.warn('PeerFlow: notify_partner', r.error); } catch(e){} }
-      return { sent: !r.error };
-    }).catch(function(){ return { sent: false }; });
-  }
-
-  /* A note to yourself — an unlocked achievement, a reminder. Goes straight
-     into the table under the insert-own-notifications policy, no function
-     needed, because writing to your own list is not a privilege escalation. */
-  function notifySelf(kind, title, body, href){
-    if (!client) return Promise.resolve({ demo: true });
-    return currentUid().then(function(uid){
-      if (!uid) return { demo: true };
-      return client.from('notifications')
-        .insert({ user_id: uid, kind: kind, title: title, body: body || null, href: href || null })
-        .then(function(r){
-          if (r.error) { try { console.warn('PeerFlow: notifySelf', r.error); } catch(e){} }
-          return { saved: !r.error };
-        });
-    }).catch(function(){ return { saved: false }; });
-  }
-
-  function notifyRequest(toId, title, body){
-    if (!client || !toId) return Promise.resolve({ demo: true });
-    return client.rpc('notify_request', {
-      p_to: toId, p_title: title, p_body: body || null
-    }).then(function(r){
-      if (r.error) { try { console.warn('PeerFlow: notify_request', r.error); } catch(e){} }
-      return { sent: !r.error };
-    }).catch(function(){ return { sent: false }; });
-  }
-
-  /* ---------- achievements ---------- */
-
-  function unlockedAchievements(){
-    if (!client) return Promise.resolve(null);
-    return currentUid().then(function(uid){
-      if (!uid) return null;
-      return client.from('achievements')
-        .select('code,unlocked_at')
-        .eq('user_id', uid)
-        .then(function(r){ return r.error ? null : (r.data || []); });
-    }).catch(function(){ return null; });
-  }
-
-  /* Records that a badge has been seen to unlock, so it can be announced once
-     rather than on every page load. Duplicate inserts are expected and are not
-     an error worth reporting. */
-  function unlockAchievement(code){
-    if (!client) return Promise.resolve({ demo: true });
-    return currentUid().then(function(uid){
-      if (!uid) return { demo: true };
-      return client.from('achievements')
-        .insert({ user_id: uid, code: code })
-        .then(function(r){
-          if (r.error && r.error.code !== '23505') {
-            try { console.warn('PeerFlow: unlockAchievement', r.error); } catch(e){}
-            return { saved: false };
-          }
-          return { saved: !r.error, fresh: !r.error };
-        });
-    }).catch(function(){ return { saved: false }; });
-  }
-
-  /* ---------- learning stage ---------- */
-
   function saveStage(index){
     if (!client) return Promise.resolve({ demo: true });
     return currentUid().then(function(uid){
@@ -1087,6 +729,46 @@ window.pf = (function(){
                          : { saved: true };
         });
     }).catch(function(e){ return fail(e, 'Could not save your progress. Please try again.'); });
+  }
+
+  function unlockedAchievements(){
+    if (!client) return Promise.resolve(null);
+    return currentUid().then(function(uid){
+      if (!uid) return null;
+      return client.from('achievements').select('code,unlocked_at').eq('user_id', uid)
+        .then(function(r){ return r.error ? null : (r.data || []); });
+    }).catch(function(){ return null; });
+  }
+
+  /* Duplicate inserts are expected and are not an error worth reporting. */
+  function unlockAchievement(code){
+    if (!client) return Promise.resolve({ demo: true });
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      return client.from('achievements').insert({ user_id: uid, code: code })
+        .then(function(r){
+          if (r.error && r.error.code !== '23505') {
+            try { console.warn('PeerFlow: unlockAchievement', r.error); } catch(e){}
+            return { saved: false };
+          }
+          return { saved: !r.error, fresh: !r.error };
+        });
+    }).catch(function(){ return { saved: false }; });
+  }
+
+  /* A note to yourself — an unlocked achievement. Writing to your own list is
+     not a privilege escalation, so the insert-own policy covers it. */
+  function notifySelf(kind, title, body, href){
+    if (!client) return Promise.resolve({ demo: true });
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      return client.from('notifications')
+        .insert({ user_id: uid, kind: kind, title: title, body: body || null, href: href || null })
+        .then(function(r){
+          if (r.error) { try { console.warn('PeerFlow: notifySelf', r.error); } catch(e){} }
+          return { saved: !r.error };
+        });
+    }).catch(function(){ return { saved: false }; });
   }
 
   /* ---------- track labels (for display in the app) ---------- */
@@ -1141,34 +823,11 @@ window.pf = (function(){
     trackCounts: trackCounts,
     trackNames: trackNames,
 
-    /* ---- MVP additions ---- */
-    /* availability vocabulary */
-    dayOrder: DAY_ORDER,
-    dayLabel: DAY_LABEL,
-    bandHours: BAND_HOURS,
-    sharedSlots: sharedSlots,
-    slotLabel: slotLabel,
-    slotHours: slotHours,
-    nextDateFor: nextDateFor,
-    /* partnership */
-    primaryPartner: primaryPartner,
-    endPartnership: endPartnership,
-    rankedMatches: rankedMatches,
-    /* attendance */
-    confirmAttendance: confirmAttendance,
-    partnerState: partnerState,
-    setSessionGoal: setSessionGoal,
-    finishSession: finishSession,
+    /* Progress page */
     reliability: reliability,
-    /* notifications */
-    fetchNotifications: fetchNotifications,
-    markNotificationsRead: markNotificationsRead,
-    notifyPartner: notifyPartner,
-    notifySelf: notifySelf,
-    notifyRequest: notifyRequest,
-    /* achievements + progress */
+    saveStage: saveStage,
     unlockedAchievements: unlockedAchievements,
     unlockAchievement: unlockAchievement,
-    saveStage: saveStage
+    notifySelf: notifySelf
   };
 })();
