@@ -140,6 +140,21 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .ptm .tp{display:block;font-size:12.5px;color:var(--faint);font-weight:400}
 .ptm + .ptm{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 
+/* The standing slot. */
+.st-now{margin:0;font-size:15px;font-weight:700;line-height:1.35;letter-spacing:-.01em}
+.st-sub{margin:6px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.st-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.st-form{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+.st-l{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--faint);margin:9px 0 4px}
+.st-l:first-child{margin-top:0}
+.st-form select{width:100%;font-family:var(--body);font-size:14px;color:var(--ink);
+  padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+.st-form select:focus{outline:2px solid var(--p4);outline-offset:1px}
+.st-warn{margin:11px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.st-warn.ok{color:var(--p6)}
+.st-err{margin:11px 0 0;font-size:12.5px;color:#B4471F}
+
 /* One week of the plan. */
 .wk-t{margin:0;font-size:15px;font-weight:600;line-height:1.35}
 .wk-src{display:block;margin-top:6px;font-size:12.5px;color:var(--p6);font-weight:600}

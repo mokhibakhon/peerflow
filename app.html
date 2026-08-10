@@ -170,6 +170,39 @@
         <a class="rail-l" href="app-sessions.html">Partner page &rarr;</a>
       </section>
 
+      <!-- ============ standing weekly slot ============
+           Every session used to be a fresh negotiation — propose, wait,
+           accept — and that cost is paid once per session, which is exactly
+           the wrong shape for something you are trying to make a habit. Agree
+           to an hour once and the default becomes "Thursday at 19:00 unless
+           one of you moves it". -->
+      <section class="rail" id="rail-st" hidden>
+        <h3>Standing slot</h3>
+        <p class="st-now" id="st-now"></p>
+        <p class="st-sub" id="st-sub"></p>
+        <div class="st-acts" id="st-acts"></div>
+
+        <!-- Closed until you ask for it, like the booking panel. -->
+        <div class="st-form" id="st-form" hidden>
+          <label class="st-l" for="st-day">Every</label>
+          <select id="st-day"></select>
+          <label class="st-l" for="st-hour">at</label>
+          <select id="st-hour"></select>
+          <label class="st-l" for="st-len">for</label>
+          <select id="st-len">
+            <option value="25">25 minutes</option>
+            <option value="50" selected>50 minutes</option>
+            <option value="80">80 minutes</option>
+          </select>
+          <p class="st-warn" id="st-warn"></p>
+          <div class="st-acts">
+            <button class="btn" type="button" id="st-save">Suggest it</button>
+            <button class="small" type="button" id="st-cancel">Cancel</button>
+          </div>
+        </div>
+        <p class="st-err" id="st-err" hidden></p>
+      </section>
+
       <!-- One week of the plan, not twelve. Eleven of those rows were
            reference material parked in an operational view; they still exist
            in full on Progress, which is where you go to read them. -->
@@ -334,6 +367,178 @@
       : st === 1   ? 'One week in. Book again this week and it becomes a streak.'
                    : 'The streak restarts the week you next sit down together.';
   }
+
+  /* ---------- standing weekly slot ---------- */
+  /* One partner's slot: the rail card is about the partnership you are most
+     likely to have, and two standing slots on one screen is a problem nobody
+     has yet. bookPartners[0] is the same person the booking sentence uses. */
+  var standingFor = null;
+
+  function weekdayName(d){
+    try { return d.toLocaleDateString(undefined, { weekday:'long' }); }
+    catch(e){ return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]; }
+  }
+  function clockAt(d){
+    try { return d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }); }
+    catch(e){ return d.getHours() + ':00'; }
+  }
+  /* "Every Thursday at 7:00 PM" — rendered from the stored instant in the
+     reader's own timezone, so a partner five hours away sees their own hour
+     rather than a number that is only true for one of you. */
+  function standingWords(s){
+    return 'Every ' + weekdayName(s.anchor) + ' at ' + clockAt(s.anchor);
+  }
+
+  /* The next time that weekday and hour comes round, strictly ahead of now. */
+  function nextAnchor(weekday, hour){
+    var d = new Date();
+    d.setHours(hour, 0, 0, 0);
+    var delta = (weekday - d.getDay() + 7) % 7;
+    if (delta === 0 && d.getTime() <= Date.now()) delta = 7;
+    d.setDate(d.getDate() + delta);
+    return d;
+  }
+
+  function fillStandingMenus(){
+    var day = $('st-day'), hour = $('st-hour');
+    if (day.options.length) return;
+    var base = new Date();
+    for (var i = 0; i < 7; i++){
+      var d = new Date(base); d.setDate(base.getDate() + i);
+      day.appendChild(new Option(weekdayName(d), String(d.getDay())));
+    }
+    /* The same hours the booking sentence offers, so the two never disagree
+       about what counts as a reasonable time to meet. */
+    DAY_HOURS.forEach(function(h){
+      var d = new Date(); d.setHours(h, 0, 0, 0);
+      hour.appendChild(new Option(clockAt(d), String(h)));
+    });
+    hour.value = '19';
+  }
+
+  /* Says whether the pair have both marked themselves free then. Not a
+     blocker — people make exceptions — but proposing a weekly commitment
+     into an hour your partner never said they were free is worth a word. */
+  function standingWarn(){
+    var wd = parseInt($('st-day').value, 10), hr = parseInt($('st-hour').value, 10);
+    var d = nextAnchor(wd, hr);
+    var free = hoursOn(d).indexOf(hr) >= 0;
+    $('st-warn').textContent = free
+      ? 'You’re both free then.'
+      : 'Neither of you has marked that hour free — you can still suggest it.';
+    $('st-warn').className = 'st-warn' + (free ? ' ok' : '');
+  }
+
+  function openStandingForm(){
+    fillStandingMenus();
+    if (standingFor && standingFor.standing){
+      $('st-day').value  = String(standingFor.standing.anchor.getDay());
+      $('st-hour').value = String(standingFor.standing.anchor.getHours());
+      $('st-len').value  = String(standingFor.standing.minutes);
+    }
+    standingWarn();
+    $('st-form').hidden = false;
+    $('st-acts').hidden = true;
+    $('st-day').focus();
+  }
+  function closeStandingForm(){
+    $('st-form').hidden = true;
+    $('st-acts').hidden = false;
+  }
+
+  function renderStanding(){
+    var card = $('rail-st');
+    if (!standingFor){ card.hidden = true; return; }
+    card.hidden = false;
+    closeStandingForm();
+    $('st-err').hidden = true;
+
+    var s = standingFor.standing;
+    var who = (standingFor.name || 'your partner').split(' ')[0];
+
+    if (!s){
+      $('st-now').textContent = 'Nothing standing yet.';
+      $('st-sub').textContent = 'Agree one hour a week with ' + who +
+        ' and it books itself from then on.';
+      $('st-acts').innerHTML = '<button class="btn" type="button" data-st="open">Set one up</button>';
+      return;
+    }
+
+    $('st-now').textContent = standingWords(s);
+    if (s.agreed){
+      $('st-sub').textContent = s.minutes + ' minutes, four weeks ahead. ' +
+        'Cancel any single week from your sessions without stopping the rest.';
+      $('st-acts').innerHTML =
+        '<button class="small" type="button" data-st="open">Change</button>' +
+        '<button class="small" type="button" data-st="stop">Stop</button>';
+    } else if (s.mine){
+      $('st-sub').textContent = 'Waiting on ' + who + '. Nothing is booked until they agree.';
+      $('st-acts').innerHTML = '<button class="small" type="button" data-st="stop">Withdraw</button>';
+    } else {
+      $('st-sub').textContent = who + ' suggested this. Agree once and the next four weeks book themselves.';
+      $('st-acts').innerHTML =
+        '<button class="btn" type="button" data-st="yes">Agree to it</button>' +
+        '<button class="small" type="button" data-st="stop">Not this time</button>';
+    }
+  }
+
+  /* Agree and Not this time exist twice — in the rail card and, when the slot
+     is waiting on you, in the band. Both are disabled together, or the copy
+     you did not click stays live while the first one is still in flight. */
+  function standingBusy(on, label){
+    Array.prototype.forEach.call(
+      document.querySelectorAll('#rail-st button, #now-a button'),
+      function(b){ b.disabled = on; });
+    if (on && label) $('st-sub').textContent = label;
+  }
+  function standingFailed(res){
+    standingBusy(false);
+    $('st-err').textContent = (res && res.error) || 'That didn’t go through — please try again.';
+    $('st-err').hidden = false;
+  }
+
+  /* Delegated: the band writes its own copy of Agree and Not this time, and a
+     listener bound to the rail card would never see them. */
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-st]');
+    if (!b || !standingFor) return;
+    var what = b.getAttribute('data-st');
+    var id = standingFor.requestId;
+
+    if (what === 'open') { openStandingForm(); return; }
+
+    if (what === 'yes'){
+      standingBusy(true, 'Agreeing…');
+      pf.acceptStanding(id).then(function(res){
+        if (res && res.saved) { window.location.reload(); return; }
+        standingFailed(res);
+      });
+      return;
+    }
+    if (what === 'stop'){
+      standingBusy(true, 'Stopping…');
+      pf.clearStanding(id).then(function(res){
+        if (res && res.saved) { window.location.reload(); return; }
+        standingFailed(res);
+      });
+    }
+  });
+
+  $('st-cancel').addEventListener('click', closeStandingForm);
+  $('st-day').addEventListener('change', standingWarn);
+  $('st-hour').addEventListener('change', standingWarn);
+
+  $('st-save').addEventListener('click', function(){
+    if (!standingFor) return;
+    var anchor = nextAnchor(parseInt($('st-day').value, 10), parseInt($('st-hour').value, 10));
+    standingBusy(true, 'Sending…');
+    pf.setStanding(standingFor.requestId, anchor, parseInt($('st-len').value, 10))
+      .then(function(res){
+        if (res && res.saved) { window.location.reload(); return; }
+        closeStandingForm();
+        standingFailed(res);
+      });
+  });
 
   function renderPartnerRail(list){
     if (!list.length) return;
@@ -1241,7 +1446,8 @@
                 topic: x.profile.topic,
                 availability: x.profile.availability || [],
                 roomUrl: x.roomUrl,
-                requestId: x.requestId
+                requestId: x.requestId,
+                standing: x.standing || null
               };
             });
           canBook = bookPartners.length > 0;
@@ -1256,6 +1462,33 @@
           }
           renderProposals(all);
           renderPartnerRail(bookPartners);
+
+          /* The rail card follows whoever the booking sentence is pointed at,
+             so the two never talk about different people. */
+          standingFor = bookPartners[0] || null;
+          renderStanding();
+
+          /* A slot you both agreed to that is waiting on you is the same kind
+             of thing as a proposed time, so it goes in the same place. */
+          var standingAsk = bookPartners.filter(function(p){
+            return p.standing && !p.standing.agreed && !p.standing.mine;
+          })[0] || null;
+
+          /* No scheduler behind a static site: occurrences appear when
+             somebody opens the app. Safe on every load — it fills gaps in the
+             next four weeks rather than adding to them — and the reload only
+             happens on the load that actually books something, which is once
+             a week at most. The flag stops a failure looping. */
+          var booked = false;
+          try { booked = sessionStorage.getItem('pf_materialised') === '1'; } catch(e){}
+          bookPartners.forEach(function(p){
+            if (!p.standing || !p.standing.agreed || booked) return;
+            pf.materialiseStanding(p.requestId, 4).then(function(res){
+              if (!res || !res.count) return;
+              try { sessionStorage.setItem('pf_materialised', '1'); } catch(e){}
+              window.location.reload();
+            });
+          });
 
           /* ----- which of the six states are you in? -----
              Priority runs from the most time-critical downwards, and the
@@ -1289,6 +1522,17 @@
                  friendlyMid(waiting.startsAt) + '.',
               s: waiting.durationMin + ' minutes. Nothing is booked until you say yes.',
               a: '<a class="btn" href="#sess-card">Answer it</a>'
+            });
+          } else if (standingAsk){
+            band({
+              tone:'answer', k:'Needs your answer',
+              h: esc((standingAsk.name || 'Your partner').split(' ')[0]) +
+                 ' wants a standing slot.',
+              s: standingWords(standingAsk.standing) + ', ' +
+                 standingAsk.standing.minutes + ' minutes. Agree once and the next four ' +
+                 'weeks go on both calendars — no more asking each time.',
+              a: '<button class="btn" type="button" data-st="yes">Agree to it</button>' +
+                 '<button class="ghost" type="button" data-st="stop">Not this time</button>'
             });
           } else if (turned){
             band({

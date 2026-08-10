@@ -52,6 +52,19 @@ window.pf = (function(){
     return { error: msg || 'Something went wrong on our side. Please try again.' };
   }
 
+  /* A column or function this build knows about but the database has not been
+     given yet, i.e. somebody deployed the site without running a migration.
+     Everything that reads a newer column asks this first and falls back to the
+     older shape, so a half-migrated database degrades instead of breaking. */
+  function missingColumn(err){
+    return !!err && (err.code === '42703' || err.code === 'PGRST204' ||
+                     /column .* does not exist/i.test(String(err.message || '')));
+  }
+  function missingFunction(err){
+    return !!err && (err.code === 'PGRST202' ||
+                     /function .* does not exist/i.test(String(err.message || '')));
+  }
+
   /* ---------- auth ---------- */
 
   function signUpEmail(name, email, password){
@@ -484,14 +497,29 @@ window.pf = (function(){
 
   /* Every request involving the signed-in user, with the other person's
      profile attached. Returns { incoming: [], outgoing: [], me: uid }. */
+  /* The standing-slot columns arrive with migration-standing.sql. Asked for
+     separately from the rest so a database without it still loads partners. */
+  var REQ_BASE = 'id,from_user,to_user,message,status,to_seen_at,from_seen_at,created_at';
+  var REQ_FULL = REQ_BASE + ',standing_anchor,standing_minutes,standing_by,standing_set_at,standing_ok_at';
+
   function myRequests(){
     if (!client) return Promise.resolve(null);
     return currentUid().then(function(uid){
       if (!uid) return null;
-      return client.from('partner_requests')
-        .select('id,from_user,to_user,message,status,to_seen_at,from_seen_at,created_at')
-        .or('from_user.eq.' + uid + ',to_user.eq.' + uid)
-        .order('created_at', { ascending: false })
+      function read(cols){
+        return client.from('partner_requests')
+          .select(cols)
+          .or('from_user.eq.' + uid + ',to_user.eq.' + uid)
+          .order('created_at', { ascending: false });
+      }
+      return read(REQ_FULL).then(function(r){
+        if (missingColumn(r.error)) {
+          console.warn('PeerFlow: standing-slot columns are missing. ' +
+                       'Run supabase/migration-standing.sql to turn on weekly slots.');
+          return read(REQ_BASE);
+        }
+        return r;
+      })
         .then(function(r){
           if (r.error) return null;
           var rows = r.data || [];
@@ -549,16 +577,78 @@ window.pf = (function(){
   function acceptedPartners(){
     return myRequests().then(function(r){
       if (!r) return null;
+      var me = r.me;
       return r.incoming.concat(r.outgoing)
         .filter(function(x){ return x.status === 'accepted'; })
         .map(function(x){
           return {
             requestId: x.id,
             profile: x.other,
-            roomUrl: 'https://meet.jit.si/PeerFlow-' + x.id
+            roomUrl: 'https://meet.jit.si/PeerFlow-' + x.id,
+            /* null on a database without migration-standing.sql, which the
+               dashboard reads as "no standing slot" — the honest answer. */
+            standing: x.standing_anchor ? {
+              anchor:  new Date(x.standing_anchor),
+              minutes: x.standing_minutes || 50,
+              /* Who has to do something next, which is the only thing the
+                 page needs out of standing_by and standing_ok_at. */
+              agreed:  !!x.standing_ok_at,
+              mine:    x.standing_by === me
+            } : null
           };
         });
     });
+  }
+
+  /* ---------- standing weekly slot ----------
+     Suggest a time, the other person agrees once, and it repeats until one of
+     you stops it. All four are definer functions: the columns live on the
+     partnership row, which both people can read but neither should be able to
+     rewrite on the other's behalf. */
+
+  function standingRpc(name, args, msg){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.rpc(name, args).then(function(r){
+      if (!r.error) return { saved: true, count: r.data };
+      if (missingFunction(r.error)) {
+        console.warn('PeerFlow: ' + name + ' is missing. Run supabase/migration-standing.sql.');
+        return { needsMigration: true, error: 'Weekly slots aren’t switched on for this site yet.' };
+      }
+      return fail(r.error, msg);
+    }).catch(function(e){
+      return fail(e, msg);
+    });
+  }
+
+  /* anchor is the first occurrence as a real instant, not a weekday and an
+     hour: two people in two timezones would not agree on which Thursday 19:00
+     they meant, and would each sit alone in a room the weekend one of them
+     changed their clocks. */
+  function setStanding(requestId, anchor, minutes){
+    return standingRpc('set_standing_slot', {
+      p_request: requestId,
+      p_anchor: (anchor instanceof Date ? anchor.toISOString() : anchor),
+      p_minutes: minutes || 50
+    }, 'Could not set that up. Please try again.');
+  }
+
+  function acceptStanding(requestId){
+    return standingRpc('accept_standing_slot', { p_request: requestId },
+      'Could not agree to that. Please try again.');
+  }
+
+  function clearStanding(requestId){
+    return standingRpc('clear_standing_slot', { p_request: requestId },
+      'Could not stop it. Please try again.');
+  }
+
+  /* Books whatever is missing from the next few weeks. There is no scheduler
+     behind a static site, so this runs when somebody opens the app — which is
+     safe to do on every load, because it fills gaps rather than adding. */
+  function materialiseStanding(requestId, weeks){
+    return standingRpc('materialise_standing',
+      { p_request: requestId, p_weeks: weeks || 4 },
+      'Could not put this week’s sessions on the calendar.');
   }
 
   /* ---------- badge inputs ---------- */
@@ -817,6 +907,13 @@ window.pf = (function(){
     respondToRequest: respondToRequest,
     markRequestsSeen: markRequestsSeen,
     acceptedPartners: acceptedPartners,
+
+    /* Standing weekly slot */
+    setStanding: setStanding,
+    acceptStanding: acceptStanding,
+    clearStanding: clearStanding,
+    materialiseStanding: materialiseStanding,
+
     badgeStats: badgeStats,
     fetchPeers: fetchPeers,
     learnerStats: learnerStats,

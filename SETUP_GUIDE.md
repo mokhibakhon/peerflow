@@ -29,6 +29,36 @@ from session rows — but attendance shows as a dash, the week marker will not
 save, and achievements are recomputed silently each time. The data layer
 detects the missing columns and logs a console warning rather than breaking.
 
+---
+
+## Database migration — required for standing weekly slots
+
+`supabase/migration-standing.sql` adds the columns and functions behind the
+**Standing slot** card on Today: agree one hour a week with your partner and
+the next four weeks book themselves, instead of proposing and accepting a time
+every single week.
+
+1. Supabase → **SQL Editor** → paste the whole of `supabase/migration-standing.sql`
+2. **Run**
+
+Additive and safe to run more than once. Run it after `schema.sql`; it does not
+depend on `migration-mvp.sql` and the two can be run in either order.
+
+It stores the slot on the partnership row rather than in a table of its own, so
+both people can already read it and ending a partnership takes its slot with
+it. It also adds a unique index on `sessions (user_id, starts_at, room_url)` —
+occurrences are created on page load, so two tabs opening at once would
+otherwise book the same hour twice. Any pre-existing duplicate rows are the
+same booking counted twice and are collapsed to one before the index is built.
+
+There is no scheduler: a static site has nowhere to run one and Supabase's free
+tier has no cron, so occurrences appear when somebody opens the app. Nobody
+has looked at a booking before that anyway.
+
+Without it, everything else works and the Standing slot card simply does not
+appear. The data layer notices the missing columns and functions, logs a
+console warning, and falls back to the older shape.
+
 Verified against PostgreSQL 16: both files apply cleanly twice on a fresh
 database.
 
