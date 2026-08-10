@@ -56,12 +56,113 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .mfoot{max-width:1320px;margin:0 auto;padding:0 32px 44px;
   display:flex;gap:18px;font-size:12.5px;color:var(--faint);flex-wrap:wrap}
 
-/* ---------- hero ---------- */
-.hero{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
-  display:grid;grid-template-columns:minmax(0,1fr) 260px}
-.hero .txt{padding:28px 30px}
-.hero .art{background:var(--p6);display:flex;align-items:flex-end}
-.hero .art svg{width:100%;display:block}
+/* ---------- the band: what to do now ----------
+   One element, six states, set through data-tone on the section. Each tone
+   only moves colour — the layout never shifts underneath you when a proposal
+   lands or a session starts, because a dashboard that reflows while you're
+   reading it is a dashboard you stop trusting. */
+.now{border-radius:20px;padding:26px 30px;display:grid;
+  grid-template-columns:minmax(0,1fr) auto;gap:26px;align-items:center;
+  background:var(--card);border:1px solid var(--line)}
+.now h1{font-size:27px;margin:0 0 8px}
+.now .now-k{display:block;margin-bottom:9px}
+.now-s{margin:0;font-size:15.5px;color:var(--soft);max-width:52ch}
+.now-a{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:19px}
+.now-f{margin:14px 0 0;font-size:13px;color:var(--faint);max-width:52ch}
+
+/* The countdown. Big enough to read from the doorway, which is the whole
+   point of putting a time on a wall. */
+.now-side{text-align:right;flex:0 0 auto}
+.now-cd{display:block;font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.now-cl{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;margin-top:5px;opacity:.72}
+
+/* Booked or live: dark, because it is the only state where the page is
+   telling you something is already true rather than asking you for something. */
+.now[data-tone="booked"],.now[data-tone="live"]{background:var(--p8);border-color:var(--p8);color:#fff}
+.now[data-tone="booked"] .now-k,.now[data-tone="live"] .now-k{color:var(--p2)}
+.now[data-tone="booked"] .now-s,.now[data-tone="live"] .now-s{color:#BFE6D8}
+.now[data-tone="booked"] .now-f,.now[data-tone="live"] .now-f{color:#7FC4AC}
+.now[data-tone="booked"] .now-cd,.now[data-tone="live"] .now-cd{color:#fff}
+.now[data-tone="booked"] .ghost,.now[data-tone="live"] .ghost{
+  background:transparent;border-color:rgba(255,255,255,.28);color:#fff}
+.now[data-tone="booked"] .ghost:hover,.now[data-tone="live"] .ghost:hover{
+  background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.45)}
+.now[data-tone="live"]{background:var(--p6);border-color:var(--p6)}
+.now[data-tone="live"] .now-cd{animation:nowpulse 2.4s ease-in-out infinite}
+@keyframes nowpulse{50%{opacity:.55}}
+
+/* Somebody is waiting on you. Amber, and it is the only tone that gets one. */
+.now[data-tone="answer"]{background:#FFF9EC;border-color:#F2DCB0}
+.now[data-tone="answer"] .now-k{color:#93641A}
+.now[data-tone="answer"] .now-cd{color:#93641A}
+
+/* Nothing booked, or nobody to book with. Quiet — an empty week is not an
+   error — but still tinted, so the band reads as the band in every state
+   instead of dissolving into the white cards underneath it. */
+.now[data-tone="idle"],.now[data-tone="none"]{background:var(--p0);border-color:var(--p1)}
+.now[data-tone="idle"] .now-k,.now[data-tone="none"] .now-k{color:var(--p6)}
+.now[data-tone="idle"] .now-s,.now[data-tone="none"] .now-s{color:#3F6B5E}
+.now[data-tone="idle"] .now-cd,.now[data-tone="none"] .now-cd{color:var(--p8)}
+.now[data-tone="idle"] .ghost,.now[data-tone="none"] .ghost{background:rgba(255,255,255,.72)}
+.now[data-tone="load"]{background:var(--card)}
+.now[data-tone="load"] h1{color:var(--faint)}
+
+/* ---------- the two columns ---------- */
+.dash{display:grid;grid-template-columns:minmax(0,1fr) 306px;gap:16px;
+  align-items:start;margin-top:16px}
+.dash-main{display:grid;gap:16px;min-width:0}
+.dash-rail{display:grid;gap:16px;min-width:0;position:sticky;top:78px}
+
+.rail{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 18px}
+.rail h3{margin:0 0 13px;font-size:14px;font-weight:700;letter-spacing:-.01em}
+.rail .mono{display:block;margin-bottom:7px}
+.rail-f{margin:13px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.rail-l{display:inline-block;margin-top:13px;font-size:13px;font-weight:600;color:var(--p6)}
+.rail-l:hover{text-decoration:underline}
+
+/* Three numbers, not a chart. The unit lives under the figure so the row
+   scans as three things and not as one long sentence of digits. */
+.mo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mo-i b{display:block;font-size:25px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.mo-i span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--faint);margin-top:3px}
+.mo-i.zero b{color:var(--faint)}
+
+/* The partner, in the rail. */
+.ptm{display:flex;align-items:center;gap:11px}
+.ptm .av{width:40px;height:40px;border-radius:50%;background:var(--p0);color:var(--p6);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:0 0 auto}
+.ptm .nm{font-size:14.5px;font-weight:600;line-height:1.3}
+.ptm .tp{display:block;font-size:12.5px;color:var(--faint);font-weight:400}
+.ptm + .ptm{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+
+/* The standing slot. */
+.st-now{margin:0;font-size:15px;font-weight:700;line-height:1.35;letter-spacing:-.01em}
+.st-sub{margin:6px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.st-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.st-form{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+.st-l{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--faint);margin:9px 0 4px}
+.st-l:first-child{margin-top:0}
+.st-form select{width:100%;font-family:var(--body);font-size:14px;color:var(--ink);
+  padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+.st-form select:focus{outline:2px solid var(--p4);outline-offset:1px}
+.st-warn{margin:11px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.st-warn.ok{color:var(--p6)}
+.st-err{margin:11px 0 0;font-size:12.5px;color:#B4471F}
+
+/* One week of the plan. */
+.wk-t{margin:0;font-size:15px;font-weight:600;line-height:1.35}
+.wk-src{display:block;margin-top:6px;font-size:12.5px;color:var(--p6);font-weight:600}
+
+/* ---------- invite ---------- */
+.invstrip{margin-top:16px;border:1px dashed var(--line);background:#FAFAFB;border-radius:16px;
+  padding:15px 18px;display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
+.invstrip p{margin:0;font-size:14px;color:var(--soft);max-width:66ch}
+.invstrip b{color:var(--ink);font-weight:600}
+
+/* ---------- hero (marketing-shaped cards elsewhere) ---------- */
 .pair{display:flex;align-items:center;margin-bottom:16px}
 .ava{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:15px;font-weight:600;border:3px solid var(--card);position:relative;flex:0 0 auto}
@@ -74,10 +175,6 @@ h1 .g{color:var(--p4)}
 .sub{font-size:15.5px;color:var(--soft);margin:0 0 20px;max-width:46ch}
 .acts{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .agenda{margin:15px 0 0;font-size:13.5px;color:var(--faint);max-width:48ch}
-.topicline{grid-column:1/-1;border-top:1px solid var(--line);padding:14px 30px;
-  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
-  font-size:14.5px;color:var(--soft);background:#FCFCFD}
-.topicline b{color:var(--ink);font-weight:600}
 .change{background:none;border:0;font-size:13px;color:var(--faint);text-decoration:underline;padding:0}
 
 /* ---------- buttons ---------- */
@@ -320,16 +417,32 @@ h1 .g{color:var(--p4)}
 
 @media (max-width:1080px){
   .grid{grid-template-columns:1fr}
+  /* The rail stops being a rail and becomes a strip above the calendar.
+     Momentum and your partner are the parts worth keeping near the top;
+     they are also the two shortest, so they cost almost nothing there. */
+  .dash{grid-template-columns:1fr}
+  .dash-rail{position:static;order:-1;
+    grid-template-columns:repeat(auto-fit,minmax(232px,1fr));grid-auto-flow:column dense}
 }
 @media (max-width:960px){
   .tb{padding:0 20px;gap:12px}
   .pathchip{display:none}
   main{padding:18px 20px 40px}
   .mfoot{padding:0 20px 40px}
-  .hero{grid-template-columns:1fr}
-  .hero .art{order:-1}
-  .hero .art svg{max-height:150px}
-  .hero .txt,.topicline{padding-left:22px;padding-right:22px}
+}
+@media (max-width:760px){
+  /* One column wide, the rail drops back below the calendar. Stacked above
+     it, four cards of context stand between the band and the only thing on
+     the page you actually operate. */
+  .dash-rail{grid-auto-flow:row;grid-template-columns:1fr;order:0}
+  /* The countdown goes above the sentence rather than beside it — at this
+     width a second column leaves the headline four words wide. */
+  .now{grid-template-columns:1fr;gap:0;padding:22px}
+  .now h1{font-size:23px}
+  .now-side{text-align:left;order:-1;margin-bottom:14px;
+    display:flex;align-items:baseline;gap:9px}
+  .now-cd{font-size:26px}
+  .now-cl{margin-top:0}
 }
 @media (max-width:640px){
   .tb{height:auto;flex-wrap:wrap;padding:12px 16px;gap:10px}
@@ -342,7 +455,7 @@ h1 .g{color:var(--p4)}
   .avail-grid .hd{font-size:11px}
   .avail-grid .hd b{font-size:9px}
 }
-/* The hero's buttons name things that sit further down this same page, so
+/* The band's buttons name things that sit further down this same page, so
    they are anchors rather than links to another page. Two things that needs:
    the jump has to clear the sticky top bar, and it should move rather than
    teleport, or landing on a card that was already on screen looks like
@@ -352,6 +465,9 @@ html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important}
   html{scroll-behavior:auto}
+  /* The live countdown breathes. Nobody who has asked for less motion wants
+     the one thing on the page in their peripheral vision to be the pulse. */
+  .now-cd{animation:none!important}
 }
 
 /* ============================================================
@@ -542,6 +658,16 @@ html{scroll-behavior:smooth}
    of them already did: .sent matched the "Asked" chip on the People page,
    which is built as class="pstate " + kind and so is invisible to a search
    for class="sent". Scoping is cheaper than picking rarer words. */
+/* The panel the sentence lives in. It opens above the dashboard rather than
+   inside it, so opening it never pushes the calendar you clicked out from
+   under your cursor. */
+.bookp{margin-top:16px;border-color:var(--p2);
+  box-shadow:0 8px 24px -18px rgba(8,80,65,.5)}
+.bookp-h{display:flex;align-items:baseline;gap:11px;margin-bottom:14px;flex-wrap:wrap}
+.bookp-h h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.02em;flex:1}
+.bookp-h .mono{color:var(--p6)}
+.bookp-h .small{flex:0 0 auto;align-self:center}
+
 #bk-sent{margin:0;font-size:19px;line-height:1.95;font-weight:500;
   color:var(--soft);letter-spacing:-.012em}
 #bk-sent .pick{position:relative;display:inline-block}

@@ -28,14 +28,43 @@
       '<path d="M4 15V9M10 15V5M16 15v-4" stroke="#585C74" stroke-width="1.6" stroke-linecap="round"/></svg>'
   };
 
-  var TABS = [
-    { href:'app.html',          label:'Sessions', icon:'sessions' },
-    { href:'app-sessions.html', label:'Partner',  icon:'partner'  },
-    { href:'app-people.html',   label:'People',   icon:'people'   },
-    { href:'app-progress.html', label:'Progress', icon:'progress' }
-  ];
+  /* People only earns a permanent slot while you are still looking for
+     someone. Once you have a partner it is a directory you never open again,
+     and a tab nobody presses makes the three they do press harder to hit — it
+     stays one click away on the Partner page. The reverse matters more: with
+     nobody to study with, finding a person is the whole job.
+
+     "Sessions" became "Today" in the same pass. The page was named after the
+     card that used to dominate it, which left the app with a Sessions tab
+     holding a Sessions card next to a Partner tab holding a partner. */
+  var HOME    = { href:'app.html',          label:'Today',    icon:'sessions' };
+  var PARTNER = { href:'app-sessions.html', label:'Partner',  icon:'partner'  };
+  var PEOPLE  = { href:'app-people.html',   label:'People',   icon:'people'   };
+  var PATH    = { href:'app-progress.html', label:'Progress', icon:'progress' };
 
   var here = (location.pathname.split('/').pop() || 'app.html').toLowerCase();
+
+  /* Unknown draws the fuller bar: showing People to somebody who has a
+     partner is untidy, hiding it from somebody who hasn't is a dead end.
+
+     And the page you are standing on always gets a tab, whatever the rule
+     says — dropping People while you are reading People would leave the bar
+     with nothing marked current, which looks like the nav has lost you. */
+  function tabsFor(paired){
+    if (paired !== '1' || here === PEOPLE.href) return [HOME, PARTNER, PEOPLE, PATH];
+    return [HOME, PARTNER, PATH];
+  }
+  function tabsHtml(paired){
+    return tabsFor(paired).map(function(t){
+      return '<a href="' + t.href + '"' + (t.href === here ? ' class="on" aria-current="page"' : '') + '>' +
+             ICON[t.icon] + t.label + '</a>';
+    }).join('');
+  }
+
+  /* Drawn from the cache first. A bar that reorders itself half a second
+     after paint reads as a glitch, so the common case never sees it move. */
+  var paired = null;
+  try { paired = localStorage.getItem('pf_paired'); } catch (e) {}
 
   var bar = document.createElement('header');
   bar.className = 'topbar';
@@ -43,15 +72,24 @@
     '<div class="tb">' +
       '<a class="brand" href="app.html" aria-label="PeerFlow">' + LOGO + 'peerflow</a>' +
       '<span class="pathchip" id="pf-pathchip" hidden></span>' +
-      '<nav class="tabs" aria-label="App">' +
-        TABS.map(function(t){
-          return '<a href="' + t.href + '"' + (t.href === here ? ' class="on" aria-current="page"' : '') + '>' +
-                 ICON[t.icon] + t.label + '</a>';
-        }).join('') +
-      '</nav>' +
+      '<nav class="tabs" aria-label="App" id="pf-tabs">' + tabsHtml(paired) + '</nav>' +
       '<div class="nav-right"></div>' +
     '</div>';
   document.body.insertBefore(bar, document.body.firstChild);
+
+  /* Then reconciled against the truth, once. acceptedPartners() is already on
+     its way for app.html and app-sessions.html; on the other pages this is one
+     extra query, which is the price of a nav bar that is never wrong. */
+  if (window.pf && pf.acceptedPartners) {
+    pf.acceptedPartners().then(function(list){
+      var now = (list && list.length) ? '1' : '0';
+      try { localStorage.setItem('pf_paired', now); } catch (e) {}
+      if (now === paired) return;
+      paired = now;
+      var nav = document.getElementById('pf-tabs');
+      if (nav) nav.innerHTML = tabsHtml(now);
+    }).catch(function(){});
+  }
 
   /* The path chip only appears once we actually know the path — an empty
      chip would read as a loading bug. */
