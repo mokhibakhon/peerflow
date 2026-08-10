@@ -869,11 +869,18 @@
     for (k in byDay) if (byDay.hasOwnProperty(k)) hrs = hrs.concat(byDay[k]);
     week.forEach(function(s){ hrs.push(s.startsAt.getHours()); });
     if (!hrs.length) return [17, 21];
-    var lo = Math.max(0, Math.min.apply(null, hrs) - 1);
-    var hi = Math.min(23, Math.max.apply(null, hrs) + 1);
+    /* No padding row above and below. It cost two rows out of every window to
+       show two hours nothing can happen in, and the grid already has a border
+       to end on. */
+    var lo = Math.max(0, Math.min.apply(null, hrs));
+    var hi = Math.min(23, Math.max.apply(null, hrs));
     while (hi - lo < 4) { if (hi < 23) hi++; else if (lo > 0) lo--; else break; }
-    /* Twelve rows is already a tall card; past that it is a scrolling wall. */
-    if (hi - lo > 11) hi = lo + 11;
+    /* The window still covers everything between your earliest and latest
+       hour — someone free in the morning and at night spans most of the day.
+       That is correct, and it is why the card scrolls internally rather than
+       the window being clipped: nothing is hidden, the page just stops growing.
+       The cap is only a backstop against a full 24 rows. */
+    if (hi - lo > 13) hi = lo + 13;
     return [lo, hi];
   }
 
