@@ -795,8 +795,30 @@ html{scroll-behavior:smooth}
 .cal-step:hover{background:var(--band);color:var(--ink)}
 .cal-range{font-size:16px;font-weight:500;letter-spacing:-.01em;padding:0 12px;white-space:nowrap}
 
-.cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0;
+/* Scrolls in both directions. Horizontally because seven columns do not fit a
+   phone, and vertically because the hour window runs from your earliest free
+   hour to your latest — free mornings and free nights span most of the day,
+   and drawing all of it made the card taller than the screen.
+
+   Capping the height keeps the card a fixed, readable size whatever your
+   availability looks like, and nothing is hidden: the hours are a scroll away
+   rather than clipped out of the window. The day header stays put while the
+   body moves, or you lose track of which column you are in. */
+.cal-scroll{overflow:auto;-webkit-overflow-scrolling:touch;min-width:0;
+  max-height:calc(62px * 7 + 64px);
   border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.cal-corner,.cal-day{position:sticky;top:0;z-index:2}
+/* The scrollbar is the only thing that says the week continues past the edge
+   of the card. A gradient overlay cannot do it here — the cells paint their
+   own backgrounds over the container — so this stays visible rather than
+   being hidden for tidiness. */
+.cal-scroll{scrollbar-width:thin;scrollbar-color:#CFCEDA transparent}
+.cal-scroll::-webkit-scrollbar{width:8px;height:8px}
+.cal-scroll::-webkit-scrollbar-track{background:transparent}
+.cal-scroll::-webkit-scrollbar-thumb{background:#CFCEDA;border-radius:99px}
+.cal-scroll::-webkit-scrollbar-corner{background:transparent}
+/* The corner also holds the left edge when scrolled sideways. */
+.cal-corner{left:0;z-index:3}
 #cal-card{min-width:0}
 /* A block is now a card with a title, a time and real padding, so a column
    has to be wide enough to hold one without clipping the first word. 108px is
@@ -920,6 +942,7 @@ html{scroll-behavior:smooth}
   .cal-day span{font-size:12px}
   .cal-h{font-size:11.5px;padding:7px 7px 0}
   .cal-cell{min-height:56px}
+  .cal-scroll{max-height:calc(56px * 6 + 56px)}
   .cal-ev{left:3px;right:3px;top:3px;height:46px;padding:6px 9px;border-radius:6px}
   .cal-ev b{font-size:13px}
   .cal-ev i{font-size:12.5px;margin-top:2px}
@@ -928,11 +951,7 @@ html{scroll-behavior:smooth}
      sticky pseudo-element inside a scroller resolves to zero height. Show the
      scrollbar instead: it is the one affordance that cannot be painted over,
      and the half-column cut off at the right edge does the rest. */
-  .cal-scroll{scrollbar-width:thin;scrollbar-color:#CFCEDA transparent;
-    padding-bottom:2px}
-  .cal-scroll::-webkit-scrollbar{height:7px}
-  .cal-scroll::-webkit-scrollbar-track{background:transparent}
-  .cal-scroll::-webkit-scrollbar-thumb{background:#CFCEDA;border-radius:99px}
+  .cal-scroll{padding-bottom:2px}
 }
 
 /* ---------- the plan ---------- */
