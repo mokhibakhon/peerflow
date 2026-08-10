@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sessions — PeerFlow</title>
+<title>Today — PeerFlow</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,177 +25,174 @@
     <a href="signup.html">finish signing up</a> if you're new.
   </p>
 
-  <!-- ============ hero: where you are right now ============ -->
-  <section class="hero">
-    <div class="txt">
-      <div class="pair">
-        <div class="ava a1" id="me-av" aria-hidden="true">·</div>
-        <div class="ava a2 pending" id="pt-av" aria-hidden="true">?</div>
-      </div>
-      <h1 id="state">Loading your sessions…</h1>
-      <p class="sub" id="sub"></p>
-      <div class="acts" id="acts"></div>
-      <p class="agenda" id="agenda" hidden></p>
+  <!-- ============ the one thing ============
+       A dashboard has one job: answer "what do I do now?" above the fold.
+       The three things that used to open this page — a hero, a sessions
+       card and a booking form — each said a version of that answer, so
+       the page said it three times and emphasised none of them.
+
+       This band says it once. It has one of six states, it names the
+       state out loud, and it carries the one or two buttons that state
+       actually needs. Everything else on the page is reference. -->
+  <section class="now" id="now" data-tone="load">
+    <div class="now-txt">
+      <span class="mono now-k" id="now-k">&nbsp;</span>
+      <h1 id="now-h">Loading your sessions…</h1>
+      <p class="now-s" id="now-s"></p>
+      <div class="now-a" id="now-a"></div>
+      <p class="now-f" id="now-f" hidden></p>
     </div>
-    <div class="art" aria-hidden="true">
-      <svg viewBox="0 0 210 190" xmlns="http://www.w3.org/2000/svg">
-        <rect width="210" height="190" fill="#0F6E56"/>
-        <circle cx="30" cy="30" r="7" fill="#1D9E75"/>
-        <rect x="176" y="24" width="12" height="12" rx="3" fill="#1D9E75"/>
-        <ellipse cx="105" cy="170" rx="78" ry="9" fill="#04342C"/>
-        <path d="M36 74c0-13 9-22 20-22s20 9 20 22" fill="#5DCAA5"/>
-        <circle cx="56" cy="44" r="13" fill="#9FE1CB"/>
-        <!-- The second figure is drawn solid once a partner exists and left
-             as a dashed outline while you're still looking. -->
-        <g id="mate">
-          <path d="M116 74c0-13 9-22 20-22s20 9 20 22" fill="#5DCAA5"/>
-          <circle cx="136" cy="44" r="13" fill="#9FE1CB"/>
-        </g>
-        <g id="mate-ghost" hidden>
-          <path d="M116 74c0-13 9-22 20-22s20 9 20 22" fill="none" stroke="#1D9E75" stroke-width="2" stroke-dasharray="4 5"/>
-          <circle cx="136" cy="44" r="13" fill="none" stroke="#1D9E75" stroke-width="2" stroke-dasharray="4 5"/>
-        </g>
-        <path id="link" d="M78 86q27-16 54 0" fill="none" stroke="#5DCAA5" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>
-        <circle id="knot" cx="105" cy="79" r="4" fill="#E1F5EE"/>
-        <rect x="20" y="92" width="70" height="46" rx="5" fill="#E1F5EE"/>
-        <rect x="26" y="98" width="58" height="34" rx="3" fill="#1D9E75"/>
-        <rect x="32" y="106" width="30" height="4" rx="2" fill="#9FE1CB"/>
-        <rect x="32" y="114" width="40" height="4" rx="2" fill="#9FE1CB"/>
-        <rect x="32" y="122" width="22" height="4" rx="2" fill="#5DCAA5"/>
-        <rect x="49" y="138" width="12" height="8" fill="#9FE1CB"/>
-        <rect x="36" y="146" width="38" height="5" rx="2.5" fill="#E1F5EE"/>
-        <g id="screen2">
-          <rect x="120" y="92" width="70" height="46" rx="5" fill="#E1F5EE"/>
-          <rect x="126" y="98" width="58" height="34" rx="3" fill="#1D9E75"/>
-          <rect x="132" y="106" width="38" height="4" rx="2" fill="#9FE1CB"/>
-          <rect x="132" y="114" width="26" height="4" rx="2" fill="#9FE1CB"/>
-          <rect x="132" y="122" width="34" height="4" rx="2" fill="#5DCAA5"/>
-          <rect x="149" y="138" width="12" height="8" fill="#9FE1CB"/>
-          <rect x="136" y="146" width="38" height="5" rx="2.5" fill="#E1F5EE"/>
-        </g>
-        <g id="screen2-ghost" hidden>
-          <rect x="120" y="92" width="70" height="46" rx="5" fill="none" stroke="#1D9E75" stroke-width="2" stroke-dasharray="5 6"/>
-          <rect x="149" y="138" width="12" height="8" fill="none" stroke="#1D9E75" stroke-width="2"/>
-          <rect x="136" y="146" width="38" height="5" rx="2.5" fill="none" stroke="#1D9E75" stroke-width="2"/>
-        </g>
-      </svg>
-    </div>
-    <div class="topicline" id="topicline" hidden>
-      <span id="topictext"></span>
-      <a class="change" href="app-profile.html">change topic</a>
+    <!-- The countdown is the point of the band when something is booked,
+         so it gets its own column rather than a clause in the sentence. -->
+    <div class="now-side" id="now-side" hidden>
+      <span class="now-cd" id="now-cd"></span>
+      <span class="now-cl" id="now-cl"></span>
     </div>
   </section>
 
-  <div class="grid">
+  <!-- ============ propose a time ============
+       Closed until you ask for it. Booking is something you do twice a
+       week, not something you read, and a 200px form sitting open in the
+       middle of the page made the dashboard look like a form. Opens from
+       the band, from + New session, and from any free hour in the grid. -->
+  <section class="b bookp" id="book-card" hidden>
+    <div class="bookp-h">
+      <span class="mono" style="color:var(--p6)">Book</span>
+      <h2>Propose a time</h2>
+      <button class="small" type="button" id="bk-close" aria-label="Close">Close</button>
+    </div>
+    <!-- The whole form is one sentence. Every green word opens a menu, and
+         the line underneath says whether your partner has told us they're
+         free then. Labels, boxes and a row of three fields said the same
+         thing in four times the space and never once said it out loud. -->
+    <p id="bk-sent">Meet
+      <span class="pick" data-k="who"></span> on
+      <span class="pick" data-k="day"></span> at
+      <span class="pick" data-k="time"></span> for
+      <span class="pick" data-k="len"></span>.</p>
+    <p class="bk-line" id="bk-warn"></p>
 
+    <div class="field" style="margin:20px 0 0">
+      <label for="bk-msg">Note <span class="hint">(optional)</span></label>
+      <input id="bk-msg" type="text" maxlength="140" placeholder="What you'd like to work on">
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
+      <button class="btn primary" id="bk-save">Propose this time</button>
+      <span class="bk-hint" id="bk-hint">Nothing is booked until they accept.</span>
+    </div>
+    <p id="bk-note" class="bk-status"></p>
+  </section>
 
-    <!-- ============ sessions ============ -->
-    <!-- One card, not two. A time waiting on an answer and a time already
-         agreed are the same thing at different stages, and splitting them
-         across two cards made the page look busier than it is. Full width,
-         because at half the rows wrapped onto three lines each. -->
-    <!-- Hidden until there's something in it. A card headed "Your time —
-         Sessions" with nothing under it is a label for an absence; the hero
-         already says nothing is booked. -->
-    <section class="b wide" id="sess-card" hidden>
-      <div class="bh">
-        <span class="gl" style="background:var(--p0)">
-          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><rect x="6" y="11" width="4" height="4" rx="1" fill="#0F6E56"/><path d="M7 2v3M15 2v3" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
-        </span>
-        <div><span class="mono" style="color:var(--p6)">Your time</span><h2 id="sess-h">Sessions</h2></div>
-      </div>
+  <!-- ============ the dashboard ============
+       Work on the left, context on the right. Everything in the rail is a
+       glance — a number, a name, one line of plan — and nothing in it is
+       a thing you operate. That is what makes the left column readable. -->
+  <div class="dash">
+    <div class="dash-main">
 
-      <p class="mono sub-h" id="prop-h" hidden>Waiting on an answer</p>
-      <div id="prop-list"></div>
+      <!-- ============ calendar ============ -->
+      <!-- A week, not a month: one standing slot a week would leave a month
+           grid mostly empty. Real sessions come from fetchSessions; the washed
+           cells are the hours you and your partner have both marked free in
+           your profiles, and clicking one fills in the form below rather than
+           asking you to reassemble the time out of four menus.
 
-      <p class="mono sub-h" id="up-h" hidden>Booked</p>
-      <div id="upcoming"></div>
-    </section>
-
-    <!-- Proposing, shown once you actually have a partner. -->
-    <section class="b wide" id="book-card" hidden>
-      <div class="bh"><span class="gl" style="background:var(--p0)"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><path d="M11 12v5M8.5 14.5h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span><div><span class="mono" style="color:var(--p6)">Book</span><h2>Propose a time</h2></div></div>
-      <!-- The whole form is one sentence. Every green word opens a menu, and
-           the line underneath says whether your partner has told us they're
-           free then. Labels, boxes and a row of three fields said the same
-           thing in four times the space and never once said it out loud. -->
-      <p id="bk-sent">Meet
-        <span class="pick" data-k="who"></span> on
-        <span class="pick" data-k="day"></span> at
-        <span class="pick" data-k="time"></span> for
-        <span class="pick" data-k="len"></span>.</p>
-      <p class="bk-line" id="bk-warn"></p>
-
-      <div class="field" style="margin:20px 0 0">
-        <label for="bk-msg">Note <span class="hint">(optional)</span></label>
-        <input id="bk-msg" type="text" maxlength="140" placeholder="What you'd like to work on">
-      </div>
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
-        <button class="btn primary" id="bk-save">Propose this time</button>
-        <span class="bk-hint" id="bk-hint">Nothing is booked until they accept.</span>
-      </div>
-      <p id="bk-note" class="bk-status"></p>
-    </section>
-
-    <!-- ============ calendar ============ -->
-    <!-- A week, not a month: one standing slot a week would leave a month
-         grid mostly empty. Real sessions come from fetchSessions; the washed
-         cells are the hours you and your partner have both marked free in
-         your profiles, and clicking one fills in the form below rather than
-         asking you to reassemble the time out of four menus.
-
-         Hidden until we know enough to draw it. -->
-    <section class="b wide" id="cal-card" hidden>
-      <div class="cal-head">
-        <h2 style="margin:0;font-size:21px;font-weight:700;letter-spacing:-.025em">Calendar</h2>
-        <div class="cal-nav">
-          <button class="cal-step" type="button" id="cal-prev" aria-label="Previous week">&lsaquo;</button>
-          <span class="cal-range" id="cal-range"></span>
-          <button class="cal-step" type="button" id="cal-next" aria-label="Next week">&rsaquo;</button>
-          <button class="small" type="button" id="cal-today" style="margin-left:8px">Today</button>
+           Hidden until we know enough to draw it. -->
+      <section class="b wide" id="cal-card" hidden>
+        <div class="cal-head">
+          <h2 style="margin:0;font-size:21px;font-weight:700;letter-spacing:-.025em">Calendar</h2>
+          <div class="cal-nav">
+            <button class="cal-step" type="button" id="cal-prev" aria-label="Previous week">&lsaquo;</button>
+            <span class="cal-range" id="cal-range"></span>
+            <button class="cal-step" type="button" id="cal-next" aria-label="Next week">&rsaquo;</button>
+            <button class="small" type="button" id="cal-today" style="margin-left:8px">Today</button>
+          </div>
+          <button class="btn" type="button" id="cal-new">+ New session</button>
         </div>
-        <button class="btn" type="button" id="cal-new">+ New session</button>
-      </div>
 
-      <div class="cal-scroll"><div class="cal-grid" id="cal-grid"></div></div>
+        <div class="cal-scroll"><div class="cal-grid" id="cal-grid"></div></div>
 
-      <div class="cal-key">
-        <span class="k1"><i></i>Booked</span>
-        <span class="k2"><i></i>Waiting on an answer</span>
-        <span class="k3"><i></i>You&rsquo;re both free &mdash; click to propose</span>
-      </div>
-      <p class="cal-empty" id="cal-empty" hidden></p>
-    </section>
+        <div class="cal-key">
+          <span class="k1"><i></i>Booked</span>
+          <span class="k2"><i></i>Waiting on an answer</span>
+          <span class="k3"><i></i>You&rsquo;re both free &mdash; click to propose</span>
+        </div>
+        <p class="cal-empty" id="cal-empty" hidden></p>
+      </section>
 
-    <!-- ============ the plan ============ -->
-    <!-- Not a curriculum. Twelve weeks in an order that works, each pointing
-         at somebody else's free material — PeerFlow holds the order, they
-         hold the lesson.
+      <!-- ============ sessions ============ -->
+      <!-- One card, not two. A time waiting on an answer and a time already
+           agreed are the same thing at different stages, and splitting them
+           across two cards made the page look busier than it is. Full width,
+           because at half the rows wrapped onto three lines each. -->
+      <!-- Hidden until there's something in it. A card headed "Sessions" with
+           nothing under it is a label for an absence, and the band above has
+           already said nothing is booked. -->
+      <section class="b wide" id="sess-card" hidden>
+        <div class="bh">
+          <span class="gl" style="background:var(--p0)">
+            <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><rect x="6" y="11" width="4" height="4" rx="1" fill="#0F6E56"/><path d="M7 2v3M15 2v3" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <div><span class="mono" style="color:var(--p6)">Your time</span><h2 id="sess-h">Sessions</h2></div>
+        </div>
 
-         Where you are in it is counted from sessions you have actually had,
-         not from ticking boxes: it needs no table of its own, and it cannot
-         disagree with your partner's copy because you both did the same
-         sessions. -->
-    <section class="b wide" id="plan-card" hidden>
-      <div class="bh">
-        <span class="gl" style="background:var(--p0)">
-          <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="3" y="2" width="16" height="18" rx="3" fill="#5DCAA5"/><path d="M7 7h8M7 11h8M7 15h5" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
-        </span>
-        <div><span class="mono" style="color:var(--p6)" id="plan-k">Your plan</span><h2 id="plan-h">Twelve weeks</h2></div>
-      </div>
-      <div class="plan-rows" id="plan-rows"></div>
-      <p class="plan-foot" id="plan-foot"></p>
-    </section>
+        <p class="mono sub-h" id="prop-h" hidden>Waiting on an answer</p>
+        <div id="prop-list"></div>
 
-    <!-- ============ invite ============ -->
-    <section class="b wide inv">
-      <div class="row">
-        <p><b>Know someone else learning this?</b> Send them in — more people on your path means better partners for both of you.</p>
-        <button class="small" id="copy-invite">Copy invite link</button>
-      </div>
-    </section>
+        <p class="mono sub-h" id="up-h" hidden>Booked</p>
+        <div id="upcoming"></div>
+      </section>
 
+    </div>
+
+    <!-- ============ the rail ============ -->
+    <aside class="dash-rail">
+
+      <!-- Momentum, not statistics. Three numbers you can act on: the streak
+           is the one that makes you book, so it leads. -->
+      <section class="rail" id="rail-mo">
+        <h3>Momentum</h3>
+        <div class="mo">
+          <div class="mo-i"><b id="mo-streak">—</b><span>week streak</span></div>
+          <div class="mo-i"><b id="mo-done">—</b><span>sessions</span></div>
+          <div class="mo-i"><b id="mo-hrs">—</b><span>hours</span></div>
+        </div>
+        <p class="rail-f" id="mo-f"></p>
+        <a class="rail-l" href="app-progress.html">Your progress &rarr;</a>
+      </section>
+
+      <!-- The person. The whole product is that somebody notices whether you
+           turn up, so their face belongs on the page you open, not one click
+           away on a tab you never visit twice. -->
+      <section class="rail" id="rail-pt" hidden>
+        <h3 id="pt-h">Your partner</h3>
+        <div id="ptm"></div>
+        <a class="rail-l" href="app-sessions.html">Partner page &rarr;</a>
+      </section>
+
+      <!-- One week of the plan, not twelve. Eleven of those rows were
+           reference material parked in an operational view; they still exist
+           in full on Progress, which is where you go to read them. -->
+      <section class="rail" id="rail-wk" hidden>
+        <span class="mono" id="wk-k">This week</span>
+        <p class="wk-t" id="wk-t"></p>
+        <a class="rail-l" href="app-progress.html" id="wk-l">All twelve weeks &rarr;</a>
+      </section>
+
+      <section class="rail rail-q" id="rail-tp" hidden>
+        <span id="topictext"></span>
+        <a class="rail-l" href="app-profile.html">Change topic &rarr;</a>
+      </section>
+
+    </aside>
   </div>
+
+  <!-- ============ invite ============ -->
+  <section class="invstrip">
+    <p><b>Know someone else learning this?</b> More people on your path means better partners for both of you.</p>
+    <button class="small" id="copy-invite">Copy invite link</button>
+  </section>
+
 </main>
 
 <div class="mfoot">
@@ -239,25 +236,116 @@
     return now >= start - 15 * 60000 && now <= start + s.durationMin * 60000;
   }
 
-  /* ---------- hero ---------- */
-  /* Four honest states. Nothing here is written until we know which one
-     you're in, so the page never claims a partner you don't have. */
-  function hero(opts){
-    $('state').innerHTML = opts.h;
-    $('sub').textContent = opts.s;
-    $('acts').innerHTML = opts.a || '';
-    $('agenda').textContent = opts.ag || '';
-    $('agenda').hidden = !opts.ag;
+  /* "Mon, Aug 10, 10:00 AM" is how you write a date in a list of dates. On the
+     band it is the only one on screen, so it can say what a person would say.
+     Weekday names carry past tomorrow but stop being unambiguous at a week. */
+  function friendly(d){
+    var days = Math.round((dayKey(d) - dayKey(new Date())) / 86400000);
+    var time = d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
+    if (days === 0) return 'Today at ' + time;
+    if (days === 1) return 'Tomorrow at ' + time;
+    if (days > 1 && days < 7) return d.toLocaleDateString(undefined, { weekday:'long' }) + ' at ' + time;
+    return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' }) + ' at ' + time;
+  }
 
-    var paired = !!opts.paired;
-    $('mate').hidden = !paired;
-    $('screen2').hidden = !paired;
-    $('mate-ghost').hidden = paired;
-    $('screen2-ghost').hidden = paired;
-    $('link').setAttribute('stroke', paired ? '#5DCAA5' : '#0F6E56');
-    $('knot').setAttribute('opacity', paired ? '1' : '0');
-    $('pt-av').className = 'ava a2' + (paired ? '' : ' pending');
-    $('pt-av').textContent = paired ? initial(opts.partner) : '?';
+  /* The same phrase dropped into the middle of a sentence. Only Today and
+     Tomorrow lose their capital — lowercasing blindly turns "Thu, Aug 13"
+     into "thu, Aug 13". */
+  function friendlyMid(d){
+    var s = friendly(d);
+    return /^To(day|morrow) /.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+  }
+
+  /* relative() reads well inside a sentence — "in 2 hours" — and badly as a
+     number on a wall. Same fact, cut for the countdown column. */
+  function countdown(d){
+    var mins = Math.round((d.getTime() - Date.now()) / 60000);
+    if (mins <= 0)   return { n:'Now',  l:'live' };
+    if (mins < 60)   return { n:mins + 'm', l:'from now' };
+    if (mins < 1440) return { n:Math.round(mins / 60) + 'h', l:'from now' };
+    return { n:Math.round(mins / 1440) + 'd', l:'from now' };
+  }
+
+  /* ---------- the band ----------
+     One element, six states. The loader works out which state you're in once,
+     in priority order, and calls this once — so there is exactly one place
+     that decides what the top of this page says. Tone is a data attribute:
+     what colour a state is stays CSS's problem, not this function's. */
+  function band(o){
+    $('now').setAttribute('data-tone', o.tone || 'idle');
+    $('now-k').textContent = o.k || '';
+    $('now-h').innerHTML   = o.h;
+    $('now-s').textContent = o.s || '';
+    $('now-a').innerHTML   = o.a || '';
+    $('now-f').textContent = o.f || '';
+    $('now-f').hidden      = !o.f;
+
+    if (o.at){
+      var c = countdown(o.at);
+      $('now-cd').textContent = c.n;
+      $('now-cl').textContent = c.l;
+      $('now-side').hidden = false;
+    } else {
+      $('now-side').hidden = true;
+    }
+  }
+
+  /* ---------- the rail ---------- */
+  /* Streaks are counted in weeks, not days. Two people meeting twice a week
+     have a perfect record and would break a daily streak every single time,
+     so a daily one would only ever measure how often we told them off. */
+  function weekKey(d){
+    var x = midnight(d);
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x.getTime();
+  }
+  var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function streakOf(done){
+    if (!done.length) return 0;
+    var weeks = {};
+    done.forEach(function(s){ weeks[weekKey(s.startsAt)] = true; });
+    var wk = weekKey(new Date()), n = 0;
+    /* The current week doesn't count against you until it's over — a streak
+       that resets at one minute past midnight on Monday is a streak nobody
+       believes twice. */
+    if (!weeks[wk]) wk -= WEEK_MS;
+    while (weeks[wk]) { n++; wk -= WEEK_MS; }
+    return n;
+  }
+
+  function num(id, v){
+    var n = $(id);
+    n.textContent = v;
+    n.parentNode.className = 'mo-i' + (v ? '' : ' zero');
+  }
+
+  /* Three numbers you can do something about. Hours and sessions say where
+     you've been; the streak is the one that makes you book, so it leads. */
+  function renderMomentum(done){
+    var mins = done.reduce(function(a, s){ return a + (s.durationMin || 0); }, 0);
+    var st = streakOf(done);
+    num('mo-streak', st);
+    num('mo-done', done.length);
+    num('mo-hrs', Math.round(mins / 60));
+    $('mo-f').textContent =
+      !done.length ? 'Nothing counted yet — your first finished session starts all three.'
+      : st > 1     ? st + ' weeks running. One session this week keeps it going.'
+      : st === 1   ? 'One week in. Book again this week and it becomes a streak.'
+                   : 'The streak restarts the week you next sit down together.';
+  }
+
+  function renderPartnerRail(list){
+    if (!list.length) return;
+    $('pt-h').textContent = list.length > 1 ? 'Your partners' : 'Your partner';
+    $('ptm').innerHTML = list.map(function(p){
+      return '<div class="ptm">' +
+        '<span class="av">' + esc(initial(p.name)) + '</span>' +
+        '<span class="nm">' + esc(p.name || 'Someone') +
+          '<span class="tp">' + esc(p.topic || 'Topic not set yet') + '</span>' +
+        '</span></div>';
+    }).join('');
+    $('rail-pt').hidden = false;
   }
 
   /* ---------- sessions list ---------- */
@@ -328,6 +416,31 @@
 
   var myAvail = [], bookPartner = null, myName = '', bookPartners = [];
   var bkDay = null, bkHour = 19, bkLen = 50, bkOpen = null;
+  var canBook = false;
+
+  /* The panel starts closed. Booking is something you do twice a week, not
+     something you read, and leaving the form open made a dashboard look like
+     a form. openBook is the only way in, so the entry points — the band, the
+     + New session button, and clicking a free hour — cannot drift apart. */
+  function openBook(focusKey){
+    if (!canBook) return;
+    var card = $('book-card');
+    card.hidden = false;
+    try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
+    var trig = card.querySelector('#bk-sent .pick[data-k="' + (focusKey || 'day') + '"] .trig');
+    if (trig) trig.focus();
+  }
+  function closeBook(){ closeMenu(); $('book-card').hidden = true; }
+
+  $('bk-close').addEventListener('click', closeBook);
+  /* Delegated, because the band rewrites its own buttons on every state
+     change and a listener bound to one of them would not survive that. */
+  document.addEventListener('click', function(e){
+    var t = e.target.closest && e.target.closest('[data-open-book]');
+    if (!t) return;
+    e.preventDefault();
+    openBook();
+  });
 
   /* Everything below moved here from the Partner page. Proposing a time, the
      times waiting on an answer and the sessions they turn into are one thing,
@@ -801,10 +914,7 @@
           var note = document.getElementById('bk-note');
           note.style.color = 'var(--muted)';
           note.textContent = 'Their time is off the table \u2014 pick another and send it back.';
-          var card = document.getElementById('book-card');
-          try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err2){}
-          var firstPick = card.querySelector('#bk-sent .pick[data-k="day"] .trig');
-          if (firstPick) firstPick.focus();
+          openBook('day');
         });
         return;
       }
@@ -973,11 +1083,7 @@
     bkDay  = new Date(parseInt(cell.getAttribute('data-cal-day'), 10));
     bkHour = parseInt(cell.getAttribute('data-cal-hour'), 10);
     paintSentence();
-    var card = document.getElementById('book-card');
-    if (card.hidden) return;
-    try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
-    var trig = card.querySelector('#bk-sent .pick[data-k="day"] .trig');
-    if (trig) trig.focus();
+    openBook('day');
   });
 
   document.getElementById('cal-prev').addEventListener('click', function(){
@@ -990,14 +1096,9 @@
     calMonday = mondayOf(new Date()); renderCal();
   });
   /* Nowhere new to go: the form that proposes a time is already on this page,
-     so this scrolls to it rather than opening a second way to do the same
-     thing. */
+     so this opens it rather than being a second way to do the same thing. */
   document.getElementById('cal-new').addEventListener('click', function(){
-    var card = document.getElementById('book-card');
-    if (card.hidden) return;
-    try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
-    var trig = card.querySelector('#bk-sent .pick[data-k="day"] .trig');
-    if (trig) trig.focus();
+    openBook('day');
   });
 
   /* ================= the plan =================
@@ -1006,36 +1107,27 @@
      step with your partner's copy, because you both sat through the same
      sessions. It also means the plan cannot be edited yet — so there are no
      Add and Reorder buttons here pretending otherwise. */
-  function renderPlan(trackId, doneCount){
+  /* One week, not twelve. All twelve used to sit on this page and never
+     change; eleven of them were reference material parked in a view you open
+     to decide what to do next. They are all still on Progress, which is
+     where you go to read rather than to act. */
+  function renderWeek(trackId, doneCount){
     var plan = (window.PF_PLANS || {})[trackId];
     if (!plan || !plan.length) return;
 
     var here = Math.min(doneCount, plan.length - 1);
-    var names = (window.pf && pf.trackNames) || {};
+    var finished = doneCount >= plan.length;
+    var w = plan[here];
 
-    $('plan-h').textContent = names[trackId]
-      ? names[trackId] + ' in twelve weeks'
-      : 'Twelve weeks';
-    $('plan-k').textContent = doneCount >= plan.length
+    $('wk-k').textContent = finished
       ? 'Plan finished'
       : 'Week ' + (here + 1) + ' of ' + plan.length;
+    $('wk-t').innerHTML = finished
+      ? 'You’ve been through all twelve — pick what’s next together.'
+      : esc(w.t) + (w.src ? '<span class="wk-src">' + esc(w.src) + '</span>' : '');
+    $('wk-l').textContent = finished ? 'Look back over them →' : 'All twelve weeks →';
 
-    $('plan-rows').innerHTML = plan.map(function(w, i){
-      var state = i < doneCount ? 'done' : (i === here && doneCount < plan.length ? 'now' : '');
-      var label = state === 'now' ? 'This week' : 'Week ' + (i + 1);
-      return '<div class="plan-row ' + state + '">' +
-        '<span class="plan-n">' + label + '</span>' +
-        '<span class="plan-t">' + esc(w.t) + '</span>' +
-        (w.src ? '<span class="plan-src">' + esc(w.src) + '</span>' : '') +
-      '</div>';
-    }).join('');
-
-    $('plan-foot').textContent = doneCount >= plan.length
-      ? 'You have been through all twelve. Pick the next thing together — you are past what we would have suggested.'
-      : 'A suggested order, not a course. Every week points at somebody else’s free material; ' +
-        'you are ' + doneCount + ' session' + (doneCount === 1 ? '' : 's') + ' in.';
-
-    $('plan-card').hidden = false;
+    $('rail-wk').hidden = false;
   }
 
   /* Answers from signup that never reached the database (no session at the
@@ -1064,9 +1156,11 @@
   pf.currentUser().then(function(user){
     if (!user){
       $('signedout').hidden = false;
-      hero({ h:'You’re signed out.', s:'Log in and your partner, sessions and history come back exactly as you left them.',
+      band({ tone:'none', k:'Signed out', h:'You’re signed out.',
+             s:'Log in and your partner, sessions and history come back exactly as you left them.',
              a:'<a class="btn" href="login.html">Log in</a><a class="ghost" href="signup.html">Sign up</a>' });
       $('sess-card').hidden = true;
+      $('rail-mo').hidden = true;
       return;
     }
     flushPending();
@@ -1077,7 +1171,6 @@
     try { cached = localStorage.getItem('pf_name') || ''; } catch(err){}
     var meta = user.user_metadata || {};
     var name = meta.name || meta.full_name || cached || (user.email || '').split('@')[0];
-    $('me-av').textContent = initial(name);
 
     /* All three at once. The profile used to be awaited on its own before the
        partner and sessions queries were even sent, which made the page wait
@@ -1102,8 +1195,8 @@
 
       var topic = (profile && profile.topic) || '';
       if (topic){
-        $('topictext').innerHTML = 'You’re on <b>' + esc(topic) + '</b>';
-        $('topicline').hidden = false;
+        $('topictext').innerHTML = 'You’re learning <b>' + esc(topic) + '</b>';
+        $('rail-tp').hidden = false;
       }
 
       Promise.resolve(rows)
@@ -1151,44 +1244,60 @@
                 requestId: x.requestId
               };
             });
-          if (bookPartners.length){
-            $('book-card').hidden = false;
+          canBook = bookPartners.length > 0;
+          /* A button that silently does nothing is worse than no button, and
+             with nobody to propose to there is nothing for this one to open. */
+          $('cal-new').hidden = !canBook;
+          if (canBook){
             /* Who it's for is a word in the sentence, and only a menu when
-               there's more than one person it could be. */
+               there's more than one person it could be. The panel itself
+               stays shut until something asks for it. */
             pickPartner(0);
           }
           renderProposals(all);
+          renderPartnerRail(bookPartners);
 
+          /* ----- which of the six states are you in? -----
+             Priority runs from the most time-critical downwards, and the
+             first match wins. Whoever is waiting on whom decides the tone:
+             something you have to answer looks different from something
+             already agreed, which looks different from an empty week. */
           if (upcoming.length){
             var next = upcoming[0];
-            hero({
-              paired:true, partner: next.partnerName || pname,
-              h: 'Next session <span class="g">' + esc(relative(next.startsAt)) + '</span>.',
-              s: when(next.startsAt) + ' · ' + next.durationMin + ' minutes' +
-                 (next.partnerName ? ' with ' + next.partnerName : ''),
-              a: (next.roomUrl && isOpen(next))
-                   ? '<a class="btn" href="' + esc(next.roomUrl) + '" target="_blank" rel="noopener">Join the call</a><a class="ghost" href="#sess-card">All sessions</a>'
-                   : '<a class="btn" href="#sess-card">See the booking</a>',
-              ag: next.roomUrl && !isOpen(next) ? 'The call link opens 15 minutes before you start.' : ''
+            var live = next.roomUrl && isOpen(next);
+            var who  = next.partnerName || pname;
+            band({
+              tone: live ? 'live' : 'booked',
+              at: next.startsAt,
+              k: live ? 'Your room is open' : 'Next session',
+              h: live
+                   ? (who ? esc(who) + ' is waiting.' : 'Your session is live.')
+                   : friendly(next.startsAt) + (who ? ' with ' + esc(who) : ''),
+              s: next.durationMin + ' minutes' + (next.topic ? ' · ' + next.topic : '') +
+                 (live ? '' : '. Both of you have agreed to this one.'),
+              a: live
+                   ? '<a class="btn" href="' + esc(next.roomUrl) + '" target="_blank" rel="noopener">Join the call</a>' +
+                     '<a class="ghost" href="#sess-card">All sessions</a>'
+                   : '<a class="btn" data-open-book href="#book-card">Book another</a>' +
+                     '<a class="ghost" href="#sess-card">See the booking</a>',
+              f: live ? '' : 'The call link opens fifteen minutes before you start.'
             });
           } else if (waiting){
-            hero({
-              paired:true, partner: waiting.partnerName || pname,
-              h: '<span class="g">' + esc(waiting.partnerName || pname || 'Your partner') +
-                 '</span> proposed a time.',
-              s: when(waiting.startsAt) + ' · ' + waiting.durationMin + ' minutes. ' +
-                 'Nothing is booked until you say yes.',
+            band({
+              tone:'answer', at: waiting.startsAt, k:'Needs your answer',
+              h: esc(waiting.partnerName || pname || 'Your partner') + ' proposed ' +
+                 friendlyMid(waiting.startsAt) + '.',
+              s: waiting.durationMin + ' minutes. Nothing is booked until you say yes.',
               a: '<a class="btn" href="#sess-card">Answer it</a>'
             });
           } else if (turned){
-            hero({
-              paired:true, partner: turned.partnerName || pname,
-              h: '<span class="g">' + esc(turned.partnerName || pname || 'Your partner') +
-                 '</span> ' + (turned.status === 'cancelled' ? 'cancelled your session.'
-                                                             : 'can’t make that time.'),
+            band({
+              tone:'idle', k: turned.status === 'cancelled' ? 'Cancelled' : 'Turned down',
+              h: esc(turned.partnerName || pname || 'Your partner') + ' ' +
+                 (turned.status === 'cancelled' ? 'cancelled your session.' : 'can’t make that time.'),
               s: (turned.status === 'cancelled' ? 'They cancelled ' : 'They turned down ') +
                  when(turned.startsAt) + '. Pick another and send it over.',
-              a: '<a class="btn" href="#book-card">Propose another time</a>'
+              a: '<a class="btn" data-open-book href="#book-card">Propose another time</a>'
             });
           } else if (partner && pending.length){
             var mine = pending[0];
@@ -1196,24 +1305,25 @@
                partner in the list, which is the wrong person as soon as you
                have two and proposed to the second. */
             var mineWho = mine.partnerName || pname;
-            hero({
-              paired:true, partner: mineWho,
-              h: 'Waiting on <span class="g">' + esc(mineWho || 'your partner') + '</span>.',
-              s: 'You proposed ' + when(mine.startsAt) + '. It lands on both your calendars once they accept.',
+            band({
+              tone:'idle', at: mine.startsAt, k:'Waiting on them',
+              h: 'You asked ' + esc(mineWho || 'your partner') + ' for ' +
+                 friendlyMid(mine.startsAt) + '.',
+              s: 'It lands on both your calendars the moment they accept. Nothing to do until then.',
               a: '<a class="ghost" href="#sess-card">See the proposal</a>'
             });
           } else if (partner){
-            hero({
-              paired:true, partner:pname,
-              h: 'You’re paired with <span class="g">' + esc(allNames) + '</span>.',
-              s: 'Nothing booked yet. Propose a time and it lands on both your calendars once they accept.',
-              a: '<a class="btn" href="#book-card">Propose a time</a>'
+            band({
+              tone:'idle', k:'Nothing booked',
+              h: 'Book your next session with ' + esc(allNames) + '.',
+              s: 'Pick an hour you’re both free — it lands on both calendars once they accept.',
+              a: '<a class="btn" data-open-book href="#book-card">Propose a time</a>'
             });
           } else {
-            hero({
-              paired:false,
-              h: 'No partner yet.',
-              s: 'Look through everyone who has signed up and ask someone learning what you’re learning. They get a notification and can accept.',
+            band({
+              tone:'none', k:'No partner yet',
+              h: 'Find someone learning what you’re learning.',
+              s: 'Look through everyone who has signed up and ask one of them. They get a notification and can accept.',
               a: '<a class="btn" href="app-people.html">Find someone</a>'
             });
           }
@@ -1239,16 +1349,22 @@
           $('cal-card').hidden = false;
           renderCal();
 
-          /* ----- the plan -----
-             Counted from sessions that actually happened: confirmed, and the
-             end of them is behind us. A booking next Tuesday has not taught
-             anybody anything yet. */
-          var done = sessions.filter(function(x){
-            return x.startsAt.getTime() + x.durationMin * 60000 <= now;
-          }).length;
+          /* ----- momentum and the plan -----
+             Both counted from sessions that actually happened: confirmed, and
+             the end of them is behind us. A booking next Tuesday has not
+             taught anybody anything yet.
+
+             Counted here rather than through pf.reliability(), which fetches
+             the same rows a second time — we are already holding them. */
+          var done = all.filter(function(x){
+            if (x.status === 'completed') return true;
+            return x.status === 'confirmed' && x.startsAt.getTime() + x.durationMin * 60000 <= now;
+          });
+          renderMomentum(done);
+
           var trackId = (profile && profile.track_id) || '';
           if (!trackId){ try { trackId = localStorage.getItem('pf_track') || ''; } catch(err){} }
-          renderPlan(trackId, done);
+          renderWeek(trackId, done.length);
         });
     });
   });
