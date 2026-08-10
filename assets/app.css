@@ -120,9 +120,6 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .rail-f{margin:13px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
 .rail-l{display:inline-block;margin-top:13px;font-size:13px;font-weight:600;color:var(--p6)}
 .rail-l:hover{text-decoration:underline}
-.rail-q{font-size:14px;color:var(--soft)}
-.rail-q b{color:var(--ink);font-weight:600}
-.rail-q .rail-l{display:block;margin-top:9px}
 
 /* Three numbers, not a chart. The unit lives under the figure so the row
    scans as three things and not as one long sentence of digits. */

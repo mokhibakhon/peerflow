@@ -212,11 +212,6 @@
         <a class="rail-l" href="app-progress.html" id="wk-l">All twelve weeks &rarr;</a>
       </section>
 
-      <section class="rail rail-q" id="rail-tp" hidden>
-        <span id="topictext"></span>
-        <a class="rail-l" href="app-profile.html">Change topic &rarr;</a>
-      </section>
-
     </aside>
   </div>
 
@@ -1398,11 +1393,10 @@
       myName  = (profile && profile.name) || name || '';
       myAvail = (profile && profile.availability) || [];
 
-      var topic = (profile && profile.topic) || '';
-      if (topic){
-        $('topictext').innerHTML = 'You’re learning <b>' + esc(topic) + '</b>';
-        $('rail-tp').hidden = false;
-      }
+      /* What you're learning, and changing it, belong to the profile — the
+         header chip already says which path you're on, and a Change topic
+         link on the page you open every day invites you to fiddle with the
+         one setting that resets who you get matched with. */
 
       Promise.resolve(rows)
         .then(function(r){
