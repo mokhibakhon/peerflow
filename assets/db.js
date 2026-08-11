@@ -781,25 +781,34 @@ window.pf = (function(){
       var now = Date.now();
       var out = { attended: 0, noShow: 0, early: 0, late: 0, counted: 0, pct: null };
 
+      /* An absent verdict is not a verdict of absent.
+
+         Nothing in the app records attendance: check-out went with the MVP
+         rebuild that was reverted, so `attended` is null on every row anybody
+         can currently create. Treating null as a no-show accused everyone of
+         missing every session they had ever booked — three sessions actually
+         sat through read as "0 of 3 attended", at 0%.
+
+         A session counts only once somebody has actually said yes or no,
+         which means the figure reads as a dash until check-out exists and
+         starts working on its own the day it does. */
+      function verdict(s){
+        if (s.attended === true)       { out.counted++; out.attended++; }
+        else if (s.attended === false) { out.counted++; out.noShow++; }
+      }
+
       list.forEach(function(s){
         var ended = s.startsAt.getTime() + s.durationMin * 60000;
-        if (s.status === 'completed') {
-          out.counted++;
-          if (s.attended) out.attended++; else out.noShow++;
-          return;
-        }
+        if (s.status === 'completed') { verdict(s); return; }
         if (s.status === 'cancelled') {
+          /* Cancelling is the one thing the app does record, so this half of
+             the picture is real either way. */
           var when = s.cancelledAt ? s.cancelledAt.getTime() : null;
           var late = when !== null && (s.startsAt.getTime() - when) < LATE_MS;
           if (late) { out.late++; out.counted++; } else out.early++;
           return;
         }
-        /* A confirmed session whose time has passed with nobody checking out
-           is a no-show on both sides. */
-        if (s.status === 'confirmed' && ended <= now) {
-          out.counted++;
-          if (s.attended) out.attended++; else out.noShow++;
-        }
+        if (s.status === 'confirmed' && ended <= now) verdict(s);
       });
 
       if (out.counted > 0) out.pct = Math.round((out.attended / out.counted) * 100);
