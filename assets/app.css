@@ -1210,10 +1210,14 @@ html{scroll-behavior:smooth}
 .ch-miss{background:var(--card);border:1px solid var(--line);border-radius:16px;
   padding:22px 24px;font-size:15px;color:var(--soft)}
 
-.chat{display:grid;grid-template-columns:286px minmax(0,1fr);gap:16px;align-items:stretch;
-  height:min(72vh,640px)}
+/* The card grows with the conversation rather than standing at a fixed height:
+   a two-message thread in a 430px box is mostly box. It stops growing at the
+   height of the viewport and scrolls from there. align-items:start keeps the
+   list from stretching to match. */
+.chat{display:grid;grid-template-columns:302px minmax(0,1fr);gap:16px;align-items:start}
 .ch-list{background:var(--card);border:1px solid var(--line);border-radius:16px;
-  padding:8px;overflow-y:auto;min-width:0}
+  padding:8px;min-width:0;display:flex;flex-direction:column;max-height:min(68vh,600px)}
+.ch-people{overflow-y:auto;min-height:0}
 .ch-none{margin:12px 10px;font-size:13.5px;color:var(--faint);line-height:1.5}
 .ch-none a{color:var(--p6);font-weight:600;text-decoration:underline}
 
@@ -1224,59 +1228,91 @@ html{scroll-behavior:smooth}
 .ch-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
   background:var(--p1);color:var(--p8);font-size:13px;font-weight:800}
 .ch-meta{flex:1;min-width:0}
-.ch-meta b{display:flex;align-items:baseline;gap:0;min-width:0;
-  font-size:14px;font-weight:600;color:var(--ink)}
+.ch-meta b{display:flex;align-items:baseline;min-width:0;font-size:14px;font-weight:600;color:var(--ink)}
 .ch-nm{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ch-tag{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:8.5px;
-  letter-spacing:.06em;text-transform:uppercase;background:var(--p0);color:var(--p6);
-  padding:2px 5px;border-radius:4px;margin-left:6px}
+/* Short, and it never eats the name: at 300px a full word next to
+   "Amir Karimov" left the name as "Amir Kar…", which is the one thing in the
+   row that has to be readable. */
+.ch-tag{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:8px;
+  letter-spacing:.05em;text-transform:uppercase;background:var(--p0);color:var(--p6);
+  padding:2px 4px;border-radius:4px;margin-left:5px}
+.ch-row.on .ch-tag{background:var(--card)}
 .ch-last{display:block;font-size:12.5px;color:var(--faint);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ch-when{font-size:11px;color:var(--faint);flex:0 0 auto}
-.ch-dot{flex:0 0 auto;min-width:19px;height:19px;padding:0 5px;border-radius:10px;
+.ch-right{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.ch-when{font-size:10.5px;color:var(--faint)}
+.ch-dot{min-width:19px;height:19px;padding:0 5px;border-radius:10px;
   background:var(--p4);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
 
-.ch-pane{background:var(--card);border:1px solid var(--line);border-radius:16px;
-  display:flex;flex-direction:column;min-width:0;overflow:hidden}
-.ch-empty{flex:1;display:grid;place-items:center;padding:24px}
-.ch-empty p{margin:0;font-size:14px;color:var(--faint);text-align:center;max-width:32ch}
-.ch-open{flex:1;display:flex;flex-direction:column;min-height:0}
+/* Everybody you may write to but never have. Behind a control rather than
+   filling the list with rows that say "No messages yet". */
+.ch-more{margin-top:auto;border-top:1px solid var(--line);padding:8px 4px 2px}
+.ch-more > button{width:100%;border:0;background:none;text-align:left;padding:6px;
+  border-radius:9px;font-family:var(--body);font-size:12.5px;font-weight:600;
+  color:var(--p6);cursor:pointer}
+.ch-more > button:hover{background:var(--p0)}
 
-.ch-top{display:flex;align-items:center;gap:11px;padding:12px 15px;border-bottom:1px solid var(--line)}
+/* ---------- the conversation ---------- */
+.ch-pane{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  display:flex;flex-direction:column;min-width:0;overflow:hidden;max-height:min(68vh,600px)}
+.ch-empty{padding:52px 24px;display:grid;place-items:center}
+.ch-empty p{margin:0;font-size:14px;color:var(--faint);text-align:center;max-width:32ch}
+.ch-open{display:flex;flex-direction:column;min-height:0}
+
+.ch-top{display:flex;align-items:center;gap:12px;padding:13px 17px;border-bottom:1px solid var(--line)}
 .ch-back{display:none;border:0;background:none;font-size:24px;line-height:1;color:var(--soft);
   padding:0 4px;cursor:pointer}
+.ch-top .ch-av{width:36px;height:36px;background:var(--p0);color:var(--p6);font-size:14px}
 .ch-who{flex:1;min-width:0}
-.ch-who b{display:block;font-size:14.5px;font-weight:700}
-.ch-who span{display:block;font-size:12.5px;color:var(--faint)}
+.ch-who b{display:block;font-size:15px;font-weight:700;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-who span{display:block;font-size:12.5px;color:var(--faint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* The thing you are usually messaging about. */
+.ch-next{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--p0);
+  border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--p8)}
+.ch-next i{width:6px;height:6px;border-radius:50%;background:var(--p4);flex:0 0 auto}
 
-.ch-log{flex:1;overflow-y:auto;padding:16px 15px;display:flex;flex-direction:column;gap:8px;
+/* A wash rather than a white void: the conversation sits on something, the
+   way every other surface in the app does. */
+.ch-log{flex:1;min-height:120px;overflow-y:auto;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px;
+  background:linear-gradient(#F1F8F5,#F8FCFA 190px,var(--card) 340px);
   scrollbar-width:thin;scrollbar-color:#CFCEDA transparent}
 .ch-first{margin:auto;font-size:13.5px;color:var(--faint);text-align:center;max-width:34ch}
-.ch-day{align-self:center;margin:10px 0 4px;font-family:var(--mono);font-size:9.5px;
-  letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
-.ch-msg{max-width:min(74%,520px);align-self:flex-start;background:var(--band);
-  border-radius:14px 14px 14px 5px;padding:9px 13px}
-.ch-msg.mine{align-self:flex-end;background:var(--p8);border-radius:14px 14px 5px 14px}
-.ch-msg p{margin:0;font-size:14.5px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word}
+.ch-day{align-self:center;margin:2px 0;font-family:var(--mono);font-size:9px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--faint);
+  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 11px}
+.ch-msg{max-width:min(66%,520px);align-self:flex-start;background:var(--card);
+  border:1px solid var(--line);box-shadow:0 1px 2px rgba(23,26,46,.03);
+  border-radius:18px;padding:11px 15px}
+.ch-msg.mine{align-self:flex-end;background:var(--p8);border-color:var(--p8)}
+.ch-msg p{margin:0;font-size:14.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
 .ch-msg.mine p{color:#fff}
-.ch-t{display:block;margin-top:4px;font-size:10.5px;color:var(--faint)}
+.ch-t{display:block;margin-top:5px;font-size:10.5px;color:var(--faint)}
 .ch-msg.mine .ch-t{color:#8FCDB6}
 
-.ch-form{display:flex;gap:9px;align-items:flex-end;padding:11px 13px;border-top:1px solid var(--line)}
-.ch-form textarea{flex:1;min-width:0;resize:none;font-family:var(--body);font-size:14.5px;
-  line-height:1.45;color:var(--ink);background:var(--card);border:1px solid var(--line);
-  border-radius:11px;padding:9px 12px;max-height:160px}
-.ch-form textarea:focus{border-color:var(--p4);outline:none}
-.ch-err{margin:0;padding:0 15px 11px;font-size:13px;color:#B4471F}
+.ch-form{display:flex;gap:9px;align-items:flex-end;padding:13px 15px;border-top:1px solid var(--line)}
+.ch-box{flex:1;min-width:0;display:flex;align-items:center;background:var(--bg);
+  border:1px solid transparent;border-radius:22px;padding:2px 4px 2px 16px}
+.ch-box:focus-within{background:var(--card);border-color:var(--p4)}
+.ch-form textarea{flex:1;min-width:0;resize:none;border:0;background:none;outline:none;
+  font-family:var(--body);font-size:14.5px;line-height:1.45;color:var(--ink);
+  padding:9px 0;max-height:150px}
+.ch-form .btn{border-radius:999px;flex:0 0 auto}
+.ch-err{margin:0;padding:0 17px 12px;font-size:13px;color:#B4471F}
 
 /* One pane at a time on a phone. Side by side at this width gives you two
    things too cramped to use instead of one that works. */
 @media (max-width:760px){
-  .chat{grid-template-columns:1fr;height:auto}
-  .ch-pane{min-height:60vh}
+  .chat{grid-template-columns:1fr}
+  .ch-list{max-height:none}
+  .ch-pane{max-height:none}
+  .ch-log{max-height:62vh}
   .chat.open .ch-list{display:none}
   .chat:not(.open) .ch-pane{display:none}
   .ch-back{display:block}
+  .ch-next{display:none}
 }
 
 /* The unread count on the Chat tab. */

@@ -25,7 +25,15 @@
          a list and a conversation side by side gives you two things too
          cramped to use instead of one that works. -->
     <div class="chat" id="chat" hidden>
-      <aside class="ch-list" id="ch-list"></aside>
+      <aside class="ch-list">
+        <div class="ch-people" id="ch-people"></div>
+        <!-- Everybody you may write to but never have. Behind a control, so
+             the list is conversations rather than three rows of "No messages
+             yet" under the one you actually use. -->
+        <div class="ch-more" id="ch-more" hidden>
+          <button type="button" id="ch-more-b"></button>
+        </div>
+      </aside>
 
       <section class="ch-pane" id="ch-pane">
         <div class="ch-empty" id="ch-empty">
@@ -35,11 +43,13 @@
         <div class="ch-open" id="ch-open" hidden>
           <header class="ch-top">
             <button class="ch-back" type="button" id="ch-back" aria-label="Back to conversations">&lsaquo;</button>
-            <span class="ch-av" id="ch-av">·</span>
+            <a class="ch-av" id="ch-av" href="#">·</a>
             <div class="ch-who">
               <b id="ch-name"></b>
               <span id="ch-sub"></span>
             </div>
+            <!-- What you are almost always messaging about. -->
+            <span class="ch-next" id="ch-next" hidden><i></i><span id="ch-next-t"></span></span>
             <a class="small" id="ch-profile" href="#">Profile</a>
           </header>
 
@@ -47,8 +57,10 @@
 
           <form class="ch-form" id="ch-form">
             <label class="sr-only" for="ch-text">Message</label>
-            <textarea id="ch-text" rows="1" maxlength="2000"
-                      placeholder="Write a message…"></textarea>
+            <span class="ch-box">
+              <textarea id="ch-text" rows="1" maxlength="2000"
+                        placeholder="Write a message…"></textarea>
+            </span>
             <button class="btn" type="submit" id="ch-send">Send</button>
           </form>
           <p class="ch-err" id="ch-err" hidden></p>
@@ -91,6 +103,10 @@
   function initial(s){ return (String(s || '').trim()[0] || '·').toUpperCase(); }
 
   var list = [], openId = '', openName = '', poll = null, lastCount = 0;
+  /* Person id -> their next agreed session, for the chip in the header. */
+  var nextWith = {};
+  /* Whether the people you have never written to are being shown. */
+  var showAll = false;
 
   try { openId = new URLSearchParams(location.search).get('to') || ''; } catch(e){}
 
@@ -102,6 +118,16 @@
     try { return d.toLocaleDateString(undefined, { month:'short', day:'numeric' }); }
     catch(e){ return ''; }
   }
+  /* "Thursday 7:00 PM" — the booked session with whoever you are reading. */
+  function sessionLabel(d){
+    var days = Math.round((new Date(d).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86400000);
+    var time = d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
+    if (days === 0) return 'Today ' + time;
+    if (days === 1) return 'Tomorrow ' + time;
+    if (days > 1 && days < 7) return d.toLocaleDateString(undefined, { weekday:'long' }) + ' ' + time;
+    return d.toLocaleDateString(undefined, { month:'short', day:'numeric' }) + ' ' + time;
+  }
+
   function stamp(d){
     try { return d.toLocaleString(undefined,
       { weekday:'short', hour:'numeric', minute:'2-digit' }); }
@@ -115,30 +141,49 @@
   }
 
   /* ---------- the list of conversations ---------- */
+  function row(t){
+    return '<button type="button" class="ch-row' + (t.id === openId ? ' on' : '') +
+      '" data-to="' + esc(t.id) + '">' +
+      '<span class="ch-av">' + esc(initial(t.name)) + '</span>' +
+      '<span class="ch-meta">' +
+        '<b><span class="ch-nm">' + esc(t.name) + '</span>' +
+          (t.partner ? '<i class="ch-tag">partner</i>' : '') + '</b>' +
+        '<span class="ch-last">' +
+          (t.last ? (t.lastMine ? 'You: ' : '') + esc(t.last) : 'No messages yet') +
+        '</span>' +
+      '</span>' +
+      '<span class="ch-right">' +
+        (t.at ? '<span class="ch-when">' + esc(when(t.at)) + '</span>' : '') +
+        (t.unread ? '<span class="ch-dot">' + t.unread + '</span>' : '') +
+      '</span>' +
+    '</button>';
+  }
+
   function renderList(){
-    if (!list.length) {
-      $('ch-list').innerHTML =
+    /* Conversations you have actually had lead. People you may write to but
+       never have are the same thing as an address book, and an address book
+       three rows long does not deserve to sit above the thread you use. */
+    var had  = list.filter(function(t){ return !!t.at; });
+    var cold = list.filter(function(t){ return !t.at; });
+    var shown = had.concat(showAll ? cold : []);
+
+    if (!shown.length && !cold.length) {
+      document.getElementById('ch-people').innerHTML =
         '<p class="ch-none">Nobody to talk to yet. Ask somebody on ' +
         '<a href="app-people.html">People</a> and you can message them from the moment you do.</p>';
+      document.getElementById('ch-more').hidden = true;
       return;
     }
-    $('ch-list').innerHTML = list.map(function(t){
-      return '<button type="button" class="ch-row' + (t.id === openId ? ' on' : '') +
-        '" data-to="' + esc(t.id) + '">' +
-        '<span class="ch-av">' + esc(initial(t.name)) + '</span>' +
-        '<span class="ch-meta">' +
-          /* The name truncates, the tag does not: "Amir Karimov PA…" tells
-             you less than a shortened name and a whole word. */
-          '<b><span class="ch-nm">' + esc(t.name) + '</span>' +
-            (t.partner ? '<i class="ch-tag">partner</i>' : '') + '</b>' +
-          '<span class="ch-last">' +
-            (t.last ? (t.lastMine ? 'You: ' : '') + esc(t.last) : 'No messages yet') +
-          '</span>' +
-        '</span>' +
-        (t.unread ? '<span class="ch-dot">' + t.unread + '</span>'
-                  : (t.at ? '<span class="ch-when">' + esc(when(t.at)) + '</span>' : '')) +
-      '</button>';
-    }).join('');
+
+    document.getElementById('ch-people').innerHTML = shown.length
+      ? shown.map(row).join('')
+      : '<p class="ch-none">No conversations yet. Pick somebody below to start one.</p>';
+
+    var more = document.getElementById('ch-more');
+    more.hidden = !cold.length;
+    document.getElementById('ch-more-b').textContent = showAll
+      ? 'Hide'
+      : '+ New conversation (' + cold.length + ')';
   }
 
   /* ---------- one conversation ---------- */
@@ -180,10 +225,17 @@
     $('ch-empty').hidden = true;
     $('ch-open').hidden = false;
     $('chat').classList.add('open');
+    var href = 'app-person.html?id=' + encodeURIComponent(id);
     $('ch-av').textContent = initial(openName);
+    $('ch-av').href = href;
     $('ch-name').textContent = openName;
     $('ch-sub').textContent = (who && who.topic) ? 'Learning ' + who.topic : '';
-    $('ch-profile').href = 'app-person.html?id=' + encodeURIComponent(id);
+    $('ch-profile').href = href;
+
+    var nxt = nextWith[id];
+    $('ch-next-t').textContent = nxt ? sessionLabel(nxt) : '';
+    $('ch-next').hidden = !nxt;
+
     renderList();
 
     if (!opts || !opts.quiet) $('ch-log').innerHTML = '';
@@ -204,10 +256,11 @@
     });
   }
 
-  $('ch-list').addEventListener('click', function(e){
+  $('ch-people').addEventListener('click', function(e){
     var b = e.target.closest('[data-to]');
     if (b) openThread(b.getAttribute('data-to'));
   });
+  $('ch-more-b').addEventListener('click', function(){ showAll = !showAll; renderList(); });
   $('ch-back').addEventListener('click', function(){
     $('chat').classList.remove('open');
     openId = '';
@@ -254,6 +307,26 @@
   $('ch-form').addEventListener('submit', function(e){ e.preventDefault(); send(); });
 
   /* ---------- loading, and keeping up ---------- */
+  /* The booked session with each person, for the header chip. Sessions carry a
+     room built from the partnership id, and acceptedPartners() knows both — so
+     the two are joined on the room rather than on a name, which two people can
+     share. */
+  function loadNextSessions(){
+    return Promise.all([pf.acceptedPartners(), pf.fetchSessions()]).then(function(r){
+      var partners = r[0] || [], sessions = r[1] || [], now = Date.now(), byRoom = {};
+      partners.forEach(function(p){
+        if (p.profile && p.profile.id && p.roomUrl) byRoom[p.roomUrl] = p.profile.id;
+      });
+      sessions.forEach(function(x){
+        if (x.status !== 'confirmed') return;
+        if (x.startsAt.getTime() + x.durationMin * 60000 <= now) return;
+        var who = byRoom[x.roomUrl];
+        if (!who) return;
+        if (!nextWith[who] || x.startsAt < nextWith[who]) nextWith[who] = x.startsAt;
+      });
+    }).catch(function(){});
+  }
+
   function load(first){
     return pf.threads().then(function(t){
       if (!t) { if (first) say('Could not load your messages. Please try again.'); return; }
@@ -273,6 +346,7 @@
     });
   }
 
+  loadNextSessions();
   load(true);
 
   /* No realtime subscription: a poll while the tab is open is a handful of
