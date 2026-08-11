@@ -141,13 +141,22 @@
     sub.textContent = 'Week ' + (stage + 1) + ' of ' + plan.length +
                       ' · tap a week to move your marker.';
 
+    /* A timeline rather than a table. The mark on the rail says where you are,
+       so the status column only speaks where it adds something: "Done" is what
+       a tick means, and "Later" repeated eight times is noise you have to read
+       past to find the one row that matters. */
     box.innerHTML = plan.map(function(w, i){
-      var state = i < stage ? 'Done' : i === stage ? 'Current' : (i === stage + 1 ? 'Next' : 'Later');
       var cls = i < stage ? 'done' : i === stage ? 'now' : '';
-      return '<button class="pg-week ' + cls + '" data-week="' + i + '" type="button">' +
-               '<span class="wk">Week ' + (i + 1) + '</span>' +
-               '<span class="ttl">' + esc(w.t) + '</span>' +
-               '<span class="st">' + state + '</span>' +
+      var state = i === stage ? 'Current' : i === stage + 1 ? 'Next' : '';
+      return '<button class="pg-week ' + cls + '" data-week="' + i + '" type="button" ' +
+               'aria-current="' + (i === stage ? 'step' : 'false') + '">' +
+               '<span class="pg-dot" aria-hidden="true"></span>' +
+               '<span class="pg-b">' +
+                 '<span class="wk">Week ' + (i + 1) + '</span>' +
+                 '<span class="ttl">' + esc(w.t) + '</span>' +
+               '</span>' +
+               (state ? '<span class="st">' + state + '</span>' : '') +
+               '<span class="sr">' + (i < stage ? 'Done' : i === stage ? 'Current week' : 'Not started') + '</span>' +
              '</button>';
     }).join('');
 
