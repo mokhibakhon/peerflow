@@ -82,12 +82,10 @@
           <p class="avail-count" id="p-avail-count"></p>
 
           <h4 class="mini-h">How often you want to meet</h4>
-          <div class="goal-pick" id="p-goal" role="group" aria-label="Sessions a week">
-            <button type="button" class="goal" data-goal="1" aria-pressed="false"><b>1</b><i>a week</i></button>
-            <button type="button" class="goal" data-goal="2" aria-pressed="false"><b>2</b><i>a week</i></button>
-            <button type="button" class="goal" data-goal="3" aria-pressed="false"><b>3</b><i>a week</i></button>
-            <button type="button" class="goal" data-goal="4" aria-pressed="false"><b>4</b><i>a week</i></button>
-          </div>
+          <!-- Filled in by the script below: each tile draws the ring that
+               choice produces on Today, so you pick a shape you will recognise
+               rather than a number you have to imagine. -->
+          <div class="goal-pick" id="p-goal" role="group" aria-label="Sessions a week"></div>
           <p class="goal-note" id="p-goal-note">This is the week you're aiming for. Hit it and your streak carries on.</p>
 
           <div style="margin-top:22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
@@ -181,6 +179,28 @@
   var goalBox = document.getElementById('p-goal');
   var goalNote = document.getElementById('p-goal-note');
   var goal = 2, savedGoal = 2;
+
+  /* The same segmented ring the dashboard draws, in miniature: n arcs with a
+     gap between them. Kept to one small function rather than shared, because
+     the alternative is a fifth script tag on a page that needs none. */
+  function miniRing(n){
+    var r = 40, c = 2 * Math.PI * r;
+    /* Butt caps here rather than round: at 30px across, round caps close a gap
+       this small entirely and four segments render as one circle. */
+    var gap = n === 1 ? 0 : 13;
+    var step = c / n, seg = step - (gap / 360) * c, out = '';
+    for (var i = 0; i < n; i++) {
+      out += '<circle cx="50" cy="50" r="' + r + '" stroke-dasharray="' +
+             seg.toFixed(2) + ' ' + (c - seg).toFixed(2) + '" stroke-dashoffset="' +
+             (-(i * step) - (gap / 720) * c).toFixed(2) + '"/>';
+    }
+    return '<svg viewBox="0 0 100 100" aria-hidden="true">' + out + '</svg>';
+  }
+
+  goalBox.innerHTML = [1, 2, 3, 4].map(function(n){
+    return '<button type="button" class="goal" data-goal="' + n + '" aria-pressed="false">' +
+           miniRing(n) + '<b>' + n + '</b><i>a week</i></button>';
+  }).join('');
 
   function paintGoal(){
     Array.prototype.forEach.call(goalBox.querySelectorAll('.goal'), function(b){

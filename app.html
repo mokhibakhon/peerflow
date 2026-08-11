@@ -161,17 +161,31 @@
            lets a specific person down, and that is the whole product. -->
       <section class="rail streak" id="rail-mo">
         <div class="st-ring" id="mo-ring">
-          <svg viewBox="0 0 100 100" aria-hidden="true">
-            <circle class="st-trk" cx="50" cy="50" r="43"/>
-            <circle class="st-arc" id="mo-arc" cx="50" cy="50" r="43"/>
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="st-g" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0" stop-color="#1D9E75"/>
+                <stop offset="1" stop-color="#0B7F62"/>
+              </linearGradient>
+            </defs>
+            <!-- One segment per session in the week's goal, so "one of two"
+                 is a shape you read rather than a fraction you work out. -->
+            <g id="mo-seg"></g>
           </svg>
           <span class="st-mid">
             <b id="mo-n">0</b>
-            <i id="mo-u">weeks</i>
+            <i id="mo-u">week streak</i>
           </span>
+          <span class="st-flame" id="mo-flame" hidden>🔥</span>
         </div>
         <p class="st-h" id="mo-h">&nbsp;</p>
         <p class="st-w" id="mo-w"></p>
+        <!-- The run itself, twelve weeks of it. A streak is a claim about the
+             past; this is the past, and the gaps are the honest part. -->
+        <div class="st-hist" id="mo-hist" hidden>
+          <p class="st-hl">Last 12 weeks</p>
+          <div class="st-bars" id="mo-bars" aria-hidden="true"></div>
+        </div>
         <a class="rail-l" href="app-progress.html">Your progress &rarr;</a>
       </section>
 
@@ -335,7 +349,42 @@
   /* ---------- the rail ---------- */
 
   /* ---------- the streak ring ---------- */
-  var RING = 2 * Math.PI * 43;
+  /* Geometry, once. r=52 in a 120 box leaves room for the 10px stroke and the
+     flame sitting on the rim. */
+  var R = 52, C = 2 * Math.PI * R;
+
+  /* One arc per session in the goal, with a gap between them. Two sessions is
+     two half-rings, four is four quarters — you read "one of two" as a shape
+     instead of decoding what 50% of a circle was supposed to mean.
+
+     The gap has to clear the round end caps or it closes up: a cap adds half
+     the stroke at each end, which at r=52 and a 10px stroke is about 11° of
+     arc eaten per gap. 18° leaves roughly 7° of daylight. */
+  function ringSegments(goal, done){
+    var gap = goal === 1 ? 0 : 18;                       /* degrees */
+    var step = C / goal, seg = step - (gap / 360) * C;
+    var out = '';
+    for (var i = 0; i < goal; i++) {
+      var off = -(i * step) - (gap / 720) * C;           /* half a gap either side */
+      var on = i < done;
+      out += '<circle class="st-seg' + (on ? ' on' : '') + '" cx="60" cy="60" r="' + R + '" ' +
+             'stroke-dasharray="' + seg.toFixed(2) + ' ' + (C - seg).toFixed(2) + '" ' +
+             'stroke-dashoffset="' + off.toFixed(2) + '" ' +
+             'style="transition-delay:' + (i * 90) + 'ms"/>';
+    }
+    return out;
+  }
+
+  function runStrip(history){
+    return (history || []).map(function(w){
+      var cls = w.met ? 'on' : w.count ? 'half' : '';
+      if (w.current) cls += ' here';
+      var when = new Date(w.start).toLocaleDateString([], { day:'numeric', month:'short' });
+      return '<i class="' + cls.trim() + '" title="Week of ' + when + ' — ' +
+             (w.count ? w.count + (w.count === 1 ? ' session' : ' sessions') : 'nothing') +
+             '"></i>';
+    }).join('');
+  }
 
   /* A zero is a starting line, not a score. The number stands at nought on a
      new account because pretending otherwise would be a lie the first real
@@ -347,13 +396,12 @@
     if (!m) return;
 
     var who = partnerName ? partnerName.split(' ')[0] : '';
-    var arc = $('mo-arc');
 
-    /* The ring is this week against the goal, so the loop is days rather than
-       weeks. Full and green once the week is met. */
-    var frac = m.goal ? Math.min(1, m.thisWeek / m.goal) : 0;
-    arc.style.strokeDasharray = RING;
-    arc.style.strokeDashoffset = RING * (1 - frac);
+    $('mo-seg').innerHTML = ringSegments(m.goal || 2, m.thisWeek);
+    /* Twelve empty marks under a zero would read as a loading skeleton, and
+       there is no run to show yet. It appears with the first session. */
+    $('mo-hist').hidden = !m.done;
+    $('mo-bars').innerHTML = m.done ? runStrip(m.history) : '';
 
     /* The flame belongs to the streak, not to the week — a four-week run is
        still burning on a Monday morning with nothing booked. What the week
@@ -362,15 +410,21 @@
     var atRisk = m.streak && !m.metThisWeek && m.daysLeft <= 3;
     $('mo-ring').className = 'st-ring' +
       (m.metThisWeek ? ' met' : (m.thisWeek ? ' part' : '')) +
-      (m.streak ? ' lit' : '') + (atRisk ? ' cool' : '');
+      (atRisk ? ' cool' : '');
+    $('mo-flame').hidden = !m.streak;
 
     $('mo-n').textContent = m.streak;
-    $('mo-u').textContent = m.streak === 1 ? 'week' : 'weeks';
 
-    $('mo-h').innerHTML = !m.streak
-      ? (m.done ? 'Start it again this week' : 'Your first session starts it')
-      : (who ? 'You and ' + esc(who) : 'You') + ' &mdash; ' +
-        m.streak + (m.streak === 1 ? ' week' : ' weeks') + ' running';
+    /* The count is already enormous in the middle of the ring; repeating it in
+       the sentence underneath wasted the one line the rail has and wrapped it
+       over two. The sentence's job is to say whose streak it is — and to agree
+       with the line under it, which "going strong" over a warning did not. */
+    var pair = who ? 'You and ' + esc(who) : 'You';
+    $('mo-h').innerHTML =
+      !m.streak      ? (m.done ? 'Start it again this week' : 'Your first session starts it') :
+      atRisk         ? (who ? 'Don’t leave ' + esc(who) + ' hanging' : 'Don’t break it now') :
+      m.metThisWeek  ? pair + ', going strong' :
+                       pair + ', week ' + (m.streak + 1);
 
     /* Late in the week with the goal unmet, say what is at stake rather than
        what has been achieved: a streak about to end moves people, a streak
@@ -379,7 +433,7 @@
     if (m.metThisWeek) {
       $('mo-w').textContent = 'This week is done — ' + m.thisWeek + ' of ' + m.goal + '.';
       $('mo-w').className = 'st-w ok';
-    } else if (m.streak && m.daysLeft <= 3) {
+    } else if (atRisk) {
       $('mo-w').textContent = left + (left === 1 ? ' session' : ' sessions') + ' left, ' +
         (m.daysLeft === 1 ? 'and the week ends today.' : m.daysLeft + ' days to book it.');
       $('mo-w').className = 'st-w warn';

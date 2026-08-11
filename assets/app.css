@@ -138,40 +138,71 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 /* ---------- the streak ring ----------
    The number is weeks; the ring is this week against the goal. Two clocks at
    two speeds in one object, which is the point: the count only moves weekly,
-   but you can see today whether the week is safe. */
-.streak{text-align:center}
-.st-ring{position:relative;width:132px;height:132px;margin:2px auto 14px}
-.st-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.st-ring circle{fill:none;stroke-width:9;stroke-linecap:round}
-.st-trk{stroke:var(--band)}
-.st-arc{stroke:var(--p2);transition:stroke-dashoffset .5s cubic-bezier(.2,.9,.3,1),stroke .3s}
-.st-ring.part .st-arc{stroke:var(--p4)}
-.st-ring.met  .st-arc{stroke:var(--p6)}
+   but you can see today whether the week is safe.
+
+   The card gets a tinted ground rather than the plain white of its neighbours.
+   It is the only thing in the rail that is about you rather than about a
+   booking, and it should not look like another row of admin. */
+.streak{text-align:center;padding:22px 18px 18px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #F2FBF7 0%, rgba(242,251,247,0) 62%),
+    var(--card)}
+
+.st-ring{position:relative;width:146px;height:146px;margin:0 auto 16px}
+.st-ring svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.st-seg{fill:none;stroke-width:10;stroke-linecap:round;stroke:#E6E8F0;
+  transition:stroke .45s cubic-bezier(.2,.9,.3,1)}
+.st-seg.on{stroke:url(#st-g)}
+/* The whole week done: a soft halo, so a met week is felt before it is read. */
+.st-ring.met::before{content:"";position:absolute;inset:6px;border-radius:50%;
+  background:radial-gradient(circle,rgba(29,158,117,.16) 0%,rgba(29,158,117,0) 68%)}
 
 .st-mid{position:absolute;inset:0;display:grid;place-content:center;gap:0;line-height:1}
-.st-mid b{display:block;font-size:34px;font-weight:800;letter-spacing:-.035em;color:var(--ink)}
-.st-mid i{display:block;font-style:normal;font-family:var(--mono);font-size:9px;
-  letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-top:5px}
+.st-mid b{display:block;font-size:42px;font-weight:800;letter-spacing:-.045em;
+  color:var(--ink);font-variant-numeric:tabular-nums}
+.st-mid i{display:block;font-style:normal;font-family:var(--mono);font-size:8.5px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--faint);margin-top:7px}
 .st-ring.met .st-mid b{color:var(--p8)}
 
-/* The flame only lights once there is a streak to burn. An unlit one on an
-   empty account is decoration promising something that has not happened.
-   Late in the week with nothing booked it goes grey and small — the streak is
-   still yours, but you can see it going out. */
-.st-ring.lit::after{content:"\1F525";position:absolute;
-  top:-2px;right:4px;font-size:19px;line-height:1;
-  transition:filter .3s,font-size .3s;
-  filter:drop-shadow(0 1px 2px rgba(23,26,46,.18))}
-.st-ring.lit.cool::after{font-size:16px;filter:grayscale(1) opacity(.5)}
+/* The flame is a struck badge on the rim, not an emoji dropped on top: a white
+   disc lifts it off the ring and gives it an edge to sit against. It only
+   lights once there is a streak to burn — an unlit one on an empty account is
+   decoration promising something that has not happened. Late in the week with
+   nothing booked it goes grey: the streak is still yours, but you can see it
+   going out. */
+.st-flame{position:absolute;top:-1px;right:2px;width:32px;height:32px;
+  display:grid;place-items:center;font-size:16px;line-height:1;
+  background:var(--card);border-radius:50%;
+  box-shadow:0 2px 8px rgba(23,26,46,.14),0 0 0 1px rgba(23,26,46,.05);
+  transition:filter .3s,transform .3s}
+.st-ring.cool .st-flame{filter:grayscale(1) opacity(.55);transform:scale(.86)}
 
-.st-h{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.01em;line-height:1.35}
-.st-w{margin:5px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.st-h{margin:0;font-size:15px;font-weight:700;letter-spacing:-.015em;line-height:1.35}
+.st-w{margin:6px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
 .st-w.ok{color:var(--p6);font-weight:600}
 /* Late in the week with the goal unmet. Amber once, not a siren. */
 .st-w.warn{color:#93641A;font-weight:600}
-.streak .rail-l{margin-top:12px}
 
-@media (prefers-reduced-motion:reduce){ .st-arc{transition:none} }
+/* Twelve weeks as twelve marks. Missed weeks are drawn, not hidden — the gaps
+   are what make the run mean anything. Ruled off from the sentence above it,
+   because it is evidence rather than more copy. */
+.st-hist{margin:16px 0 0;padding:14px 0 0;border-top:1px solid var(--line)}
+.st-hl{margin:0 0 9px;font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--faint)}
+.st-bars{display:flex;gap:4px;justify-content:center}
+.st-bars i{width:8px;height:22px;border-radius:3px;background:#E6E8F0;
+  transition:background .3s}
+.st-bars i.half{background:var(--p1)}
+.st-bars i.on{background:var(--p4)}
+/* "here", not "now": .now is the band at the top of the dashboard, and a mark
+   in this strip inheriting its 22px padding blew one week up into a tile. */
+.st-bars i.here{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--p2)}
+
+.streak .rail-l{margin-top:14px}
+
+@media (prefers-reduced-motion:reduce){
+  .st-seg,.st-flame,.st-bars i,.run i span{transition:none}
+}
 
 /* The partner, in the rail. */
 .ptm{display:flex;align-items:center;gap:11px}
@@ -430,21 +461,30 @@ h1 .g{color:var(--p4)}
 .avail-count.good{color:var(--p8);font-weight:600}
 
 /* ---------- weekly goal ---------- */
-/* Four small tiles rather than a select: the whole range is visible at once,
-   and the number you're choosing is the same number the ring on Today counts
-   against, so it wants to look like a figure, not a form field. */
-.goal-pick{display:flex;gap:8px;flex-wrap:wrap}
-.goal{width:74px;padding:9px 0;border:1.5px solid var(--line);border-radius:11px;
-  background:var(--band);font-family:inherit;text-align:center;
-  transition:background .12s,border-color .12s}
-.goal:hover{border-color:var(--p4);background:var(--p0)}
-.goal b{display:block;font-size:19px;font-weight:700;color:var(--ink);line-height:1.15}
-.goal i{display:block;font-style:normal;font-size:11.5px;color:var(--faint)}
-.goal.sel{background:var(--p0);border-color:var(--p6)}
+/* Four tiles rather than a select: the whole range is visible at once, and the
+   number you're choosing is the same number the ring on Today counts against,
+   so it wants to look like a figure rather than a form field. Each tile shows
+   the ring it will produce — the choice is drawn, not just numbered. */
+.goal-pick{display:flex;gap:10px;flex-wrap:wrap}
+.goal{width:84px;padding:13px 0 11px;border:1.5px solid var(--line);border-radius:14px;
+  background:var(--card);font-family:inherit;text-align:center;
+  transition:border-color .15s,background .15s,box-shadow .15s}
+.goal:hover{border-color:var(--p2);background:var(--p0)}
+.goal svg{display:block;margin:0 auto 8px;width:30px;height:30px;
+  transform:rotate(-90deg);overflow:visible}
+.goal svg circle{fill:none;stroke-width:12;stroke-linecap:butt;stroke:#E2E4EE;
+  transition:stroke .15s}
+.goal b{display:block;font-size:15px;font-weight:700;color:var(--ink);line-height:1.15;
+  letter-spacing:-.01em}
+.goal i{display:block;font-style:normal;font-family:var(--mono);font-size:9px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:3px}
+.goal.sel{background:var(--p0);border-color:var(--p4);
+  box-shadow:0 1px 3px rgba(11,127,98,.14)}
+.goal.sel svg circle{stroke:var(--p4)}
 .goal.sel b{color:var(--p8)}
 .goal.sel i{color:var(--p6)}
 
-.goal-note{font-size:13.5px;color:var(--faint);margin:10px 0 0}
+.goal-note{font-size:13.5px;color:var(--faint);margin:12px 0 0}
 
 /* ---------- badges ---------- */
 /* Tiles were 104px wide with a 14px gutter, so two-word names wrapped into
@@ -1190,10 +1230,70 @@ html{scroll-behavior:smooth}
   border:1px solid var(--line);border-radius:16px}
 .pt-sec h3{font-size:15px;margin:0 0 4px}
 .pt-sec .lede{color:var(--soft);font-size:13.5px;margin:0 0 16px}
-.pt-stats{display:flex;gap:26px;flex-wrap:wrap}
-.pt-stats div{min-width:0}
-.pt-stats b{display:block;font-size:19px;line-height:1.2}
-.pt-stats span{font-size:12.5px;color:var(--faint)}
+/* ---------- the record, at the top of Progress ----------
+   It used to be five figures on one line, all the same size, one of them a
+   permanent em-dash and one of them "0.8". A row of numbers with no hierarchy
+   is a printout; this is a header. */
+.rec{padding:0;overflow:hidden;
+  background:
+    radial-gradient(90% 120% at 12% 0%, #F2FBF7 0%, rgba(242,251,247,0) 58%),
+    var(--card)}
+.rec-top{display:flex;align-items:center;gap:28px;padding:26px 28px 24px;flex-wrap:wrap}
+.rec .st-ring{flex:0 0 auto;width:132px;height:132px;margin:0}
+/* The sentence takes the slack, which pushes the figures to the right edge
+   rather than leaving half the card empty. */
+.rec-side{min-width:0;flex:1 1 240px}
+
+.rec-h{margin:0;font-size:23px;font-weight:800;letter-spacing:-.03em;line-height:1.15}
+.rec-s{margin:8px 0 0;font-size:13.5px;color:var(--soft);line-height:1.5}
+
+/* Label above figure: the label is what you scan for, the figure is what you
+   stop on, and stacking them that way lets the figures be big without three
+   headings shouting at once. Hairlines between, so three numbers in a row read
+   as three things rather than one long one. */
+.figs{display:flex;margin:0;flex:0 0 auto}
+.figs > div{padding:2px 0 2px 26px;margin-left:26px;text-align:right;
+  border-left:1px solid var(--line)}
+.figs > div:first-child{border-left:0;margin-left:0;padding-left:0}
+.figs dt{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--faint);margin:0;white-space:nowrap}
+.figs dd{margin:7px 0 0;font-size:22px;font-weight:700;letter-spacing:-.025em;
+  color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* Twelve weeks across the full width, on a band that separates the record
+   from the evidence for it. */
+.rec-run{border-top:1px solid var(--line);background:rgba(239,238,243,.34);
+  padding:16px 28px 18px}
+.run-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--faint)}
+.run-h b{font-weight:400;color:var(--p6)}
+.run{display:flex;gap:5px;margin:10px 0 0;align-items:flex-end}
+.run i{position:relative;flex:1;height:38px;border-radius:6px;background:#E2E4EE;
+  overflow:hidden}
+.run i span{position:absolute;left:0;right:0;bottom:0;border-radius:6px;
+  background:var(--p2);transition:height .5s cubic-bezier(.2,.9,.3,1)}
+.run i.on span{background:var(--p4)}
+.run i.here{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--p2)}
+.run-x{display:flex;justify-content:space-between;margin:8px 0 0;
+  font-size:11px;color:var(--faint)}
+
+/* Wrapped onto their own row, ranging the figures right leaves the first one
+   reading against the grain of everything above it. Share the width instead. */
+@media (max-width:820px){
+  .figs{flex:1 1 100%;margin-top:4px}
+  .figs > div{flex:1;text-align:left;padding-left:18px;margin-left:18px}
+  .rec-top{padding-bottom:20px}
+}
+@media (max-width:560px){
+  .rec-top{gap:20px;padding:22px 20px 20px}
+  .rec .st-ring{width:112px;height:112px}
+  .rec-h{font-size:20px}
+  .rec-run{padding:14px 20px 16px}
+  .run i{height:32px}
+  .figs > div{padding-left:13px;margin-left:13px}
+  .figs dd{font-size:18px}
+}
 
 /* A list, not a course. Each week is a button because moving the marker is
    the only progress input the product asks for. */

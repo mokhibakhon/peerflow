@@ -706,6 +706,20 @@ window.pf = (function(){
     return { weeks: n, rested: rested };
   }
 
+  /* The last `span` weeks, oldest first, ending with the one we are in.
+     A streak is a claim about the past; this is the past itself, and it is the
+     only part of the record that shows the shape of somebody's habit — the
+     fortnight they missed, the month they did not. */
+  function historyOf(weeks, nowWeek, span, goal){
+    var out = [];
+    for (var i = span - 1; i >= 0; i--) {
+      var k = nowWeek - i * WEEK_MS;
+      var n = weeks[k] || 0;
+      out.push({ start: k, count: n, met: n >= goal, current: i === 0 });
+    }
+    return out;
+  }
+
   function bestOf(weeks){
     var keys = Object.keys(weeks).map(Number).sort(function(a, b){ return a - b; });
     var best = keys.length ? 1 : 0, run = best;
@@ -748,15 +762,16 @@ window.pf = (function(){
       if (partnerRoom) done = done.filter(function(s){ return s.roomUrl === partnerRoom; });
 
       var weeks = {};
-      done.forEach(function(s){ weeks[weekStart(s.startsAt)] = true; });
+      done.forEach(function(s){
+        var k = weekStart(s.startsAt);
+        weeks[k] = (weeks[k] || 0) + 1;
+      });
 
       var st = streakOf(weeks, nowWeek);
       var goal = profile.sessions_per_week;
       goal = (goal >= 1 && goal <= 5) ? goal : 2;
 
-      var thisWeek = done.filter(function(s){
-        return weekStart(s.startsAt) === nowWeek;
-      }).length;
+      var thisWeek = weeks[nowWeek] || 0;
 
       /* Sunday night is the deadline, so "days left" counts the rest of the
          week including today. */
@@ -771,7 +786,8 @@ window.pf = (function(){
         goal: goal,
         thisWeek: thisWeek,
         metThisWeek: thisWeek >= goal,
-        daysLeft: 7 - dayOfWeek
+        daysLeft: 7 - dayOfWeek,
+        history: historyOf(weeks, nowWeek, 12, goal)
       };
     }).catch(function(){ return null; });
   }
