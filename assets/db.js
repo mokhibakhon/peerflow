@@ -651,6 +651,154 @@ window.pf = (function(){
       'Could not put this week’s sessions on the calendar.');
   }
 
+  /* ---------- one person ---------- */
+
+  /* Everything on somebody's profile, for the page that shows it. Profiles
+     are readable by any signed-in user (the "profiles are viewable" policy)
+     — this is a directory of people looking for a study partner, and you
+     cannot judge whether somebody suits you from a name and a topic. */
+  function getPerson(id){
+    if (!client || !id) return Promise.resolve(null);
+    return client.from('profiles')
+      .select('id,name,track_id,topic,level,timezone,availability,created_at')
+      .eq('id', id).limit(1)
+      .then(function(r){
+        if (r.error || !r.data || !r.data.length) return null;
+        return r.data[0];
+      }).catch(function(){ return null; });
+  }
+
+  /* ---------- messages ----------
+     Who may message whom is decided in the database, not here: the insert
+     policy requires a partner request between the two of you in some
+     direction, so a stranger cannot open a thread with you uninvited. */
+
+  var MSG_COLS = 'id,from_user,to_user,body,created_at,read_at';
+
+  function messagesMissing(err){
+    /* PGRST205 is "table not in the schema cache", i.e. migration-chat.sql
+       has not been run. Everything messaging-related answers with a flag
+       rather than an error so the page can say so in one sentence. */
+    return !!err && (err.code === 'PGRST205' || err.code === '42P01' ||
+                     /relation .* does not exist|find the table/i.test(String(err.message || '')));
+  }
+
+  function sendMessage(toId, body){
+    if (!client) return Promise.resolve({ demo: true });
+    var text = String(body == null ? '' : body).trim();
+    if (!text) return Promise.resolve({ error: 'Write something first.' });
+    if (text.length > 2000) return Promise.resolve({ error: 'That is too long — 2000 characters at most.' });
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      return client.from('messages')
+        .insert({ from_user: uid, to_user: toId, body: text })
+        .select(MSG_COLS)
+        .then(function(r){
+          if (r.error) {
+            if (messagesMissing(r.error)) return { needsMigration: true,
+              error: 'Messages aren’t switched on for this site yet.' };
+            /* The insert policy is the only other thing that can refuse this,
+               and it means exactly one thing. */
+            if (r.error.code === '42501' || /policy/i.test(String(r.error.message || '')))
+              return { error: 'You can only message someone you’ve asked, or who has asked you.' };
+            return fail(r.error, 'Could not send that. Please try again.');
+          }
+          return { saved: true, message: (r.data || [])[0] || null };
+        });
+    }).catch(function(e){
+      return fail(e, 'Could not send that — check your connection and try again.');
+    });
+  }
+
+  /* One conversation, oldest first, which is the order it is read in. */
+  function fetchThread(otherId){
+    if (!client || !otherId) return Promise.resolve(null);
+    return currentUid().then(function(uid){
+      if (!uid) return null;
+      return client.from('messages').select(MSG_COLS)
+        .or('and(from_user.eq.' + uid + ',to_user.eq.' + otherId + '),' +
+            'and(from_user.eq.' + otherId + ',to_user.eq.' + uid + ')')
+        .order('created_at', { ascending: true })
+        .limit(400)
+        .then(function(r){
+          if (r.error) return messagesMissing(r.error) ? { needsMigration: true } : null;
+          return (r.data || []).map(function(m){
+            return { id: m.id, body: m.body, mine: m.from_user === uid,
+                     at: new Date(m.created_at), readAt: m.read_at ? new Date(m.read_at) : null };
+          });
+        });
+    }).catch(function(){ return null; });
+  }
+
+  /* Everybody you can talk to, newest conversation first, each with its last
+     line and how many of theirs you have not read.
+
+     Grouped here rather than in a view: at the size this app is, one query
+     for your own messages is cheaper than a round trip per thread, and it
+     keeps the schema to one table. */
+  function threads(){
+    if (!client) return Promise.resolve(null);
+    return Promise.all([currentUid(), myRequests()]).then(function(both){
+      var uid = both[0], reqs = both[1];
+      if (!uid) return null;
+
+      var people = {};
+      if (reqs) reqs.incoming.concat(reqs.outgoing).forEach(function(r){
+        var o = r.other || {};
+        if (o.id) people[o.id] = { id: o.id, name: o.name || 'Someone', topic: o.topic || '',
+                                   partner: r.status === 'accepted' };
+      });
+
+      return client.from('messages').select(MSG_COLS)
+        .or('from_user.eq.' + uid + ',to_user.eq.' + uid)
+        .order('created_at', { ascending: false })
+        .limit(500)
+        .then(function(r){
+          if (r.error) return messagesMissing(r.error) ? { needsMigration: true } : null;
+
+          (r.data || []).forEach(function(m){
+            var otherId = m.from_user === uid ? m.to_user : m.from_user;
+            var t = people[otherId];
+            /* A thread with somebody whose request has since been deleted
+               still has to be readable — you said those things to a real
+               person. */
+            if (!t) t = people[otherId] = { id: otherId, name: 'Someone', topic: '', partner: false };
+            if (!t.last) { t.last = m.body; t.at = new Date(m.created_at); t.lastMine = m.from_user === uid; }
+            if (m.to_user === uid && !m.read_at) t.unread = (t.unread || 0) + 1;
+          });
+
+          return Object.keys(people).map(function(k){ return people[k]; })
+            .sort(function(a, b){
+              /* Conversations that exist come before people you have never
+                 written to; among those, most recent first. */
+              if (a.at && b.at) return b.at - a.at;
+              if (a.at) return -1;
+              if (b.at) return 1;
+              return String(a.name).localeCompare(String(b.name));
+            });
+        });
+    }).catch(function(){ return null; });
+  }
+
+  function markThreadRead(otherId){
+    if (!client || !otherId) return Promise.resolve({ demo: true });
+    return client.rpc('mark_thread_read', { p_other: otherId }).then(function(r){
+      if (r.error) return missingFunction(r.error) ? { needsMigration: true } : { error: true };
+      return { saved: true, count: r.data };
+    }).catch(function(){ return { error: true }; });
+  }
+
+  /* Just the number, for the badge on the Chat tab. */
+  function unreadMessages(){
+    if (!client) return Promise.resolve(0);
+    return currentUid().then(function(uid){
+      if (!uid) return 0;
+      return client.from('messages').select('id', { count: 'exact', head: true })
+        .eq('to_user', uid).is('read_at', null)
+        .then(function(r){ return r.error ? 0 : (r.count || 0); });
+    }).catch(function(){ return 0; });
+  }
+
   /* ---------- badge inputs ---------- */
 
   /* Everything the badge rules need, all counted from real rows: finished
@@ -916,6 +1064,16 @@ window.pf = (function(){
     respondToRequest: respondToRequest,
     markRequestsSeen: markRequestsSeen,
     acceptedPartners: acceptedPartners,
+
+    /* One person, for the profile page */
+    getPerson: getPerson,
+
+    /* Messages */
+    sendMessage: sendMessage,
+    fetchThread: fetchThread,
+    threads: threads,
+    markThreadRead: markThreadRead,
+    unreadMessages: unreadMessages,
 
     /* Standing weekly slot */
     setStanding: setStanding,

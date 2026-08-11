@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+
+<main>
+  <div class="wrap">
+    <div class="app-head"><h1>Chat</h1></div>
+
+    <p class="ch-miss" id="ch-miss" hidden></p>
+
+    <!-- Two panes on a desktop, one at a time on a phone: on a narrow screen
+         a list and a conversation side by side gives you two things too
+         cramped to use instead of one that works. -->
+    <div class="chat" id="chat" hidden>
+      <aside class="ch-list" id="ch-list"></aside>
+
+      <section class="ch-pane" id="ch-pane">
+        <div class="ch-empty" id="ch-empty">
+          <p>Pick somebody on the left to read what you said last time.</p>
+        </div>
+
+        <div class="ch-open" id="ch-open" hidden>
+          <header class="ch-top">
+            <button class="ch-back" type="button" id="ch-back" aria-label="Back to conversations">&lsaquo;</button>
+            <span class="ch-av" id="ch-av">·</span>
+            <div class="ch-who">
+              <b id="ch-name"></b>
+              <span id="ch-sub"></span>
+            </div>
+            <a class="small" id="ch-profile" href="#">Profile</a>
+          </header>
+
+          <div class="ch-log" id="ch-log"></div>
+
+          <form class="ch-form" id="ch-form">
+            <label class="sr-only" for="ch-text">Message</label>
+            <textarea id="ch-text" rows="1" maxlength="2000"
+                      placeholder="Write a message…"></textarea>
+            <button class="btn" type="submit" id="ch-send">Send</button>
+          </form>
+          <p class="ch-err" id="ch-err" hidden></p>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="mfoot">
+  <a href="conduct.html">Code of conduct</a>
+  <a href="app-people.html">Everyone</a>
+  <span>peerflow</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/authgate.js"></script>
+<script src="assets/appshell.js"></script>
+<script>
+/* PeerFlow — chat.
+
+   Deliberately small: a list of people you have already approached, a
+   conversation, and a box. No typing indicators, no read receipts beyond the
+   unread count, no attachments. Two people arranging when to study do not
+   need a messenger; they need somewhere the last thing they agreed is still
+   written down.
+
+   Who you may write to is decided by the database, not here — the insert
+   policy wants a partner request between you in some direction, so a stranger
+   cannot open a thread with you uninvited. */
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+  function initial(s){ return (String(s || '').trim()[0] || '·').toUpperCase(); }
+
+  var list = [], openId = '', openName = '', poll = null, lastCount = 0;
+
+  try { openId = new URLSearchParams(location.search).get('to') || ''; } catch(e){}
+
+  function when(d){
+    var mins = Math.round((Date.now() - d.getTime()) / 60000);
+    if (mins < 1)    return 'just now';
+    if (mins < 60)   return mins + 'm ago';
+    if (mins < 1440) return Math.round(mins / 60) + 'h ago';
+    try { return d.toLocaleDateString(undefined, { month:'short', day:'numeric' }); }
+    catch(e){ return ''; }
+  }
+  function stamp(d){
+    try { return d.toLocaleString(undefined,
+      { weekday:'short', hour:'numeric', minute:'2-digit' }); }
+    catch(e){ return ''; }
+  }
+
+  function say(msg){
+    $('ch-miss').textContent = msg;
+    $('ch-miss').hidden = false;
+    $('chat').hidden = true;
+  }
+
+  /* ---------- the list of conversations ---------- */
+  function renderList(){
+    if (!list.length) {
+      $('ch-list').innerHTML =
+        '<p class="ch-none">Nobody to talk to yet. Ask somebody on ' +
+        '<a href="app-people.html">People</a> and you can message them from the moment you do.</p>';
+      return;
+    }
+    $('ch-list').innerHTML = list.map(function(t){
+      return '<button type="button" class="ch-row' + (t.id === openId ? ' on' : '') +
+        '" data-to="' + esc(t.id) + '">' +
+        '<span class="ch-av">' + esc(initial(t.name)) + '</span>' +
+        '<span class="ch-meta">' +
+          /* The name truncates, the tag does not: "Amir Karimov PA…" tells
+             you less than a shortened name and a whole word. */
+          '<b><span class="ch-nm">' + esc(t.name) + '</span>' +
+            (t.partner ? '<i class="ch-tag">partner</i>' : '') + '</b>' +
+          '<span class="ch-last">' +
+            (t.last ? (t.lastMine ? 'You: ' : '') + esc(t.last) : 'No messages yet') +
+          '</span>' +
+        '</span>' +
+        (t.unread ? '<span class="ch-dot">' + t.unread + '</span>'
+                  : (t.at ? '<span class="ch-when">' + esc(when(t.at)) + '</span>' : '')) +
+      '</button>';
+    }).join('');
+  }
+
+  /* ---------- one conversation ---------- */
+  function renderLog(msgs){
+    var log = $('ch-log');
+    /* Only stick to the bottom if you were already there — yanking somebody
+       back down while they are reading older messages is worse than a missed
+       new one. */
+    var atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
+
+    if (!msgs.length) {
+      log.innerHTML = '<p class="ch-first">Nothing here yet. Say hello — ' +
+        'the first message is usually "when are you free?"</p>';
+      return;
+    }
+
+    var lastDay = '';
+    log.innerHTML = msgs.map(function(m){
+      var day = m.at.toDateString(), sep = '';
+      if (day !== lastDay) {
+        lastDay = day;
+        sep = '<p class="ch-day">' + esc(m.at.toLocaleDateString(undefined,
+          { weekday:'long', month:'short', day:'numeric' })) + '</p>';
+      }
+      return sep + '<div class="ch-msg' + (m.mine ? ' mine' : '') + '">' +
+        '<p>' + esc(m.body) + '</p>' +
+        '<span class="ch-t">' + esc(stamp(m.at)) + '</span></div>';
+    }).join('');
+
+    if (atBottom || msgs.length !== lastCount) log.scrollTop = log.scrollHeight;
+    lastCount = msgs.length;
+  }
+
+  function openThread(id, opts){
+    openId = id;
+    var who = list.filter(function(t){ return t.id === id; })[0];
+    openName = (who && who.name) || 'Someone';
+
+    $('ch-empty').hidden = true;
+    $('ch-open').hidden = false;
+    $('chat').classList.add('open');
+    $('ch-av').textContent = initial(openName);
+    $('ch-name').textContent = openName;
+    $('ch-sub').textContent = (who && who.topic) ? 'Learning ' + who.topic : '';
+    $('ch-profile').href = 'app-person.html?id=' + encodeURIComponent(id);
+    renderList();
+
+    if (!opts || !opts.quiet) $('ch-log').innerHTML = '';
+
+    return pf.fetchThread(id).then(function(msgs){
+      if (!msgs) return;
+      if (msgs.needsMigration) { say('Messages aren’t switched on for this site yet.'); return; }
+      renderLog(msgs);
+      /* Reading it is what marks it read, so the badge and the page cannot
+         disagree about what you have seen. */
+      if (who && who.unread) {
+        pf.markThreadRead(id).then(function(){
+          who.unread = 0;
+          renderList();
+          if (window.pfChatBadge) pfChatBadge();
+        });
+      }
+    });
+  }
+
+  $('ch-list').addEventListener('click', function(e){
+    var b = e.target.closest('[data-to]');
+    if (b) openThread(b.getAttribute('data-to'));
+  });
+  $('ch-back').addEventListener('click', function(){
+    $('chat').classList.remove('open');
+    openId = '';
+    renderList();
+  });
+
+  /* ---------- sending ---------- */
+  var text = $('ch-text');
+  /* Grow with what you are writing, up to a point — a one-line box for a
+     paragraph is a box you write less in. */
+  function resize(){
+    text.style.height = 'auto';
+    text.style.height = Math.min(text.scrollHeight, 160) + 'px';
+  }
+  text.addEventListener('input', resize);
+  /* Enter sends, Shift+Enter starts a line. */
+  text.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      $('ch-form').requestSubmit ? $('ch-form').requestSubmit() : send();
+    }
+  });
+
+  function send(){
+    var body = text.value.trim();
+    if (!body || !openId) return;
+    $('ch-send').disabled = true;
+    $('ch-err').hidden = true;
+
+    pf.sendMessage(openId, body).then(function(res){
+      $('ch-send').disabled = false;
+      if (res && res.saved) {
+        text.value = ''; resize();
+        var t = list.filter(function(x){ return x.id === openId; })[0];
+        if (t) { t.last = body; t.lastMine = true; t.at = new Date(); }
+        list.sort(function(a, b){ return (b.at || 0) - (a.at || 0); });
+        openThread(openId, { quiet: true });
+        return;
+      }
+      $('ch-err').textContent = (res && res.error) || 'Could not send that. Please try again.';
+      $('ch-err').hidden = false;
+    });
+  }
+  $('ch-form').addEventListener('submit', function(e){ e.preventDefault(); send(); });
+
+  /* ---------- loading, and keeping up ---------- */
+  function load(first){
+    return pf.threads().then(function(t){
+      if (!t) { if (first) say('Could not load your messages. Please try again.'); return; }
+      if (t.needsMigration) {
+        say('Messages aren’t switched on for this site yet. Run supabase/migration-chat.sql.');
+        return;
+      }
+      list = t;
+      $('chat').hidden = false;
+      renderList();
+      if (first && openId && list.some(function(x){ return x.id === openId; })) openThread(openId);
+      else if (first && openId) {
+        /* Arrived from a profile with somebody you have not written to yet. */
+        list.unshift({ id: openId, name: 'Someone', topic: '', partner: false });
+        openThread(openId);
+      }
+    });
+  }
+
+  load(true);
+
+  /* No realtime subscription: a poll while the tab is open is a handful of
+     requests a minute and cannot get stuck in a bad state. It stops when the
+     tab is hidden, so a forgotten tab costs nothing. */
+  function tick(){
+    if (document.hidden) return;
+    load(false).then(function(){ if (openId) openThread(openId, { quiet: true }); });
+  }
+  poll = setInterval(tick, 8000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) tick(); });
+})();
+</script>
+<script src="assets/usermenu.js"></script>
+<script src="assets/notify.js"></script>
+</body>
+</html>

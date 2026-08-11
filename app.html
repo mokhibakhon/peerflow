@@ -610,6 +610,11 @@
   var BAND_HOURS  = { morning:[6,7,8,9,10,11], afternoon:[12,13,14,15,16],
                       evening:[17,18,19,20,21], night:[22,23] };
   var DAY_HOURS   = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+  /* Every hour, in the order a day runs rather than the order a clock counts:
+     the small hours belong at the end of Tuesday night, not before breakfast.
+     A shared window is a suggestion, not a fence — people make exceptions,
+     partners are in other timezones, and 6am is somebody's best hour. */
+  var ALL_HOURS   = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0,1,2,3,4,5,6];
   var LENGTHS = [ { v:25, why:'a quick check-in' },
                   { v:50, why:'the usual' },
                   { v:80, why:'a proper session' } ];
@@ -753,7 +758,11 @@
             esc(d.toLocaleDateString(undefined, { month:'short' })) + '</span></button>';
         }
       }
+      /* The escape hatch. It used to be an unlabelled date box under the two
+         days you share, which read as decoration — so the menu looked like a
+         list of the only days you were allowed to pick. */
       return out + '<div class="pop-sep"></div>' +
+        '<p class="pop-h">Any other day</p>' +
         '<div class="pop-any"><input type="date" id="bk-any" aria-label="Another day" min="' +
         isoDate(new Date()) + '">' +
         '<button type="button" class="small" data-any="1">Use this day</button></div>';
@@ -765,13 +774,13 @@
         return '<button type="button" class="' + (h === bkHour ? 'on' : '') +
           '" data-hour="' + h + '">' + esc(clockOf(h)) + '</button>';
       };
-      if (!mine.length) return '<p class="pop-h">Any time</p><div class="tgrid dim">' +
-        DAY_HOURS.map(cell).join('') + '</div>';
-      var rest = DAY_HOURS.filter(function(h){ return mine.indexOf(h) < 0; });
+      if (!mine.length) return '<p class="pop-h">Any time</p><div class="tgrid alt">' +
+        ALL_HOURS.map(cell).join('') + '</div>';
+      var rest = ALL_HOURS.filter(function(h){ return mine.indexOf(h) < 0; });
       return '<p class="pop-h">' + esc(bandsOn(bkDay).join(' and ')) +
         ' — you’re both free</p><div class="tgrid">' + mine.map(cell).join('') + '</div>' +
         (rest.length ? '<div class="pop-sep"></div><p class="pop-h">Any other time</p>' +
-          '<div class="tgrid dim">' + rest.map(cell).join('') + '</div>' : '');
+          '<div class="tgrid alt">' + rest.map(cell).join('') + '</div>' : '');
     }
 
     return LENGTHS.map(function(l){

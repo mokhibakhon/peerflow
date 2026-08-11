@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+
+<main>
+  <div class="wrap" style="max-width:760px">
+    <a class="backlink" href="app-people.html">&larr; Everyone on PeerFlow</a>
+
+    <p class="pv-miss" id="pv-miss" hidden>
+      We couldn’t find that person. They may have deleted their account.
+      <a href="app-people.html">Back to everyone</a>.
+    </p>
+
+    <!-- Written only once we know who this is: a profile card with a blank
+         name on it looks like somebody with no name. -->
+    <section class="pv" id="pv" hidden>
+      <div class="pv-head">
+        <span class="pv-av" id="pv-av">·</span>
+        <div class="pv-id">
+          <h1 id="pv-name">&nbsp;</h1>
+          <p class="pv-sub" id="pv-sub"></p>
+        </div>
+        <div class="pv-acts" id="pv-acts"></div>
+      </div>
+
+      <div class="pv-facts" id="pv-facts"></div>
+
+      <!-- Their week. The single most useful thing on this page: whether a
+           partnership can physically happen is a question about hours, and
+           four words of prose about "evenings" cannot answer it. -->
+      <section class="pv-sec">
+        <h2>When they’re free</h2>
+        <p class="pv-note" id="pv-availnote"></p>
+        <div class="pv-week" id="pv-week"></div>
+        <p class="pv-key" id="pv-key" hidden>
+          <span class="k-both"><i></i>You’re both free</span>
+          <span class="k-them"><i></i>Only them</span>
+        </p>
+      </section>
+    </section>
+  </div>
+</main>
+
+<div class="mfoot">
+  <a href="conduct.html">Code of conduct</a>
+  <a href="app-people.html">Everyone</a>
+  <span>peerflow</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/authgate.js"></script>
+<script src="assets/appshell.js"></script>
+<script>
+/* PeerFlow — somebody else's profile.
+
+   Reached from People and from your partner card. Everything here is already
+   readable by any signed-in user; the page exists because deciding whether to
+   spend twelve weeks studying with somebody takes more than a name and a
+   topic, and the row on People has room for neither their week nor their
+   stage. */
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+
+  var DAYS  = ['mon','tue','wed','thu','fri','sat','sun'];
+  var DAYLB = { mon:'Mon', tue:'Tue', wed:'Wed', thu:'Thu', fri:'Fri', sat:'Sat', sun:'Sun' };
+  var BANDS = ['morning','afternoon','evening','night'];
+  var BANDLB= { morning:'Morning', afternoon:'Afternoon', evening:'Evening', night:'Night' };
+  var LEVEL = { new:'Just starting', tutorials:'Doing tutorials',
+                jobprep:'Job-hunt prep', builder:'Builds projects' };
+
+  var id = '';
+  try { id = new URLSearchParams(location.search).get('id') || ''; } catch(e){}
+
+  function missing(){ $('pv-miss').hidden = false; }
+
+  /* The same four-band week the profile editor uses, drawn read-only, with
+     the squares you share picked out — the question this page is really
+     being asked is "can we actually meet". */
+  function week(theirs, mine){
+    var them = {}, us = {};
+    (theirs || []).forEach(function(s){ them[s] = true; });
+    (mine   || []).forEach(function(s){ us[s]   = true; });
+
+    var html = '<div class="pw-hd"></div>' + DAYS.map(function(d){
+      return '<div class="pw-hd">' + DAYLB[d] + '</div>';
+    }).join('');
+
+    BANDS.forEach(function(b){
+      html += '<div class="pw-lb">' + BANDLB[b] + '</div>';
+      DAYS.forEach(function(d){
+        var k = d + '-' + b;
+        var cls = them[k] ? (us[k] ? 'both' : 'them') : '';
+        html += '<div class="pw-c ' + cls + '"></div>';
+      });
+    });
+    return html;
+  }
+
+  function actions(person, req){
+    /* What you can do next depends only on where the two of you already are,
+       so the buttons are written from the request row rather than guessed. */
+    var out = '';
+    if (!req) {
+      out += '<a class="btn" href="app-people.html?ask=' + esc(person.id) + '">Send request</a>';
+    } else if (req.status === 'accepted') {
+      out += '<span class="pstate ok">Partners</span>';
+    } else if (req.status === 'declined') {
+      out += '<span class="pstate no">Declined</span>';
+    } else {
+      out += '<span class="pstate ' + (req.direction === 'out' ? 'sent' : 'wait') + '">' +
+             (req.direction === 'out' ? 'Asked' : 'Waiting on you') + '</span>';
+    }
+    /* Messaging needs a request in some direction — the same rule the
+       database enforces — so the button only appears when it would work. */
+    if (req) out += '<a class="ghost" href="app-chat.html?to=' + esc(person.id) + '">Message</a>';
+    return out;
+  }
+
+  function render(person, profile, req){
+    var nm = person.name || 'Someone';
+    $('pv-av').textContent = (nm.trim()[0] || '·').toUpperCase();
+    $('pv-name').textContent = nm;
+    $('pv-sub').textContent = person.topic
+      ? 'Learning ' + person.topic
+      : 'Hasn’t said what they’re learning yet';
+    $('pv-acts').innerHTML = actions(person, req);
+
+    var tracks = (window.pf && pf.trackNames) || {};
+    var facts = [];
+    if (tracks[person.track_id]) facts.push(['Path', tracks[person.track_id]]);
+    if (LEVEL[person.level])     facts.push(['Stage', LEVEL[person.level]]);
+    if (person.timezone)         facts.push(['Timezone', person.timezone]);
+    if (person.created_at) {
+      var d = new Date(person.created_at);
+      if (!isNaN(d)) facts.push(['Joined', d.toLocaleDateString(undefined,
+        { month:'short', year:'numeric' })]);
+    }
+    $('pv-facts').innerHTML = facts.map(function(f){
+      return '<div class="pv-fact"><b>' + esc(f[1]) + '</b><span>' + f[0] + '</span></div>';
+    }).join('');
+
+    var theirs = person.availability || [];
+    var mine   = (profile && profile.availability) || [];
+    var shared = theirs.filter(function(s){ return mine.indexOf(s) >= 0; }).length;
+
+    if (!theirs.length) {
+      $('pv-availnote').textContent = nm.split(' ')[0] +
+        ' hasn’t said when they’re free yet, so there is nothing to compare with your week.';
+      $('pv-week').innerHTML = '';
+    } else {
+      $('pv-availnote').textContent = !mine.length
+        ? 'Set your own weekly times on your profile and the hours you share will light up here.'
+        : shared
+          ? shared + (shared === 1 ? ' window' : ' windows') + ' you are both free.'
+          : 'Nothing in common yet — you can still propose a time that suits you both.';
+      $('pv-week').innerHTML = week(theirs, mine);
+      $('pv-key').hidden = false;
+    }
+
+    $('pv').hidden = false;
+  }
+
+  if (!id) { missing(); }
+  else {
+    Promise.all([pf.getPerson(id), pf.getProfile(), pf.myRequests()])
+      .then(function(r){
+        var person = r[0];
+        if (!person) { missing(); return; }
+        var reqs = r[2], req = null;
+        if (reqs) {
+          reqs.incoming.forEach(function(x){ if (x.from_user === id) req = { status:x.status, direction:'in'  }; });
+          reqs.outgoing.forEach(function(x){ if (x.to_user   === id) req = { status:x.status, direction:'out' }; });
+        }
+        render(person, r[1], req);
+      })
+      .catch(function(){ missing(); });
+  }
+})();
+</script>
+<script src="assets/usermenu.js"></script>
+<script src="assets/notify.js"></script>
+</body>
+</html>

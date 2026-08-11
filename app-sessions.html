@@ -125,7 +125,11 @@
           (facts.length ? '<div class="pcard-facts">' + facts.map(function(f){
             return '<div class="pcard-fact"><b>' + esc(f[1]) + '</b><span>' + f[0] + '</span></div>';
           }).join('') + '</div>' : '') +
-          '<div class="pcard-acts"><a class="btn" href="app.html">Propose a time</a></div>' +
+          '<div class="pcard-acts">' +
+            '<a class="btn" href="app.html">Propose a time</a>' +
+            (pr.id ? '<a class="ghost" href="app-chat.html?to=' + esc(pr.id) + '">Message</a>' +
+                     '<a class="ghost" href="app-person.html?id=' + esc(pr.id) + '">View profile</a>' : '') +
+          '</div>' +
         '</div></div>';
     }).join('');
   }
