@@ -5,23 +5,36 @@
    awarded for an intention, and a locked badge says exactly what is still
    missing rather than teasing.
 
-   Each is drawn as a struck metal medal: a rimmed hexagon, a gradient face,
-   a sheen across the top-left, and a white glyph. Difficulty is carried by
-   the metal — bronze, silver, gold, then jade for the rare ones — so the
-   wall reads as a ranking rather than a row of coloured stickers. */
+   ── on the drawing ──────────────────────────────────────────────────────
+   These used to be struck metal: a rimmed hexagon with a gradient face, a
+   radial sheen and a hairline of light along one edge, in bronze, silver,
+   gold and jade. Two things were wrong with that.
+
+   It was the only skeuomorphic object in the product. Everything else here
+   is flat, quiet and typographic — hairlines, one green, a mono caption —
+   and a wall of faux-metal trophies read as though it had been imported
+   from somewhere else.
+
+   And the four metals ranked the badges without ever saying so. Nothing on
+   the page explained why "Steady pair" was silver and "Ten sessions" gold,
+   so the ranking was decoration carrying no information.
+
+   What replaced it: the same hexagon, flat, in the brand green. Two states
+   that differ in fill rather than in saturation, so a locked wall cannot be
+   mistaken for one that failed to load. One quiet second tier for the four
+   hardest. And, where a badge is a count, the count is drawn — a locked
+   tile shows how far along you already are, which turns it from a tease
+   into a target. That was the part actually missing.
+   ────────────────────────────────────────────────────────────────────── */
 window.pfBadges = (function(){
 
-  /* Four metals: [face top, face bottom, rim, sheen strength]. Jade is the
-     brand green, so the top tier belongs to PeerFlow rather than looking
-     like it came out of a stock icon pack. */
-  var METAL = {
-    bronze: ['#F2CBA0', '#B4692F', '#7C4318', .55],
-    /* Silver has to be darker and cooler than it wants to be, or it lands
-       within a few percent of the locked grey and the tier disappears. */
-    silver: ['#FDFEFF', '#8C9BAC', '#5A6672', .62],
-    gold:   ['#FDEDAE', '#DDA31A', '#96690A', .65],
-    jade:   ['#DCF7EC', '#1D9E75', '#075040', .60],
-    locked: ['#F4F4F8', '#DFDFE6', '#CFCFD8', .22]
+  /* Three faces: [top, bottom, glyph]. Milestone is one step deeper rather
+     than a different metal — the only ranking the wall makes, and it reads
+     as "further in" instead of "made of a rarer substance". */
+  var FACE = {
+    earned:    ['#22A87C', '#0B7F62', '#ffffff'],
+    milestone: ['#12775E', '#06463A', '#ffffff'],
+    locked:    ['#F1F2F6', '#E6E8EF', '#A6ACBD']
   };
 
   /* Glyphs live on a 24x24 grid, centred in the medal. Stroked rather than
@@ -75,32 +88,38 @@ window.pfBadges = (function(){
     { id:'five', icon:'star', metal:'silver', name:'Five sessions',
       desc:'Finished five sessions',
       earned:function(s){ return s.pastSessions >= 5; },
+      at:function(s){ return s.pastSessions; }, need:5,
       todo:function(s){ return (5 - s.pastSessions) + ' more to go'; } },
 
     { id:'two', icon:'users', metal:'silver', name:'Two partners',
       desc:'Learned with two different people',
       earned:function(s){ return s.partners >= 2; },
+      at:function(s){ return s.partners; }, need:2,
       todo:'Partner with a second person' },
 
     { id:'steady', icon:'anchor', metal:'silver', name:'Steady pair',
       desc:'Three sessions with the same partner',
       earned:function(s){ return s.mostWithOnePartner >= 3; },
+      at:function(s){ return s.mostWithOnePartner; }, need:3,
       todo:function(s){ return (3 - s.mostWithOnePartner) + ' more with one person'; } },
 
     { id:'ten', icon:'flame', metal:'gold', name:'Ten sessions',
       desc:'Finished ten sessions',
       earned:function(s){ return s.pastSessions >= 10; },
+      at:function(s){ return s.pastSessions; }, need:10,
       todo:function(s){ return (10 - s.pastSessions) + ' more to go'; } },
 
     { id:'tenhours', icon:'clock', metal:'gold', name:'Ten hours',
       desc:'Ten hours sat with a partner',
       earned:function(s){ return (s.totalMinutes || 0) >= 600; },
+      at:function(s){ return (s.totalMinutes || 0) / 60; }, need:10,
       note:function(s){ return Math.round((s.totalMinutes || 0) / 60) + ' hours so far'; },
       todo:function(s){ return Math.max(1, Math.ceil((600 - (s.totalMinutes || 0)) / 60)) + ' hours to go'; } },
 
     { id:'longhaul', icon:'trophy', metal:'gold', name:'Long haul',
       desc:'Ten sessions with the same partner',
       earned:function(s){ return s.mostWithOnePartner >= 10; },
+      at:function(s){ return s.mostWithOnePartner; }, need:10,
       todo:function(s){ return (10 - s.mostWithOnePartner) + ' more with one person'; } },
 
     { id:'early', icon:'seed', metal:'jade', name:'Early member',
@@ -112,13 +131,17 @@ window.pfBadges = (function(){
     { id:'sixweeks', icon:'weeks', metal:'jade', name:'Six weeks running',
       desc:'A session every week for six weeks',
       earned:function(s){ return (s.longestWeekStreak || 0) >= 6; },
+      at:function(s){ return s.longestWeekStreak || 0; }, need:6,
       note:function(s){ return s.longestWeekStreak + ' weeks in a row'; },
-      todo:function(s){ var w = s.longestWeekStreak || 0;
-                        return 'Longest run so far: ' + w + (w === 1 ? ' week' : ' weeks'); } },
+      /* The chip under this one already says "4 of 6"; repeating it as
+         "longest run so far: 4 weeks" was the tile talking to itself. What
+         it can add is the rule the number does not carry. */
+      todo:'Six weeks in a row, no gaps' },
 
     { id:'twentyfive', icon:'crown', metal:'jade', name:'Twenty-five sessions',
       desc:'Finished twenty-five sessions',
       earned:function(s){ return s.pastSessions >= 25; },
+      at:function(s){ return s.pastSessions; }, need:25,
       todo:function(s){ return (25 - s.pastSessions) + ' more to go'; } }
   ];
 
@@ -128,51 +151,77 @@ window.pfBadges = (function(){
     });
   }
 
-  /* One medal. Locked badges are struck from the same die in grey with the
-     shine turned down, so they still read as an award you haven't got —
-     not as a broken image. */
+  /* One badge. The hexagon is kept — it is the shape people already know
+     these by — but struck flat, with the ranking carried by depth of green
+     rather than by pretending to be a different alloy.
+
+     `pct`, on a locked badge that is really a count, draws the part of the
+     rim you have already earned. A hexagon's perimeter is used as the dash
+     length, which is why the outline is a <path> with a computed length
+     rather than a <polygon>. */
   var uid = 0;
-  function medal(iconKey, earned, metalKey){
-    var m = METAL[earned ? (metalKey || 'bronze') : 'locked'];
+  var HEX = 'M36 5 63.4 20.5v31L36 67 8.6 51.5v-31Z';
+  /* Perimeter of that path: four diagonals of 31.48 and two verticals of 31.
+     Guessing it put the dash out by 7%, which drew the progress rim as a
+     stray stub near the top vertex instead of tracing the shape. */
+  var HEX_LEN = 187.92;
+
+  function medal(iconKey, earned, metalKey, pct){
+    var key = earned ? (MILESTONE[metalKey] ? 'milestone' : 'earned') : 'locked';
+    var f = FACE[key];
     var n = ++uid;
-    var HEX = 'M36 4.6 63.2 20.3v31.4L36 67.4 8.8 51.7V20.3Z';
-    var inset = ' transform="translate(36 36) scale(.9) translate(-36 -36)"';
     return '' +
-      '<svg class="medal" viewBox="0 0 72 72" width="60" height="60" aria-hidden="true">' +
-        '<defs>' +
-          '<linearGradient id="mf' + n + '" x1="0" y1="0" x2=".35" y2="1">' +
-            '<stop offset="0" stop-color="' + m[0] + '"/>' +
-            '<stop offset="1" stop-color="' + m[1] + '"/>' +
-          '</linearGradient>' +
-          '<radialGradient id="ms' + n + '" cx=".3" cy=".22" r=".75">' +
-            '<stop offset="0" stop-color="#fff" stop-opacity="' + m[3] + '"/>' +
-            '<stop offset="1" stop-color="#fff" stop-opacity="0"/>' +
-          '</radialGradient>' +
-        '</defs>' +
-        /* Rim, drawn as a thick stroke on the same path so the corners round. */
-        '<path d="' + HEX + '" fill="' + m[2] + '" stroke="' + m[2] +
-          '" stroke-width="6" stroke-linejoin="round"/>' +
-        /* Face, inset inside the rim. */
-        '<path d="' + HEX + '" fill="url(#mf' + n + ')" stroke="url(#mf' + n +
-          ')" stroke-width="1.5" stroke-linejoin="round"' + inset + '/>' +
-        '<path d="' + HEX + '" fill="url(#ms' + n + ')"' + inset + '/>' +
-        /* Hairline of light along the top-right edge — the bit that sells metal. */
-        '<path d="M36 9.6 58.6 22.6" fill="none" stroke="#fff" stroke-opacity="' +
-          (earned ? '.5' : '.3') + '" stroke-width="2" stroke-linecap="round"/>' +
-        '<g transform="translate(24 24)" fill="none" stroke="#fff" stroke-width="2" ' +
-          'stroke-opacity="' + (earned ? '.97' : '.8') + '">' + (GLYPH[iconKey] || '') + '</g>' +
+      '<svg class="medal' + (earned ? ' on' : '') + '" viewBox="0 0 72 72" ' +
+        'width="58" height="58" aria-hidden="true">' +
+        '<defs><linearGradient id="bf' + n + '" x1="0" y1="0" x2=".3" y2="1">' +
+          '<stop offset="0" stop-color="' + f[0] + '"/>' +
+          '<stop offset="1" stop-color="' + f[1] + '"/>' +
+        '</linearGradient></defs>' +
+        '<path d="' + HEX + '" fill="url(#bf' + n + ')"/>' +
+        /* How far round you are, on the ones that are a count. Drawn on the
+           rim rather than as a bar under the tile, so the badge itself is
+           the thing filling up. */
+        (!earned && pct > 0
+          /* No rotation: the path already starts at the top vertex and runs
+             clockwise, which is where a fill should start and which way it
+             should go. Rotating it moved the start to the left-hand corner. */
+          ? '<path d="' + HEX + '" fill="none" stroke="#3FB78F" stroke-width="4" ' +
+            'stroke-linejoin="round" stroke-linecap="butt" ' +
+            'stroke-dasharray="' + (HEX_LEN * Math.min(1, pct)).toFixed(1) + ' ' + HEX_LEN + '"/>'
+          : '') +
+        '<g transform="translate(24 24)" fill="none" stroke="' + f[2] + '" ' +
+          'stroke-width="2" stroke-linecap="round">' + (GLYPH[iconKey] || '') + '</g>' +
       '</svg>';
   }
+
+  /* The four that were jade: the ones almost nobody has. */
+  var MILESTONE = { jade: 1 };
 
   function evaluate(stats){
     return RULES.map(function(r){
       var got = false;
       try { got = !!r.earned(stats); } catch(e){ got = false; }
-      var sub;
-      if (got) sub = typeof r.note === 'function' ? r.note(stats) : r.desc;
-      else     sub = typeof r.todo === 'function' ? r.todo(stats) : (r.todo || r.desc);
+
+      /* Every call into a rule is guarded, not only earned(). A caption that
+         throws on a missing stat used to take the whole wall down with it,
+         which is a lot of page to lose over one line of text. */
+      var sub = r.desc;
+      try {
+        if (got) sub = typeof r.note === 'function' ? r.note(stats) : r.desc;
+        else     sub = typeof r.todo === 'function' ? r.todo(stats) : (r.todo || r.desc);
+      } catch(e){ sub = r.desc; }
+
+      /* How far along, for the ones that are a count. Guarded the same way
+         earned() is: a rule that throws must not take the wall down. */
+      var have = null, pct = 0;
+      if (r.need && typeof r.at === 'function') {
+        try { have = Math.max(0, r.at(stats) || 0); } catch(e){ have = null; }
+        if (have !== null) pct = Math.max(0, Math.min(1, have / r.need));
+      }
+
       return { id:r.id, icon:r.icon, metal:r.metal, name:r.name,
-               desc:r.desc, earned:got, sub:sub };
+               desc:r.desc, earned:got, sub:sub,
+               have:have, need:r.need || null, pct:got ? 1 : pct };
     });
   }
 
@@ -183,20 +232,43 @@ window.pfBadges = (function(){
       return;
     }
     var list = evaluate(stats);
-    var earned = list.filter(function(b){ return b.earned; }).length;
-    el.innerHTML =
-      '<p class="badge-count"><b>' + earned + '</b> of ' + list.length + ' earned</p>' +
-      '<div class="badge-grid">' +
-      list.map(function(b){
-        return '<div class="badge-tile' + (b.earned ? ' earned' : '') +
-                 '" title="' + esc(b.desc) + '">' +
-          medal(b.icon, b.earned, b.metal) +
-          '<b>' + esc(b.name) + '</b>' +
-          '<span>' + esc(b.sub) + '</span>' +
-        '</div>';
-      }).join('') +
+    var got  = list.filter(function(b){ return b.earned; });
+    var left = list.filter(function(b){ return !b.earned; });
+
+    /* Nearest first. A fixed order buried the badge you are one session away
+       from between two you will not see for months, which is the difference
+       between a wall of trophies and something that pulls you forward. */
+    left.sort(function(a, b){ return b.pct - a.pct; });
+
+    function tile(b){
+      /* The figure behind the rim: the rim shows the fraction, this says what
+         the fraction is of. Only on badges that are genuinely a count. */
+      var count = (!b.earned && b.need && b.have !== null)
+        ? '<span class="bdg-n">' + fmt(b.have) + ' of ' + b.need + '</span>' : '';
+      return '<div class="badge-tile' + (b.earned ? ' earned' : '') +
+               '" title="' + esc(b.desc) + '">' +
+        medal(b.icon, b.earned, b.metal, b.pct) +
+        '<b>' + esc(b.name) + '</b>' +
+        '<span>' + esc(b.sub) + '</span>' + count +
       '</div>';
+    }
+
+    function section(label, items){
+      if (!items.length) return '';
+      return '<p class="bdg-h">' + label + '</p>' +
+             '<div class="badge-grid">' + items.map(tile).join('') + '</div>';
+    }
+
+    el.innerHTML =
+      '<p class="badge-count"><b>' + got.length + '</b> of ' + list.length + ' earned</p>' +
+      section('Earned', got) +
+      section(got.length ? 'Still to come' : 'To earn', left);
   }
+
+  /* Whole numbers. Hours arrive as a fraction, and "3.3 of 10" on a tile
+     whose caption already reads "7 hours to go" is precision nobody asked
+     for twice. */
+  function fmt(v){ return Math.round(v); }
 
   return { evaluate: evaluate, render: render, medal: medal };
 })();
