@@ -52,6 +52,21 @@ button{font-family:var(--body);cursor:pointer}
 .tabs a.on svg path,.tabs a.on svg circle,.tabs a.on svg rect{stroke:#fff}
 .nav-right{display:flex;align-items:center;gap:10px;flex:0 0 auto}
 
+/* The streak, in the bar. Quiet by default and tinted once the week is
+   already safe, so the two states are told apart without reading the number. */
+.firechip{display:flex;align-items:center;gap:5px;flex:0 0 auto;
+  padding:5px 10px 5px 8px;border-radius:999px;border:1px solid var(--line);
+  background:var(--band);font-size:13px;line-height:1}
+.firechip span{font-size:14px}
+.firechip b{font-weight:700;color:var(--ink)}
+.firechip.safe{background:var(--p0);border-color:var(--p1)}
+.firechip.safe b{color:var(--p8)}
+/* Going out: grey, the way the ring's flame greys, rather than a red alarm in
+   the chrome of every page. */
+.firechip.risk span{filter:grayscale(1) opacity(.55)}
+.firechip.risk b{color:#93641A}
+.firechip:hover{border-color:var(--p4)}
+
 main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .mfoot{max-width:1320px;margin:0 auto;padding:0 32px 44px;
   display:flex;gap:18px;font-size:12.5px;color:var(--faint);flex-wrap:wrap}
@@ -117,17 +132,46 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .rail{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 18px}
 .rail h3{margin:0 0 13px;font-size:14px;font-weight:700;letter-spacing:-.01em}
 .rail .mono{display:block;margin-bottom:7px}
-.rail-f{margin:13px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
 .rail-l{display:inline-block;margin-top:13px;font-size:13px;font-weight:600;color:var(--p6)}
 .rail-l:hover{text-decoration:underline}
 
-/* Three numbers, not a chart. The unit lives under the figure so the row
-   scans as three things and not as one long sentence of digits. */
-.mo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.mo-i b{display:block;font-size:25px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
-.mo-i span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--faint);margin-top:3px}
-.mo-i.zero b{color:var(--faint)}
+/* ---------- the streak ring ----------
+   The number is weeks; the ring is this week against the goal. Two clocks at
+   two speeds in one object, which is the point: the count only moves weekly,
+   but you can see today whether the week is safe. */
+.streak{text-align:center}
+.st-ring{position:relative;width:132px;height:132px;margin:2px auto 14px}
+.st-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.st-ring circle{fill:none;stroke-width:9;stroke-linecap:round}
+.st-trk{stroke:var(--band)}
+.st-arc{stroke:var(--p2);transition:stroke-dashoffset .5s cubic-bezier(.2,.9,.3,1),stroke .3s}
+.st-ring.part .st-arc{stroke:var(--p4)}
+.st-ring.met  .st-arc{stroke:var(--p6)}
+
+.st-mid{position:absolute;inset:0;display:grid;place-content:center;gap:0;line-height:1}
+.st-mid b{display:block;font-size:34px;font-weight:800;letter-spacing:-.035em;color:var(--ink)}
+.st-mid i{display:block;font-style:normal;font-family:var(--mono);font-size:9px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-top:5px}
+.st-ring.met .st-mid b{color:var(--p8)}
+
+/* The flame only lights once there is a streak to burn. An unlit one on an
+   empty account is decoration promising something that has not happened.
+   Late in the week with nothing booked it goes grey and small — the streak is
+   still yours, but you can see it going out. */
+.st-ring.lit::after{content:"\1F525";position:absolute;
+  top:-2px;right:4px;font-size:19px;line-height:1;
+  transition:filter .3s,font-size .3s;
+  filter:drop-shadow(0 1px 2px rgba(23,26,46,.18))}
+.st-ring.lit.cool::after{font-size:16px;filter:grayscale(1) opacity(.5)}
+
+.st-h{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.01em;line-height:1.35}
+.st-w{margin:5px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.st-w.ok{color:var(--p6);font-weight:600}
+/* Late in the week with the goal unmet. Amber once, not a siren. */
+.st-w.warn{color:#93641A;font-weight:600}
+.streak .rail-l{margin-top:12px}
+
+@media (prefers-reduced-motion:reduce){ .st-arc{transition:none} }
 
 /* The partner, in the rail. */
 .ptm{display:flex;align-items:center;gap:11px}
@@ -385,6 +429,23 @@ h1 .g{color:var(--p4)}
 .avail-count.warn{color:#9A6410}
 .avail-count.good{color:var(--p8);font-weight:600}
 
+/* ---------- weekly goal ---------- */
+/* Four small tiles rather than a select: the whole range is visible at once,
+   and the number you're choosing is the same number the ring on Today counts
+   against, so it wants to look like a figure, not a form field. */
+.goal-pick{display:flex;gap:8px;flex-wrap:wrap}
+.goal{width:74px;padding:9px 0;border:1.5px solid var(--line);border-radius:11px;
+  background:var(--band);font-family:inherit;text-align:center;
+  transition:background .12s,border-color .12s}
+.goal:hover{border-color:var(--p4);background:var(--p0)}
+.goal b{display:block;font-size:19px;font-weight:700;color:var(--ink);line-height:1.15}
+.goal i{display:block;font-style:normal;font-size:11.5px;color:var(--faint)}
+.goal.sel{background:var(--p0);border-color:var(--p6)}
+.goal.sel b{color:var(--p8)}
+.goal.sel i{color:var(--p6)}
+
+.goal-note{font-size:13.5px;color:var(--faint);margin:10px 0 0}
+
 /* ---------- badges ---------- */
 /* Tiles were 104px wide with a 14px gutter, so two-word names wrapped into
    the caption and the whole wall ran together. Wider tiles, real gaps, and
@@ -447,6 +508,9 @@ h1 .g{color:var(--p4)}
 @media (max-width:640px){
   .tb{height:auto;flex-wrap:wrap;padding:12px 16px;gap:10px}
   .tabs{order:3;width:100%;flex:1 0 100%}
+  /* The tabs have wrapped to their own row, so nothing is left growing on the
+     first one — without this the chip and the menu bunch up against the brand. */
+  .firechip{margin-left:auto}
   .tabs a{padding:7px 11px;font-size:14px}
   .tabs a svg{display:none}
   .slot .when{width:100%}

@@ -148,16 +148,30 @@
     <!-- ============ the rail ============ -->
     <aside class="dash-rail">
 
-      <!-- Momentum, not statistics. Three numbers you can act on: the streak
-           is the one that makes you book, so it leads. -->
-      <section class="rail" id="rail-mo">
-        <h3>Momentum</h3>
-        <div class="mo">
-          <div class="mo-i"><b id="mo-streak">—</b><span>week streak</span></div>
-          <div class="mo-i"><b id="mo-done">—</b><span>sessions</span></div>
-          <div class="mo-i"><b id="mo-hrs">—</b><span>hours</span></div>
+      <!-- ============ the streak ============
+           A ring, not a row of digits. The number is weeks, because a session
+           needs another person at an agreed time and nobody can do that daily
+           — a streak that breaks when you did nothing wrong is one people
+           learn to ignore. But a week is far too slow a loop to feel, so the
+           ring fills as the week goes and you can see where you stand on a
+           Wednesday instead of finding out on Monday.
+
+           Named as a pair wherever we know the pair. Breaking your own
+           counter disappoints you; breaking one with somebody's name on it
+           lets a specific person down, and that is the whole product. -->
+      <section class="rail streak" id="rail-mo">
+        <div class="st-ring" id="mo-ring">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="st-trk" cx="50" cy="50" r="43"/>
+            <circle class="st-arc" id="mo-arc" cx="50" cy="50" r="43"/>
+          </svg>
+          <span class="st-mid">
+            <b id="mo-n">0</b>
+            <i id="mo-u">weeks</i>
+          </span>
         </div>
-        <p class="rail-f" id="mo-f"></p>
+        <p class="st-h" id="mo-h">&nbsp;</p>
+        <p class="st-w" id="mo-w"></p>
         <a class="rail-l" href="app-progress.html">Your progress &rarr;</a>
       </section>
 
@@ -319,48 +333,61 @@
   }
 
   /* ---------- the rail ---------- */
-  /* Streaks are counted in weeks, not days. Two people meeting twice a week
-     have a perfect record and would break a daily streak every single time,
-     so a daily one would only ever measure how often we told them off. */
-  function weekKey(d){
-    var x = midnight(d);
-    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
-    return x.getTime();
-  }
-  var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-  function streakOf(done){
-    if (!done.length) return 0;
-    var weeks = {};
-    done.forEach(function(s){ weeks[weekKey(s.startsAt)] = true; });
-    var wk = weekKey(new Date()), n = 0;
-    /* The current week doesn't count against you until it's over — a streak
-       that resets at one minute past midnight on Monday is a streak nobody
-       believes twice. */
-    if (!weeks[wk]) wk -= WEEK_MS;
-    while (weeks[wk]) { n++; wk -= WEEK_MS; }
-    return n;
-  }
+  /* ---------- the streak ring ---------- */
+  var RING = 2 * Math.PI * 43;
 
-  function num(id, v){
-    var n = $(id);
-    n.textContent = v;
-    n.parentNode.className = 'mo-i' + (v ? '' : ' zero');
-  }
+  /* A zero is a starting line, not a score. The number stands at nought on a
+     new account because pretending otherwise would be a lie the first real
+     week exposes — but everything around it points forwards: the sentence
+     names the next session rather than the missing ones, the ring is empty
+     rather than red, and no flame is drawn for a streak nobody has had a
+     chance to start. */
+  function renderMomentum(m, partnerName){
+    if (!m) return;
 
-  /* Three numbers you can do something about. Hours and sessions say where
-     you've been; the streak is the one that makes you book, so it leads. */
-  function renderMomentum(done){
-    var mins = done.reduce(function(a, s){ return a + (s.durationMin || 0); }, 0);
-    var st = streakOf(done);
-    num('mo-streak', st);
-    num('mo-done', done.length);
-    num('mo-hrs', Math.round(mins / 60));
-    $('mo-f').textContent =
-      !done.length ? 'Nothing counted yet — your first finished session starts all three.'
-      : st > 1     ? st + ' weeks running. One session this week keeps it going.'
-      : st === 1   ? 'One week in. Book again this week and it becomes a streak.'
-                   : 'The streak restarts the week you next sit down together.';
+    var who = partnerName ? partnerName.split(' ')[0] : '';
+    var arc = $('mo-arc');
+
+    /* The ring is this week against the goal, so the loop is days rather than
+       weeks. Full and green once the week is met. */
+    var frac = m.goal ? Math.min(1, m.thisWeek / m.goal) : 0;
+    arc.style.strokeDasharray = RING;
+    arc.style.strokeDashoffset = RING * (1 - frac);
+
+    /* The flame belongs to the streak, not to the week — a four-week run is
+       still burning on a Monday morning with nothing booked. What the week
+       changes is how it burns: late and unmet, it goes grey and low, which is
+       a warning you read before you have read a word of the sentence. */
+    var atRisk = m.streak && !m.metThisWeek && m.daysLeft <= 3;
+    $('mo-ring').className = 'st-ring' +
+      (m.metThisWeek ? ' met' : (m.thisWeek ? ' part' : '')) +
+      (m.streak ? ' lit' : '') + (atRisk ? ' cool' : '');
+
+    $('mo-n').textContent = m.streak;
+    $('mo-u').textContent = m.streak === 1 ? 'week' : 'weeks';
+
+    $('mo-h').innerHTML = !m.streak
+      ? (m.done ? 'Start it again this week' : 'Your first session starts it')
+      : (who ? 'You and ' + esc(who) : 'You') + ' &mdash; ' +
+        m.streak + (m.streak === 1 ? ' week' : ' weeks') + ' running';
+
+    /* Late in the week with the goal unmet, say what is at stake rather than
+       what has been achieved: a streak about to end moves people, a streak
+       already banked does not. */
+    var left = m.goal - m.thisWeek;
+    if (m.metThisWeek) {
+      $('mo-w').textContent = 'This week is done — ' + m.thisWeek + ' of ' + m.goal + '.';
+      $('mo-w').className = 'st-w ok';
+    } else if (m.streak && m.daysLeft <= 3) {
+      $('mo-w').textContent = left + (left === 1 ? ' session' : ' sessions') + ' left, ' +
+        (m.daysLeft === 1 ? 'and the week ends today.' : m.daysLeft + ' days to book it.');
+      $('mo-w').className = 'st-w warn';
+    } else {
+      $('mo-w').textContent = m.thisWeek + ' of ' + m.goal + ' this week.' +
+        (m.rested ? ' (A week off is forgiven once.)' : '');
+      $('mo-w').className = 'st-w';
+    }
   }
 
   /* ---------- standing weekly slot ---------- */
@@ -1596,19 +1623,20 @@
           $('cal-card').hidden = false;
           renderCal();
 
-          /* ----- momentum and the plan -----
-             Both counted from sessions that actually happened: confirmed, and
-             the end of them is behind us. A booking next Tuesday has not
-             taught anybody anything yet.
+          /* ----- the streak and the plan -----
+             pf.momentum() owns the counting so this page and Progress cannot
+             disagree about what a week is, which they did. Narrowed to one
+             partner's room where there is one, so the streak can be named
+             after the two of you. */
+          var room = bookPartners.length === 1 ? bookPartners[0].roomUrl : null;
+          pf.momentum(room).then(function(m){
+            renderMomentum(m, room ? bookPartners[0].name : '');
+          });
 
-             Counted here rather than through pf.reliability(), which fetches
-             the same rows a second time — we are already holding them. */
           var done = all.filter(function(x){
             if (x.status === 'completed') return true;
             return x.status === 'confirmed' && x.startsAt.getTime() + x.durationMin * 60000 <= now;
           });
-          renderMomentum(done);
-
           var trackId = (profile && profile.track_id) || '';
           if (!trackId){ try { trackId = localStorage.getItem('pf_track') || ''; } catch(err){} }
           renderWeek(trackId, done.length);

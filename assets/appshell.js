@@ -92,6 +92,7 @@
       '<a class="brand" href="app.html" aria-label="PeerFlow">' + LOGO + 'peerflow</a>' +
       '<span class="pathchip" id="pf-pathchip" hidden></span>' +
       '<nav class="tabs" aria-label="App" id="pf-tabs">' + tabsHtml(paired) + '</nav>' +
+      '<a class="firechip" id="pf-fire" href="app-progress.html" hidden></a>' +
       '<div class="nav-right"></div>' +
     '</div>';
   document.body.insertBefore(bar, document.body.firstChild);
@@ -111,6 +112,45 @@
     }).catch(function(){});
   }
   pfChatBadge();
+
+  /* The streak, in the bar, on every page.
+     The ring on Today explains it; this only has to remind you it exists while
+     you are somewhere else. It stays hidden at zero: a dark flame reading "0"
+     on a new account is a reproach for something you have not had a chance to
+     do yet. Painted from the cache first for the same reason as the tabs, then
+     reconciled — a number that appears late reads as a jump. */
+  var fire = document.getElementById('pf-fire');
+  function paintFire(n, safe, risk){
+    if (!fire) return;
+    if (!(n > 0)) { fire.hidden = true; return; }
+    fire.innerHTML = '<span aria-hidden="true">🔥</span><b>' + n + '</b>';
+    /* Same three states as the ring, so the bar and the dashboard never
+       disagree about whether the week is in trouble. */
+    fire.className = 'firechip' + (safe ? ' safe' : '') + (risk ? ' risk' : '');
+    fire.setAttribute('aria-label',
+      (n === 1 ? '1 week streak' : n + ' weeks streak') +
+      (safe ? ', this week is done' : risk ? ', this week is not booked yet' : ''));
+    fire.title = safe ? 'This week is done'
+               : risk ? 'Nothing booked yet — this week ends soon'
+                      : 'Book a session to keep this week';
+    fire.hidden = false;
+  }
+  function atRisk(m){ return !!(m.streak && !m.metThisWeek && m.daysLeft <= 3); }
+  try {
+    var cached = JSON.parse(localStorage.getItem('pf_streak') || 'null');
+    if (cached) paintFire(cached.n, cached.safe, cached.risk);
+  } catch (e) {}
+  if (window.pf && pf.momentum) {
+    pf.momentum().then(function(m){
+      if (!m) return;
+      var risk = atRisk(m);
+      try {
+        localStorage.setItem('pf_streak',
+          JSON.stringify({ n: m.streak, safe: m.metThisWeek, risk: risk }));
+      } catch (e) {}
+      paintFire(m.streak, m.metThisWeek, risk);
+    }).catch(function(){});
+  }
 
   /* The path chip only appears once we actually know the path — an empty
      chip would read as a loading bug. */

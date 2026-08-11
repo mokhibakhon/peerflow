@@ -130,68 +130,41 @@
   }
 
   /* ---------- totals ---------- */
-  function renderSummary(sessions, rel){
-    var now = Date.now();
-    var done = (sessions || []).filter(function(s){
-      return s.status === 'completed' ||
-             (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
-    });
+  /* Counted by pf.momentum() rather than here, because this page and the
+     dashboard used to disagree: this one bucketed weeks with
+     Math.floor(t / 604800000), which counts from the Unix epoch — a Thursday
+     — so its weeks ran Thursday to Wednesday while the dashboard's ran Monday
+     to Sunday. Same rows, two different streaks. */
+  function renderSummary(m, sessions){
+    if (!m) return;
 
-    var minutes = done.reduce(function(a, s){ return a + (s.durationMin || 0); }, 0);
-    set('pg-hours', (minutes / 60).toFixed(1));
-    set('pg-sessions', String(done.length));
+    set('pg-hours', (m.minutes / 60).toFixed(1));
+    set('pg-sessions', String(m.done));
+    set('pg-streak', m.streak ? m.streak + 'w' : '0');
+    set('pg-best', m.best ? m.best + 'w' : '0');
 
-    /* Weekly streaks, current and best. */
-    var WEEK = 7 * 864e5, weeks = {};
-    done.forEach(function(s){ weeks[Math.floor(s.startsAt.getTime() / WEEK)] = true; });
-    var idx = Object.keys(weeks).map(Number).sort(function(a, b){ return a - b; });
-    var best = idx.length ? 1 : 0, run = best;
-    for (var i = 1; i < idx.length; i++) {
-      run = (idx[i] === idx[i - 1] + 1) ? run + 1 : 1;
-      if (run > best) best = run;
-    }
-    var cur = 0;
-    if (idx.length) {
-      var thisWeek = Math.floor(now / WEEK);
-      if (thisWeek - idx[idx.length - 1] <= 1) {
-        cur = 1;
-        for (var j = idx.length - 1; j > 0; j--) {
-          if (idx[j] - idx[j - 1] === 1) cur++; else break;
-        }
-      }
-    }
-    set('pg-streak', cur ? cur + 'w' : '0');
-    set('pg-best', best ? best + 'w' : '0');
+    /* Attendance stays a dash until something records it. It is the one
+       number here that cannot be inferred from a booking, and guessing it
+       accused everybody of missing every session they ever had. */
+    set('pg-attend', '—');
 
-    if (rel && rel.counted > 0) {
-      set('pg-attend', rel.pct + '%');
-      var note = rel.attended + ' of ' + rel.counted + ' confirmed sessions attended';
-      if (rel.early) note += ' · ' + rel.early + ' cancelled early';
-      if (rel.late)  note += ' · ' + rel.late + ' cancelled late';
-      document.getElementById('pg-relnote').textContent = note + '.';
-    } else {
-      set('pg-attend', '—');
-    }
-
-    /* An empty Progress page for the first few weeks is the fastest way to
-       teach somebody not to click this tab. When there is nothing to show yet,
-       say what will fill it and when — pointing at the next booked session if
-       there is one, because that is the thing that turns the dashes into
-       numbers. */
     var note = document.getElementById('pg-relnote');
-    if (done.length) {
-      if (rel && rel.counted > 0) {
-        var line = rel.attended + ' of ' + rel.counted + ' confirmed sessions attended';
-        if (rel.early) line += ' · ' + rel.early + ' cancelled early';
-        if (rel.late)  line += ' · ' + rel.late + ' cancelled late';
-        note.textContent = line + '.';
-      } else {
-        note.textContent = '';
-      }
+
+    if (m.done) {
+      /* A record, not a verdict: what the weeks add up to, and the next
+         thing worth reaching. */
+      var next = m.streak < 4 ? 4 : m.streak < 12 ? 12 : 0;
+      note.textContent = m.done + (m.done === 1 ? ' session' : ' sessions') +
+        ' over ' + (m.best || 1) + (m.best === 1 ? ' week' : ' weeks') +
+        (next ? ' · ' + (next - m.streak) + ' more ' +
+                (next - m.streak === 1 ? 'week' : 'weeks') + ' makes it ' + next + '.'
+              : ' · past twelve weeks, which is the whole plan.');
       return;
     }
 
-    var upcoming = null;
+    /* Nothing yet. Point at the next booked session if there is one, because
+       that is the thing that turns these dashes into numbers. */
+    var now = Date.now(), upcoming = null;
     (sessions || []).forEach(function(s){
       if (s.status !== 'confirmed') return;
       if (s.startsAt.getTime() + s.durationMin * 60000 <= now) return;
@@ -209,6 +182,7 @@
         '<a href="app.html" style="text-decoration:underline">Propose a time</a>';
     }
   }
+
 
   /* ---------- announcing a new achievement ---------- */
   /* The rules are evaluated in the browser from real session rows, so an
@@ -251,8 +225,11 @@
       pfBadges.render(document.getElementById('badges'), null);
       return;
     }
+    /* reliability() is gone from this list: it re-read every session to
+       produce a figure nothing can populate, and momentum() now owns the
+       counting for both this page and the dashboard. */
     Promise.all([
-      pf.getProfile(), pf.fetchSessions(), pf.reliability(), pf.badgeStats(),
+      pf.getProfile(), pf.momentum(), pf.fetchSessions(), pf.badgeStats(),
       pf.unlockedAchievements ? pf.unlockedAchievements() : Promise.resolve([])
     ]).then(function(r){
       var profile = r[0] || null;

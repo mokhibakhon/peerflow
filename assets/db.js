@@ -21,7 +21,8 @@ window.pf = (function(){
      throw the whole lot away the moment that id changes. */
   (function(){
     if (!client) return;
-    var KEYS = ['pf_name','pf_email','pf_track','pf_topic','pf_pending'];
+    var KEYS = ['pf_name','pf_email','pf_track','pf_topic','pf_pending',
+                'pf_paired','pf_streak'];
     client.auth.getSession().then(function(res){
       var s = res.data && res.data.session;
       var uid = (s && s.user && s.user.id) || '';
@@ -651,6 +652,149 @@ window.pf = (function(){
       'Could not put this week’s sessions on the calendar.');
   }
 
+  /* ================================================================
+     Momentum — the streak, and the week it sits in.
+
+     Lives here rather than on a page because two pages were counting it and
+     disagreeing: Progress bucketed weeks with Math.floor(t / 604800000),
+     which counts from the Unix epoch — a Thursday — so its weeks ran Thursday
+     to Wednesday while the dashboard's ran Monday to Sunday. Same rows, two
+     different streaks, depending which tab you were on.
+     ================================================================ */
+
+  /* Monday, local time. Everything about weeks starts here. */
+  function weekStart(d){
+    var x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x.getTime();
+  }
+  var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+  /* A session that actually happened: checked out, or confirmed and over.
+     Counting bookings rather than attendance is a known compromise — nothing
+     in the app records attendance yet — and it is the same compromise the
+     attendance figure refuses to make, so the two do not contradict each
+     other: one counts what was agreed, the other stays silent. */
+  function finished(list, now){
+    return (list || []).filter(function(s){
+      if (s.status === 'completed') return true;
+      return s.status === 'confirmed' &&
+             s.startsAt.getTime() + s.durationMin * 60000 <= now;
+    });
+  }
+
+  /* Weeks in a row with at least one session in them, counted backwards.
+     Two rules that are not obvious:
+
+     The current week never breaks a streak. It is not over yet, so an empty
+     Monday morning must not read as a failure — the streak stands until the
+     week it belongs to has actually ended.
+
+     One week off is forgiven, once per run. A streak that dies to a week of
+     exams takes the person with it: the whole risk of a counter is that
+     breaking it is a reason to stop altogether. The rest is only spent on a
+     streak already worth protecting, never on the first week. */
+  function streakOf(weeks, nowWeek){
+    var n = 0, wk = nowWeek, rested = false;
+    if (!weeks[wk]) wk -= WEEK_MS;          /* this week is still open */
+    while (true) {
+      if (weeks[wk]) { n++; wk -= WEEK_MS; continue; }
+      if (!rested && n >= 2) { rested = true; wk -= WEEK_MS; continue; }
+      break;
+    }
+    return { weeks: n, rested: rested };
+  }
+
+  function bestOf(weeks){
+    var keys = Object.keys(weeks).map(Number).sort(function(a, b){ return a - b; });
+    var best = keys.length ? 1 : 0, run = best;
+    for (var i = 1; i < keys.length; i++) {
+      run = (keys[i] === keys[i - 1] + WEEK_MS) ? run + 1 : 1;
+      if (run > best) best = run;
+    }
+    return best;
+  }
+
+  /* Today asks for the pair's streak and the top bar asks for yours, on the
+     same page load, from the same two tables. Held briefly so that costs one
+     read rather than two — short enough that nothing on screen can go stale
+     behind it, since a session takes minutes to finish, not seconds, and every
+     page that changes a session reloads afterwards. */
+  var snap = null, snapAt = 0;
+  function momentumSource(){
+    var now = Date.now();
+    if (!snap || now - snapAt > 10000) {
+      snapAt = now;
+      snap = Promise.all([fetchSessions(), getProfile()])
+        .catch(function(e){ snap = null; throw e; });
+    }
+    return snap;
+  }
+
+  /* Everything the ring and the record need, from one read of the sessions.
+
+     partnerRoom, when given, narrows it to the sessions you had with one
+     person — which is how a streak becomes "you and Amir" rather than
+     "you". A meeting is two rows sharing a room and a time, so your own rows
+     filtered by their room are exactly the pair's history. */
+  function momentum(partnerRoom){
+    return momentumSource().then(function(r){
+      var list = r[0], profile = r[1] || {};
+      if (!list) return null;
+
+      var now = Date.now(), nowWeek = weekStart(now);
+      var done = finished(list, now);
+      if (partnerRoom) done = done.filter(function(s){ return s.roomUrl === partnerRoom; });
+
+      var weeks = {};
+      done.forEach(function(s){ weeks[weekStart(s.startsAt)] = true; });
+
+      var st = streakOf(weeks, nowWeek);
+      var goal = profile.sessions_per_week;
+      goal = (goal >= 1 && goal <= 5) ? goal : 2;
+
+      var thisWeek = done.filter(function(s){
+        return weekStart(s.startsAt) === nowWeek;
+      }).length;
+
+      /* Sunday night is the deadline, so "days left" counts the rest of the
+         week including today. */
+      var dayOfWeek = (new Date(now).getDay() + 6) % 7;
+
+      return {
+        done: done.length,
+        minutes: done.reduce(function(a, s){ return a + (s.durationMin || 0); }, 0),
+        streak: st.weeks,
+        rested: st.rested,
+        best: bestOf(weeks),
+        goal: goal,
+        thisWeek: thisWeek,
+        metThisWeek: thisWeek >= goal,
+        daysLeft: 7 - dayOfWeek
+      };
+    }).catch(function(){ return null; });
+  }
+
+  function saveGoal(n){
+    if (!client) return Promise.resolve({ demo: true });
+    n = Math.max(1, Math.min(5, n | 0));
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      return client.from('profiles').update({ sessions_per_week: n }).eq('id', uid)
+        .then(function(r){
+          if (r.error) {
+            if (missingColumn(r.error)) {
+              console.warn('PeerFlow: sessions_per_week is missing. Run supabase/migration-goal.sql.');
+              return { needsMigration: true, error: 'Weekly goals aren’t switched on for this site yet.' };
+            }
+            return fail(r.error, 'Could not save that. Please try again.');
+          }
+          return { saved: true };
+        });
+    }).catch(function(e){ return fail(e, 'Could not save that. Please try again.'); });
+  }
+
   /* ---------- one person ---------- */
 
   /* Everything on somebody's profile, for the page that shows it. Profiles
@@ -1064,6 +1208,11 @@ window.pf = (function(){
     respondToRequest: respondToRequest,
     markRequestsSeen: markRequestsSeen,
     acceptedPartners: acceptedPartners,
+
+    /* Momentum */
+    weekStart: weekStart,
+    momentum: momentum,
+    saveGoal: saveGoal,
 
     /* One person, for the profile page */
     getPerson: getPerson,
