@@ -48,8 +48,6 @@
               <b id="ch-name"></b>
               <span id="ch-sub"></span>
             </div>
-            <!-- What you are almost always messaging about. -->
-            <span class="ch-next" id="ch-next" hidden><i></i><span id="ch-next-t"></span></span>
             <a class="small" id="ch-profile" href="#">Profile</a>
           </header>
 
@@ -103,8 +101,6 @@
   function initial(s){ return (String(s || '').trim()[0] || '·').toUpperCase(); }
 
   var list = [], openId = '', openName = '', poll = null, lastCount = 0;
-  /* Person id -> their next agreed session, for the chip in the header. */
-  var nextWith = {};
   /* Whether the people you have never written to are being shown. */
   var showAll = false;
 
@@ -118,16 +114,6 @@
     try { return d.toLocaleDateString(undefined, { month:'short', day:'numeric' }); }
     catch(e){ return ''; }
   }
-  /* "Thursday 7:00 PM" — the booked session with whoever you are reading. */
-  function sessionLabel(d){
-    var days = Math.round((new Date(d).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86400000);
-    var time = d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
-    if (days === 0) return 'Today ' + time;
-    if (days === 1) return 'Tomorrow ' + time;
-    if (days > 1 && days < 7) return d.toLocaleDateString(undefined, { weekday:'long' }) + ' ' + time;
-    return d.toLocaleDateString(undefined, { month:'short', day:'numeric' }) + ' ' + time;
-  }
-
   function stamp(d){
     try { return d.toLocaleString(undefined,
       { weekday:'short', hour:'numeric', minute:'2-digit' }); }
@@ -201,16 +187,32 @@
     }
 
     var lastDay = '';
-    log.innerHTML = msgs.map(function(m){
+    log.innerHTML = msgs.map(function(m, i){
       var day = m.at.toDateString(), sep = '';
       if (day !== lastDay) {
         lastDay = day;
         sep = '<p class="ch-day">' + esc(m.at.toLocaleDateString(undefined,
           { weekday:'long', month:'short', day:'numeric' })) + '</p>';
       }
-      return sep + '<div class="ch-msg' + (m.mine ? ' mine' : '') + '">' +
-        '<p>' + esc(m.body) + '</p>' +
-        '<span class="ch-t">' + esc(stamp(m.at)) + '</span></div>';
+
+      /* One tail per turn: it goes on the last bubble before the other person
+         speaks, the day changes, or the conversation ends. */
+      var next = msgs[i + 1];
+      var endsRun = !next || next.mine !== m.mine || next.at.toDateString() !== day;
+
+      /* Sent, or read. Only on your own — read_at on a message of theirs is
+         the moment you opened it, which you were there for. */
+      var tick = m.mine
+        ? '<span class="ch-tick' + (m.readAt ? ' read' : '') + '" aria-label="' +
+          (m.readAt ? 'Read' : 'Sent') + '">' + (m.readAt ? '\u2713\u2713' : '\u2713') + '</span>'
+        : '';
+
+      /* No time on the line — the exact minute is on hover and in the day
+         heading, and a stamp under every bubble was most of what made the old
+         one feel cluttered. */
+      return sep + '<div class="ch-msg' + (m.mine ? ' mine' : '') +
+        (endsRun ? ' tail' : '') + '" title="' + esc(stamp(m.at)) + '">' +
+        '<p>' + esc(m.body) + tick + '</p></div>';
     }).join('');
 
     if (atBottom || msgs.length !== lastCount) log.scrollTop = log.scrollHeight;
@@ -231,10 +233,6 @@
     $('ch-name').textContent = openName;
     $('ch-sub').textContent = (who && who.topic) ? 'Learning ' + who.topic : '';
     $('ch-profile').href = href;
-
-    var nxt = nextWith[id];
-    $('ch-next-t').textContent = nxt ? sessionLabel(nxt) : '';
-    $('ch-next').hidden = !nxt;
 
     renderList();
 
@@ -307,26 +305,6 @@
   $('ch-form').addEventListener('submit', function(e){ e.preventDefault(); send(); });
 
   /* ---------- loading, and keeping up ---------- */
-  /* The booked session with each person, for the header chip. Sessions carry a
-     room built from the partnership id, and acceptedPartners() knows both — so
-     the two are joined on the room rather than on a name, which two people can
-     share. */
-  function loadNextSessions(){
-    return Promise.all([pf.acceptedPartners(), pf.fetchSessions()]).then(function(r){
-      var partners = r[0] || [], sessions = r[1] || [], now = Date.now(), byRoom = {};
-      partners.forEach(function(p){
-        if (p.profile && p.profile.id && p.roomUrl) byRoom[p.roomUrl] = p.profile.id;
-      });
-      sessions.forEach(function(x){
-        if (x.status !== 'confirmed') return;
-        if (x.startsAt.getTime() + x.durationMin * 60000 <= now) return;
-        var who = byRoom[x.roomUrl];
-        if (!who) return;
-        if (!nextWith[who] || x.startsAt < nextWith[who]) nextWith[who] = x.startsAt;
-      });
-    }).catch(function(){});
-  }
-
   function load(first){
     return pf.threads().then(function(t){
       if (!t) { if (first) say('Could not load your messages. Please try again.'); return; }
@@ -346,7 +324,6 @@
     });
   }
 
-  loadNextSessions();
   load(true);
 
   /* No realtime subscription: a poll while the tab is open is a handful of

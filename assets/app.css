@@ -1273,24 +1273,43 @@ html{scroll-behavior:smooth}
   border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--p8)}
 .ch-next i{width:6px;height:6px;border-radius:50%;background:var(--p4);flex:0 0 auto}
 
-/* A wash rather than a white void: the conversation sits on something, the
-   way every other surface in the app does. */
+/* Plain ground. The bubbles carry the colour, so anything behind them fights
+   them — and a tail is drawn by masking it against a known solid, which a
+   gradient cannot provide. */
 .ch-log{flex:1;min-height:120px;overflow-y:auto;padding:18px 20px;
-  display:flex;flex-direction:column;gap:10px;
-  background:linear-gradient(#F1F8F5,#F8FCFA 190px,var(--card) 340px);
+  display:flex;flex-direction:column;gap:3px;background:var(--card);
   scrollbar-width:thin;scrollbar-color:#CFCEDA transparent}
 .ch-first{margin:auto;font-size:13.5px;color:var(--faint);text-align:center;max-width:34ch}
-.ch-day{align-self:center;margin:2px 0;font-family:var(--mono);font-size:9px;
-  letter-spacing:.09em;text-transform:uppercase;color:var(--faint);
-  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 11px}
-.ch-msg{max-width:min(66%,520px);align-self:flex-start;background:var(--card);
-  border:1px solid var(--line);box-shadow:0 1px 2px rgba(23,26,46,.03);
-  border-radius:18px;padding:11px 15px}
-.ch-msg.mine{align-self:flex-end;background:var(--p8);border-color:var(--p8)}
-.ch-msg p{margin:0;font-size:14.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+.ch-day{align-self:center;margin:10px 0 6px;font-size:11px;font-weight:600;color:var(--faint)}
+
+.ch-msg{position:relative;max-width:min(70%,520px);align-self:flex-start;
+  background:#EBEAEF;border-radius:19px;padding:9px 15px}
+.ch-msg.mine{align-self:flex-end;background:var(--p6)}
+.ch-msg p{position:relative;z-index:2;margin:0;font-size:14.5px;line-height:1.42;
+  white-space:pre-wrap;word-wrap:break-word}
 .ch-msg.mine p{color:#fff}
-.ch-t{display:block;margin-top:5px;font-size:10.5px;color:var(--faint)}
-.ch-msg.mine .ch-t{color:#8FCDB6}
+
+/* The tail goes on the last bubble of a run, the way Telegram and WhatsApp do
+   it — one flick per turn rather than one per line. Drawn with two corners:
+   ::before is a lobe in the bubble's colour hanging off the side, ::after is
+   the same shape in the background colour, cutting it back to a point. */
+.ch-msg.tail{border-bottom-left-radius:6px;margin-bottom:9px}
+.ch-msg.mine.tail{border-bottom-left-radius:19px;border-bottom-right-radius:6px}
+.ch-msg.tail::before,.ch-msg.tail::after{content:"";position:absolute;bottom:0;
+  width:19px;height:19px}
+.ch-msg.tail::before{left:-7px;background:#EBEAEF;border-bottom-right-radius:17px;z-index:0}
+.ch-msg.tail::after{left:-19px;background:var(--card);border-bottom-right-radius:13px;z-index:1}
+.ch-msg.mine.tail::before{left:auto;right:-7px;background:var(--p6);
+  border-bottom-right-radius:0;border-bottom-left-radius:17px}
+.ch-msg.mine.tail::after{left:auto;right:-19px;
+  border-bottom-right-radius:0;border-bottom-left-radius:13px}
+
+/* One tick sent, two once they have opened the thread. Only ever on your own
+   messages: read_at on one of theirs is the moment you read it, which you
+   already know. */
+.ch-tick{margin-left:7px;font-size:11px;letter-spacing:-2px;white-space:nowrap;
+  color:#79B9A0}
+.ch-tick.read{color:#C4F3DF}
 
 .ch-form{display:flex;gap:9px;align-items:flex-end;padding:13px 15px;border-top:1px solid var(--line)}
 .ch-box{flex:1;min-width:0;display:flex;align-items:center;background:var(--bg);
