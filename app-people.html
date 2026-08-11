@@ -172,7 +172,9 @@
       '<div class="tp-facts">' + facts.map(function(f){
         return '<div class="tp-fact"><b>' + esc(f[1]) + '</b><span>' + f[0] + '</span></div>';
       }).join('') + '</div>' +
-      '<div class="tp-acts">' + actionFor(p.id) + '</div>' +
+      '<div class="tp-acts">' + actionFor(p.id) +
+        '<a class="ghost" href="app-person.html?id=' + esc(p.id) + '">View profile</a>' +
+      '</div>' +
     '</div>';
   }
 
@@ -186,12 +188,16 @@
     return '<div class="pt-row" data-id="' + esc(p.id) + '">' +
       '<div class="pt-who">' +
         '<span class="pt-av" style="background:' + t[0] + ';color:' + t[1] + '">' + initial(nm) + '</span>' +
-        '<div style="min-width:0"><div class="pt-nm"><span class="who">' + esc(nm) + '</span>' + tags + '</div>' +
+        '<div style="min-width:0"><div class="pt-nm">' +
+          '<a class="who" href="app-person.html?id=' + esc(p.id) + '">' + esc(nm) + '</a>' + tags + '</div>' +
         (sub ? '<div class="pt-sub">' + esc(sub) + '</div>' : '') + '</div>' +
       '</div>' +
       '<div class="pt-tp">' + (p.topic ? esc(p.topic) : '<span class="pt-sub">Not said yet</span>') + '</div>' +
       timesShort(p) +
-      actionFor(p.id) +
+      '<div class="pt-acts">' +
+        '<a class="pt-view" href="app-person.html?id=' + esc(p.id) + '">Profile</a>' +
+        actionFor(p.id) +
+      '</div>' +
     '</div>';
   }
 

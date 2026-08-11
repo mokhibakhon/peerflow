@@ -62,6 +62,32 @@ console warning, and falls back to the older shape.
 Verified against PostgreSQL 16: both files apply cleanly twice on a fresh
 database.
 
+---
+
+## Database migration — required for chat
+
+`supabase/migration-chat.sql` adds the `messages` table behind the **Chat**
+tab.
+
+1. Supabase → **SQL Editor** → paste the whole of `supabase/migration-chat.sql`
+2. **Run**
+
+Additive and safe to run more than once. Independent of the other two.
+
+**Who may message whom is enforced in the database, not the page.** The insert
+policy requires a partner request between the two of you in some direction —
+you asked them, or they asked you. That is the consent gate the product
+already has, so nothing new is being trusted, and a stranger cannot arrive in
+somebody's inbox uninvited. Widening it later is one line in one policy.
+
+Messages cannot be edited or deleted by anyone, including their author: there
+is no UPDATE or DELETE policy. Marking a thread read goes through
+`mark_thread_read`, because a policy wide enough to set `read_at` would also
+be wide enough to rewrite what somebody said.
+
+Without it, the Chat tab says messaging isn't switched on and every other page
+is unaffected.
+
 ## 1. GitHub repository (2 min) — the prerequisite for everything
 
 1. Go to **github.com/new**

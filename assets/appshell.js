@@ -25,7 +25,10 @@
       '<circle cx="10" cy="6.5" r="3" stroke="#585C74" stroke-width="1.6"/>' +
       '<path d="M4 17c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke="#585C74" stroke-width="1.6" stroke-linecap="round"/></svg>',
     progress: '<svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
-      '<path d="M4 15V9M10 15V5M16 15v-4" stroke="#585C74" stroke-width="1.6" stroke-linecap="round"/></svg>'
+      '<path d="M4 15V9M10 15V5M16 15v-4" stroke="#585C74" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    chat: '<svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
+      '<path d="M17 12a2 2 0 0 1-2 2H7l-4 3V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" ' +
+      'stroke="#585C74" stroke-width="1.6" stroke-linejoin="round"/></svg>'
   };
 
   /* People only earns a permanent slot while you are still looking for
@@ -39,6 +42,7 @@
      holding a Sessions card next to a Partner tab holding a partner. */
   var HOME    = { href:'app.html',          label:'Today',    icon:'sessions' };
   var PARTNER = { href:'app-sessions.html', label:'Partner',  icon:'partner'  };
+  var CHAT    = { href:'app-chat.html',     label:'Chat',     icon:'chat'     };
   var PEOPLE  = { href:'app-people.html',   label:'People',   icon:'people'   };
   var PATH    = { href:'app-progress.html', label:'Progress', icon:'progress' };
 
@@ -51,15 +55,30 @@
      says — dropping People while you are reading People would leave the bar
      with nothing marked current, which looks like the nav has lost you. */
   function tabsFor(paired){
-    if (paired !== '1' || here === PEOPLE.href) return [HOME, PARTNER, PEOPLE, PATH];
-    return [HOME, PARTNER, PATH];
+    if (paired !== '1' || here === PEOPLE.href) return [HOME, PARTNER, CHAT, PEOPLE, PATH];
+    return [HOME, PARTNER, CHAT, PATH];
   }
   function tabsHtml(paired){
     return tabsFor(paired).map(function(t){
       return '<a href="' + t.href + '"' + (t.href === here ? ' class="on" aria-current="page"' : '') + '>' +
-             ICON[t.icon] + t.label + '</a>';
+             ICON[t.icon] + t.label +
+             (t.icon === 'chat' ? '<span class="tabdot" id="pf-chatdot" hidden></span>' : '') +
+             '</a>';
     }).join('');
   }
+
+  /* Unread messages, as a count on the Chat tab. Exposed so the chat page can
+     clear it the moment you read a thread, rather than leaving a badge up for
+     eight seconds over messages you are looking at. */
+  window.pfChatBadge = function(){
+    if (!window.pf || !pf.unreadMessages) return;
+    pf.unreadMessages().then(function(n){
+      var dot = document.getElementById('pf-chatdot');
+      if (!dot) return;
+      dot.textContent = n > 9 ? '9+' : String(n);
+      dot.hidden = !n;
+    }).catch(function(){});
+  };
 
   /* Drawn from the cache first. A bar that reorders itself half a second
      after paint reads as a glitch, so the common case never sees it move. */
@@ -88,8 +107,10 @@
       paired = now;
       var nav = document.getElementById('pf-tabs');
       if (nav) nav.innerHTML = tabsHtml(now);
+      pfChatBadge();   /* the redraw threw the old badge away */
     }).catch(function(){});
   }
+  pfChatBadge();
 
   /* The path chip only appears once we actually know the path — an empty
      chip would read as a loading bug. */
