@@ -81,6 +81,13 @@
           </div>
           <p class="avail-count" id="p-avail-count"></p>
 
+          <h4 class="mini-h">How often you want to meet</h4>
+          <!-- Filled in by the script below: each tile draws the ring that
+               choice produces on Today, so you pick a shape you will recognise
+               rather than a number you have to imagine. -->
+          <div class="goal-pick" id="p-goal" role="group" aria-label="Sessions a week"></div>
+          <p class="goal-note" id="p-goal-note">This is the week you're aiming for. Hit it and your streak carries on.</p>
+
           <div style="margin-top:22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
             <button class="btn primary" id="p-save">Save changes</button>
             <span id="p-note" style="font-size:13.5px;color:var(--muted)"></span>
@@ -166,6 +173,56 @@
   });
   countAvail();
 
+  /* The weekly goal is the ring's denominator on Today. It lives here rather
+     than on the dashboard because it's a decision you make once, not a control
+     you want to fiddle with while looking at your own streak. */
+  var goalBox = document.getElementById('p-goal');
+  var goalNote = document.getElementById('p-goal-note');
+  var goal = 2, savedGoal = 2;
+
+  /* The same segmented ring the dashboard draws, in miniature: n arcs with a
+     gap between them. Kept to one small function rather than shared, because
+     the alternative is a fifth script tag on a page that needs none. */
+  function miniRing(n){
+    var r = 40, c = 2 * Math.PI * r;
+    /* Butt caps here rather than round: at 30px across, round caps close a gap
+       this small entirely and four segments render as one circle. */
+    var gap = n === 1 ? 0 : 13;
+    var step = c / n, seg = step - (gap / 360) * c, out = '';
+    for (var i = 0; i < n; i++) {
+      out += '<circle cx="50" cy="50" r="' + r + '" stroke-dasharray="' +
+             seg.toFixed(2) + ' ' + (c - seg).toFixed(2) + '" stroke-dashoffset="' +
+             (-(i * step) - (gap / 720) * c).toFixed(2) + '"/>';
+    }
+    return '<svg viewBox="0 0 100 100" aria-hidden="true">' + out + '</svg>';
+  }
+
+  goalBox.innerHTML = [1, 2, 3, 4].map(function(n){
+    return '<button type="button" class="goal" data-goal="' + n + '" aria-pressed="false">' +
+           miniRing(n) + '<b>' + n + '</b><i>a week</i></button>';
+  }).join('');
+
+  function paintGoal(){
+    Array.prototype.forEach.call(goalBox.querySelectorAll('.goal'), function(b){
+      var on = +b.getAttribute('data-goal') === goal;
+      b.classList.toggle('sel', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    goalNote.textContent = goal === 1
+      ? 'One a week keeps the streak alive, but it’s slow going.'
+      : goal >= 4
+        ? 'Ambitious — make sure your free times can carry it.'
+        : 'This is the week you’re aiming for. Hit it and your streak carries on.';
+  }
+
+  goalBox.addEventListener('click', function(e){
+    var b = e.target.closest('.goal');
+    if (!b) return;
+    goal = +b.getAttribute('data-goal');
+    paintGoal();
+  });
+  paintGoal();
+
   function markSel(box, attr, value){
     if (!value) return;
     var c = box.querySelector('[' + attr + '="' + value + '"]');
@@ -191,6 +248,12 @@
       }
       if (p.topic) topicI.value = p.topic;
       if (p.track_id) trackSel.value = p.track_id;
+      /* Absent until migration-goal.sql has been run — two is the default the
+         ring assumes too, so the two agree either way. */
+      if (p.sessions_per_week >= 1 && p.sessions_per_week <= 5) {
+        goal = savedGoal = p.sessions_per_week;
+        paintGoal();
+      }
       markSel(levelBox, 'data-level', p.level);
       (p.availability || []).forEach(function(v){ markSel(availBox, 'data-slot', v); });
       countAvail();
@@ -217,7 +280,9 @@
     if (sel) payload.level = sel.getAttribute('data-level');
     if (avail.length) payload.availability = avail;
 
-    if (!Object.keys(payload).length) {
+    var goalChanged = goal !== savedGoal;
+
+    if (!Object.keys(payload).length && !goalChanged) {
       note.style.color = 'var(--muted)';
       note.textContent = 'Nothing to save yet.';
       return;
@@ -226,7 +291,18 @@
     var btn = this;
     btn.disabled = true; btn.textContent = 'Saving…';
     note.textContent = '';
-    pf.saveProfile(payload).then(function(res){
+    /* The goal is a column the rest of the profile save doesn't know about,
+       and it may not exist yet, so it goes separately and is allowed to fail
+       without taking the rest of the form down with it. */
+    Promise.all([
+      Object.keys(payload).length ? pf.saveProfile(payload) : Promise.resolve({ saved: true }),
+      goalChanged ? pf.saveGoal(goal) : Promise.resolve({ saved: true })
+    ]).then(function(both){
+      var res = both[0], g = both[1];
+      if (g && g.saved) savedGoal = goal;
+      /* A profile that saved but a goal that couldn't is still a partial
+         failure, and the person should hear about the half that didn't. */
+      if (res && res.saved && g && !g.saved) res = g.demo ? { demo: true } : { error: g.error };
       btn.disabled = false; btn.textContent = 'Save changes';
       if (res && res.saved) {
         note.style.color = 'var(--green-dark)';

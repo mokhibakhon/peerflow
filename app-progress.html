@@ -26,17 +26,49 @@
       <a href="login.html">Log in</a> to see it.
     </p>
 
-    <!-- Totals, counted from real session rows. -->
-    <div class="pt-sec" id="pg-summary" aria-live="polite">
-      <div class="pt-stats">
-        <div><b id="pg-hours">—</b><span>hours focused</span></div>
-        <div><b id="pg-sessions">—</b><span>sessions completed</span></div>
-        <div><b id="pg-attend">—</b><span>attendance</span></div>
-        <div><b id="pg-streak">—</b><span>current streak</span></div>
-        <div><b id="pg-best">—</b><span>best streak</span></div>
+    <!-- ============ the record ============
+         Counted from real session rows. The streak leads because it is the one
+         figure here that is about what happens next; the totals are the
+         evidence behind it, and the twelve weeks underneath are the shape of
+         the habit, gaps and all. -->
+    <section class="pt-sec rec" id="pg-summary" aria-live="polite">
+      <div class="rec-top">
+        <div class="st-ring" id="pg-ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <!-- Same id as the dashboard's: .st-seg.on paints with url(#st-g),
+                   and an id that doesn't resolve leaves the filled arc with no
+                   paint at all, i.e. invisible. Ids are per-document, so both
+                   pages can and must use this one. -->
+              <linearGradient id="st-g" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0" stop-color="#1D9E75"/>
+                <stop offset="1" stop-color="#0B7F62"/>
+              </linearGradient>
+            </defs>
+            <g id="pg-seg"></g>
+          </svg>
+          <span class="st-mid"><b id="pg-streak">0</b><i>week streak</i></span>
+          <span class="st-flame" id="pg-flame" hidden>🔥</span>
+        </div>
+
+        <div class="rec-side">
+          <h2 class="rec-h" id="pg-h">&nbsp;</h2>
+          <p class="rec-s" id="pg-relnote"></p>
+        </div>
+
+        <dl class="figs">
+          <div><dt>Time together</dt><dd id="pg-hours">—</dd></div>
+          <div><dt>Sessions</dt><dd id="pg-sessions">—</dd></div>
+          <div><dt>Best run</dt><dd id="pg-best">—</dd></div>
+        </dl>
       </div>
-      <p class="lede" id="pg-relnote" style="margin:14px 0 0"></p>
-    </div>
+
+      <div class="rec-run">
+        <div class="run-h"><span>The last twelve weeks</span><b id="pg-runsum"></b></div>
+        <div class="run" id="pg-run"></div>
+        <div class="run-x"><span>12 weeks ago</span><span>this week</span></div>
+      </div>
+    </section>
 
     <!-- Learning path: light context, not a course. -->
     <section class="pt-sec">
@@ -130,68 +162,97 @@
   }
 
   /* ---------- totals ---------- */
-  function renderSummary(sessions, rel){
-    var now = Date.now();
-    var done = (sessions || []).filter(function(s){
-      return s.status === 'completed' ||
-             (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
-    });
+  /* Counted by pf.momentum() rather than here, because this page and the
+     dashboard used to disagree: this one bucketed weeks with
+     Math.floor(t / 604800000), which counts from the Unix epoch — a Thursday
+     — so its weeks ran Thursday to Wednesday while the dashboard's ran Monday
+     to Sunday. Same rows, two different streaks. */
+  /* "0.8 hours" is not a length of time anybody has ever said out loud. Under
+     an hour it is minutes, over it is hours and minutes, and a round hour
+     drops the minutes rather than printing "2h 0m". */
+  function dur(min){
+    min = Math.round(min || 0);
+    if (min < 60) return min + 'm';
+    var h = Math.floor(min / 60), r = min % 60;
+    return r ? h + 'h ' + r + 'm' : h + 'h';
+  }
+  function weeksWord(n){ return n + (n === 1 ? ' week' : ' weeks'); }
 
-    var minutes = done.reduce(function(a, s){ return a + (s.durationMin || 0); }, 0);
-    set('pg-hours', (minutes / 60).toFixed(1));
-    set('pg-sessions', String(done.length));
+  var RR = 52, RC = 2 * Math.PI * RR;
 
-    /* Weekly streaks, current and best. */
-    var WEEK = 7 * 864e5, weeks = {};
-    done.forEach(function(s){ weeks[Math.floor(s.startsAt.getTime() / WEEK)] = true; });
-    var idx = Object.keys(weeks).map(Number).sort(function(a, b){ return a - b; });
-    var best = idx.length ? 1 : 0, run = best;
-    for (var i = 1; i < idx.length; i++) {
-      run = (idx[i] === idx[i - 1] + 1) ? run + 1 : 1;
-      if (run > best) best = run;
+  /* Same segmented ring as the dashboard — one arc per session in the week's
+     goal — so the two pages are visibly the same object. */
+  function segs(goal, done){
+    var gap = goal === 1 ? 0 : 18;   /* clears the round caps — see app.html */
+    var step = RC / goal, seg = step - (gap / 360) * RC, out = '';
+    for (var i = 0; i < goal; i++) {
+      out += '<circle class="st-seg' + (i < done ? ' on' : '') + '" cx="60" cy="60" r="' + RR + '" ' +
+             'stroke-dasharray="' + seg.toFixed(2) + ' ' + (RC - seg).toFixed(2) + '" ' +
+             'stroke-dashoffset="' + (-(i * step) - (gap / 720) * RC).toFixed(2) + '" ' +
+             'style="transition-delay:' + (i * 90) + 'ms"/>';
     }
-    var cur = 0;
-    if (idx.length) {
-      var thisWeek = Math.floor(now / WEEK);
-      if (thisWeek - idx[idx.length - 1] <= 1) {
-        cur = 1;
-        for (var j = idx.length - 1; j > 0; j--) {
-          if (idx[j] - idx[j - 1] === 1) cur++; else break;
-        }
-      }
-    }
-    set('pg-streak', cur ? cur + 'w' : '0');
-    set('pg-best', best ? best + 'w' : '0');
+    return out;
+  }
 
-    if (rel && rel.counted > 0) {
-      set('pg-attend', rel.pct + '%');
-      var note = rel.attended + ' of ' + rel.counted + ' confirmed sessions attended';
-      if (rel.early) note += ' · ' + rel.early + ' cancelled early';
-      if (rel.late)  note += ' · ' + rel.late + ' cancelled late';
-      document.getElementById('pg-relnote').textContent = note + '.';
-    } else {
-      set('pg-attend', '—');
-    }
+  function renderSummary(m, sessions){
+    if (!m) return;
 
-    /* An empty Progress page for the first few weeks is the fastest way to
-       teach somebody not to click this tab. When there is nothing to show yet,
-       say what will fill it and when — pointing at the next booked session if
-       there is one, because that is the thing that turns the dashes into
-       numbers. */
+    set('pg-hours', dur(m.minutes));
+    set('pg-sessions', String(m.done));
+    set('pg-streak', String(m.streak));
+    set('pg-best', m.best ? weeksWord(m.best) : '—');
+
+    document.getElementById('pg-seg').innerHTML = segs(m.goal || 2, m.thisWeek);
+    document.getElementById('pg-ring').className = 'st-ring' +
+      (m.metThisWeek ? ' met' : (m.thisWeek ? ' part' : '')) +
+      (m.streak && !m.metThisWeek && m.daysLeft <= 3 ? ' cool' : '');
+    document.getElementById('pg-flame').hidden = !m.streak;
+
+    /* Twelve weeks, gaps included. Each mark says what it was when you hover
+       it, so the strip is readable rather than merely decorative. */
+    /* Same reason as the dashboard: an empty strip on a new account reads as a
+       thing that failed to load rather than a thing that has not happened. */
+    document.querySelector('.rec-run').hidden = !m.done;
+
+    var hist = m.history || [], goal = m.goal || 2;
+    document.getElementById('pg-run').innerHTML = hist.map(function(w){
+      /* Each week fills to what it held, so a week with one of two is visibly
+         half a week rather than another shade of green nobody can decode. */
+      var pct = Math.min(100, Math.round(w.count / goal * 100));
+      var when = new Date(w.start).toLocaleDateString([], { day:'numeric', month:'short' });
+      return '<i class="' + (w.met ? 'on' : '') + (w.current ? ' here' : '') +
+             '" title="Week of ' + when + ' — ' +
+             (w.count ? w.count + (w.count === 1 ? ' session' : ' sessions') : 'nothing') +
+             '"><span style="height:' + pct + '%"></span></i>';
+    }).join('');
+    var kept = hist.filter(function(w){ return w.met; }).length;
+    set('pg-runsum', kept + ' of 12 weeks hit');
+
+    var head = document.getElementById('pg-h');
     var note = document.getElementById('pg-relnote');
-    if (done.length) {
-      if (rel && rel.counted > 0) {
-        var line = rel.attended + ' of ' + rel.counted + ' confirmed sessions attended';
-        if (rel.early) line += ' · ' + rel.early + ' cancelled early';
-        if (rel.late)  line += ' · ' + rel.late + ' cancelled late';
-        note.textContent = line + '.';
-      } else {
-        note.textContent = '';
-      }
+
+    if (m.done) {
+      head.textContent = m.streak
+        ? weeksWord(m.streak) + ' in a row'
+        : 'Your streak is waiting to restart';
+
+      /* A record, not a verdict: what the weeks add up to, and the next thing
+         worth reaching. */
+      var next = m.streak < 4 ? 4 : m.streak < 12 ? 12 : 0;
+      note.textContent = m.done + (m.done === 1 ? ' session' : ' sessions') +
+        ' with your partners, ' + dur(m.minutes) + ' of it' +
+        (next && m.streak ? ' · ' + (next - m.streak) + ' more ' +
+                            (next - m.streak === 1 ? 'week' : 'weeks') + ' makes it ' + next + '.'
+         : m.streak ? ' · past twelve weeks, which is the whole plan.'
+                    : ' · one session this week starts it again.');
       return;
     }
 
-    var upcoming = null;
+    head.textContent = 'Nothing counted yet';
+
+    /* Nothing yet. Point at the next booked session if there is one, because
+       that is the thing that turns these dashes into numbers. */
+    var now = Date.now(), upcoming = null;
     (sessions || []).forEach(function(s){
       if (s.status !== 'confirmed') return;
       if (s.startsAt.getTime() + s.durationMin * 60000 <= now) return;
@@ -209,6 +270,7 @@
         '<a href="app.html" style="text-decoration:underline">Propose a time</a>';
     }
   }
+
 
   /* ---------- announcing a new achievement ---------- */
   /* The rules are evaluated in the browser from real session rows, so an
@@ -251,8 +313,11 @@
       pfBadges.render(document.getElementById('badges'), null);
       return;
     }
+    /* reliability() is gone from this list: it re-read every session to
+       produce a figure nothing can populate, and momentum() now owns the
+       counting for both this page and the dashboard. */
     Promise.all([
-      pf.getProfile(), pf.fetchSessions(), pf.reliability(), pf.badgeStats(),
+      pf.getProfile(), pf.momentum(), pf.fetchSessions(), pf.badgeStats(),
       pf.unlockedAchievements ? pf.unlockedAchievements() : Promise.resolve([])
     ]).then(function(r){
       var profile = r[0] || null;
