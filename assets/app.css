@@ -679,6 +679,89 @@ html{scroll-behavior:smooth}
   text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
 .step-err{color:#B4471F;font-size:13.5px}
 
+/* ------------------------------------------------------------
+   The rest of the shim, which was never finished.
+
+   Profile, Settings and the no-partner state of the Partner page were
+   written against classes that only ever existed in assets/styles.css —
+   and no app page loads that file. So .app-grid was not a grid, the
+   key/value lists fell back to a browser's indented <dl>, and the "Show"
+   password control rendered as a grey system button. They are declared
+   here, in this file's own language, rather than by linking a second
+   stylesheet written for the marketing pages.
+   ------------------------------------------------------------ */
+
+/* Two columns: what you came to change, and what you might change next. */
+.app-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
+  gap:16px;align-items:start}
+.app-col{display:flex;flex-direction:column;min-width:0}
+/* .card already carries its own bottom margin; a gap as well double-spaced
+   every column on these two pages. */
+.app-col > .card:last-child{margin-bottom:0}
+
+/* A section heading inside a card — smaller than the card's own title,
+   and spaced so a long form reads as parts rather than one wall. */
+.mini-h{font-size:13px;font-weight:700;letter-spacing:-.005em;color:var(--ink);
+  margin:24px 0 10px}
+.mini-h:first-child{margin-top:0}
+
+/* Facts you can read but not edit: label left, value right, ruled between.
+   A <dl> with no styling indents every value under its own term, which is
+   how this page came to look like a directory listing. */
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);margin:0;font-size:14px}
+.kv dt{padding:10px 14px 10px 0;color:var(--faint);border-top:1px solid var(--line)}
+.kv dd{padding:10px 0;margin:0;color:var(--ink);font-weight:600;text-align:right;
+  border-top:1px solid var(--line);word-break:break-word}
+.kv dt:first-of-type,.kv dd:first-of-type{border-top:0;padding-top:0}
+
+/* Show/hide, inside the field rather than dumped underneath it. */
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:72px}
+.pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  padding:6px 10px;border:0;border-radius:8px;background:var(--band);
+  font-family:inherit;font-size:12px;font-weight:700;color:var(--p6);
+  cursor:pointer;transition:background .15s}
+.pw-toggle:hover{background:var(--p0)}
+
+/* One answer per line, for choices whose labels are sentences. */
+.choices.one{grid-template-columns:1fr}
+
+/* The Partner page before there is a partner. Capped, because a single card
+   stretched over 1300px reads as a page that failed to load its other half. */
+.next-card,#queue-card{max-width:640px}
+.next-card{text-align:left}
+.when-big{font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.queue-note{font-size:13.5px;color:var(--faint);margin:14px 0 0;line-height:1.55}
+
+/* The pair's record, in the side column. Stacked rather than in a row: this
+   column is a third of the page, and three figures side by side in it were
+   three numbers with nowhere to breathe. */
+.figs.stack{display:block}
+.figs.stack > div{display:flex;align-items:baseline;justify-content:space-between;
+  gap:14px;padding:11px 0;margin:0;text-align:left;
+  border-left:0;border-top:1px solid var(--line)}
+.figs.stack > div:first-child{border-top:0;padding-top:2px}
+.figs.stack dd{margin:0;font-size:17px}
+.ph-note{font-size:13px;color:var(--faint);margin:14px 0 0;line-height:1.5}
+
+/* Sessions together: the date is the point. */
+.ph{list-style:none;margin:0;padding:0}
+.ph li{display:flex;align-items:baseline;gap:14px;padding:11px 0;
+  border-top:1px solid var(--line);font-size:14px}
+.ph li:first-child{border-top:0;padding-top:2px}
+.ph-d{font-weight:600;color:var(--ink);min-width:112px}
+.ph-t{font-family:var(--mono);font-size:12.5px;color:var(--soft)}
+.ph-l{margin-left:auto;font-size:12.5px;color:var(--faint)}
+.ph-more{font-size:13px;color:var(--faint);margin:13px 0 0}
+
+.lnk{color:var(--p6);font-weight:600}
+.lnk:hover{text-decoration:underline}
+
+@media (max-width:900px){
+  .app-grid{grid-template-columns:1fr}
+}
+
 /* ============================================================
    Account chip — avatar, name, chevron. Overrides the plain circle
    that was ported up from styles.css.
@@ -718,7 +801,12 @@ html{scroll-behavior:smooth}
 /* ---------- people page ---------- */
 .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
   gap:12px;max-width:440px;margin:0 0 18px}
-.empty-hint{font-size:14.5px;color:var(--soft);margin:0 0 18px;max-width:640px}
+.empty-hint{font-size:14.5px;color:var(--soft);margin:0 0 20px;max-width:66ch;
+  line-height:1.6}
+/* Figures ranged alongside a page title: smaller than the ones heading the
+   record on Progress, because here they are context rather than the subject. */
+.app-head .figs dd{font-size:19px}
+.app-head .figs > div{padding-top:0;padding-bottom:0}
 
 /* The row's right-hand slot. The action and the four states are built to one
    size so the column stays straight however a row changes, and centred
@@ -1295,23 +1383,62 @@ html{scroll-behavior:smooth}
   .figs dd{font-size:18px}
 }
 
-/* A list, not a course. Each week is a button because moving the marker is
-   the only progress input the product asks for. */
-.pg-week{display:flex;align-items:baseline;gap:14px;width:100%;text-align:left;
-  padding:11px 12px;border:0;border-top:1px solid var(--line);background:transparent;
-  border-radius:0;font:inherit;color:var(--ink)}
-.pg-week:first-child{border-top:0}
+/* A timeline, not a course. Each week is a button because moving the marker is
+   the only progress input the product asks for.
+
+   Capped, because twelve short titles ranged across 1300px make the eye travel
+   the full width of the screen to reach a status word. */
+#pg-path{max-width:760px;position:relative}
+
+.pg-week{position:relative;display:flex;align-items:center;gap:14px;width:100%;
+  text-align:left;padding:9px 12px 9px 0;border:0;background:transparent;
+  border-radius:10px;font:inherit;color:var(--ink)}
 .pg-week:hover{background:var(--band)}
-.pg-week .wk{flex:0 0 68px;font-family:var(--mono);font-size:10.5px;
-  letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+
+/* The rail runs the full height of each row and is trimmed at the two ends,
+   so twelve rows read as one line through twelve nodes rather than as twelve
+   detached ticks. The dot sits on top of it, opaque. */
+.pg-week::before{content:"";position:absolute;left:18.5px;top:0;bottom:0;
+  width:2px;background:#E3E5EE}
+.pg-week:first-child::before{top:50%}
+.pg-week:last-child::before{bottom:50%}
+.pg-week.done::before,.pg-week.now::before{background:var(--p2)}
+/* The run of green stops at the current week: the rail below it is still
+   ahead of you. */
+.pg-week.now::before{background:linear-gradient(var(--p2) 50%,#E3E5EE 50%)}
+
+.pg-dot{position:relative;z-index:1;flex:0 0 auto;width:15px;height:15px;
+  margin-left:12px;border-radius:50%;background:var(--card);
+  box-shadow:inset 0 0 0 2px #D8DBE6;transition:box-shadow .2s,background .2s}
+
+.pg-b{flex:1;min-width:0;display:flex;align-items:baseline;gap:14px}
+.pg-week .wk{flex:0 0 62px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
 .pg-week .ttl{flex:1;min-width:0;font-size:14.5px}
-.pg-week .st{flex:0 0 auto;font-size:12px;color:var(--faint)}
-.pg-week.done .ttl{color:var(--faint);text-decoration:line-through}
-.pg-week.now{background:var(--p0);border-radius:10px}
+.pg-week .st{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+
+/* Finished. A tick, not a strikethrough: struck-out text reads as cancelled,
+   which is the opposite of what a completed week means. */
+.pg-week.done .pg-dot{background:var(--p4);box-shadow:inset 0 0 0 2px var(--p4)}
+.pg-week.done .pg-dot::after{content:"";position:absolute;left:50%;top:47%;
+  width:6px;height:3px;border-left:2px solid #fff;border-bottom:2px solid #fff;
+  transform:translate(-50%,-60%) rotate(-45deg)}
+.pg-week.done .ttl{color:var(--soft)}
+
+/* Where you are. The one row that should stop the eye. */
+.pg-week.now{background:var(--p0)}
+.pg-week.now .pg-dot{background:var(--card);
+  box-shadow:inset 0 0 0 4px var(--p6),0 0 0 4px rgba(29,158,117,.16)}
 .pg-week.now .ttl{font-weight:700;color:var(--p8)}
 .pg-week.now .st,.pg-week.now .wk{color:var(--p6)}
+
+/* Said to a screen reader, since the state is otherwise only a colour. */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
+  white-space:nowrap}
+
 @media (max-width:640px){
-  .pg-week{flex-wrap:wrap;gap:4px 12px}
+  .pg-b{flex-wrap:wrap;gap:2px 12px}
   .pg-week .ttl{flex:1 0 100%;order:3}
 }
 

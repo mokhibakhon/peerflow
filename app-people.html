@@ -19,20 +19,22 @@
 
 <main>
   <div class="wrap">
+    <!-- The counts sit in the header rather than in two floating tiles below
+         it. The header already had an empty right half, and two small numbers
+         in their own boxes read as a dashboard this page is not. -->
     <div class="app-head">
       <h1>People on PeerFlow</h1>
+      <dl class="figs">
+        <div><dt>People here</dt><dd id="st-total">—</dd></div>
+        <div><dt>On your path</dt><dd id="st-same">—</dd></div>
+      </dl>
     </div>
 
-    <p class="empty-hint" style="max-width:640px">
+    <p class="empty-hint">
       Everyone who has finished signing up. The person at the top is whoever is
       closest to what you're learning — a suggestion, not a match. Nobody here is
       made up, and you can ask anyone on the list instead.
     </p>
-
-    <div class="stat-row">
-      <div class="stat"><b id="st-total">—</b><span>people here</span></div>
-      <div class="stat"><b id="st-same">—</b><span>on your path</span></div>
-    </div>
 
     <div id="people">
       <div class="b"><p class="n">Loading…</p></div>

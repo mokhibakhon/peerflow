@@ -24,7 +24,7 @@
     </div>
 
     <!-- No partner yet, or the profile isn't finished. -->
-    <div class="card next-card" id="none-card" hidden style="max-width:640px">
+    <div class="card next-card" id="none-card" hidden>
       <div class="when-big" id="match-status">NO PARTNER YET</div>
       <h2 id="match-title">You don't have a partner yet</h2>
       <p id="match-sub"></p>
@@ -33,23 +33,56 @@
       </div>
     </div>
 
-    <!-- One card each. Nobody is "the" partner: they're all people who said
-         yes, and promoting whichever came back first made two partners look
-         like one partner and a footnote. -->
-    <div id="partner-list" style="max-width:640px"></div>
+    <div class="app-grid" id="pt-grid" hidden>
+      <div class="app-col">
+        <!-- One card each. Nobody is "the" partner: they're all people who said
+             yes, and promoting whichever came back first made two partners look
+             like one partner and a footnote. -->
+        <div id="partner-list"></div>
 
-    <!-- Real numbers from the database, so the wait isn't a black box. -->
-    <div class="card" id="queue-card" style="max-width:640px;margin-top:24px">
-      <h3>Where things stand</h3>
-      <div class="stat-row">
-        <div class="stat"><b id="q-total">—</b><span>people signed up</span></div>
-        <div class="stat"><b id="q-same">—</b><span>learning your topic</span></div>
+        <!-- Every session the two of you have had. This is the page about a
+             person, so the history that belongs here is the pair's, not the
+             platform's — which is what the signup counts used to be. -->
+        <div class="card" id="hist-card" hidden>
+          <h3>Sessions together</h3>
+          <ol class="ph" id="hist-list"></ol>
+          <p class="ph-more" id="hist-more" hidden></p>
+        </div>
       </div>
+
+      <div class="app-col">
+        <!-- The pair's own record, counted only from sessions in their room. -->
+        <div class="card rec-mini" id="pair-card" hidden>
+          <h3 id="pair-h">Together</h3>
+          <dl class="figs stack">
+            <div><dt>Weeks running</dt><dd id="pair-streak">—</dd></div>
+            <div><dt>Sessions</dt><dd id="pair-done">—</dd></div>
+            <div><dt>Time together</dt><dd id="pair-mins">—</dd></div>
+          </dl>
+          <p class="ph-note" id="pair-note"></p>
+        </div>
+
+        <div class="card">
+          <h3>How you meet</h3>
+          <p>Propose a time on <a href="app.html" class="lnk">Today</a>. The link to the
+            video call appears on the session fifteen minutes before you start —
+            cameras on, and you work through it together.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Real numbers from the database, so the wait isn't a black box. Only
+         while there is nobody yet: once you have a partner, how many people
+         signed up is somebody else's business. -->
+    <div class="card" id="queue-card" hidden>
+      <h3>Where things stand</h3>
+      <dl class="figs">
+        <div><dt>People signed up</dt><dd id="q-total">—</dd></div>
+        <div><dt>Learning your topic</dt><dd id="q-same">—</dd></div>
+      </dl>
       <p class="queue-note" id="q-note">Checking…</p>
       <a class="btn ghost" href="app-people.html" style="margin-top:16px">See who's here</a>
     </div>
-
-    <p class="board-note" id="board-note">When you're matched, your partner and a button to start your video call will show up here. You'll meet on video — cameras on — and learn together.</p>
   </div>
 </main>
 
@@ -95,11 +128,10 @@
 
   function renderPartners(list){
     document.getElementById('none-card').hidden = true;
+    document.getElementById('queue-card').hidden = true;
+    document.getElementById('pt-grid').hidden = false;
     document.getElementById('page-h').textContent =
       list.length > 1 ? 'My partners' : 'My partner';
-    document.getElementById('board-note').textContent =
-      'Propose a time on Sessions. The link to the call appears there fifteen ' +
-      'minutes before you start.';
 
     document.getElementById('partner-list').innerHTML = list.map(function(x){
       var pr = x.profile || {};
@@ -132,6 +164,69 @@
           '</div>' +
         '</div></div>';
     }).join('');
+  }
+
+  /* ---------- the pair's own record ---------- */
+
+  function dur(min){
+    min = Math.round(min || 0);
+    if (min < 60) return min + 'm';
+    var h = Math.floor(min / 60), r = min % 60;
+    return r ? h + 'h ' + r + 'm' : h + 'h';
+  }
+  function plural(n, w){ return n + ' ' + w + (n === 1 ? '' : 's'); }
+
+  /* Counted from the sessions in this pair's room, so two partners get two
+     separate records rather than one shared total that flatters both. */
+  function renderPair(person, room){
+    if (!room || !pf.momentum) return;
+    var who = (person.name || 'them').split(' ')[0];
+    pf.momentum(room).then(function(m){
+      if (!m || !m.done) return;
+      document.getElementById('pair-card').hidden = false;
+      document.getElementById('pair-h').textContent = 'You and ' + who;
+      document.getElementById('pair-streak').textContent =
+        m.streak ? plural(m.streak, 'week') : '—';
+      document.getElementById('pair-done').textContent = m.done;
+      document.getElementById('pair-mins').textContent = dur(m.minutes);
+      document.getElementById('pair-note').textContent = m.streak
+        ? (m.metThisWeek
+            ? 'This week is already done.'
+            : m.thisWeek + ' of ' + m.goal + ' booked this week.')
+        : 'Book one this week and the run starts again.';
+    }).catch(function(){});
+  }
+
+  /* The sessions the two of you actually had, most recent first. The date is
+     the point; a list of "50 minutes" tells nobody anything. */
+  function renderHistory(room){
+    if (!room) return;
+    pf.fetchSessions().then(function(all){
+      if (!all) return;
+      var now = Date.now();
+      var mine = all.filter(function(s){
+        if (s.roomUrl !== room) return;
+        return s.status === 'completed' ||
+               (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
+      }).sort(function(a, b){ return b.startsAt - a.startsAt; });
+
+      if (!mine.length) return;
+      document.getElementById('hist-card').hidden = false;
+      document.getElementById('hist-list').innerHTML = mine.slice(0, 6).map(function(s){
+        var d = s.startsAt;
+        return '<li><span class="ph-d">' +
+          esc(d.toLocaleDateString([], { weekday:'short', day:'numeric', month:'short' })) +
+          '</span><span class="ph-t">' +
+          esc(d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hour12:false })) +
+          '</span><span class="ph-l">' + dur(s.durationMin) + '</span></li>';
+      }).join('');
+
+      var more = document.getElementById('hist-more');
+      if (mine.length > 6) {
+        more.hidden = false;
+        more.textContent = 'and ' + plural(mine.length - 6, 'more') + ' before that.';
+      }
+    }).catch(function(){});
   }
 
   /* How many of your free windows they are also free in — the same number the
@@ -169,13 +264,24 @@
     if (!user) return;
     pf.getProfile().then(function(profile){
       myAvail = (profile && profile.availability) || [];
-      loadQueue(profile && profile.topic);
       if (profile && profile.track_id) {
         track = profile.track_id;
         try { localStorage.setItem('pf_track', track); } catch(e){}
       }
       pf.acceptedPartners().then(function(list){
-        if (list && list.length) { renderPartners(list); return; }
+        if (list && list.length) {
+          renderPartners(list);
+          /* The pair's record and history only make sense for one pair. With
+             two partners the room is ambiguous, so the side column stays out
+             of the way rather than picking a favourite. */
+          if (list.length === 1) {
+            renderPair(list[0].profile || {}, list[0].roomUrl);
+            renderHistory(list[0].roomUrl);
+          }
+          return;
+        }
+        document.getElementById('queue-card').hidden = false;
+        loadQueue(profile && profile.topic);
         renderNone(!!track);
       });
     });
