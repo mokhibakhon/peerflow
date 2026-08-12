@@ -27,23 +27,21 @@
     <a href="login.html">Log in</a> to see them.
   </p>
 
-  <section class="b wide">
-    <div class="bh">
-      <span class="gl" style="background:#FDEDAE">
-        <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 3l6 2.5v5c0 4.5-2.6 7-6 8.5-3.4-1.5-6-4-6-8.5v-5Z" fill="#DDA31A"/><path d="M8 11l2.4 2.4L15 8.6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-      <div><span class="mono" style="color:#96690A">Badges</span><h2>What you've earned</h2></div>
+  <!-- The count sits in the section header rather than in a panel of its own.
+       It is one fact; giving it a card would make it look like the subject of
+       the page, and the subject is the twelve badges underneath. -->
+  <section class="bwall">
+    <div class="bwall-h">
+      <h2>Learning milestones</h2>
+      <p class="bwall-c" id="b-count"></p>
     </div>
     <div id="badges"><p class="badge-empty">Loading…</p></div>
+    <p class="bwall-next" id="b-next" hidden></p>
   </section>
 
-  <section class="b wide inv" style="margin-top:16px">
-    <div class="row">
-      <p>Every badge here comes from something that actually happened — a session you
-        finished, a partner who accepted, the week you turned up again. None of them
-        can be bought or granted.</p>
-    </div>
-  </section>
+  <p class="bfoot">Every badge here comes from something that actually happened — a
+    session you finished, a partner who accepted, the week you turned up again.
+    None of them can be bought or granted.</p>
 </main>
 
 <div class="mfoot">
@@ -66,10 +64,54 @@
       pfBadges.render(document.getElementById('badges'), null);
       return;
     }
-    pf.badgeStats().then(function(stats){
+    Promise.all([
+      pf.badgeStats(),
+      pf.unlockedAchievements ? pf.unlockedAchievements() : Promise.resolve([])
+    ]).then(function(r){
+      var stats = r[0], already = r[1];
       pfBadges.render(document.getElementById('badges'), stats);
+
+      /* The same first-sight check Progress does. Whichever page you happen to
+         open after earning one is where you should see it, and unlockAchievement
+         only reports "fresh" once, so it cannot fire twice. */
+      announceNew(stats, already);
+
+      var s = pfBadges.summary(stats);
+      document.getElementById('b-count').textContent =
+        s.earned + ' of ' + s.total + ' earned';
+
+      /* One line under the wall naming the badge worth doing something about,
+         and only when you have actually started on it — "closest" out of a set
+         you have not touched is just the first item in a list. */
+      var next = document.getElementById('b-next');
+      if (s.started && s.next) {
+        next.innerHTML = 'Closest: <b>' + s.next.name + '</b> — ' + s.next.sub + '.';
+        next.hidden = false;
+      }
     });
   });
+
+  /* Records anything newly earned and celebrates whatever was genuinely new.
+     Kept identical in shape to the copy on Progress: a first run on an account
+     with history would otherwise throw a dozen modals in a row. */
+  function announceNew(stats, already){
+    if (!stats || !pf.unlockAchievement || !pfBadges.evaluate) return;
+    var seen = {};
+    (already || []).forEach(function(a){ seen[a.code] = true; });
+    var fresh = pfBadges.evaluate(stats)
+      .filter(function(b){ return b.earned && !seen[b.id]; });
+    if (!fresh.length) return;
+    var backfill = !(already || []).length && fresh.length > 2;
+
+    Promise.all(fresh.map(function(b){
+      return pf.unlockAchievement(b.id).then(function(res){
+        return (res && res.fresh && !backfill) ? b : null;
+      }).catch(function(){ return null; });
+    })).then(function(shown){
+      var real = shown.filter(Boolean);
+      if (real.length && pfBadges.celebrate) pfBadges.celebrate(real);
+    });
+  }
 })();
 </script>
 <script src="assets/usermenu.js"></script>

@@ -495,59 +495,61 @@ h1 .g{color:var(--p4)}
 
 .goal-note{font-size:13.5px;color:var(--faint);margin:12px 0 0}
 
-/* ---------- badges ---------- */
-/* Tiles were 104px wide with a 14px gutter, so two-word names wrapped into
-   the caption and the whole wall ran together. Wider tiles, real gaps, and
-   each one its own bordered card so the medals have somewhere to sit. */
-.badge-count{font-size:13px;color:var(--faint);margin:0 0 16px}
-.badge-count b{color:var(--ink);font-size:15px;font-weight:700}
+/* ---------- badges ----------
+   The drawing on the left, everything you read on the right, in three
+   columns. It used to be a grid of bordered cards with the art centred over
+   the text: twelve boxes, each announcing itself, and the names landing at
+   twelve different x positions so nothing could be scanned. Ranged left in
+   one column each, the names line up and the eye runs down them — and the
+   borders come off, because the badges are the only shapes on this page that
+   need to be shapes. */
 .badge-empty{font-size:14px;color:var(--faint);margin:0}
 
-.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));
-  gap:14px}
-.badge-tile{
-  display:flex;flex-direction:column;align-items:center;text-align:center;
-  gap:2px;padding:18px 12px 16px;border:1px solid var(--line);border-radius:14px;
-  background:#FCFCFD;transition:border-color .15s,box-shadow .15s,transform .15s;
-}
-/* Earned tiles lift off the page on white; locked ones stay on its grey. The
-   difference is the ground, not the opacity — a wall dimmed to 50% looks like
-   it is still loading.
+.bwall-h{display:flex;align-items:baseline;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;margin:0 0 22px}
+.bwall-h h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.02em}
+.bwall-c{margin:0;font-size:13.5px;color:var(--faint)}
+.bwall-next{margin:26px 0 0;padding-top:18px;border-top:1px solid var(--line);
+  font-size:13.5px;color:var(--faint)}
+.bwall-next b{color:var(--ink);font-weight:700}
 
-   The ground is neutral, not tinted. It used to carry a faint green wash,
-   which was right when every badge was green and wrong the moment the
-   artwork became indigo, teal, amber and purple: a green card behind a
-   purple badge makes both look accidental. */
-.badge-tile.earned{background:var(--card);border-color:#DEDEE7;
-  box-shadow:0 1px 3px rgba(23,26,46,.07)}
-.badge-tile:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(23,26,46,.09)}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));
+  gap:30px 24px}
+.badge-tile{display:flex;align-items:flex-start;gap:16px;min-width:0}
 
+/* The art at its own size. It was drawn at 72 and shown at 58, which threw
+   away a fifth of the detail somebody put into it. */
+.badge-tile .medal{position:relative;flex:0 0 auto;display:block;
+  width:72px;height:72px}
+.badge-tile .medal img{display:block;width:72px;height:72px}
+.medal-rim{position:absolute;inset:0;width:72px;height:72px;pointer-events:none}
 /* Only the five that ship their unearned art in colour. See ONE_SHOT. */
 .badge-tile .medal.grey img{filter:grayscale(1) opacity(.72)}
-/* The drawing is an <img>; the progress rim is an SVG laid exactly over it,
-   which is why the wrapper is positioned and both are the same 58px box. */
-.badge-tile .medal{position:relative;display:block;width:58px;height:58px;
-  margin:0 auto 10px}
-.badge-tile .medal img{display:block;width:58px;height:58px}
-.medal-rim{position:absolute;inset:0;width:58px;height:58px;pointer-events:none}
-.badge-tile b{font-size:13px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
-.badge-tile:not(.earned) b{color:var(--soft);font-weight:600}
-.badge-tile span{font-size:11.5px;color:var(--faint);line-height:1.4}
 
-/* How far along, in figures, under the ones that are a count. The rim of the
-   badge draws the same fraction — this is the number behind it. */
-.bdg-n{display:inline-block;margin-top:7px;padding:2px 8px;border-radius:999px;
-  background:var(--band);font-family:var(--mono);font-size:10px;
-  letter-spacing:.05em;color:var(--soft)}
+.bdg-b{min-width:0;padding-top:2px}
+.badge-tile b{display:block;font-size:14px;font-weight:700;letter-spacing:-.01em;
+  line-height:1.3;color:var(--ink)}
+.badge-tile:not(.earned) b{color:var(--soft)}
+/* Scoped past the chip, which is also a <span>: as `.badge-tile span` this
+   rule outweighed `.bdg-chip` on specificity and forced the chip to display
+   block — so it stretched the full width of the column and its tick lost the
+   gap next to the word. */
+.badge-tile .bdg-b > span:not(.bdg-chip){display:block;font-size:12.5px;
+  color:var(--faint);line-height:1.5;margin-top:3px}
 
-/* Earned / still to come. Quiet, because the wall is already sorted. */
-.bdg-h{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;
-  text-transform:uppercase;color:var(--faint);margin:0 0 11px}
-.badge-grid + .bdg-h{margin-top:26px}
+/* One chip, carrying the state. Tinted with the badge's own colour rather
+   than a house green — twelve drawings in nine colours under twelve identical
+   green chips would read as one badge repeated. */
+.bdg-chip{display:inline-flex;align-items:center;gap:4px;margin-top:9px;
+  padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;
+  line-height:1.45;letter-spacing:-.005em}
+.bdg-chip.on{color:var(--p8);background:var(--p0)}
+.bdg-chip svg{flex:0 0 auto}
 
 @media (max-width:560px){
-  .badge-grid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
-  .badge-tile{padding:14px 8px 12px}
+  .badge-grid{grid-template-columns:1fr;gap:22px}
+  .badge-tile{gap:13px}
+  .badge-tile .medal,.badge-tile .medal img,.medal-rim{width:60px;height:60px}
 }
 
 @media (max-width:1080px){
@@ -1680,3 +1682,45 @@ html{scroll-behavior:smooth}
 .pt-view{font-size:12.5px;font-weight:600;color:var(--p6);white-space:nowrap}
 .pt-view:hover{text-decoration:underline}
 a.who:hover{text-decoration:underline}
+
+/* ---------- a badge, the moment you earn it ----------
+   The one interruption in the product. Everything else here tries not to be
+   a modal; this is the single event worth stopping for, and a badge that
+   appears quietly on a page nobody was looking at is a badge nobody knows
+   they earned. */
+.bpop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;
+  padding:24px;background:rgba(16,20,34,.5);backdrop-filter:blur(3px);
+  opacity:0;transition:opacity .18s ease}
+.bpop.in{opacity:1}
+.bpop.out{opacity:0}
+
+.bpop-card{width:min(360px,100%);padding:30px 28px 26px;text-align:center;
+  background:var(--card);border-radius:22px;
+  box-shadow:0 24px 60px rgba(16,20,34,.28),0 2px 8px rgba(16,20,34,.12);
+  transform:translateY(10px) scale(.97);
+  transition:transform .22s cubic-bezier(.2,.9,.3,1)}
+.bpop.in .bpop-card{transform:none}
+
+.bpop-k{margin:0 0 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--p6)}
+/* The hero drawing, which is what the -hero files in the set are for. */
+.bpop-art{display:block;width:132px;height:132px;margin:0 auto 16px}
+.bpop-card h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.025em;
+  line-height:1.2}
+.bpop-d{margin:8px 0 22px;font-size:14px;color:var(--soft);line-height:1.5}
+.bpop-card .btn{width:100%}
+
+/* The drawing arrives with a little weight behind it. Held to one short
+   movement — a badge that bounces three times is a badge you resent by the
+   fourth one you earn. */
+@keyframes bpop-pop{
+  0%  {transform:scale(.72);opacity:0}
+  60% {transform:scale(1.04);opacity:1}
+  100%{transform:scale(1)}
+}
+.bpop.in .bpop-art{animation:bpop-pop .42s cubic-bezier(.2,.9,.3,1) both}
+
+@media (prefers-reduced-motion:reduce){
+  .bpop,.bpop-card{transition:none}
+  .bpop.in .bpop-art{animation:none}
+}

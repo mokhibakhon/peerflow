@@ -306,12 +306,22 @@
        clearly a backfill rather than a genuine new unlock. */
     var backfill = !(already || []).length && fresh.length > 2;
 
-    fresh.forEach(function(b){
-      pf.unlockAchievement(b.id).then(function(res){
-        if (!res || !res.fresh || backfill || !pf.notifySelf) return;
-        pf.notifySelf('achievement', 'Achievement unlocked: ' + b.name,
-                      b.sub || b.desc || null, 'app-progress.html');
-      });
+    /* unlockAchievement() answers whether the row was actually new, which is
+       what makes this safe to run on every page load: only the first time a
+       badge is recorded does anything happen. Collected rather than shown one
+       by one, because finishing a fifth session can earn two at once. */
+    Promise.all(fresh.map(function(b){
+      return pf.unlockAchievement(b.id).then(function(res){
+        if (!res || !res.fresh || backfill) return null;
+        if (pf.notifySelf) {
+          pf.notifySelf('achievement', 'Achievement unlocked: ' + b.name,
+                        b.sub || b.desc || null, 'app-progress.html');
+        }
+        return b;
+      }).catch(function(){ return null; });
+    })).then(function(shown){
+      var real = shown.filter(Boolean);
+      if (real.length && pfBadges.celebrate) pfBadges.celebrate(real);
     });
   }
 
