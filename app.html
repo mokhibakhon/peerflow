@@ -176,7 +176,7 @@
             <b id="mo-n">0</b>
             <i id="mo-u">week streak</i>
           </span>
-          <span class="st-flame" id="mo-flame" hidden>🔥</span>
+          <span class="st-flame" id="mo-flame" hidden></span>
         </div>
         <p class="st-h" id="mo-h">&nbsp;</p>
         <p class="st-w" id="mo-w"></p>
@@ -411,7 +411,12 @@
     $('mo-ring').className = 'st-ring' +
       (m.metThisWeek ? ' met' : (m.thisWeek ? ' part' : '')) +
       (atRisk ? ' cool' : '');
-    $('mo-flame').hidden = !m.streak;
+    /* The same drawn flame as the top bar, bigger. appshell.js defines it;
+       this page loads that file after its own script, so the call is guarded
+       for the one frame before it exists. */
+    var flame = $('mo-flame');
+    flame.hidden = !m.streak;
+    if (m.streak && !flame.firstChild && window.pfFlame) flame.innerHTML = window.pfFlame(20);
 
     $('mo-n').textContent = m.streak;
 

@@ -52,20 +52,26 @@ button{font-family:var(--body);cursor:pointer}
 .tabs a.on svg path,.tabs a.on svg circle,.tabs a.on svg rect{stroke:#fff}
 .nav-right{display:flex;align-items:center;gap:10px;flex:0 0 auto}
 
-/* The streak, in the bar. Quiet by default and tinted once the week is
-   already safe, so the two states are told apart without reading the number. */
-.firechip{display:flex;align-items:center;gap:5px;flex:0 0 auto;
-  padding:5px 10px 5px 8px;border-radius:999px;border:1px solid var(--line);
-  background:var(--band);font-size:13px;line-height:1}
-.firechip span{font-size:14px}
-.firechip b{font-weight:700;color:var(--ink)}
-.firechip.safe{background:var(--p0);border-color:var(--p1)}
+/* The streak, in the bar: a drawn flame and the count, nothing else. No pill
+   around it — the flame is already a shape, and boxing it made a small icon
+   look like a button you were meant to press. */
+.firechip{display:flex;align-items:center;gap:7px;flex:0 0 auto;
+  padding:4px 6px;border-radius:10px;line-height:1;
+  transition:background .15s}
+.firechip:hover{background:var(--band)}
+.firechip b{font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.flame{display:block;flex:0 0 auto}
+
+/* Already done this week: the flame keeps its colour and the number goes the
+   brand's darkest green, so a safe week reads without a second element. */
 .firechip.safe b{color:var(--p8)}
-/* Going out: grey, the way the ring's flame greys, rather than a red alarm in
-   the chrome of every page. */
-.firechip.risk span{filter:grayscale(1) opacity(.55)}
+
+/* Going out. The flame drains to grey rather than turning red — a red alarm
+   in the chrome of every page, every week, stops meaning anything by the
+   third time you see it. */
+.firechip.risk .flame{filter:grayscale(1) opacity(.5)}
 .firechip.risk b{color:#93641A}
-.firechip:hover{border-color:var(--p4)}
 
 main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .mfoot{max-width:1320px;margin:0 auto;padding:0 32px 44px;
@@ -149,7 +155,10 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
     var(--card)}
 
 .st-ring{position:relative;width:146px;height:146px;margin:0 auto 16px}
-.st-ring svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+/* Direct child only. The ring is rotated so its arcs start at twelve o'clock;
+   as a descendant selector this also turned the flame badge sitting on the rim
+   on its side, which is how a flame came to look like a leaf. */
+.st-ring > svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
 .st-seg{fill:none;stroke-width:10;stroke-linecap:round;stroke:#E6E8F0;
   transition:stroke .45s cubic-bezier(.2,.9,.3,1)}
 .st-seg.on{stroke:url(#st-g)}
@@ -170,8 +179,8 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
    decoration promising something that has not happened. Late in the week with
    nothing booked it goes grey: the streak is still yours, but you can see it
    going out. */
-.st-flame{position:absolute;top:-1px;right:2px;width:32px;height:32px;
-  display:grid;place-items:center;font-size:16px;line-height:1;
+.st-flame{position:absolute;top:-2px;right:0;width:34px;height:34px;
+  display:grid;place-items:center;line-height:1;
   background:var(--card);border-radius:50%;
   box-shadow:0 2px 8px rgba(23,26,46,.14),0 0 0 1px rgba(23,26,46,.05);
   transition:filter .3s,transform .3s}
@@ -501,16 +510,26 @@ h1 .g{color:var(--p4)}
   gap:2px;padding:18px 12px 16px;border:1px solid var(--line);border-radius:14px;
   background:#FCFCFD;transition:border-color .15s,box-shadow .15s,transform .15s;
 }
-/* Earned tiles sit on white with a faint green ground; locked ones stay on
-   the page's own grey. The difference is the ground, not the opacity — a
-   wall dimmed to 50% looks like it is still loading. */
-.badge-tile.earned{background:
-    radial-gradient(120% 80% at 50% 0%, #F4FBF8 0%, rgba(244,251,248,0) 70%),
-    var(--card);
-  border-color:#DCE9E4;box-shadow:0 1px 3px rgba(8,80,65,.07)}
+/* Earned tiles lift off the page on white; locked ones stay on its grey. The
+   difference is the ground, not the opacity — a wall dimmed to 50% looks like
+   it is still loading.
+
+   The ground is neutral, not tinted. It used to carry a faint green wash,
+   which was right when every badge was green and wrong the moment the
+   artwork became indigo, teal, amber and purple: a green card behind a
+   purple badge makes both look accidental. */
+.badge-tile.earned{background:var(--card);border-color:#DEDEE7;
+  box-shadow:0 1px 3px rgba(23,26,46,.07)}
 .badge-tile:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(23,26,46,.09)}
-.badge-tile.earned:hover{box-shadow:0 6px 16px rgba(8,80,65,.13)}
-.badge-tile .medal{display:block;margin-bottom:10px}
+
+/* Only the five that ship their unearned art in colour. See ONE_SHOT. */
+.badge-tile .medal.grey img{filter:grayscale(1) opacity(.72)}
+/* The drawing is an <img>; the progress rim is an SVG laid exactly over it,
+   which is why the wrapper is positioned and both are the same 58px box. */
+.badge-tile .medal{position:relative;display:block;width:58px;height:58px;
+  margin:0 auto 10px}
+.badge-tile .medal img{display:block;width:58px;height:58px}
+.medal-rim{position:absolute;inset:0;width:58px;height:58px;pointer-events:none}
 .badge-tile b{font-size:13px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
 .badge-tile:not(.earned) b{color:var(--soft);font-weight:600}
 .badge-tile span{font-size:11.5px;color:var(--faint);line-height:1.4}
