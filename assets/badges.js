@@ -191,7 +191,7 @@ window.pfBadges = (function(){
     }
     return '<span class="medal' + (earned ? ' on' : ' off') +
              (!earned && ONE_SHOT[id] ? ' grey' : '') + '">' +
-             '<img src="' + src + '" width="72" height="72" alt="" loading="lazy">' +
+             '<img src="' + src + '" width="92" height="92" alt="" loading="lazy">' +
              rim +
            '</span>';
   }
