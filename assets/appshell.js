@@ -6,6 +6,41 @@
      only ever be wrong in one place. Must load before notify.js and
      usermenu.js, which both look for .nav-right. */
 
+  /* The streak flame, drawn once and used in three places: the chip in this
+     bar, the ring on Today, and anywhere else a streak is shown. Two paths —
+     an outer flame and the bright core inside it — so it reads at 19px as
+     well as at 44px. Exposed on window because Today draws its own. */
+  /* The two paths are lifted from the Ten sessions badge rather than drawn
+     again here — my own attempt read as a blob at 19px, and there is already
+     a flame in this product that a designer shaped. Same 24-grid, same two
+     parts: the body, and the brighter tongue inside it. */
+  /* Today draws this twice — once in the bar, once on the ring — and a
+     gradient id has to be unique in a document or the second copy paints
+     with the first one's definition. Identical today, so nothing looks
+     wrong; the moment the two want different colours, or the first is
+     removed from the DOM, the other loses its fill. Numbered per call. */
+  var flameId = 0;
+  window.pfFlame = function(size, cls){
+    var n = ++flameId, a = 'pf-fl' + n, b = 'pf-fc' + n;
+    return '<svg class="flame' + (cls ? ' ' + cls : '') + '" width="' + size +
+      '" height="' + size + '" viewBox="0 0 24 24" ' +
+      'aria-hidden="true" focusable="false">' +
+      '<defs><linearGradient id="' + a + '" x1=".25" y1="0" x2=".75" y2="1">' +
+        '<stop offset="0" stop-color="#7BDC48"/>' +
+        '<stop offset=".55" stop-color="#31B45C"/>' +
+        '<stop offset="1" stop-color="#0E8A4E"/>' +
+      '</linearGradient>' +
+      '<linearGradient id="' + b + '" x1=".5" y1="0" x2=".5" y2="1">' +
+        '<stop offset="0" stop-color="#EAFFC4"/>' +
+        '<stop offset="1" stop-color="#A6E75A"/>' +
+      '</linearGradient></defs>' +
+      '<path class="fl-o" fill="url(#' + a + ')" ' +
+        'd="M12 2.2s7 5.2 7 12.2a7 7 0 1 1-14 0C5 7.4 12 2.2 12 2.2z"/>' +
+      '<path class="fl-c" fill="url(#' + b + ')" ' +
+        'd="M12 12.8s-3 2.6-3 5.6a3 3 0 1 0 6 0c0-2.6-3-3.2-3-5.6z"/>' +
+      '</svg>';
+  };
+
   var LOGO = '<svg width="24" height="24" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true">' +
     '<rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/>' +
     '<rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/>' +
@@ -123,7 +158,12 @@
   function paintFire(n, safe, risk){
     if (!fire) return;
     if (!(n > 0)) { fire.hidden = true; return; }
-    fire.innerHTML = '<span aria-hidden="true">🔥</span><b>' + n + '</b>';
+    /* A drawn flame rather than 🔥. The emoji is a different picture on every
+       platform — Apple's is orange and glossy, Google's is red, Windows' has
+       a blue base — so the one part of the bar that is meant to be ours was
+       whatever the reader's font vendor decided. This one is the same shape
+       as the flame on the Ten sessions badge, in the same green. */
+    fire.innerHTML = window.pfFlame(19) + '<b>' + n + '</b>';
     /* Same three states as the ring, so the bar and the dashboard never
        disagree about whether the week is in trouble. */
     fire.className = 'firechip' + (safe ? ' safe' : '') + (risk ? ' risk' : '');

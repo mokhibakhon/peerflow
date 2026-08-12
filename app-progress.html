@@ -48,7 +48,7 @@
             <g id="pg-seg"></g>
           </svg>
           <span class="st-mid"><b id="pg-streak">0</b><i>week streak</i></span>
-          <span class="st-flame" id="pg-flame" hidden>🔥</span>
+          <span class="st-flame" id="pg-flame" hidden></span>
         </div>
 
         <div class="rec-side">
@@ -215,7 +215,9 @@
     document.getElementById('pg-ring').className = 'st-ring' +
       (m.metThisWeek ? ' met' : (m.thisWeek ? ' part' : '')) +
       (m.streak && !m.metThisWeek && m.daysLeft <= 3 ? ' cool' : '');
-    document.getElementById('pg-flame').hidden = !m.streak;
+    var pgFlame = document.getElementById('pg-flame');
+    pgFlame.hidden = !m.streak;
+    if (m.streak && !pgFlame.firstChild && window.pfFlame) pgFlame.innerHTML = window.pfFlame(20);
 
     /* Twelve weeks, gaps included. Each mark says what it was when you hover
        it, so the strip is readable rather than merely decorative. */
