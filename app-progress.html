@@ -70,11 +70,33 @@
       </div>
     </section>
 
-    <!-- Learning path: light context, not a course. -->
+    <!-- Learning path: light context, not a course — and yours to change.
+         The twelve weeks shipped with the product are a default, and a
+         default nobody can edit is a curriculum. The person who knows what
+         they need in week seven is the person doing the learning. -->
     <section class="pt-sec">
-      <h3 id="pg-pathname">Your learning path</h3>
-      <p class="lede" id="pg-pathsub">Loading…</p>
+      <div class="pg-head">
+        <div>
+          <h3 id="pg-pathname">Your learning path</h3>
+          <p class="lede" id="pg-pathsub">Loading…</p>
+        </div>
+        <div class="pg-acts" id="pg-acts" hidden>
+          <button class="small" type="button" id="pg-edit">Edit weeks</button>
+        </div>
+      </div>
+
       <div id="pg-path"></div>
+
+      <!-- Only while editing. Save is first because it is what you came to do,
+           and the note sits beside it so the answer appears where you looked.
+           Reset is pushed to the far end: it throws away everything you just
+           typed, so it should not be the thing your cursor is already near. -->
+      <div class="pg-editbar" id="pg-editbar" hidden>
+        <button class="btn" type="button" id="pg-save">Save weeks</button>
+        <button class="small" type="button" id="pg-cancel">Cancel</button>
+        <span class="pg-note" id="pg-editnote" role="status"></span>
+        <button class="small" type="button" id="pg-reset">Back to the default plan</button>
+      </div>
     </section>
 
     <!-- The same wall as app-badges.html, next to the numbers behind it. -->
@@ -121,23 +143,71 @@
   /* Done / current / next, drawn off the stage index on the profile and the
      ordering already in plans.js. Clicking a week moves the marker, which is
      the only progress input the product asks for. */
+  /* The weeks to draw: yours if you have written your own, otherwise the
+     default for your path. Titles only in the stored version — the built-in
+     plans also name where the material lives, and that stays ours to keep
+     pointing at rather than something to make a learner retype. */
+  var editing = false, myProfile = null;
+
+  function weeksOf(profile){
+    var own = profile && profile.plan_weeks;
+    if (own && own.length) {
+      return own.map(function(t){ return { t: String(t) }; });
+    }
+    return (window.PF_PLANS && profile && PF_PLANS[profile.track_id]) || null;
+  }
+
   function renderPath(profile){
+    myProfile = profile;
     var box  = document.getElementById('pg-path');
     var name = document.getElementById('pg-pathname');
     var sub  = document.getElementById('pg-pathsub');
-    var plan = (window.PF_PLANS && profile && PF_PLANS[profile.track_id]) || null;
+    var acts = document.getElementById('pg-acts');
+    var plan = weeksOf(profile);
 
     if (!plan) {
       name.textContent = 'Your learning path';
       sub.innerHTML = 'Pick a path in <a href="app-profile.html" style="text-decoration:underline">your profile</a> ' +
                       'and the weeks will appear here.';
       box.innerHTML = '';
+      acts.hidden = true;
       return;
     }
+    /* Not `false`: setEditing hides this and then re-renders, so an
+       unconditional un-hide here put Edit back on top of the edit bar. */
+    acts.hidden = editing;
 
     var trackName = (pf.trackNames && pf.trackNames[profile.track_id]) || profile.track_id;
     var stage = Math.max(0, Math.min(plan.length - 1, (profile.stage_index | 0)));
-    name.textContent = trackName + ' in twelve weeks';
+    var own = !!(profile.plan_weeks && profile.plan_weeks.length);
+
+    /* "in twelve weeks" is only true of the plan we shipped. Once somebody
+       has written their own it is however many weeks they wrote. */
+    name.textContent = own ? 'Your ' + plan.length + ' weeks'
+                           : trackName + ' in ' + plan.length + ' weeks';
+
+    if (editing) {
+      sub.textContent = 'Rename any week. Empty ones are dropped when you save.';
+      /* The rail keeps its ticks and its current-week mark while you edit.
+         Dropping them made the whole list change colour on the way in, and
+         you lose sight of the one week you are actually on — which is the
+         week most people came here to reword. */
+      box.innerHTML = plan.map(function(w, i){
+        var cls = i < stage ? 'done' : i === stage ? 'now' : '';
+        return '<div class="pg-week edit ' + cls + '">' +
+                 '<span class="pg-dot" aria-hidden="true"></span>' +
+                 '<span class="pg-b">' +
+                   '<span class="wk">Week ' + (i + 1) + '</span>' +
+                   '<input class="pg-in" type="text" maxlength="120" value="' +
+                     esc(w.t) + '" aria-label="Week ' + (i + 1) + '">' +
+                 '</span>' +
+               '</div>';
+      }).join('');
+      var first = box.querySelector('.pg-in');
+      if (first) first.focus();
+      return;
+    }
+
     sub.textContent = 'Week ' + (stage + 1) + ' of ' + plan.length +
                       ' · tap a week to move your marker.';
 
@@ -159,16 +229,120 @@
                '<span class="sr">' + (i < stage ? 'Done' : i === stage ? 'Current week' : 'Not started') + '</span>' +
              '</button>';
     }).join('');
+  }
 
-    box.addEventListener('click', function(e){
-      var b = e.target.closest('[data-week]');
-      if (!b) return;
-      var i = parseInt(b.getAttribute('data-week'), 10);
-      profile.stage_index = i;
-      renderPath(profile);
-      pf.saveStage(i);
+  /* ---------- editing the weeks ---------- */
+
+  function setEditing(on){
+    editing = on;
+    document.getElementById('pg-editbar').hidden = !on;
+    document.getElementById('pg-acts').hidden = on;
+    document.getElementById('pg-editnote').textContent = '';
+    disarmReset();
+    renderPath(myProfile);
+  }
+
+  /* Reset throws away every week the person wrote, and there is no undo for
+     it, so it asks twice. Cheaper than a dialog and it cannot be dismissed
+     by accident — anything else you touch puts the button back. */
+  var resetArmed = false;
+  function disarmReset(){
+    resetArmed = false;
+    var b = document.getElementById('pg-reset');
+    if (b) { b.textContent = 'Back to the default plan'; b.removeAttribute('data-armed'); }
+  }
+
+  function editNote(msg, bad){
+    var n = document.getElementById('pg-editnote');
+    n.textContent = msg || '';
+    n.className = 'pg-note' + (bad ? ' bad' : '');
+  }
+
+  function busy(on){
+    ['pg-save','pg-cancel','pg-reset'].forEach(function(id){
+      document.getElementById(id).disabled = on;
     });
   }
+
+  document.getElementById('pg-edit').addEventListener('click', function(){
+    setEditing(true);
+  });
+  document.getElementById('pg-cancel').addEventListener('click', function(){
+    setEditing(false);
+  });
+
+  document.getElementById('pg-save').addEventListener('click', function(){
+    var weeks = Array.prototype.map.call(
+      document.querySelectorAll('#pg-path .pg-in'),
+      function(i){ return i.value.trim(); }
+    ).filter(function(t){ return t; });
+
+    if (!weeks.length) { editNote('A plan needs at least one week.', true); return; }
+
+    busy(true);
+    editNote('Saving…');
+    pf.savePlan(weeks).then(function(res){
+      busy(false);
+      if (res && res.saved) {
+        myProfile.plan_weeks = res.weeks;
+        /* A shorter plan can leave the marker past the end of it. */
+        myProfile.stage_index = Math.min(myProfile.stage_index | 0, res.weeks.length - 1);
+        setEditing(false);
+        pf.saveStage(myProfile.stage_index);
+        return;
+      }
+      editNote((res && res.error) ||
+               (res && res.demo ? 'Log in and this will save.' : 'Could not save. Please try again.'), true);
+    });
+  });
+
+  document.getElementById('pg-reset').addEventListener('click', function(){
+    if (!resetArmed) {
+      resetArmed = true;
+      this.textContent = 'Sure? This clears your weeks';
+      this.setAttribute('data-armed', '');
+      editNote('');
+      return;
+    }
+    disarmReset();
+    busy(true);
+    editNote('Resetting…');
+    pf.resetPlan().then(function(res){
+      busy(false);
+      if (res && res.saved) {
+        myProfile.plan_weeks = null;
+        /* Same clamp as saving: a 24-week plan reset to a 12-week default
+           would otherwise leave the marker stored past the last week. */
+        var back = weeksOf(myProfile);
+        if (back) {
+          myProfile.stage_index = Math.min(myProfile.stage_index | 0, back.length - 1);
+          pf.saveStage(myProfile.stage_index);
+        }
+        setEditing(false);
+        return;
+      }
+      editNote((res && res.error) || 'Could not reset. Please try again.', true);
+    });
+  });
+
+  /* Any other move in the bar means they were not going through with it. */
+  document.getElementById('pg-editbar').addEventListener('click', function(e){
+    if (resetArmed && e.target.id !== 'pg-reset') disarmReset();
+  });
+  document.getElementById('pg-path').addEventListener('input', disarmReset);
+
+  /* Bound once, on the container, rather than inside renderPath — which
+     re-ran on every click and stacked another listener each time, so by the
+     fifth tap one press was saving the stage five times. */
+  document.getElementById('pg-path').addEventListener('click', function(e){
+    if (editing) return;
+    var b = e.target.closest && e.target.closest('[data-week]');
+    if (!b || !myProfile) return;
+    var i = parseInt(b.getAttribute('data-week'), 10);
+    myProfile.stage_index = i;
+    renderPath(myProfile);
+    pf.saveStage(i);
+  });
 
   /* ---------- totals ---------- */
   /* Counted by pf.momentum() rather than here, because this page and the
@@ -250,11 +424,15 @@
       /* A record, not a verdict: what the weeks add up to, and the next thing
          worth reaching. */
       var next = m.streak < 4 ? 4 : m.streak < 12 ? 12 : 0;
+      /* "which is the whole plan" is only true of a twelve-week one, and the
+         plan is now whatever length its owner made it. */
+      var mine = weeksOf(myProfile);
+      var long = ' · past twelve weeks' + (mine && mine.length === 12 ? ', which is the whole plan.' : '.');
       note.textContent = m.done + (m.done === 1 ? ' session' : ' sessions') +
         ' with your partners, ' + dur(m.minutes) + ' of it' +
         (next && m.streak ? ' · ' + (next - m.streak) + ' more ' +
                             (next - m.streak === 1 ? 'week' : 'weeks') + ' makes it ' + next + '.'
-         : m.streak ? ' · past twelve weeks, which is the whole plan.'
+         : m.streak ? long
                     : ' · one session this week starts it again.');
       return;
     }

@@ -1400,27 +1400,37 @@
      Where you are is counted from sessions you have actually had, not from
      ticking boxes. That needs no table of its own, and it cannot drift out of
      step with your partner's copy, because you both sat through the same
-     sessions. It also means the plan cannot be edited yet — so there are no
-     Add and Reorder buttons here pretending otherwise. */
+     sessions. Rewriting the weeks themselves happens on Progress, where the
+     whole list is visible — this card shows one week and is the wrong place
+     to edit twelve. */
   /* One week, not twelve. All twelve used to sit on this page and never
      change; eleven of them were reference material parked in a view you open
      to decide what to do next. They are all still on Progress, which is
      where you go to read rather than to act. */
-  function renderWeek(trackId, doneCount){
-    var plan = (window.PF_PLANS || {})[trackId];
+  function renderWeek(profile, trackId, doneCount){
+    /* Their own weeks if they have written any, otherwise the default for the
+       track — the same choice Progress makes, so the two pages cannot end up
+       naming different weeks for the same person. */
+    var own = profile && profile.plan_weeks;
+    var plan = (own && own.length)
+      ? own.map(function(t){ return { t: String(t) }; })
+      : (window.PF_PLANS || {})[trackId];
     if (!plan || !plan.length) return;
 
     var here = Math.min(doneCount, plan.length - 1);
     var finished = doneCount >= plan.length;
     var w = plan[here];
+    /* Counted, not spelled "twelve": a plan somebody rewrote is however many
+       weeks they kept. */
+    var n = plan.length;
 
     $('wk-k').textContent = finished
       ? 'Plan finished'
-      : 'Week ' + (here + 1) + ' of ' + plan.length;
+      : 'Week ' + (here + 1) + ' of ' + n;
     $('wk-t').innerHTML = finished
-      ? 'You’ve been through all twelve — pick what’s next together.'
+      ? 'You’ve been through all ' + n + ' — pick what’s next together.'
       : esc(w.t) + (w.src ? '<span class="wk-src">' + esc(w.src) + '</span>' : '');
-    $('wk-l').textContent = finished ? 'Look back over them →' : 'All twelve weeks →';
+    $('wk-l').textContent = finished ? 'Look back over them →' : 'All ' + n + ' weeks →';
 
     $('rail-wk').hidden = false;
   }
@@ -1698,7 +1708,7 @@
           });
           var trackId = (profile && profile.track_id) || '';
           if (!trackId){ try { trackId = localStorage.getItem('pf_track') || ''; } catch(err){} }
-          renderWeek(trackId, done.length);
+          renderWeek(profile, trackId, done.length);
         });
     });
   });
