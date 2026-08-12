@@ -134,6 +134,16 @@ window.pfBadges = (function(){
      flat neutral the drawings were not made in. */
   var ONE_SHOT = { complete:1, partner:1, first:1, two:1, early:1 };
 
+  /* Each badge's own colour, read off the deeper stop of its gradient, so a
+     progress chip is tinted with the badge it belongs to rather than with a
+     house green that would make twelve different drawings look like one. */
+  var HUE = {
+    complete:'#4F46E5', partner:'#12977E', first:'#2E6FE0', two:'#DE8E12',
+    early:'#9333C9',    steady:'#0891C7',  five:'#15A05C',  sixweeks:'#E4661F',
+    ten:'#DB2777',      longhaul:'#63971F', tenhours:'#7C3AED',
+    twentyfive:'#C08A0E'
+  };
+
   /* The drawn hexagon has rounded corners, so its perimeter is not something
      to work out on paper — the last one was hand-computed and the one before
      that was guessed. The browser knows the length of a path it has just
@@ -168,15 +178,20 @@ window.pfBadges = (function(){
     var rim = '';
     if (!earned && pct > 0) {
       var L = rimLength();
+      /* Tinted with the badge's own colour, like its chip. A house green on
+         every rim put one more colour on a wall that already has nine, and
+         made the progress look like it belonged to the page rather than to
+         the badge it is drawn on. */
       rim = '<svg class="medal-rim" viewBox="0 0 72 72" aria-hidden="true">' +
-              '<path d="' + HEX + '" fill="none" stroke="#1D9E75" stroke-width="4" ' +
+              '<path d="' + HEX + '" fill="none" stroke="' + (HUE[id] || '#1D9E75') +
+                '" stroke-width="4" ' +
                 'stroke-linecap="butt" ' +
                 'stroke-dasharray="' + (L * Math.min(1, pct)).toFixed(1) + ' ' + L.toFixed(1) + '"/>' +
             '</svg>';
     }
     return '<span class="medal' + (earned ? ' on' : ' off') +
              (!earned && ONE_SHOT[id] ? ' grey' : '') + '">' +
-             '<img src="' + src + '" width="58" height="58" alt="" loading="lazy">' +
+             '<img src="' + src + '" width="72" height="72" alt="" loading="lazy">' +
              rim +
            '</span>';
   }
@@ -209,6 +224,26 @@ window.pfBadges = (function(){
     });
   }
 
+  /* The headline, for a page that wants to lead with it: how many of how
+     many, and — the useful half — which one you are closest to and what it
+     would take. A count on its own is a scoreboard; the next name is a
+     thing to do this week. */
+  function summary(stats){
+    var list = evaluate(stats);
+    var got = list.filter(function(b){ return b.earned; });
+    var left = list.filter(function(b){ return !b.earned; })
+                   .sort(function(a, b){ return b.pct - a.pct; });
+    return {
+      earned: got.length,
+      total: list.length,
+      pct: list.length ? got.length / list.length : 0,
+      /* Only worth naming if you have actually started on it. "Closest" out
+         of a set you have not touched is just the first item in a list. */
+      next: (left[0] && left[0].pct > 0) ? left[0] : (left[0] || null),
+      started: !!(left[0] && left[0].pct > 0)
+    };
+  }
+
   function render(el, stats){
     if (!el) return;
     if (!stats) {
@@ -224,29 +259,47 @@ window.pfBadges = (function(){
        between a wall of trophies and something that pulls you forward. */
     left.sort(function(a, b){ return b.pct - a.pct; });
 
+    /* The drawing on the left, everything you read on the right. Centred
+       tiles in boxes made twelve cards competing for attention; ranged left
+       in one column each, the names line up and the eye runs down them.
+       No border either — the badges are the only shapes that need to be
+       shapes here, and a box round each one was a box round a box. */
     function tile(b){
-      /* The figure behind the rim: the rim shows the fraction, this says what
-         the fraction is of. Only on badges that are genuinely a count. */
-      var count = (!b.earned && b.need && b.have !== null)
-        ? '<span class="bdg-n">' + fmt(b.have) + ' of ' + b.need + '</span>' : '';
-      return '<div class="badge-tile' + (b.earned ? ' earned' : '') +
-               '" title="' + esc(b.desc) + '">' +
+      /* One chip, carrying the state: ticked when earned, and the running
+         count when it is a badge you are partway into. The rim on the badge
+         draws the same fraction — this is the figure behind it. */
+      var chip;
+      if (b.earned) {
+        chip = '<span class="bdg-chip on">' +
+               '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true">' +
+                 '<path d="M2.5 6.4 4.8 8.7 9.5 3.6" fill="none" stroke="currentColor" ' +
+                   'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+               'Earned</span>';
+      } else if (b.need && b.have !== null) {
+        var hue = HUE[b.id] || '#6B7280';
+        chip = '<span class="bdg-chip" style="color:' + hue + ';background:' + hue + '14">' +
+               fmt(b.have) + ' of ' + b.need + '</span>';
+      } else {
+        chip = '';
+      }
+
+      return '<div class="badge-tile' + (b.earned ? ' earned' : '') + '">' +
         medal(b.id, b.earned, b.pct) +
-        '<b>' + esc(b.name) + '</b>' +
-        '<span>' + esc(b.sub) + '</span>' + count +
+        '<div class="bdg-b">' +
+          '<b>' + esc(b.name) + '</b>' +
+          '<span>' + esc(b.sub) + '</span>' +
+          chip +
+        '</div>' +
       '</div>';
     }
 
-    function section(label, items){
-      if (!items.length) return '';
-      return '<p class="bdg-h">' + label + '</p>' +
-             '<div class="badge-grid">' + items.map(tile).join('') + '</div>';
-    }
-
-    el.innerHTML =
-      '<p class="badge-count"><b>' + got.length + '</b> of ' + list.length + ' earned</p>' +
-      section('Earned', got) +
-      section(got.length ? 'Still to come' : 'To earn', left);
+    /* One grid, not two. The chips already say which is which, and splitting
+       the wall under two headings cost a whole row of chrome to repeat what
+       every tile was saying for itself. Earned first, then whichever you are
+       closest to — the order does the grouping. */
+    el.innerHTML = '<div class="badge-grid">' +
+      got.concat(left.sort(function(a, b){ return b.pct - a.pct; })).map(tile).join('') +
+      '</div>';
   }
 
   /* Whole numbers. Hours arrive as a fraction, and "3.3 of 10" on a tile
@@ -254,5 +307,69 @@ window.pfBadges = (function(){
      for twice. */
   function fmt(v){ return Math.round(v); }
 
-  return { evaluate: evaluate, render: render, medal: medal };
+  /* ---------- earning one ----------
+
+     A badge that appears silently on a page you were not looking at is a
+     badge nobody notices they earned. This is the one moment in the product
+     worth interrupting for, so it interrupts: the hero drawing, the name,
+     what it was for, and a way out.
+
+     Queued rather than stacked. Finishing a fifth session can earn two at
+     once, and two overlapping modals is a worse moment than one after the
+     other. */
+  var queue = [], showing = false;
+
+  function celebrate(list){
+    if (!list || !list.length) return;
+    queue = queue.concat(list);
+    if (!showing) next();
+  }
+
+  function next(){
+    var b = queue.shift();
+    if (!b) { showing = false; return; }
+    showing = true;
+
+    var file = ART[b.id] || 'profile-complete';
+    var wrap = document.createElement('div');
+    wrap.className = 'bpop';
+    wrap.setAttribute('role', 'dialog');
+    wrap.setAttribute('aria-modal', 'true');
+    wrap.setAttribute('aria-label', 'Badge earned: ' + b.name);
+    wrap.innerHTML =
+      '<div class="bpop-card">' +
+        '<p class="bpop-k">Badge earned</p>' +
+        '<img class="bpop-art" src="assets/badges/' + file + '-hero.svg" width="132" height="132" alt="">' +
+        '<h2>' + esc(b.name) + '</h2>' +
+        '<p class="bpop-d">' + esc(b.desc) + '</p>' +
+        '<button class="btn" type="button" data-close>Nice</button>' +
+      '</div>';
+
+    function close(){
+      if (!wrap.parentNode) return;
+      wrap.classList.add('out');
+      /* Removed on a timer rather than on transitionend, which never fires
+         if the tab is in the background when this is dismissed. */
+      setTimeout(function(){
+        if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+        document.removeEventListener('keydown', onKey);
+        next();
+      }, 180);
+    }
+    function onKey(e){ if (e.key === 'Escape') close(); }
+
+    wrap.addEventListener('click', function(e){
+      if (e.target === wrap || e.target.closest('[data-close]')) close();
+    });
+    document.addEventListener('keydown', onKey);
+
+    document.body.appendChild(wrap);
+    /* Next frame, so the entry transition has a state to come from. */
+    requestAnimationFrame(function(){ wrap.classList.add('in'); });
+    var btn = wrap.querySelector('[data-close]');
+    if (btn) btn.focus();
+  }
+
+  return { evaluate: evaluate, summary: summary, render: render, medal: medal,
+           celebrate: celebrate };
 })();
