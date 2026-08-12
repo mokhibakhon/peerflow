@@ -1518,6 +1518,48 @@ html{scroll-behavior:smooth}
 .pg-week.now .ttl{font-weight:700;color:var(--p8)}
 .pg-week.now .st,.pg-week.now .wk{color:var(--p6)}
 
+/* The heading row: the title and its one action, which only appears once
+   there is a plan to act on. */
+.pg-head{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;margin:0 0 4px}
+.pg-head h3{margin:0}
+.pg-head .lede{margin:4px 0 0}
+.pg-acts{flex:0 0 auto}
+
+/* Editing. The row keeps its shape — same rail, same dot, same week label —
+   so the list does not jump when you switch modes and you can still see where
+   you are while you retype it. */
+.pg-week.edit{cursor:default}
+.pg-week.edit:hover{background:transparent}
+/* The current week keeps its tick and its dot while editing, but the tinted
+   band behind a white field reads as a selected row rather than as where you
+   are — so the mark moves onto the field's own border. */
+.pg-week.edit.now{background:transparent}
+.pg-week.edit.now .pg-in{border-color:var(--p4)}
+.pg-in{flex:1;min-width:0;font-family:inherit;font-size:14.5px;color:var(--ink);
+  padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+.pg-in:focus{outline:none;border-color:var(--p4);box-shadow:0 0 0 3px rgba(29,158,117,.13)}
+
+/* Narrow screens: the 62px week label plus the rail left about 170px for the
+   field, which is not enough to read the title you are rewriting. Stack it
+   and the field gets the whole row. */
+@media (max-width:640px){
+  .pg-week.edit .pg-b{flex-direction:column;align-items:stretch;gap:5px}
+  .pg-week.edit .wk{flex:0 0 auto}
+  .pg-week.edit .pg-in{width:100%}
+}
+
+.pg-editbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:18px 0 0;padding-top:16px;border-top:1px solid var(--line)}
+/* Last, and away from the two you press on purpose — but not greyed to the
+   point of looking switched off, which is what --faint did to it. */
+.pg-editbar #pg-reset{margin-left:auto;color:var(--soft)}
+.pg-editbar #pg-reset:hover{color:#B4471F;border-color:#E8C4B8}
+/* Armed. Says what it will do in the colour of doing it. */
+.pg-editbar #pg-reset[data-armed]{color:#B4471F;border-color:#E8C4B8;background:#FDF4F1}
+.pg-note{font-size:13px;color:var(--faint);flex:0 0 auto}
+.pg-note.bad{color:#B4471F}
+
 /* Said to a screen reader, since the state is otherwise only a colour. */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
   white-space:nowrap}

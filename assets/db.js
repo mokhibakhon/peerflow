@@ -1138,6 +1138,57 @@ window.pf = (function(){
     }).catch(function(e){ return fail(e, 'Could not save your progress. Please try again.'); });
   }
 
+  /* The twelve weeks, when somebody has rewritten them. Titles only: the
+     default plans also carry a `src` naming where the material lives, and
+     that is ours to keep pointing at rather than something to ask a learner
+     to retype.
+
+     Absent column means the migration has not been run, and the page says so
+     once instead of offering an Edit button that fails when pressed. */
+  function savePlan(weeks){
+    if (!client) return Promise.resolve({ demo: true });
+
+    var clean = (weeks || [])
+      .map(function(w){ return String(w == null ? '' : w).trim().slice(0, 120); })
+      .filter(function(w){ return w; })
+      .slice(0, 24);
+    if (!clean.length) return Promise.resolve({ error: 'A plan needs at least one week.' });
+
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      return client.from('profiles').update({ plan_weeks: clean }).eq('id', uid)
+        .then(function(r){
+          if (r.error) {
+            if (missingColumn(r.error)) {
+              console.warn('PeerFlow: plan_weeks is missing. Run supabase/migration-plan.sql.');
+              return { needsMigration: true,
+                       error: 'Editing the plan isn’t switched on for this site yet.' };
+            }
+            return fail(r.error, 'Could not save your plan. Please try again.');
+          }
+          return { saved: true, weeks: clean };
+        });
+    }).catch(function(e){ return fail(e, 'Could not save your plan. Please try again.'); });
+  }
+
+  /* Back to the default for your path. Null rather than a copy of the
+     built-in list, so a plan that improves later improves for the people who
+     never edited theirs. */
+  function resetPlan(){
+    if (!client) return Promise.resolve({ demo: true });
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      return client.from('profiles').update({ plan_weeks: null }).eq('id', uid)
+        .then(function(r){
+          if (r.error) {
+            if (missingColumn(r.error)) return { needsMigration: true };
+            return fail(r.error, 'Could not reset your plan. Please try again.');
+          }
+          return { saved: true };
+        });
+    }).catch(function(e){ return fail(e, 'Could not reset your plan. Please try again.'); });
+  }
+
   function unlockedAchievements(){
     if (!client) return Promise.resolve(null);
     return currentUid().then(function(uid){
@@ -1255,6 +1306,8 @@ window.pf = (function(){
     /* Progress page */
     reliability: reliability,
     saveStage: saveStage,
+    savePlan: savePlan,
+    resetPlan: resetPlan,
     unlockedAchievements: unlockedAchievements,
     unlockAchievement: unlockAchievement,
     notifySelf: notifySelf
