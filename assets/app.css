@@ -552,16 +552,23 @@ h1 .g{color:var(--p4)}
   .bstat-n b{font-size:38px}
 }
 
-.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));
-  gap:30px 24px}
-.badge-tile{display:flex;align-items:flex-start;gap:16px;min-width:0}
+/* Three across, stated rather than fitted. auto-fill was making four on
+   anything wider than about 1400px, which shrank every tile and the badge
+   inside it — the drawings are the point of this page, so the column count
+   is the thing that gives way, not their size. */
+.badge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:34px 28px}
+/* Centred against the drawing: at 92px the badge is taller than its three
+   lines of text, and top-aligning left the name hanging with dead space
+   under it. */
+.badge-tile{display:flex;align-items:center;gap:18px;min-width:0}
 
 /* The art at its own size. It was drawn at 72 and shown at 58, which threw
    away a fifth of the detail somebody put into it. */
 .badge-tile .medal{position:relative;flex:0 0 auto;display:block;
-  width:72px;height:72px}
-.badge-tile .medal img{display:block;width:72px;height:72px}
-.medal-rim{position:absolute;inset:0;width:72px;height:72px;pointer-events:none}
+  width:92px;height:92px}
+.badge-tile .medal img{display:block;width:92px;height:92px}
+.medal-rim{position:absolute;inset:0;width:92px;height:92px;pointer-events:none}
 /* Only the five that ship their unearned art in colour. See ONE_SHOT. */
 .badge-tile .medal.grey img{filter:grayscale(1) opacity(.72)}
 
@@ -585,10 +592,13 @@ h1 .g{color:var(--p4)}
 .bdg-chip.on{color:var(--p8);background:var(--p0)}
 .bdg-chip svg{flex:0 0 auto}
 
-@media (max-width:560px){
-  .badge-grid{grid-template-columns:1fr;gap:22px}
-  .badge-tile{gap:13px}
-  .badge-tile .medal,.badge-tile .medal img,.medal-rim{width:60px;height:60px}
+@media (max-width:1040px){
+  .badge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  .badge-grid{grid-template-columns:1fr;gap:24px}
+  .badge-tile{gap:14px}
+  .badge-tile .medal,.badge-tile .medal img,.medal-rim{width:68px;height:68px}
 }
 
 @media (max-width:1080px){
