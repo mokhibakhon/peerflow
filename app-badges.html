@@ -18,8 +18,20 @@
 <body>
 
 <main>
-  <div class="app-head">
+  <!-- ============ the head ============
+       One title, not two. "Badges" over "Learning milestones" was the same
+       thing said twice at nearly the same size, with nothing between them —
+       no rule, no colour, no change of weight — so the page opened by saying
+       nothing, twice.
+
+       The sentence explaining what these are has come up from the bottom of
+       the page, where it sat after a wall of twelve tiles and was therefore
+       read by nobody. It is the second thing now. -->
+  <div class="bhead">
     <h1>Badges</h1>
+    <p class="bhead-l">Every one comes from something that actually happened — a
+      session you finished, a partner who accepted, the week you turned up again.
+      None of them can be bought or granted.</p>
   </div>
 
   <p class="signedout-note" id="signedout" hidden>
@@ -27,21 +39,24 @@
     <a href="login.html">Log in</a> to see them.
   </p>
 
-  <!-- The count sits in the section header rather than in a panel of its own.
-       It is one fact; giving it a card would make it look like the subject of
-       the page, and the subject is the twelve badges underneath. -->
-  <section class="bwall">
-    <div class="bwall-h">
-      <h2>Learning milestones</h2>
-      <p class="bwall-c" id="b-count"></p>
+  <!-- ============ the count ============
+       This was 13px of grey at the right-hand edge of a heading: the most
+       motivating figure on the page, set smaller and fainter than the caption
+       under every badge. It leads now — the number at the size of a number
+       that matters, a bar so the fraction has a shape, and the badge you are
+       closest to, which is the only actionable thing on the page. -->
+  <section class="bstat" id="b-stat" hidden>
+    <p class="bstat-n"><b id="b-got">0</b><i>/&thinsp;<span id="b-all">12</span></i></p>
+    <div class="bstat-r">
+      <p class="bstat-k">Badges earned</p>
+      <div class="bstat-bar"><i id="b-fill" style="width:0%"></i></div>
+      <p class="bstat-next" id="b-next" hidden></p>
     </div>
-    <div id="badges"><p class="badge-empty">Loading…</p></div>
-    <p class="bwall-next" id="b-next" hidden></p>
   </section>
 
-  <p class="bfoot">Every badge here comes from something that actually happened — a
-    session you finished, a partner who accepted, the week you turned up again.
-    None of them can be bought or granted.</p>
+  <section class="bwall">
+    <div id="badges"><p class="badge-empty">Loading…</p></div>
+  </section>
 </main>
 
 <div class="mfoot">
@@ -77,12 +92,14 @@
       announceNew(stats, already);
 
       var s = pfBadges.summary(stats);
-      document.getElementById('b-count').textContent =
-        s.earned + ' of ' + s.total + ' earned';
+      document.getElementById('b-got').textContent = s.earned;
+      document.getElementById('b-all').textContent = s.total;
+      document.getElementById('b-fill').style.width = Math.round(s.pct * 100) + '%';
+      document.getElementById('b-stat').hidden = false;
 
-      /* One line under the wall naming the badge worth doing something about,
-         and only when you have actually started on it — "closest" out of a set
-         you have not touched is just the first item in a list. */
+      /* The badge worth doing something about, and only when you have actually
+         started on it — "closest" out of a set you have not touched is just the
+         first item in a list. */
       var next = document.getElementById('b-next');
       if (s.started && s.next) {
         next.innerHTML = 'Closest: <b>' + s.next.name + '</b> — ' + s.next.sub + '.';

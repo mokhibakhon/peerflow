@@ -505,13 +505,52 @@ h1 .g{color:var(--p4)}
    need to be shapes. */
 .badge-empty{font-size:14px;color:var(--faint);margin:0}
 
-.bwall-h{display:flex;align-items:baseline;justify-content:space-between;
-  gap:16px;flex-wrap:wrap;margin:0 0 22px}
-.bwall-h h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.02em}
-.bwall-c{margin:0;font-size:13.5px;color:var(--faint)}
-.bwall-next{margin:26px 0 0;padding-top:18px;border-top:1px solid var(--line);
-  font-size:13.5px;color:var(--faint)}
-.bwall-next b{color:var(--ink);font-weight:700}
+/* The head: one title and the sentence that explains the page, which used to
+   be the last thing on it. 29px over 15px, with the second in the soft grey —
+   two sizes and two weights apart, where the old pair were 29 and 19, both
+   bold, both ink, four pixels apart. */
+.bhead{margin:0 0 24px}
+.bhead h1{margin:0}
+.bhead-l{margin:10px 0 0;font-size:15px;color:var(--soft);line-height:1.6;
+  max-width:68ch}
+
+/* The count. It is the answer to the question somebody opened this page with,
+   so it is the biggest thing on it after the title — the figure at 46px, the
+   total beside it at a third of the weight, and a bar giving the fraction a
+   shape you can read without doing the arithmetic. */
+.bstat{display:flex;align-items:center;gap:26px;flex-wrap:wrap;
+  /* Capped. Stretched to the full 1320px the bar became a hairline of green
+     over a metre of empty track, which reads as "almost nothing" whatever the
+     fraction actually is. At this width 5 of 12 looks like 5 of 12. */
+  max-width:720px;
+  padding:22px 26px;margin:0 0 30px;border-radius:18px;
+  background:radial-gradient(90% 130% at 8% 0%, #F2FBF7 0%, rgba(242,251,247,0) 62%),
+             var(--card);
+  border:1px solid var(--line)}
+.bstat-n{display:flex;align-items:baseline;gap:6px;margin:0;flex:0 0 auto;
+  font-variant-numeric:tabular-nums}
+.bstat-n b{font-size:46px;font-weight:800;letter-spacing:-.045em;line-height:1;
+  color:var(--p8)}
+.bstat-n i{font-style:normal;font-size:22px;font-weight:600;color:var(--faint);
+  letter-spacing:-.02em}
+.bstat-r{flex:1 1 260px;min-width:0}
+.bstat-k{margin:0;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--faint)}
+.bstat-bar{height:7px;margin:10px 0 0;border-radius:999px;background:#E4E6EE;
+  overflow:hidden}
+.bstat-bar i{display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--p4),var(--p6));
+  transition:width .6s cubic-bezier(.2,.9,.3,1)}
+.bstat-next{margin:11px 0 0;font-size:13.5px;color:var(--soft)}
+.bstat-next b{color:var(--ink);font-weight:700}
+
+/* And a rule before the wall, so the two halves of the page are two halves. */
+.bwall{padding-top:26px;border-top:1px solid var(--line)}
+
+@media (max-width:560px){
+  .bstat{gap:16px;padding:18px 20px}
+  .bstat-n b{font-size:38px}
+}
 
 .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));
   gap:30px 24px}
