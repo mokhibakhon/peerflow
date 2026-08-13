@@ -38,6 +38,18 @@
 
       <div class="pv-facts" id="pv-facts"></div>
 
+      <!-- Whether they turn up. Every other fact on this page is what somebody
+           intends to do; this is the only one that is what they did, which is
+           why it gets a block of its own rather than a fifth cell in a strip. -->
+      <div class="rel" id="pv-rel" hidden>
+        <div class="rel-h">
+          <b class="rel-lab" id="pv-rellab"></b>
+          <span class="rel-pct" id="pv-relpct"></span>
+        </div>
+        <div class="rel-bar" id="pv-relbar"><i id="pv-relfill"></i></div>
+        <p class="rel-sub" id="pv-relsub"></p>
+      </div>
+
       <!-- Their week. The single most useful thing on this page: whether a
            partnership can physically happen is a question about hours, and
            four words of prose about "evenings" cannot answer it. -->
@@ -159,6 +171,8 @@
       return '<div class="pv-fact"><b>' + esc(f[1]) + '</b><span>' + f[0] + '</span></div>';
     }).join('');
 
+    renderReliability(person.id, nm.split(' ')[0]);
+
     var theirs = person.availability || [];
     var mine   = (profile && profile.availability) || [];
     var shared = theirs.filter(function(s){ return mine.indexOf(s) >= 0; }).length;
@@ -178,6 +192,46 @@
     }
 
     $('pv').hidden = false;
+  }
+
+  /* The score, when there is enough behind it to publish one.
+
+     Under five graded sessions the block still appears and says so, rather
+     than vanishing: "no score yet" and "score hidden" look identical if the
+     row is simply absent, and the first is a fact worth knowing about
+     somebody new. Above the floor it is a label, the number behind the
+     label, and the two counts the number is made of — a claim you can check
+     rather than a badge you have to trust. */
+  function renderReliability(pid, first){
+    if (!pf.reliabilityOf) return;
+    pf.reliabilityOf([pid]).then(function(by){
+      var r = by && by[pid];
+      if (!r) return;                       /* migration not run: say nothing */
+
+      var box = $('pv-rel'), fill = $('pv-relfill');
+      var counts = r.attended + (r.attended === 1 ? ' session attended' : ' sessions attended') +
+                   ' · ' + r.noShows + (r.noShows === 1 ? ' no-show' : ' no-shows');
+
+      if (r.pct === null || r.pct === undefined) {
+        $('pv-rellab').textContent = 'Not enough sessions yet';
+        $('pv-relpct').textContent = '';
+        $('pv-relbar').hidden = true;
+        $('pv-relsub').textContent = r.counted
+          ? counts + '. A score appears once ' + first + ' has five behind them.'
+          : first + ' hasn’t finished a session yet, so there is nothing to go on.';
+        box.hidden = false;
+        return;
+      }
+
+      var band = r.pct >= 80 ? 'good' : r.pct >= 65 ? 'mid' : 'low';
+      $('pv-rellab').textContent = pf.reliabilityLabel(r.pct);
+      $('pv-relpct').textContent = r.pct + '%';
+      $('pv-relbar').hidden = false;
+      fill.style.width = r.pct + '%';
+      box.className = 'rel ' + band;
+      $('pv-relsub').textContent = counts + '.';
+      box.hidden = false;
+    }).catch(function(){});
   }
 
   if (!id) { missing(); }

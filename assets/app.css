@@ -1889,3 +1889,59 @@ a.who:hover{text-decoration:underline}
   .bpop,.bpop-card{transition:none}
   .bpop.in .bpop-art{animation:none}
 }
+
+/* ---------- reliability ---------- */
+/* The one fact on a profile that is a record rather than an intention, so it
+   is stated rather than tucked into the fact strip: a label, the number the
+   label came from, and the two counts the number is made of. The bar is there
+   because a percentage is a quantity and people read quantities faster as a
+   length than as digits. */
+.rel{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 18px;
+  background:var(--card)}
+.rel-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.rel-lab{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
+.rel-pct{font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.rel-bar{height:7px;border-radius:99px;background:var(--band);overflow:hidden;margin:12px 0 0}
+.rel-bar i{display:block;height:100%;border-radius:99px;background:var(--p4);
+  transition:width .5s ease}
+.rel-sub{margin:10px 0 0;font-size:13px;color:var(--faint);line-height:1.5}
+
+/* Three bands. Green is not the default — an unproven score is grey, because
+   colouring it green would be the page vouching for somebody it cannot. */
+.rel.good .rel-pct{color:var(--p6)}
+.rel.good .rel-bar i{background:var(--p4)}
+.rel.mid  .rel-pct{color:#8A6410}
+.rel.mid  .rel-bar i{background:#D9A21B}
+.rel.low  .rel-pct{color:#B4471F}
+.rel.low  .rel-bar i{background:#C9603A}
+
+/* The same score, compressed to fit a directory row. */
+.relchip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;
+  color:var(--p6);font-variant-numeric:tabular-nums}
+.relchip.mid{color:#8A6410}
+.relchip.low{color:#B4471F}
+.relchip i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
+
+/* ---------- requests waiting for you ---------- */
+/* These used to be an annotation on a directory row, which meant a request was
+   only visible if the sender happened to appear in your list — and somebody
+   who had not picked a path never did. A request is not a property of a search
+   result. It gets its own block, above everything, drawn from the requests
+   themselves. */
+.inbox{border:1px solid var(--p2);border-radius:16px;background:var(--p0);
+  padding:18px 20px;margin:0 0 18px}
+.inbox h2{margin:0 0 2px;font-size:16px;font-weight:700;letter-spacing:-.015em;color:var(--p8)}
+.inbox .lede{margin:0 0 14px;font-size:13.5px;color:var(--p6)}
+.inreq{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;margin-top:10px}
+.inreq-av{flex:0 0 auto;width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+.inreq-b{flex:1 1 200px;min-width:0}
+.inreq-nm{margin:0;font-size:15px;font-weight:700}
+.inreq-msg{margin:3px 0 0;font-size:13.5px;color:var(--soft);line-height:1.5}
+.inreq-acts{flex:0 0 auto;display:flex;gap:8px;margin-left:auto}
+@media (max-width:560px){
+  .inreq-acts{margin-left:0;width:100%}
+  .inreq-acts .btn,.inreq-acts .small{flex:1 1 auto;justify-content:center}
+}

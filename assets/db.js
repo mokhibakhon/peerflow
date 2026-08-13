@@ -489,7 +489,33 @@ window.pf = (function(){
             /* Safe to name: it describes what this person already did, not the schema. */
             return fail(r.error, 'Could not send the request. Please try again.');
           }
-          return { sent: true };
+          /* And tell them. notify_request() has been in the database since the
+             MVP migration — written, locked to pairs who genuinely have a
+             request between them, granted to authenticated — and never once
+             called from here. A request that only writes a row is a request
+             the other person finds by accident, or not at all.
+
+             The insert has already succeeded by this point, so a failure here
+             is logged and swallowed: the request is real either way, and an
+             error saying otherwise would misreport what happened. */
+          return getProfile().then(function(me){
+            var who = (me && me.name) ? me.name : 'Someone';
+            return client.rpc('notify_request', {
+              p_to: toUserId,
+              p_title: who + ' wants to study with you',
+              p_body: message || null
+            }).then(function(n){
+              if (n.error) {
+                if (missingFunction(n.error)) {
+                  console.warn('PeerFlow: notify_request is missing. Run ' +
+                               'supabase/migration-mvp.sql so requests reach people.');
+                } else {
+                  try { console.warn('PeerFlow: notify_request', n.error); } catch(e){}
+                }
+              }
+              return { sent: true, notified: !n.error };
+            });
+          }).catch(function(){ return { sent: true, notified: false }; });
         });
     }).catch(function(e){
       return fail(e, 'Could not send the request \u2014 check your connection and try again.');
@@ -1027,10 +1053,17 @@ window.pf = (function(){
       var q = client.from('profiles')
         .select('id,name,track_id,topic,level,timezone,created_at,availability')
         /* Signing in with Google creates the row before any question is
-           answered. Until a path is picked there is nothing to match on, so
-           those half-finished rows stay out of the list — showing them would
-           offer people a partner who never actually joined. */
-        .not('track_id', 'is', null)
+           answered, and this used to require a path so those half-finished
+           rows stayed out. It hid real people: somebody who signed up, sent a
+           request and had not yet picked a path was invisible to the person
+           they had asked — who then could not find them to answer.
+
+           A name is the honest floor. Somebody who has told us who they are
+           has joined; the ranking already sorts anyone with nothing in common
+           to the bottom, which is where a half-finished profile belongs
+           without being erased. */
+        .not('name', 'is', null)
+        .neq('name', '')
         .order('created_at', { ascending: false })
         .limit(limit || 24);
       if (uid) q = q.neq('id', uid);
@@ -1122,6 +1155,52 @@ window.pf = (function(){
       if (out.counted > 0) out.pct = Math.round((out.attended / out.counted) * 100);
       return out;
     }).catch(function(){ return null; });
+  }
+
+  /* How often somebody turns up, for people who are not you.
+
+     Their session rows are not readable — RLS stops there, and should: a
+     calendar is private. reliability_of() is security definer and returns
+     four numbers per person, never a row, so a reputation can be public
+     while a diary stays shut.
+
+     Asked for the whole list at once. One call per face on the People page
+     would be twenty round trips to draw one column. */
+  function reliabilityOf(ids){
+    if (!client) return Promise.resolve(null);
+    var want = (ids || []).filter(Boolean);
+    if (!want.length) return Promise.resolve({});
+    return client.rpc('reliability_of', { p_users: want }).then(function(r){
+      if (r.error) {
+        if (missingFunction(r.error)) {
+          console.warn('PeerFlow: reliability_of is missing. ' +
+                       'Run supabase/migration-reliability.sql to turn on the score.');
+          return null;
+        }
+        /* Including the column the migration adds — an older database has the
+           function but not joined_at only if it was applied by hand. */
+        if (missingColumn(r.error)) return null;
+        return null;
+      }
+      var by = {};
+      (r.data || []).forEach(function(x){
+        by[x.uid] = { pct: x.pct, counted: x.counted,
+                      attended: x.attended_n, noShows: x.noshow_n };
+      });
+      return by;
+    }).catch(function(){ return null; });
+  }
+
+  /* The words that go in front of the number. A bare percentage invites
+     arithmetic nobody wants to do — "is 82 good?" — so the label answers it
+     and the number backs the label up. */
+  function reliabilityLabel(pct){
+    if (pct === null || pct === undefined) return '';
+    if (pct >= 95) return 'Always turns up';
+    if (pct >= 90) return 'Very reliable';
+    if (pct >= 80) return 'Reliable';
+    if (pct >= 65) return 'Usually turns up';
+    return 'Often misses';
   }
 
   function saveStage(index){
@@ -1305,6 +1384,8 @@ window.pf = (function(){
 
     /* Progress page */
     reliability: reliability,
+    reliabilityOf: reliabilityOf,
+    reliabilityLabel: reliabilityLabel,
     saveStage: saveStage,
     savePlan: savePlan,
     resetPlan: resetPlan,

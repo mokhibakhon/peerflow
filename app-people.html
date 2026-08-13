@@ -36,6 +36,15 @@
       made up, and you can ask anyone on the list instead.
     </p>
 
+    <!-- Anyone who has asked you, above the directory and independent of it.
+         This used to be a state chip on a search result, which meant a request
+         was only visible if the sender happened to appear in your list. -->
+    <section class="inbox" id="inbox" hidden>
+      <h2 id="inbox-h">Someone wants to study with you</h2>
+      <p class="lede" id="inbox-sub"></p>
+      <div id="inbox-list"></div>
+    </section>
+
     <div id="people">
       <div class="b"><p class="n">Loading…</p></div>
     </div>
@@ -133,6 +142,19 @@
 
   function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
 
+  /* Reliability, compressed to fit a row. Silent below the floor rather than
+     showing "—": a dash in a column implies the number exists and is being
+     withheld, when the truth is that nobody has enough sessions to have one. */
+  var relBy = {};
+  function relChip(id){
+    var r = relBy[id];
+    if (!r || r.pct === null || r.pct === undefined) return '';
+    var band = r.pct >= 80 ? '' : r.pct >= 65 ? ' mid' : ' low';
+    return '<span class="relchip' + band + '" title="' +
+      esc(pf.reliabilityLabel(r.pct) + ' — ' + r.attended + ' attended, ' +
+          r.noShows + ' missed') + '"><i></i>' + r.pct + '%</span>';
+  }
+
   /* "3 blocks" is our word for a cell in the availability grid, not a
      reader's. The cell says the whole thing instead, so the column needs no
      decoding: "3 times you're both free". */
@@ -162,6 +184,10 @@
     }
     if (levelLabel[p.level]) facts.push(['Stage', levelLabel[p.level]]);
     if (p.timezone)          facts.push(['Timezone', p.timezone]);
+    var rel = relBy[p.id];
+    if (rel && rel.pct !== null && rel.pct !== undefined) {
+      facts.push(['Turns up', rel.pct + '%']);
+    }
 
     return '<div class="top-pick" data-id="' + esc(p.id) + '">' +
       '<p class="tp-tag">' + tag + '</p>' +
@@ -191,8 +217,10 @@
       '<div class="pt-who">' +
         '<span class="pt-av" style="background:' + t[0] + ';color:' + t[1] + '">' + initial(nm) + '</span>' +
         '<div style="min-width:0"><div class="pt-nm">' +
-          '<a class="who" href="app-person.html?id=' + esc(p.id) + '">' + esc(nm) + '</a>' + tags + '</div>' +
-        (sub ? '<div class="pt-sub">' + esc(sub) + '</div>' : '') + '</div>' +
+          '<a class="who" href="app-person.html?id=' + esc(p.id) + '">' + esc(nm) + '</a>' + tags +
+          relChip(p.id) + '</div>' +
+        (sub ? '<div class="pt-sub">' + esc(sub) + '</div>'
+             : '<div class="pt-sub">Still setting up</div>') + '</div>' +
       '</div>' +
       '<div class="pt-tp">' + (p.topic ? esc(p.topic) : '<span class="pt-sub">Not said yet</span>') + '</div>' +
       timesShort(p) +
@@ -229,11 +257,77 @@
     list.innerHTML = html;
   }
 
+  /* Requests waiting on you, drawn from the requests rather than from the
+     directory. The old code only ever set a chip on a matching row, so a
+     request from somebody who had not picked a path — and therefore never
+     appeared in fetchPeers() — arrived and was never seen by anybody. */
+  function renderInbox(pending){
+    if (!pending.length) return;
+    var box = document.getElementById('inbox');
+    document.getElementById('inbox-h').textContent = pending.length === 1
+      ? 'Someone wants to study with you'
+      : pending.length + ' people want to study with you';
+    document.getElementById('inbox-sub').textContent =
+      'Saying yes opens booking for the two of you. Saying no is not rude — a ' +
+      'partner you cannot meet is worse for both of you than a quick no.';
+
+    document.getElementById('inbox-list').innerHTML = pending.map(function(x){
+      var p = x.other || {}, nm = p.name || 'Someone', t = tone(nm);
+      var sub = [pathLabel[p.track_id] || '', p.topic ? 'learning ' + p.topic : '']
+                  .filter(Boolean).join(' · ');
+      return '<div class="inreq" data-req="' + esc(x.id) + '">' +
+        '<span class="inreq-av" style="background:' + t[0] + ';color:' + t[1] + '">' +
+          initial(nm) + '</span>' +
+        '<div class="inreq-b">' +
+          '<p class="inreq-nm">' +
+            '<a class="who" href="app-person.html?id=' + esc(p.id) + '">' + esc(nm) + '</a>' +
+          '</p>' +
+          '<p class="inreq-msg">' +
+            (x.message ? esc(x.message) : (sub || 'They haven’t said anything about themselves yet.')) +
+          '</p>' +
+        '</div>' +
+        '<div class="inreq-acts">' +
+          '<button class="btn" data-answer="accepted">Say yes</button>' +
+          '<button class="small" data-answer="declined">Not now</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    box.hidden = false;
+  }
+
+  document.getElementById('inbox-list').addEventListener('click', function(e){
+    var btn = e.target.closest && e.target.closest('[data-answer]');
+    if (!btn) return;
+    var row = btn.closest('[data-req]');
+    var id = row.getAttribute('data-req');
+    var status = btn.getAttribute('data-answer');
+    row.querySelectorAll('button').forEach(function(b){ b.disabled = true; });
+    btn.textContent = status === 'accepted' ? 'Saying yes…' : 'Answering…';
+    pf.respondToRequest(id, status).then(function(res){
+      if (res && res.error) {
+        row.querySelectorAll('button').forEach(function(b){ b.disabled = false; });
+        btn.textContent = status === 'accepted' ? 'Say yes' : 'Not now';
+        var msg = row.querySelector('.inreq-msg');
+        msg.textContent = res.error;
+        return;
+      }
+      /* Reload rather than patch: saying yes changes the partner list, the
+         directory row and the Partner page all at once, and re-deriving all
+         three by hand here is how they drift apart. */
+      location.reload();
+    });
+  });
+
   Promise.all([pf.myRequests(), pf.getProfile()]).then(function(r){
     var reqs = r[0], profile = r[1];
     if (reqs) {
       reqs.outgoing.forEach(function(x){ reqByUser[x.to_user]   = { status: x.status, direction: 'out' }; });
       reqs.incoming.forEach(function(x){ reqByUser[x.from_user] = { status: x.status, direction: 'in'  }; });
+      renderInbox(reqs.incoming.filter(function(x){ return x.status === 'pending'; }));
+      /* Now that they have been shown, they are not new any more. */
+      if (pf.markRequestsSeen) {
+        pf.markRequestsSeen(reqs.incoming.map(function(x){ return x.id; }), []);
+      }
     }
     if (profile) {
       me.track = profile.track_id || '';
@@ -252,10 +346,17 @@
         'share PeerFlow with one person learning the same thing and you’ve got your pair.</p></div>';
       return;
     }
-    render(people);
     document.getElementById('st-total').textContent = people.length + 1;
     document.getElementById('st-same').textContent =
       me.track ? people.filter(function(p){ return p.track_id === me.track; }).length : 0;
+
+    /* One call for the whole page, then draw once. Drawing without the scores
+       and again with them would move every row a moment after paint. */
+    if (!pf.reliabilityOf) { render(people); return; }
+    return pf.reliabilityOf(people.map(function(p){ return p.id; })).then(function(by){
+      relBy = by || {};
+      render(people);
+    });
   });
 
   /* Asking opens a one-line note first. sendPartnerRequest has always taken a
