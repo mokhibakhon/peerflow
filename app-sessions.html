@@ -21,6 +21,7 @@
   <div class="wrap">
     <div class="app-head">
       <h1 id="page-h">My partner</h1>
+      <p class="lede" id="page-sub" hidden>Keep your learning relationships moving with a clear next action.</p>
     </div>
 
     <!-- No partner yet, or the profile isn't finished. -->
@@ -33,40 +34,72 @@
       </div>
     </div>
 
-    <div class="app-grid" id="pt-grid" hidden>
-      <div class="app-col">
-        <!-- One card each. Nobody is "the" partner: they're all people who said
-             yes, and promoting whichever came back first made two partners look
-             like one partner and a footnote. -->
-        <div id="partner-list"></div>
+    <div id="pt-grid" hidden>
+      <!-- One card each. Nobody is "the" partner: they're all people who said
+           yes, and promoting whichever came back first made two partners look
+           like one partner and a footnote.
 
-        <!-- Every session the two of you have had. This is the page about a
-             person, so the history that belongs here is the pair's, not the
-             platform's — which is what the signup counts used to be. -->
-        <div class="card" id="hist-card" hidden>
-          <h3>Sessions together</h3>
-          <ol class="ph" id="hist-list"></ol>
-          <p class="ph-more" id="hist-more" hidden></p>
+           Each row reads left to right the way you'd say it out loud: who they
+           are, what you two have done, what you can do about it. The actions
+           sit at the end because a row you can't act on isn't worth a card. -->
+      <div id="partner-list"></div>
+
+      <!-- The pair's own record and history. Only ever shown for a single
+           partner: with two, "the room" is ambiguous and a shared total would
+           flatter both pairs at once. -->
+      <div class="app-grid" id="pt-pair" hidden>
+        <div class="app-col">
+          <div class="card" id="hist-card" hidden>
+            <h3>Sessions together</h3>
+            <ol class="ph" id="hist-list"></ol>
+            <p class="ph-more" id="hist-more" hidden></p>
+          </div>
+        </div>
+        <div class="app-col">
+          <div class="card rec-mini" id="pair-card" hidden>
+            <h3 id="pair-h">Together</h3>
+            <dl class="figs stack">
+              <div><dt>Weeks running</dt><dd id="pair-streak">—</dd></div>
+              <div><dt>Sessions</dt><dd id="pair-done">—</dd></div>
+              <div><dt>Time together</dt><dd id="pair-mins">—</dd></div>
+            </dl>
+            <p class="ph-note" id="pair-note"></p>
+          </div>
         </div>
       </div>
 
-      <div class="app-col">
-        <!-- The pair's own record, counted only from sessions in their room. -->
-        <div class="card rec-mini" id="pair-card" hidden>
-          <h3 id="pair-h">Together</h3>
-          <dl class="figs stack">
-            <div><dt>Weeks running</dt><dd id="pair-streak">—</dd></div>
-            <div><dt>Sessions</dt><dd id="pair-done">—</dd></div>
-            <div><dt>Time together</dt><dd id="pair-mins">—</dd></div>
-          </dl>
-          <p class="ph-note" id="pair-note"></p>
+      <!-- The two things somebody does after reading the list: work out how a
+           session actually goes, or go and find another person. Explaining the
+           mechanics in a numbered list rather than a paragraph because it is
+           three steps in an order, and that is what a list is for. -->
+      <div class="pt-foot">
+        <div class="card how-card">
+          <h3>How sessions work</h3>
+          <ol class="how-steps">
+            <li>
+              <span class="how-n">1</span>
+              <div><b>Pick a time</b><p>Choose a slot that works for both of you.</p></div>
+            </li>
+            <li>
+              <span class="how-n">2</span>
+              <div><b>Your partner confirms</b><p>Both people can adjust before accepting.</p></div>
+            </li>
+            <li>
+              <span class="how-n">3</span>
+              <div><b>Join from Today</b><p>The call opens fifteen minutes before start.</p></div>
+            </li>
+          </ol>
         </div>
 
-        <div class="card">
-          <h3>How you meet</h3>
-          <p>Propose a time on <a href="app.html" class="lnk">Today</a>. The link to the
-            video call appears on the session fifteen minutes before you start —
-            cameras on, and you work through it together.</p>
+        <div class="find-card">
+          <h3>Find another partner</h3>
+          <p>Meet someone compatible with your path, goals, and weekly availability.</p>
+          <a class="btn on-dark" href="app-people.html">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+            </svg>
+            Explore matches
+          </a>
         </div>
       </div>
     </div>
@@ -92,7 +125,7 @@
 <script src="assets/authgate.js"></script>
 <script>
 (function(){
-  var track = '', myAvail = [];
+  var track = '';
   try { track = localStorage.getItem('pf_track') || ''; } catch(err) {}
 
   function esc(v){
@@ -126,10 +159,58 @@
              jobprep:'Job-hunt prep', builder:'Builds projects' }[v] || '';
   }
 
-  function renderPartners(list){
+  /* "Asia/Tashkent" is a database key, not something you say to a person. The
+     city plus the offset is what you actually need — whether to message them
+     now, and how far off their evening is from yours. */
+  function tzLabel(tz){
+    if (!tz) return '';
+    var city = String(tz).split('/').pop().replace(/_/g, ' ');
+    try {
+      var s = new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz, timeZoneName: 'shortOffset' }).format(new Date());
+      var m = s.match(/GMT([+-]\d{1,2}(?::\d{2})?)/);
+      if (m) return city + ', UTC' + m[1];
+      if (/GMT\b/.test(s)) return city + ', UTC+0';
+    } catch (e) { /* unknown zone, or an engine without shortOffset */ }
+    return city;
+  }
+
+  /* A different wash per person, so two rows are told apart by their shape
+     before you have read either name. Picked off the id rather than at random,
+     so somebody is the same colour every time you open the page. */
+  var TINTS = [
+    ['#E1F5EE', '#085041'], ['#E6E9FA', '#2B3170'], ['#FBEDE3', '#7A4318'],
+    ['#E8F1FB', '#14456E'], ['#F2E9F7', '#553073'], ['#FDF0F0', '#7C2C2C']
+  ];
+  function tint(seed){
+    var s = String(seed || ''), h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return TINTS[h % TINTS.length];
+  }
+
+  /* Line icons at the same weight as the rest of the app's, so a chip does not
+     look like it was pasted in from somewhere else. */
+  var ICON = {
+    video: '<rect x="2.5" y="5.2" width="10.6" height="9.6" rx="2.2"/>' +
+           '<path d="M13.1 8.6l4.2-2.4v7.6l-4.2-2.4"/>',
+    aim:   '<circle cx="10" cy="10" r="6.6"/><circle cx="10" cy="10" r="2.4"/>',
+    globe: '<circle cx="10" cy="10" r="7"/><path d="M3 10h14"/>' +
+           '<path d="M10 3c1.9 2.3 2.8 4.6 2.8 7s-.9 4.7-2.8 7c-1.9-2.3-2.8-4.6-2.8-7S8.1 5.3 10 3z"/>',
+    cal:   '<rect x="3" y="4.6" width="14" height="12.4" rx="2.2"/>' +
+           '<path d="M3 8.4h14M7 2.9v3.2M13 2.9v3.2"/>',
+    chat:  '<path d="M17 11.8a2.2 2.2 0 0 1-2.2 2.2H7.2L3 17.2V5.2A2.2 2.2 0 0 1 5.2 3h9.6A2.2 2.2 0 0 1 17 5.2z"/>'
+  };
+  function icon(name, size){
+    return '<svg width="' + (size || 15) + '" height="' + (size || 15) + '" viewBox="0 0 20 20" ' +
+      'fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.6" ' +
+      'stroke-linecap="round" stroke-linejoin="round">' + ICON[name] + '</svg>';
+  }
+
+  function renderPartners(list, counts){
     document.getElementById('none-card').hidden = true;
     document.getElementById('queue-card').hidden = true;
     document.getElementById('pt-grid').hidden = false;
+    document.getElementById('page-sub').hidden = false;
     document.getElementById('page-h').textContent =
       list.length > 1 ? 'My partners' : 'My partner';
 
@@ -137,33 +218,103 @@
       var pr = x.profile || {};
       var nm = pr.name || 'Someone';
 
-      /* Only facts we actually hold. An empty column headed "Stage" is worse
-         than three columns instead of four. */
-      var facts = [];
-      var n = overlap(pr.availability);
-      if (myAvail.length) {
-        facts.push(['Free together', n ? n + (n === 1 ? ' time' : ' times') : 'No overlap']);
+      /* Only facts we actually hold. A chip reading "Timezone \u2014" is worse than
+         two chips instead of three. */
+      var chips = [];
+      var n = counts ? (counts[x.roomUrl] || 0) : null;
+      if (n !== null) {
+        chips.push(['video', n ? n + (n === 1 ? ' session' : ' sessions') + ' together'
+                              : 'No sessions yet', n > 0]);
       }
-      if (levelLabel(pr.level)) facts.push(['Stage', levelLabel(pr.level)]);
-      if (pr.timezone)          facts.push(['Timezone', pr.timezone]);
+      if (levelLabel(pr.level)) chips.push(['aim', levelLabel(pr.level), false]);
+      if (tzLabel(pr.timezone)) chips.push(['globe', tzLabel(pr.timezone), false]);
 
+      var tn = tint(pr.id || nm);
       return '<div class="pcard">' +
-        '<div class="pcard-side"><span>' + esc(nm.trim().charAt(0).toUpperCase()) + '</span></div>' +
-        '<div class="pcard-body">' +
+        '<div class="pcard-av"><span style="background:' + tn[0] + ';color:' + tn[1] + '">' +
+          esc(nm.trim().charAt(0).toUpperCase()) + '</span></div>' +
+        '<div class="pcard-main">' +
           '<p class="pcard-nm">' + esc(nm) + '</p>' +
           '<p class="pcard-tp">' +
             (pr.topic ? 'Learning ' + esc(pr.topic) : 'Hasn\u2019t said what they\u2019re learning yet') +
           '</p>' +
-          (facts.length ? '<div class="pcard-facts">' + facts.map(function(f){
-            return '<div class="pcard-fact"><b>' + esc(f[1]) + '</b><span>' + f[0] + '</span></div>';
+          (chips.length ? '<div class="pcard-chips">' + chips.map(function(c){
+            return '<span class="pchip' + (c[2] ? ' on' : '') + '">' +
+                     icon(c[0]) + esc(c[1]) + '</span>';
           }).join('') + '</div>' : '') +
-          '<div class="pcard-acts">' +
-            '<a class="btn" href="app.html">Propose a time</a>' +
-            (pr.id ? '<a class="ghost" href="app-chat.html?to=' + esc(pr.id) + '">Message</a>' +
-                     '<a class="ghost" href="app-person.html?id=' + esc(pr.id) + '">View profile</a>' : '') +
-          '</div>' +
-        '</div></div>';
+        '</div>' +
+        '<div class="pcard-acts">' +
+          '<a class="btn" href="app.html">' + icon('cal', 17) + 'Propose a time</a>' +
+          (pr.id ? '<a class="ghost" href="app-chat.html?to=' + esc(pr.id) + '">' +
+                     icon('chat', 17) + 'Message</a>' +
+                   /* Everything else this row can do, folded away. Three
+                      buttons of equal weight made the one you actually press
+                      compete with the one you press twice a year. */
+                   '<div class="pmenu">' +
+                     '<button class="pdots" type="button" aria-haspopup="true" ' +
+                       'aria-expanded="false" aria-label="More for ' + esc(nm) + '">' +
+                       '<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">' +
+                       '<circle cx="4.2" cy="10" r="1.5" fill="currentColor"/>' +
+                       '<circle cx="10" cy="10" r="1.5" fill="currentColor"/>' +
+                       '<circle cx="15.8" cy="10" r="1.5" fill="currentColor"/></svg>' +
+                     '</button>' +
+                     '<div class="pmenu-pop" hidden>' +
+                       '<a href="app-person.html?id=' + esc(pr.id) + '">View profile</a>' +
+                       '<a href="app-people.html">Find another partner</a>' +
+                     '</div>' +
+                   '</div>'
+                 : '') +
+        '</div>' +
+      '</div>';
     }).join('');
+  }
+
+  /* One menu open at a time, and clicking anywhere else closes it. Bound once
+     on the list rather than per card, so re-rendering cannot stack listeners. */
+  document.getElementById('partner-list').addEventListener('click', function(e){
+    var btn = e.target.closest && e.target.closest('.pdots');
+    var open = document.querySelector('.pmenu-pop:not([hidden])');
+    if (open && (!btn || open !== btn.nextElementSibling)) {
+      open.hidden = true;
+      open.previousElementSibling.setAttribute('aria-expanded', 'false');
+    }
+    if (!btn) return;
+    var pop = btn.nextElementSibling;
+    pop.hidden = !pop.hidden;
+    btn.setAttribute('aria-expanded', String(!pop.hidden));
+  });
+  document.addEventListener('click', function(e){
+    if (e.target.closest && e.target.closest('.pmenu')) return;
+    var open = document.querySelector('.pmenu-pop:not([hidden])');
+    if (!open) return;
+    open.hidden = true;
+    open.previousElementSibling.setAttribute('aria-expanded', 'false');
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    var open = document.querySelector('.pmenu-pop:not([hidden])');
+    if (!open) return;
+    open.hidden = true;
+    open.previousElementSibling.setAttribute('aria-expanded', 'false');
+    open.previousElementSibling.focus();
+  });
+
+  /* Sessions per partner, from one query rather than one per card. Counting
+     here and passing the result in keeps renderPartners synchronous, so the
+     row never draws once without its chip and then again with it. */
+  function sessionCounts(){
+    if (!pf.fetchSessions) return Promise.resolve(null);
+    return pf.fetchSessions().then(function(all){
+      if (!all) return null;
+      var now = Date.now(), by = {};
+      all.forEach(function(s){
+        if (!s.roomUrl) return;
+        var done = s.status === 'completed' ||
+          (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
+        if (done) by[s.roomUrl] = (by[s.roomUrl] || 0) + 1;
+      });
+      return by;
+    }).catch(function(){ return null; });
   }
 
   /* ---------- the pair's own record ---------- */
@@ -229,16 +380,6 @@
     }).catch(function(){});
   }
 
-  /* How many of your free windows they are also free in — the same number the
-     People page shows, so the two pages agree about the same pair. */
-  function overlap(theirs){
-    if (!myAvail.length || !theirs || !theirs.length) return 0;
-    var mine = {}, n = 0;
-    myAvail.forEach(function(sl){ mine[sl] = true; });
-    theirs.forEach(function(sl){ if (mine[sl]) n++; });
-    return n;
-  }
-
   /* Real signup numbers, so waiting isn't a black box. */
   function loadQueue(topic){
     pf.learnerStats(topic).then(function(s){
@@ -263,21 +404,23 @@
   pf.currentUser().then(function(user){
     if (!user) return;
     pf.getProfile().then(function(profile){
-      myAvail = (profile && profile.availability) || [];
       if (profile && profile.track_id) {
         track = profile.track_id;
         try { localStorage.setItem('pf_track', track); } catch(e){}
       }
       pf.acceptedPartners().then(function(list){
         if (list && list.length) {
-          renderPartners(list);
-          /* The pair's record and history only make sense for one pair. With
-             two partners the room is ambiguous, so the side column stays out
-             of the way rather than picking a favourite. */
-          if (list.length === 1) {
-            renderPair(list[0].profile || {}, list[0].roomUrl);
-            renderHistory(list[0].roomUrl);
-          }
+          sessionCounts().then(function(counts){
+            renderPartners(list, counts);
+            /* The pair's record and history only make sense for one pair. With
+               two partners the room is ambiguous, so the block stays out of the
+               way rather than picking a favourite. */
+            if (list.length === 1) {
+              document.getElementById('pt-pair').hidden = false;
+              renderPair(list[0].profile || {}, list[0].roomUrl);
+              renderHistory(list[0].roomUrl);
+            }
+          });
           return;
         }
         document.getElementById('queue-card').hidden = false;
