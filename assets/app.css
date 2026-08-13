@@ -1182,7 +1182,11 @@ html{scroll-behavior:smooth}
 .tp-fact b{display:block;font-size:14.5px;font-weight:700}
 .tp-fact span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
   text-transform:uppercase;color:var(--faint);margin-top:2px}
-.tp-acts{margin-top:18px}
+/* A row with a gap, rather than two inline-blocks relying on whatever
+   whitespace sits between them — and the markup concatenates them with none,
+   so the two buttons were touching. The ask box carries flex:1 0 100%, so it
+   still drops onto a line of its own now this is a flex container. */
+.tp-acts{margin-top:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .tp-acts .askbox{margin-top:0;padding-top:0;border-top:0}
 
 /* ---------- people: the table ---------- */
