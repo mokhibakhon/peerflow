@@ -43,7 +43,6 @@
       <p class="inbox-h"><span class="inbox-n" id="inbox-n">1</span><b id="inbox-t">Waiting on you</b></p>
       <div class="inbox-body">
         <div id="inbox-list"></div>
-        <p class="inbox-sub" id="inbox-sub"></p>
       </div>
     </section>
 
@@ -273,10 +272,6 @@
        carry a figure the badge beside it already shows. */
     document.getElementById('inbox-n').textContent = String(pending.length);
     document.getElementById('inbox-t').textContent = 'Waiting on you';
-    /* One line. The two-sentence version was written to fill a panel that has
-       gone, and the second half only ever mattered once you had decided. */
-    document.getElementById('inbox-sub').textContent =
-      'Accepting opens booking for the two of you. Declining is not rude.';
 
     document.getElementById('inbox-list').innerHTML = pending.map(function(x){
       var p = x.other || {}, nm = p.name || 'Someone', t = tone(nm);
