@@ -81,7 +81,7 @@
      card that used to dominate it, which left the app with a Sessions tab
      holding a Sessions card next to a Partner tab holding a partner. */
   var HOME    = { href:'app.html',          label:'Today',    icon:'sessions' };
-  var PARTNER = { href:'app-sessions.html', label:'Partner',  icon:'partner'  };
+  var PARTNER = { href:'app-sessions.html', label:'Partners', icon:'partner'  };
   var CHAT    = { href:'app-chat.html',     label:'Chat',     icon:'chat'     };
   var PEOPLE  = { href:'app-people.html',   label:'People',   icon:'people'   };
   var PATH    = { href:'app-progress.html', label:'Progress', icon:'progress' };
