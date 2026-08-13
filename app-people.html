@@ -276,7 +276,7 @@
     /* One line. The two-sentence version was written to fill a panel that has
        gone, and the second half only ever mattered once you had decided. */
     document.getElementById('inbox-sub').textContent =
-      'Saying yes opens booking for the two of you. Saying no is not rude.';
+      'Accepting opens booking for the two of you. Declining is not rude.';
 
     document.getElementById('inbox-list').innerHTML = pending.map(function(x){
       var p = x.other || {}, nm = p.name || 'Someone', t = tone(nm);
@@ -289,13 +289,19 @@
           '<p class="inreq-nm">' +
             '<a class="who" href="app-person.html?id=' + esc(p.id) + '">' + esc(nm) + '</a>' +
           '</p>' +
+          /* A note used to be printed bare, so a sentence somebody wrote read
+             as if the page were describing them. Saying whose words these are
+             costs four words and removes the ambiguity — same size, same
+             weight, same colour, so the line is still the quiet one. */
           '<p class="inreq-msg">' +
-            (x.message ? esc(x.message) : (sub || 'They haven’t said anything about themselves yet.')) +
+            (x.message
+              ? 'Note from ' + esc(nm.trim().split(/\s+/)[0]) + ': ' + esc(x.message)
+              : (sub || 'They haven’t said anything about themselves yet.')) +
           '</p>' +
         '</div>' +
         '<div class="inreq-acts">' +
-          '<button class="btn" data-answer="accepted">Say yes</button>' +
-          '<button class="small" data-answer="declined">Not now</button>' +
+          '<button class="btn" data-answer="accepted">Accept</button>' +
+          '<button class="small" data-answer="declined">Decline</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -309,11 +315,11 @@
     var id = row.getAttribute('data-req');
     var status = btn.getAttribute('data-answer');
     row.querySelectorAll('button').forEach(function(b){ b.disabled = true; });
-    btn.textContent = status === 'accepted' ? 'Saying yes…' : 'Answering…';
+    btn.textContent = status === 'accepted' ? 'Accepting…' : 'Declining…';
     pf.respondToRequest(id, status).then(function(res){
       if (res && res.error) {
         row.querySelectorAll('button').forEach(function(b){ b.disabled = false; });
-        btn.textContent = status === 'accepted' ? 'Say yes' : 'Not now';
+        btn.textContent = status === 'accepted' ? 'Accept' : 'Decline';
         var msg = row.querySelector('.inreq-msg');
         msg.textContent = res.error;
         return;
