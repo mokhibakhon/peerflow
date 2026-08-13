@@ -213,21 +213,23 @@
     var sub = [pathLabel[p.track_id] || '', levelLabel[p.level] || '']
                 .filter(Boolean).join(' \u00b7 ');
 
+    /* The person block is the link. There used to be a "Profile" link at the
+       end of the row as well, going to exactly where the name already went —
+       the same word repeated down the page, saying nothing about anybody.
+       Pressing the face or the name is where people reach anyway, and it
+       leaves one thing to press per row rather than two. */
     return '<div class="pt-row" data-id="' + esc(p.id) + '">' +
-      '<div class="pt-who">' +
+      '<a class="pt-who" href="app-person.html?id=' + esc(p.id) + '">' +
         '<span class="pt-av" style="background:' + t[0] + ';color:' + t[1] + '">' + initial(nm) + '</span>' +
         '<div style="min-width:0"><div class="pt-nm">' +
-          '<a class="who" href="app-person.html?id=' + esc(p.id) + '">' + esc(nm) + '</a>' + tags +
+          '<span class="pt-nm-t">' + esc(nm) + '</span>' + tags +
           relChip(p.id) + '</div>' +
         (sub ? '<div class="pt-sub">' + esc(sub) + '</div>'
              : '<div class="pt-sub">Still setting up</div>') + '</div>' +
-      '</div>' +
+      '</a>' +
       '<div class="pt-tp">' + (p.topic ? esc(p.topic) : '<span class="pt-sub">Not said yet</span>') + '</div>' +
       timesShort(p) +
-      '<div class="pt-acts">' +
-        '<a class="pt-view" href="app-person.html?id=' + esc(p.id) + '">Profile</a>' +
-        actionFor(p.id) +
-      '</div>' +
+      '<div class="pt-acts">' + actionFor(p.id) + '</div>' +
     '</div>';
   }
 

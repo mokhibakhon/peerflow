@@ -1198,7 +1198,17 @@ html{scroll-behavior:smooth}
 /* the header already draws a bottom border; :first-of-type would match the
    header itself, not the first row, and leave the two stacked */
 .pt-hd + .pt-row,.pt-row:first-child{border-top:0}
-.pt-who{display:flex;align-items:center;gap:11px;min-width:0}
+/* The whole block is the link to that person, so the thing you press to read
+   about somebody is the thing showing who they are. Negative margin plus the
+   same padding back means the hover tint has room to breathe without moving
+   the row. */
+.pt-who{display:flex;align-items:center;gap:11px;min-width:0;color:inherit;
+  border-radius:10px;margin:-6px -8px;padding:6px 8px}
+a.pt-who:hover{background:var(--band)}
+a.pt-who:hover .pt-nm-t{text-decoration:underline;text-underline-offset:2px}
+a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
+.pt-nm-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--ink)}
 .pt-av{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;
   justify-content:center;font-weight:700;font-size:13px;flex:0 0 auto}
 /* The tag is a separate flex item so a long name eats its own ellipsis
@@ -1225,7 +1235,7 @@ html{scroll-behavior:smooth}
     gap:7px;padding:16px}
   .pt-sub{white-space:normal;overflow:visible;line-height:1.45}
   .pt-nm{flex-wrap:wrap;row-gap:4px;line-height:1.35}
-  .pt-nm .who{white-space:normal;overflow:visible}
+  .pt-nm .who,.pt-nm-t{white-space:normal;overflow:visible}
   .pt-row .overlap{margin-top:0}
   .pt-row .askbtn,.pt-row .pstate{justify-self:end;margin-top:3px}
 }
@@ -1844,9 +1854,20 @@ html{scroll-behavior:smooth}
 
 /* People: the profile control beside the ask button. */
 .pt-acts{display:flex;align-items:center;gap:8px;justify-content:flex-end;flex:0 0 auto}
-.pt-view{font-size:12.5px;font-weight:600;color:var(--p6);white-space:nowrap}
-.pt-view:hover{text-decoration:underline}
 a.who:hover{text-decoration:underline}
+
+/* Every state gets the same box, so the last column is a column rather than a
+   ragged edge. They were already one height; the lengths differ — "Send
+   request" against "Asked" — and that was enough to make the right side of
+   the table zig-zag by thirty pixels a row. */
+.pt-acts .askbtn,.pt-acts .pstate{min-width:132px}
+/* Must follow the rule above, not sit in the earlier phone block — same
+   specificity, so whichever is written last wins. One column on a phone, so
+   there is no grid to keep straight and a fixed width would only be a gap to
+   the left of a short label. */
+@media (max-width:720px){
+  .pt-acts .askbtn,.pt-acts .pstate{min-width:0}
+}
 
 /* ---------- a badge, the moment you earn it ----------
    The one interruption in the product. Everything else here tries not to be
