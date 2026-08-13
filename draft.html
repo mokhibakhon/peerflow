@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Draft — Requests waiting — PeerFlow</title>
+<title>Draft — Nothing booked, with several partners — PeerFlow</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,74 +11,26 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap">
 <link rel="stylesheet" href="assets/app.css">
 <style>
-/* ============================================================
-   DRAFT ONLY — nothing here is live.
-
-   Three ways to draw "requests waiting for you". Everything is scoped to
-   .opt-a / .opt-b / .opt-c and exists in this file alone.
-   ============================================================ */
-
+/* DRAFT ONLY. Scoped to .opt-* and living in this file alone. */
 .dr-wrap{max-width:1100px;margin:0 auto;padding:34px 22px 90px}
 .dr-h{margin:0 0 6px;font-size:30px;font-weight:800;letter-spacing:-.03em}
-.dr-lede{margin:0;font-size:15px;color:var(--soft);line-height:1.6;max-width:70ch}
+.dr-lede{margin:0;font-size:15px;color:var(--soft);line-height:1.6;max-width:72ch}
 .dr-warn{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;
   padding:8px 14px;border-radius:999px;background:#FFF6E8;border:1px solid #F0DCC2;
   color:#8A5A12;font-size:13px;font-weight:600}
 .dr-sec{margin:46px 0 0;padding-top:30px;border-top:1px solid var(--line)}
-.dr-sec:first-of-type{border-top:0}
 .dr-tag{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;
   text-transform:uppercase;color:var(--faint);margin:0 0 10px}
 .dr-sec h2{margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-.02em}
-.dr-note{margin:0 0 18px;font-size:14px;color:var(--soft);line-height:1.6;max-width:74ch}
-.dr-why{margin:16px 0 0;font-size:13.5px;color:var(--soft);line-height:1.65;max-width:74ch}
+.dr-note{margin:0 0 18px;font-size:14px;color:var(--soft);line-height:1.6;max-width:76ch}
+.dr-note b{color:var(--ink)}
+.dr-why{margin:16px 0 0;font-size:13.5px;color:var(--soft);line-height:1.65;max-width:76ch}
 .dr-why b{color:var(--ink)}
-.dr-stage{background:var(--bg);border-radius:18px;padding:22px}
-
-/* A small green count, shared by every option. Green as a mark, not a field. */
-.ib-n{display:inline-flex;align-items:center;justify-content:center;
-  min-width:20px;height:20px;padding:0 6px;border-radius:999px;
-  background:var(--p4);color:#fff;font-size:11.5px;font-weight:800;
-  font-variant-numeric:tabular-nums}
-
-/* One shape for a request in all three, so only the container differs. */
-.rq{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:15px 0;
-  border-top:1px solid var(--line)}
-.rq:first-of-type{border-top:0}
-.rq-av{flex:0 0 auto;width:42px;height:42px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
-.rq-b{flex:1 1 200px;min-width:0}
-.rq-nm{margin:0;font-size:15px;font-weight:700}
-.rq-msg{margin:3px 0 0;font-size:13.5px;color:var(--soft);line-height:1.5}
-.rq-acts{flex:0 0 auto;display:flex;gap:10px;margin-left:auto}
-.rq-acts .btn,.rq-acts .small{min-width:112px;justify-content:center}
-@media (max-width:620px){
-  .rq-acts{margin-left:0;width:100%}
-  .rq-acts .btn,.rq-acts .small{flex:1 1 auto}
-}
-
-/* ---------- A: white card, green rail ---------- */
-.opt-a .ib{background:var(--card);border:1px solid var(--line);
-  border-left:3px solid var(--p4);border-radius:14px;padding:18px 22px}
-.opt-a .ib-h{display:flex;align-items:center;gap:9px;margin:0}
-.opt-a .ib-h b{font-size:16px;font-weight:700;letter-spacing:-.015em}
-.opt-a .ib-sub{margin:5px 0 4px;font-size:13.5px;color:var(--soft)}
-
-/* ---------- B: white card, green header strip ---------- */
-.opt-b .ib{background:var(--card);border:1px solid var(--line);
-  border-radius:16px;overflow:hidden}
-.opt-b .ib-h{display:flex;align-items:center;gap:9px;margin:0;
-  background:var(--p0);border-bottom:1px solid var(--p1);
-  padding:13px 20px;color:var(--p8)}
-.opt-b .ib-h b{font-size:14.5px;font-weight:700}
-.opt-b .ib-body{padding:4px 20px 16px}
-.opt-b .ib-sub{margin:12px 0 0;font-size:13.5px;color:var(--soft)}
-
-/* ---------- C: exactly the page's own furniture ---------- */
-.opt-c .ib-h{display:flex;align-items:center;gap:9px;margin:0 0 4px}
-.opt-c .ib-h b{font-size:16px;font-weight:700;letter-spacing:-.015em}
-.opt-c .ib-sub{margin:0 0 12px;font-size:13.5px;color:var(--soft)}
-.opt-c .ib{background:var(--card);border:1px solid var(--line);
-  border-radius:16px;padding:4px 20px 6px}
+.dr-cap{margin:0 0 8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--faint)}
+.dr-stage{background:var(--bg);border-radius:18px;padding:22px;margin-bottom:16px}
+/* The band is normally the top of a page, so its own top margin is not wanted here. */
+.dr-stage .now{margin:0}
 </style>
 </head>
 <body>
@@ -86,11 +38,10 @@
 <main>
   <div class="dr-wrap">
     <p class="dr-tag">Draft</p>
-    <h1 class="dr-h">Requests waiting: three ways</h1>
+    <h1 class="dr-h">"Nothing booked", once you have more than one partner</h1>
     <p class="dr-lede">
-      The block on the live page is the only thing in the app that puts a white
-      card inside a coloured panel. Three alternatives below, each drawn on the
-      same grey the real page uses so the surfaces can be compared honestly.
+      You are right that it does not hold up. Below: what it does today at two,
+      four and six partners, then three ways out. Nothing here is live.
     </p>
     <p class="dr-warn">
       <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -100,191 +51,165 @@
       Preview only — the buttons here do nothing
     </p>
 
-    <!-- ------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">The problem</p>
-      <h2>Why it looks wrong</h2>
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec" style="border-top:0;padding-top:0">
+      <p class="dr-tag">Now</p>
+      <h2>What it does today</h2>
       <p class="dr-note">
-        Four things, and they compound. <b>A card inside a card</b> — the green
-        panel wraps a white card, and nowhere else in the app nests two
-        surfaces. <b>Three backgrounds in one component</b>, where every other
-        block is one white card on grey. <b>The green is doing the wrong job</b>
-        — everywhere else in PeerFlow a green fill means <em>achieved</em>: the
-        week you are on, a badge you earned, sessions you have had together.
-        Here it means <em>unread</em>, which is a different idea wearing the
-        same clothes. And <b>the weight is inverted</b>: a whole green field is
-        louder than the top pick, so the page has two things shouting and the
-        recommendation loses.
+        Four faults, and they get worse with each partner. <b>A headline turns
+        into an inventory</b> — the band exists to say what to do next, and a
+        roll-call is a list to read instead of a decision made. <b>It names
+        everyone equally</b>, so it tells you nothing about which of them you
+        have actually left hanging. <b>The names are already on the page</b>,
+        in the "Your partners" rail, with their topics — this is the second
+        time you read them. And <b>it cannot overflow gracefully</b>: names are
+        typed by people, there is no cap and no "+2 more", so the band's one
+        line becomes three.
+      </p>
+
+      <p class="dr-cap">Two partners — the case it was written for</p>
+      <div class="dr-stage">
+        <section class="now" data-tone="idle">
+          <div class="now-txt">
+            <span class="mono now-k">Nothing booked</span>
+            <h1>Book your next session with qwwq wqeq and Mohibakhon Omonkhonova.</h1>
+            <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
+            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
+          </div>
+        </section>
+      </div>
+
+      <p class="dr-cap">Four</p>
+      <div class="dr-stage">
+        <section class="now" data-tone="idle">
+          <div class="now-txt">
+            <span class="mono now-k">Nothing booked</span>
+            <h1>Book your next session with qwwq wqeq, Mohibakhon Omonkhonova, Asalxon Axmadxo’jayeva and Bekzod Toshmatov.</h1>
+            <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
+            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
+          </div>
+        </section>
+      </div>
+
+      <p class="dr-cap">Six</p>
+      <div class="dr-stage">
+        <section class="now" data-tone="idle">
+          <div class="now-txt">
+            <span class="mono now-k">Nothing booked</span>
+            <h1>Book your next session with qwwq wqeq, Mohibakhon Omonkhonova, Asalxon Axmadxo’jayeva, Bekzod Toshmatov, Dilnoza Rahimova and Nodira Yusupova.</h1>
+            <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
+            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
+          </div>
+        </section>
+      </div>
+      <p class="dr-why">
+        Note the sub-line too: <b>"an hour you’re both free"</b> and <b>"once
+        they accept"</b> are written for exactly one other person. With four
+        partners "both" is simply wrong.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec opt-a">
+      <p class="dr-tag">Option A</p>
+      <h2>Stop naming them</h2>
+      <p class="dr-note">
+        The band says what to do; the rail below already says who with. One
+        line at any number of partners.
       </p>
       <div class="dr-stage">
-        <section class="inbox">
-          <h2>Someone wants to study with you</h2>
-          <p class="lede">Saying yes opens booking for the two of you. Saying no is not rude — a partner you cannot meet is worse for both of you than a quick no.</p>
-          <div>
-            <div class="inreq">
-              <span class="inreq-av" style="background:#FDF0F0;color:#7C2C2C">T</span>
-              <div class="inreq-b">
-                <p class="inreq-nm"><a class="who" href="#">test</a></p>
-                <p class="inreq-msg">Backend · learning Python basics</p>
-              </div>
-              <div class="inreq-acts">
-                <button class="btn" type="button">Say yes</button>
-                <button class="small" type="button">Not now</button>
-              </div>
+        <section class="now" data-tone="idle">
+          <div class="now-txt">
+            <span class="mono now-k">Nothing booked</span>
+            <h1>Book your next session.</h1>
+            <p class="now-s">You have four partners — choose who and when, and it lands on both calendars once they accept.</p>
+            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
+          </div>
+        </section>
+      </div>
+      <p class="dr-why"><b>Trade-off.</b> Safe, short, never breaks. But it is
+        the least useful of the three: it tells you to do something without
+        helping you decide anything.</p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec opt-b">
+      <p class="dr-tag">Option B</p>
+      <h2>Name the one you have left longest</h2>
+      <p class="dr-note">
+        Instead of listing everyone, lead with the partner you have gone
+        longest without meeting, and let the rest be a count. This is the only
+        option that makes a decision rather than describing a state — and the
+        gap is a fact we already hold, since sessions carry a date and a room.
+      </p>
+      <div class="dr-stage">
+        <section class="now" data-tone="idle">
+          <div class="now-txt">
+            <span class="mono now-k">Nothing booked</span>
+            <h1>It’s been three weeks since you studied with Bekzod.</h1>
+            <p class="now-s">Longest of your four partners. Pick an hour you’re both free and it lands on both calendars once they accept.</p>
+            <div class="now-a">
+              <a class="btn" href="#">Propose a time with Bekzod</a>
+              <a class="ghost" href="#">Someone else</a>
             </div>
           </div>
         </section>
       </div>
-    </section>
-
-    <!-- ------------------------------------------------------------- -->
-    <section class="dr-sec opt-a">
-      <p class="dr-tag">Option A</p>
-      <h2>White card, green rail</h2>
-      <p class="dr-note">
-        The same white card as everything else, with a green edge down the left
-        to say it wants answering. Green becomes a mark rather than a field.
-      </p>
+      <p class="dr-cap">And when nobody has a history to rank on yet</p>
       <div class="dr-stage">
-        <div class="ib">
-          <p class="ib-h"><span class="ib-n">2</span><b>Waiting on you</b></p>
-          <p class="ib-sub">Saying yes opens booking for the two of you.</p>
-          <div class="rq">
-            <span class="rq-av" style="background:#FDF0F0;color:#7C2C2C">T</span>
-            <div class="rq-b">
-              <p class="rq-nm"><a class="who" href="#">test</a></p>
-              <p class="rq-msg">Backend · learning Python basics</p>
-            </div>
-            <div class="rq-acts">
-              <button class="btn" type="button">Say yes</button>
-              <button class="small" type="button">Not now</button>
-            </div>
+        <section class="now" data-tone="idle">
+          <div class="now-txt">
+            <span class="mono now-k">Nothing booked</span>
+            <h1>Book your first session with one of your partners.</h1>
+            <p class="now-s">You have four — choose who and when, and it lands on both calendars once they accept.</p>
+            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
           </div>
-          <div class="rq">
-            <span class="rq-av" style="background:#E6E9FA;color:#2B3170">B</span>
-            <div class="rq-b">
-              <p class="rq-nm"><a class="who" href="#">Bekzod Toshmatov</a></p>
-              <p class="rq-msg">Stuck on subnetting, want to pair Tuesdays?</p>
-            </div>
-            <div class="rq-acts">
-              <button class="btn" type="button">Say yes</button>
-              <button class="small" type="button">Not now</button>
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
-      <p class="dr-why"><b>Trade-off.</b> Quietest of the three and the least
-        new invention — one border changes. A rail is a small signal, so on a
-        busy page it can be missed.</p>
+      <p class="dr-why"><b>Trade-off.</b> Most useful and the most work: it
+        needs the last session per partner, and it needs a second button so the
+        suggestion is not a cage. It also has to fall back to Option A's
+        wording for anybody brand new, which is the second band above.</p>
     </section>
 
-    <!-- ------------------------------------------------------------- -->
-    <section class="dr-sec opt-b">
-      <p class="dr-tag">Option B</p>
-      <h2>White card, green header strip</h2>
-      <p class="dr-note">
-        One white card, with the green confined to a header band — the same
-        move the People table already makes with its grey column header, so the
-        shape is familiar. The green labels the group without flooding it.
-      </p>
-      <div class="dr-stage">
-        <div class="ib">
-          <p class="ib-h"><span class="ib-n">2</span><b>Waiting on you</b></p>
-          <div class="ib-body">
-            <div class="rq">
-              <span class="rq-av" style="background:#FDF0F0;color:#7C2C2C">T</span>
-              <div class="rq-b">
-                <p class="rq-nm"><a class="who" href="#">test</a></p>
-                <p class="rq-msg">Backend · learning Python basics</p>
-              </div>
-              <div class="rq-acts">
-                <button class="btn" type="button">Say yes</button>
-                <button class="small" type="button">Not now</button>
-              </div>
-            </div>
-            <div class="rq">
-              <span class="rq-av" style="background:#E6E9FA;color:#2B3170">B</span>
-              <div class="rq-b">
-                <p class="rq-nm"><a class="who" href="#">Bekzod Toshmatov</a></p>
-                <p class="rq-msg">Stuck on subnetting, want to pair Tuesdays?</p>
-              </div>
-              <div class="rq-acts">
-                <button class="btn" type="button">Say yes</button>
-                <button class="small" type="button">Not now</button>
-              </div>
-            </div>
-            <p class="ib-sub">Saying no is not rude — a partner you cannot meet is worse for both of you than a quick no.</p>
-          </div>
-        </div>
-      </div>
-      <p class="dr-why"><b>Trade-off.</b> Reads clearly as a group and keeps
-        some urgency, at the cost of one more surface than Option A — though
-        the strip is a band inside the card, not a card inside a card.</p>
-    </section>
-
-    <!-- ------------------------------------------------------------- -->
+    <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec opt-c">
       <p class="dr-tag">Option C</p>
-      <h2>No container of its own</h2>
+      <h2>Keep the names, cap the list</h2>
       <p class="dr-note">
-        A heading on the page and a plain white card underneath, exactly like
-        every other section. Green appears only where it already does: the
-        count, and the button you press. This is the literal "white and green,
-        same as everything" answer.
+        The smallest possible change: two names, then a count.
       </p>
       <div class="dr-stage">
-        <p class="ib-h"><span class="ib-n">2</span><b>Waiting on you</b></p>
-        <p class="ib-sub">Saying yes opens booking for the two of you. Saying no is not rude.</p>
-        <div class="ib">
-          <div class="rq">
-            <span class="rq-av" style="background:#FDF0F0;color:#7C2C2C">T</span>
-            <div class="rq-b">
-              <p class="rq-nm"><a class="who" href="#">test</a></p>
-              <p class="rq-msg">Backend · learning Python basics</p>
-            </div>
-            <div class="rq-acts">
-              <button class="btn" type="button">Say yes</button>
-              <button class="small" type="button">Not now</button>
-            </div>
+        <section class="now" data-tone="idle">
+          <div class="now-txt">
+            <span class="mono now-k">Nothing booked</span>
+            <h1>Book your next session with qwwq wqeq, Mohibakhon and 2 others.</h1>
+            <p class="now-s">Choose who and when — it lands on both calendars once they accept.</p>
+            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
           </div>
-          <div class="rq">
-            <span class="rq-av" style="background:#E6E9FA;color:#2B3170">B</span>
-            <div class="rq-b">
-              <p class="rq-nm"><a class="who" href="#">Bekzod Toshmatov</a></p>
-              <p class="rq-msg">Stuck on subnetting, want to pair Tuesdays?</p>
-            </div>
-            <div class="rq-acts">
-              <button class="btn" type="button">Say yes</button>
-              <button class="small" type="button">Not now</button>
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
-      <p class="dr-why"><b>Trade-off.</b> The most consistent page by a
-        distance, and the calmest. It is also the least insistent — a request
-        stops looking like an interruption and starts looking like a list, and
-        an unanswered request is the one thing on this page with someone
-        waiting at the other end of it.</p>
+      <p class="dr-why"><b>Trade-off.</b> One line of code, and it stops the
+        overflow. It does not fix the real problem: it is still a roll-call,
+        still duplicates the rail, and "and 2 others" is a worse thing to say
+        about a person than not naming them at all.</p>
     </section>
 
-    <!-- ------------------------------------------------------------- -->
+    <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec">
       <p class="dr-tag">If you want my opinion</p>
-      <h2>B, and here is why</h2>
+      <h2>B, with A as its fallback</h2>
       <p class="dr-note">
-        <b>C</b> is the most consistent and I would pick it for anything else
-        on this page — but this block is the one thing here where somebody else
-        is waiting on you, and C makes it look like furniture. <b>A</b> is
-        nearly as tidy and a single border of change; if you want the smallest
-        possible edit, take A. <b>B</b> keeps one white card like the rest of
-        the app while still reading as "this is addressed to you", and the
-        green band echoes the grey header the People table already has, so it
-        is a shape the page has seen before.
+        The band is the one place on Today that is supposed to tell you what to
+        do next. A list of names is not that; the longest gap is. <b>B</b> also
+        happens to fix the thing the current copy gets wrong — it stops saying
+        "both" about four people — and it needs the fallback anyway, which is
+        <b>A</b>, so building B gets you A for free.
       </p>
       <p class="dr-note">
-        All three fix the real fault, which is the nested card. All three also
-        drop the two-sentence paragraph to one line — that copy was written to
-        fill a panel that is now going away.
+        If you would rather not touch the data layer today, <b>A</b> alone is a
+        real improvement and about ten lines. I would skip <b>C</b>: it costs
+        nearly the same as A and keeps the flaw.
       </p>
     </section>
   </div>
