@@ -380,7 +380,7 @@
         '<button class="btn" data-send="' + esc(id) + '">Send</button>' +
         '<button class="small" data-cancel>Cancel</button>' +
         '<p class="ask-err" hidden></p>';
-      slot(r).appendChild(box);
+      askSlot(r).appendChild(box);
       box.querySelector('input').focus();
       return;
     }
@@ -412,18 +412,33 @@
     });
   });
 
-  /* The action lives directly in a table row, but inside its own strip on
-     the top pick, so both the ask box and the redrawn button go wherever
-     the action already was rather than at the end of the card. */
-  function slot(r){ return r.querySelector('.tp-acts') || r; }
+  /* Two different places, and treating them as one is what put "Asked" full
+     width under somebody's name until the page was reloaded.
 
-  /* Put a row back to its resting state after sending or cancelling. */
+     The ask box wants the width of the whole row: on a table row it is a
+     direct child, which `.pt-row .askbox` then spans across every column.
+     The button, and the chip that replaces it, belong in the actions cell —
+     which is where actionFor() puts them on a fresh render, and why a reload
+     looked right when the click did not.
+
+     This used to be one function returning `.tp-acts || r`. That is correct
+     for the top pick, whose actions are in `.tp-acts`, and wrong for every
+     table row, whose actions are in `.pt-acts` — so the chip was appended to
+     the grid itself and landed in a new cell on a line of its own. */
+  function askSlot(r){ return r.querySelector('.tp-acts') || r; }
+  function actSlot(r){
+    return r.querySelector('.tp-acts') || r.querySelector('.pt-acts') || r;
+  }
+
+  /* Put a row back to its resting state after sending or cancelling. Scoped
+     to the row rather than to one slot, so the ask box is cleared wherever it
+     was put and the chip is only ever added back in one place. */
   function redraw(r){
     if (!r) return;
-    var s = slot(r), box = s.querySelector('.askbox');
+    var box = r.querySelector('.askbox');
     if (box) box.remove();
-    s.querySelectorAll('.pstate,[data-ask]').forEach(function(n){ n.remove(); });
-    s.insertAdjacentHTML('beforeend', actionFor(r.getAttribute('data-id')));
+    r.querySelectorAll('.pstate,[data-ask]').forEach(function(n){ n.remove(); });
+    actSlot(r).insertAdjacentHTML('beforeend', actionFor(r.getAttribute('data-id')));
   }
 
 })();
