@@ -211,8 +211,6 @@
     document.getElementById('queue-card').hidden = true;
     document.getElementById('pt-grid').hidden = false;
     document.getElementById('page-sub').hidden = false;
-    document.getElementById('page-h').textContent =
-      list.length > 1 ? 'My partners' : 'My partner';
 
     document.getElementById('partner-list').innerHTML = list.map(function(x){
       var pr = x.profile || {};

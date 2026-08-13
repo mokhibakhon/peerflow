@@ -66,11 +66,16 @@
       'stroke="#585C74" stroke-width="1.6" stroke-linejoin="round"/></svg>'
   };
 
-  /* People only earns a permanent slot while you are still looking for
-     someone. Once you have a partner it is a directory you never open again,
-     and a tab nobody presses makes the three they do press harder to hit — it
-     stays one click away on the Partner page. The reverse matters more: with
-     nobody to study with, finding a person is the whole job.
+  /* People used to come and go: hidden once you had a partner, shown again
+     while you were standing on the page itself. The reasoning was that a tab
+     nobody presses makes the three they do press harder to hit.
+
+     It was wrong, and the way it was wrong is the argument against it —
+     pressing "Explore matches" made a tab appear, and two accounts at the
+     same stage had different bars. That reads as the app glitching rather
+     than as a tidy bar. A navigation that changes shape between pages costs
+     more than a tab you rarely need: you stop trusting that what you saw a
+     moment ago is still where you left it. Five tabs, always.
 
      "Sessions" became "Today" in the same pass. The page was named after the
      card that used to dominate it, which left the app with a Sessions tab
@@ -83,15 +88,9 @@
 
   var here = (location.pathname.split('/').pop() || 'app.html').toLowerCase();
 
-  /* Unknown draws the fuller bar: showing People to somebody who has a
-     partner is untidy, hiding it from somebody who hasn't is a dead end.
-
-     And the page you are standing on always gets a tab, whatever the rule
-     says — dropping People while you are reading People would leave the bar
-     with nothing marked current, which looks like the nav has lost you. */
-  function tabsFor(paired){
-    if (paired !== '1' || here === PEOPLE.href) return [HOME, PARTNER, CHAT, PEOPLE, PATH];
-    return [HOME, PARTNER, CHAT, PATH];
+  /* The same five for everybody, in the same order, on every page. */
+  function tabsFor(){
+    return [HOME, PARTNER, CHAT, PEOPLE, PATH];
   }
   function tabsHtml(paired){
     return tabsFor(paired).map(function(t){
@@ -115,37 +114,22 @@
     }).catch(function(){});
   };
 
-  /* Drawn from the cache first. A bar that reorders itself half a second
-     after paint reads as a glitch, so the common case never sees it move. */
-  var paired = null;
-  try { paired = localStorage.getItem('pf_paired'); } catch (e) {}
-
   var bar = document.createElement('header');
   bar.className = 'topbar';
   bar.innerHTML =
     '<div class="tb">' +
       '<a class="brand" href="app.html" aria-label="PeerFlow">' + LOGO + 'peerflow</a>' +
       '<span class="pathchip" id="pf-pathchip" hidden></span>' +
-      '<nav class="tabs" aria-label="App" id="pf-tabs">' + tabsHtml(paired) + '</nav>' +
+      '<nav class="tabs" aria-label="App" id="pf-tabs">' + tabsHtml() + '</nav>' +
       '<a class="firechip" id="pf-fire" href="app-progress.html" hidden></a>' +
       '<div class="nav-right"></div>' +
     '</div>';
   document.body.insertBefore(bar, document.body.firstChild);
 
-  /* Then reconciled against the truth, once. acceptedPartners() is already on
-     its way for app.html and app-sessions.html; on the other pages this is one
-     extra query, which is the price of a nav bar that is never wrong. */
-  if (window.pf && pf.acceptedPartners) {
-    pf.acceptedPartners().then(function(list){
-      var now = (list && list.length) ? '1' : '0';
-      try { localStorage.setItem('pf_paired', now); } catch (e) {}
-      if (now === paired) return;
-      paired = now;
-      var nav = document.getElementById('pf-tabs');
-      if (nav) nav.innerHTML = tabsHtml(now);
-      pfChatBadge();   /* the redraw threw the old badge away */
-    }).catch(function(){});
-  }
+  /* The bar used to be drawn from a cached "do you have a partner" flag and
+     then reconciled against acceptedPartners() — an extra query on every page
+     whose only job was to redraw the tabs. The tabs no longer depend on it,
+     so the query and the flag are both gone. */
   pfChatBadge();
 
   /* The streak, in the bar, on every page.
