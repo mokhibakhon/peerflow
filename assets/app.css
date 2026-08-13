@@ -1953,20 +1953,47 @@ a.who:hover{text-decoration:underline}
    who had not picked a path never did. A request is not a property of a search
    result. It gets its own block, above everything, drawn from the requests
    themselves. */
-.inbox{border:1px solid var(--p2);border-radius:16px;background:var(--p0);
-  padding:18px 20px;margin:0 0 18px}
-.inbox h2{margin:0 0 2px;font-size:16px;font-weight:700;letter-spacing:-.015em;color:var(--p8)}
-.inbox .lede{margin:0 0 14px;font-size:13.5px;color:var(--p6)}
+/* One white card, like every other block on the page. The first version put a
+   white card inside a green panel — the only place in the app that nested two
+   surfaces, and three backgrounds deep in one component.
+
+   The green is a band across the top rather than the whole field. Two reasons.
+   A green fill means "achieved" everywhere else here — the week you are on, a
+   badge you earned, sessions you have had — and using the same fill for
+   "unread" was one idea wearing another's clothes. And a whole green panel
+   outshouted the top pick, so the page had two things demanding attention and
+   the recommendation lost. As a band it still says the block is addressed to
+   you, and the shape is one the page already knows: the People table has the
+   same move in grey. */
+.inbox{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  overflow:hidden;margin:0 0 18px}
+.inbox-h{display:flex;align-items:center;gap:9px;margin:0;
+  background:var(--p0);border-bottom:1px solid var(--p1);
+  padding:13px 20px;color:var(--p8)}
+.inbox-h b{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+/* Green as a mark, not a field. */
+.inbox-n{display:inline-flex;align-items:center;justify-content:center;
+  min-width:20px;height:20px;padding:0 6px;border-radius:999px;
+  background:var(--p4);color:#fff;font-size:11.5px;font-weight:800;
+  font-variant-numeric:tabular-nums}
+.inbox-body{padding:4px 20px 16px}
+.inbox-sub{margin:12px 0 0;font-size:13.5px;color:var(--soft);line-height:1.55}
+
+/* Hairlines between requests rather than a card each — they are a list inside
+   one card now, not a stack of cards inside a panel. */
 .inreq{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:14px 16px;margin-top:10px}
+  padding:15px 0;border-top:1px solid var(--line)}
+.inreq:first-child{border-top:0}
 .inreq-av{flex:0 0 auto;width:42px;height:42px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
 .inreq-b{flex:1 1 200px;min-width:0}
 .inreq-nm{margin:0;font-size:15px;font-weight:700}
 .inreq-msg{margin:3px 0 0;font-size:13.5px;color:var(--soft);line-height:1.5}
-.inreq-acts{flex:0 0 auto;display:flex;gap:8px;margin-left:auto}
-@media (max-width:560px){
+/* Both answers in the same box, so yes and no are a pair rather than a
+   button and an afterthought. */
+.inreq-acts{flex:0 0 auto;display:flex;gap:10px;margin-left:auto}
+.inreq-acts .btn,.inreq-acts .small{min-width:112px;justify-content:center}
+@media (max-width:620px){
   .inreq-acts{margin-left:0;width:100%}
-  .inreq-acts .btn,.inreq-acts .small{flex:1 1 auto;justify-content:center}
+  .inreq-acts .btn,.inreq-acts .small{flex:1 1 auto}
 }
