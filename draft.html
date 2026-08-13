@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Draft — People rows — PeerFlow</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+<link rel="stylesheet" href="assets/app.css">
+<style>
+/* ============================================================
+   DRAFT ONLY.
+
+   Everything in this block is scoped under .v2 and lives only on this page.
+   Nothing here touches the live People page until it is approved and moved
+   into app.css. That is the point of the page: to argue for a change in the
+   place where being wrong is free.
+   ============================================================ */
+
+.dr-wrap{max-width:1180px;margin:0 auto;padding:34px 22px 90px}
+.dr-h{margin:0 0 6px;font-size:30px;font-weight:800;letter-spacing:-.03em}
+.dr-lede{margin:0 0 8px;font-size:15px;color:var(--soft);line-height:1.6;max-width:70ch}
+.dr-warn{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;
+  padding:8px 14px;border-radius:999px;background:#FFF6E8;border:1px solid #F0DCC2;
+  color:#8A5A12;font-size:13px;font-weight:600}
+
+.dr-sec{margin:44px 0 0}
+.dr-tag{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--faint);margin:0 0 10px}
+.dr-sec h2{margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-.02em}
+.dr-note{margin:0 0 16px;font-size:14px;color:var(--soft);line-height:1.6;max-width:72ch}
+
+.dr-why{margin:18px 0 0;padding:16px 18px;border:1px solid var(--line);
+  border-radius:14px;background:var(--card)}
+.dr-why h3{margin:0 0 10px;font-size:14px;font-weight:700}
+.dr-why ul{margin:0;padding-left:18px}
+.dr-why li{font-size:13.5px;color:var(--soft);line-height:1.65;margin-bottom:7px}
+.dr-why b{color:var(--ink)}
+
+/* ---------- the proposal ---------- */
+
+/* One link per row instead of two. The person block is the link, so the
+   thing you press to read about somebody is the thing that shows who they
+   are — and the word "Profile" stops being repeated down the page. */
+.v2 .pt-row{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 188px 148px}
+.v2 .ptable.no-times .pt-row{grid-template-columns:minmax(0,1.6fr) minmax(0,1.2fr) 148px}
+.v2 .pt-who{display:flex;align-items:center;gap:13px;min-width:0;border-radius:10px;
+  margin:-6px -8px;padding:6px 8px;color:inherit}
+.v2 .pt-who:hover{background:var(--band)}
+.v2 .pt-who:hover .pt-nm-t{text-decoration:underline;text-underline-offset:2px}
+.v2 .pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
+.v2 .pt-nm-t{font-weight:700;font-size:15px;color:var(--ink)}
+
+/* Every state occupies the same box, so the column is a column rather than a
+   ragged edge. 148px fits the longest label ("Send request") with its
+   padding; the shorter ones centre inside it. */
+.v2 .pt-acts{justify-content:flex-end}
+.v2 .askbtn,.v2 .pstate{min-width:132px}
+
+.dr-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
+@media (max-width:900px){ .dr-side{grid-template-columns:minmax(0,1fr)} }
+.dr-side h3{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--soft)}
+</style>
+</head>
+<body>
+
+<main>
+  <div class="dr-wrap">
+    <p class="dr-tag">Draft</p>
+    <h1 class="dr-h">People rows, cleaned up</h1>
+    <p class="dr-lede">
+      Two changes to the directory row. Nothing here is live — this page is a
+      copy with its own styles, so you can look at it before the real People
+      page moves.
+    </p>
+    <p class="dr-warn">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="10" cy="10" r="7.2" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M10 6.4v4.4M10 13.4v.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Preview only — the buttons here do nothing
+    </p>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Now</p>
+      <h2>What is on the site today</h2>
+      <p class="dr-note">
+        Two links per row that go to the same place, and four action states
+        that are each a different width, so the right-hand edge is ragged.
+      </p>
+
+      <div class="ptable">
+        <div class="pt-hd"><span>Person</span><span>Learning</span><span>Schedules</span><span></span></div>
+
+        <div class="pt-row">
+          <div class="pt-who">
+            <span class="pt-av" style="background:#FBEDE3;color:#7A4318">W</span>
+            <div style="min-width:0">
+              <div class="pt-nm"><a class="who" href="#">wer</a><span class="same-tag">same topic</span></div>
+              <div class="pt-sub">Cybersecurity · Job-hunt prep</div>
+            </div>
+          </div>
+          <div class="pt-tp">Blue team</div>
+          <span class="overlap ok">4 times you’re both free</span>
+          <div class="pt-acts">
+            <a class="pt-view" href="#">Profile</a>
+            <span class="pstate ok">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Partners</span>
+          </div>
+        </div>
+
+        <div class="pt-row">
+          <div class="pt-who">
+            <span class="pt-av" style="background:#E6E9FA;color:#2B3170">J</span>
+            <div style="min-width:0">
+              <div class="pt-nm"><a class="who" href="#">John Smith</a><span class="same-tag alt">same path</span></div>
+              <div class="pt-sub">Cybersecurity · Job-hunt prep</div>
+            </div>
+          </div>
+          <div class="pt-tp">Blue team / SOC</div>
+          <span class="overlap ok">2 times you’re both free</span>
+          <div class="pt-acts">
+            <a class="pt-view" href="#">Profile</a>
+            <button class="askbtn" type="button">Send request</button>
+          </div>
+        </div>
+
+        <div class="pt-row">
+          <div class="pt-who">
+            <span class="pt-av" style="background:#FDF0F0;color:#7C2C2C">S</span>
+            <div style="min-width:0">
+              <div class="pt-nm"><a class="who" href="#">someone</a></div>
+              <div class="pt-sub">Backend · Doing tutorials</div>
+            </div>
+          </div>
+          <div class="pt-tp">SQL and databases</div>
+          <span class="overlap ok">7 times you’re both free</span>
+          <div class="pt-acts">
+            <a class="pt-view" href="#">Profile</a>
+            <button class="askbtn" type="button">Send request</button>
+          </div>
+        </div>
+
+        <div class="pt-row">
+          <div class="pt-who">
+            <span class="pt-av" style="background:#E8F1FB;color:#14456E">C</span>
+            <div style="min-width:0">
+              <div class="pt-nm"><a class="who" href="#">Chatgpt</a></div>
+              <div class="pt-sub">Mobile · Doing tutorials</div>
+            </div>
+          </div>
+          <div class="pt-tp">flutter</div>
+          <span class="overlap ok">1 time you’re both free</span>
+          <div class="pt-acts">
+            <a class="pt-view" href="#">Profile</a>
+            <span class="pstate sent">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M17 3L9 11M17 3l-5.5 14-2.5-6-6-2.5L17 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              Asked</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec v2">
+      <p class="dr-tag">Proposed</p>
+      <h2>One link, one action, one width</h2>
+      <p class="dr-note">
+        The person block is now the link to their profile — press the face or
+        the name. The word "Profile" is gone from every row, and each action
+        sits in a box of the same size, so the last column reads as a column.
+      </p>
+
+      <div class="ptable">
+        <div class="pt-hd"><span>Person</span><span>Learning</span><span>Schedules</span><span></span></div>
+
+        <div class="pt-row">
+          <a class="pt-who" href="#">
+            <span class="pt-av" style="background:#FBEDE3;color:#7A4318">W</span>
+            <div style="min-width:0">
+              <div class="pt-nm"><span class="pt-nm-t">wer</span><span class="same-tag">same topic</span></div>
+              <div class="pt-sub">Cybersecurity · Job-hunt prep</div>
+            </div>
+          </a>
+          <div class="pt-tp">Blue team</div>
+          <span class="overlap ok">4 times you’re both free</span>
+          <div class="pt-acts">
+            <span class="pstate ok">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Partners</span>
+          </div>
+        </div>
+
+        <div class="pt-row">
+          <a class="pt-who" href="#">
+            <span class="pt-av" style="background:#E6E9FA;color:#2B3170">J</span>
+            <div style="min-width:0">
+              <div class="pt-nm"><span class="pt-nm-t">John Smith</span><span class="same-tag alt">same path</span></div>
+              <div class="pt-sub">Cybersecurity · Job-hunt prep</div>
+            </div>
+          </a>
+          <div class="pt-tp">Blue team / SOC</div>
+          <span class="overlap ok">2 times you’re both free</span>
+          <div class="pt-acts">
+            <button class="askbtn" type="button">Send request</button>
+          </div>
+        </div>
+
+        <div class="pt-row">
+          <a class="pt-who" href="#">
+            <span class="pt-av" style="background:#FDF0F0;color:#7C2C2C">S</span>
+            <div style="min-width:0">
+              <div class="pt-nm"><span class="pt-nm-t">someone</span></div>
+              <div class="pt-sub">Backend · Doing tutorials</div>
+            </div>
+          </a>
+          <div class="pt-tp">SQL and databases</div>
+          <span class="overlap ok">7 times you’re both free</span>
+          <div class="pt-acts">
+            <button class="askbtn" type="button">Send request</button>
+          </div>
+        </div>
+
+        <div class="pt-row">
+          <a class="pt-who" href="#">
+            <span class="pt-av" style="background:#F2E9F7;color:#553073">A</span>
+            <div style="min-width:0">
+              <div class="pt-nm"><span class="pt-nm-t">Asalxon Axmadxo’jayeva</span></div>
+              <div class="pt-sub">AI &amp; ML · Just starting</div>
+            </div>
+          </a>
+          <div class="pt-tp"><span class="pt-sub">Not said yet</span></div>
+          <span class="overlap ok">3 times you’re both free</span>
+          <div class="pt-acts">
+            <span class="pstate ok">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Partners</span>
+          </div>
+        </div>
+
+        <div class="pt-row">
+          <a class="pt-who" href="#">
+            <span class="pt-av" style="background:#E8F1FB;color:#14456E">C</span>
+            <div style="min-width:0">
+              <div class="pt-nm"><span class="pt-nm-t">Chatgpt</span></div>
+              <div class="pt-sub">Mobile · Doing tutorials</div>
+            </div>
+          </a>
+          <div class="pt-tp">flutter</div>
+          <span class="overlap ok">1 time you’re both free</span>
+          <div class="pt-acts">
+            <span class="pstate sent">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M17 3L9 11M17 3l-5.5 14-2.5-6-6-2.5L17 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              Asked</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dr-why">
+        <h3>What changed, and why</h3>
+        <ul>
+          <li><b>"Profile" is gone.</b> It was a second link to the place the
+            name already went, and the word repeated down the whole page —
+            six rows, six times, saying nothing about anybody. The face and
+            the name are the link now, which is where people press anyway.
+            Hovering underlines the name so it is clear it can be pressed.</li>
+          <li><b>Every action is the same width.</b> They were already the
+            same height, but "Send request", "Partners" and "Asked" are
+            different lengths, so the right edge zig-zagged. A minimum width
+            fixes the box and centres the short labels inside it.</li>
+          <li><b>One action per row.</b> With the profile link gone there is
+            exactly one thing to press per person, so there is no question
+            about which button is the important one.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="dr-sec">
+      <p class="dr-tag">Still open</p>
+      <h2>Worth deciding before this ships</h2>
+      <p class="dr-note">
+        Losing the word "Profile" makes the row cleaner but slightly less
+        obvious on a first visit — the hover underline is the only hint, and
+        there is no hover on a phone. Tapping a name to open a profile is a
+        common pattern, so I think it is worth it, but say if you would rather
+        keep a small chevron at the end of the person block as a permanent
+        signpost.
+      </p>
+    </section>
+  </div>
+</main>
+
+</body>
+</html>
