@@ -1976,8 +1976,9 @@ a.who:hover{text-decoration:underline}
   min-width:20px;height:20px;padding:0 6px;border-radius:999px;
   background:var(--p4);color:#fff;font-size:11.5px;font-weight:800;
   font-variant-numeric:tabular-nums}
-.inbox-body{padding:4px 20px 16px}
-.inbox-sub{margin:12px 0 0;font-size:13.5px;color:var(--soft);line-height:1.55}
+/* Bottom trimmed with the standing line gone, so the last request sits the
+   same distance from the edge as the first one does from the band. */
+.inbox-body{padding:4px 20px 6px}
 
 /* Hairlines between requests rather than a card each — they are a list inside
    one card now, not a stack of cards inside a panel. */
