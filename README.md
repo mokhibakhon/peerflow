@@ -87,7 +87,12 @@ Supabase → Authentication → Sign In / Providers → Email.
 There is no automatic matching engine, and no hand-editing of tables.
 
 1. **People** ranks everyone by how close they are to what you're learning —
-   same topic first, then same path, then how many free windows you share.
+   same topic on the same path first, then the same path, then the same topic
+   somewhere else, and hours in common break the ties. Those hours are worked
+   out on a real week: everyone's weekly slots are stored in their own local
+   time, so they are converted through each side's timezone before being
+   compared. Comparing the slots as written makes two people twelve hours
+   apart look like a perfect match.
 2. You press **Send request** and can add a note. They get it in their bell.
 3. They accept, and you're partners. Either of you can have more than one.
 4. On **Sessions**, one of you proposes a time. Nothing is booked until the

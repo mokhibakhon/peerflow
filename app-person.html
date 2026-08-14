@@ -109,10 +109,27 @@
   /* The same four-band week the profile editor uses, drawn read-only, with
      the squares you share picked out — the question this page is really
      being asked is "can we actually meet". */
-  function week(theirs, mine){
-    var them = {}, us = {};
-    (theirs || []).forEach(function(s){ them[s] = true; });
-    (mine   || []).forEach(function(s){ us[s]   = true; });
+  /* Their week, drawn in your clock rather than in theirs.
+
+     Both maps come back from db.js as whole hours per weekday already
+     converted into the viewer's zone, so a partner five hours ahead has
+     their evening shaded where your afternoon is — which is where you would
+     have to turn up. Shading their raw slot strings put their evening under
+     your evening and quietly claimed you were both free. */
+  var BAND_HOURS = { morning:[6,7,8,9,10,11], afternoon:[12,13,14,15,16],
+                     evening:[17,18,19,20,21], night:[22,23,0,1] };
+  /* This grid reads Monday first; db.js keys its days the way Date.getDay()
+     does, from Sunday. Without this the whole week is shaded one column out. */
+  var JS_DAY = { sun:0, mon:1, tue:2, wed:3, thu:4, fri:5, sat:6 };
+  function week(theirs, theirTz, mine, myTz){
+    var them = pf.availabilityHours(theirs, theirTz, myTz).byDay;
+    var us   = pf.sharedAvailability(mine, myTz, theirs, theirTz).byDay;
+
+    function hits(map, dayIdx, band){
+      var hrs = map[dayIdx];
+      if (!hrs || !hrs.length) return false;
+      return BAND_HOURS[band].some(function(h){ return hrs.indexOf(h) >= 0; });
+    }
 
     var html = '<div class="pw-hd"></div>' + DAYS.map(function(d){
       return '<div class="pw-hd">' + DAYLB[d] + '</div>';
@@ -121,8 +138,8 @@
     BANDS.forEach(function(b){
       html += '<div class="pw-lb">' + BANDLB[b] + '</div>';
       DAYS.forEach(function(d){
-        var k = d + '-' + b;
-        var cls = them[k] ? (us[k] ? 'both' : 'them') : '';
+        var i = JS_DAY[d];
+        var cls = hits(them, i, b) ? (hits(us, i, b) ? 'both' : 'them') : '';
         html += '<div class="pw-c ' + cls + '"></div>';
       });
     });
@@ -174,9 +191,11 @@
 
     renderReliability(person.id, nm.split(' ')[0]);
 
-    var theirs = person.availability || [];
-    var mine   = (profile && profile.availability) || [];
-    var shared = theirs.filter(function(s){ return mine.indexOf(s) >= 0; }).length;
+    var theirs  = person.availability || [];
+    var theirTz = person.timezone || '';
+    var mine    = (profile && profile.availability) || [];
+    var myTz    = (profile && profile.timezone) || '';
+    var shared  = pf.sharedAvailability(mine, myTz, theirs, theirTz).hours;
 
     if (!theirs.length) {
       $('pv-availnote').textContent = nm.split(' ')[0] +
@@ -186,9 +205,9 @@
       $('pv-availnote').textContent = !mine.length
         ? 'Set your own weekly times on your profile and the hours you share will light up here.'
         : shared
-          ? shared + (shared === 1 ? ' window' : ' windows') + ' you are both free.'
-          : 'Nothing in common yet — you can still propose a time that suits you both.';
-      $('pv-week').innerHTML = week(theirs, mine);
+          ? shared + (shared === 1 ? ' hour' : ' hours') + ' you are both free, in your time.'
+          : 'No hours in common yet — you can still propose a time that suits you both.';
+      $('pv-week').innerHTML = week(theirs, theirTz, mine, myTz);
       $('pv-key').hidden = false;
     }
 

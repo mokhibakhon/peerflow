@@ -1043,6 +1043,154 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* ---------- availability, across timezones ----------
+
+     A profile stores when someone is free as day-band strings — "tue-evening"
+     — chosen in their own local time, with the zone in a column beside them.
+     Signup says as much: "Hours are shown in your own time, and your partner
+     sees theirs."
+
+     Every page that compared two people's availability used to intersect
+     those strings directly, which asks whether two people wrote down the same
+     words rather than whether they are free at the same time. For anyone in
+     the same zone the two questions have the same answer, which is why it
+     held together; across zones it inverts. Someone in Tashkent and someone
+     in Los Angeles who both mark five evenings share no hour at all, and the
+     People page ranked that pair top with "5 times you're both free" —
+     printing America/Los_Angeles on the same card.
+
+     setStanding, four hundred lines up, already says why: "two people in two
+     timezones would not agree on which Thursday 19:00 they meant". Sessions
+     are stored as instants and were always right. It was only the question
+     of who to suggest, and which hours to offer, that was being asked in
+     words instead of in time.
+
+     So: expand each side's bands into real intervals on a UTC week,
+     intersect those, and hand the result back in the viewer's own hours.
+
+     Two things this deliberately does not do. It reads the offset as it
+     stands today, because a weekly slot has no date to read it at — when the
+     clocks go back, a shared window moves by an hour and both people see it
+     move. And an hour is only reported as shared when the whole of it is
+     inside both windows, so a half-hour zone loses an hour at each edge
+     rather than a menu offering a time one of you never claimed. */
+
+  var AV_DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
+  /* Local clock hours each band covers, as [start, end). Night ends at 26
+     rather than at 2 because it runs into the next day and the week wraps. */
+  var AV_BANDS = { morning:[6,12], afternoon:[12,17], evening:[17,22], night:[22,26] };
+  var WEEK_MIN = 7 * 24 * 60;
+
+  /* Minutes east of UTC for an IANA zone, right now. Formatting an instant in
+     the zone and reading the result back as though it were UTC gives the
+     offset without carrying a timezone library. */
+  function tzOffset(tz, when){
+    if (!tz) return null;
+    try {
+      var f = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour12: false,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      var p = {};
+      f.formatToParts(when).forEach(function(x){ p[x.type] = x.value; });
+      var asUtc = Date.UTC(+p.year, +p.month - 1, +p.day, (+p.hour) % 24, +p.minute, +p.second);
+      return Math.round((asUtc - when.getTime()) / 60000);
+    } catch (e) { return null; }        /* a zone this browser doesn't know */
+  }
+
+  /* Fold a list of [start,end) minute intervals onto one week: wrap anything
+     that runs past Saturday midnight round to Sunday, then sort and merge. */
+  function avNormalise(list){
+    var out = [];
+    list.forEach(function(iv){
+      var len = iv[1] - iv[0];
+      if (len <= 0) return;
+      var s = ((iv[0] % WEEK_MIN) + WEEK_MIN) % WEEK_MIN;
+      if (s + len <= WEEK_MIN) out.push([s, s + len]);
+      else { out.push([s, WEEK_MIN]); out.push([0, s + len - WEEK_MIN]); }
+    });
+    out.sort(function(a, b){ return a[0] - b[0]; });
+    var merged = [];
+    out.forEach(function(iv){
+      var last = merged[merged.length - 1];
+      if (last && iv[0] <= last[1]) { if (iv[1] > last[1]) last[1] = iv[1]; }
+      else merged.push([iv[0], iv[1]]);
+    });
+    return merged;
+  }
+
+  /* Local day-band slots -> intervals on the UTC week. An unknown or missing
+     zone is treated as UTC, which is the old behaviour for that row rather
+     than a new kind of wrong. */
+  function avToUtc(slots, tz){
+    var off = tzOffset(tz, new Date());
+    if (off === null) off = 0;
+    var out = [];
+    (slots || []).forEach(function(slot){
+      var bits = String(slot).split('-');
+      var day = AV_DAYS.indexOf(bits[0]), band = AV_BANDS[bits[1]];
+      if (day < 0 || !band) return;
+      var start = day * 1440 + band[0] * 60 - off;
+      out.push([start, start + (band[1] - band[0]) * 60]);
+    });
+    return avNormalise(out);
+  }
+
+  function avIntersect(a, b){
+    var out = [], i = 0, j = 0;
+    while (i < a.length && j < b.length) {
+      var s = Math.max(a[i][0], b[j][0]), e = Math.min(a[i][1], b[j][1]);
+      if (e > s) out.push([s, e]);
+      if (a[i][1] < b[j][1]) i++; else j++;
+    }
+    return out;
+  }
+
+  /* UTC intervals -> whole hours in the viewer's own week. An hour counts
+     only when the whole of it is covered, which is what keeps a menu from
+     offering a time that is only half inside somebody's window. */
+  function avProject(intervals, viewerTz){
+    var minutes = 0;
+    intervals.forEach(function(iv){ minutes += iv[1] - iv[0]; });
+
+    var off = tzOffset(viewerTz, new Date());
+    if (off === null) off = 0;
+    var local = avNormalise(intervals.map(function(iv){ return [iv[0] + off, iv[1] + off]; }));
+
+    var byDay = {}, hours = 0;
+    for (var h = 0; h < 168; h++) {
+      var s = h * 60, e = s + 60, inside = false;
+      for (var k = 0; k < local.length; k++) {
+        if (local[k][0] <= s && local[k][1] >= e) { inside = true; break; }
+      }
+      if (!inside) continue;
+      var d = Math.floor(h / 24);
+      if (!byDay[d]) byDay[d] = [];
+      byDay[d].push(h % 24);
+      hours++;
+    }
+    return { hours: hours, minutes: minutes, byDay: byDay };
+  }
+
+  /* One person's week, read in somebody else's clock. What the partner page
+     needs to shade "when they are free" against your own days rather than
+     against theirs. */
+  function availabilityHours(slots, tz, viewerTz){
+    if (!slots || !slots.length) return { hours: 0, minutes: 0, byDay: {} };
+    return avProject(avToUtc(slots, tz), viewerTz);
+  }
+
+  /* The one call every page makes.
+
+     Returns the hours the two of you really share, counted and laid out by
+     weekday in the *viewer's* local time, so a caller can rank on `hours`,
+     say so in a sentence, light up a calendar or fill a menu without ever
+     handling a zone itself. */
+  function sharedAvailability(mine, myTz, theirs, theirTz){
+    if (!mine || !mine.length || !theirs || !theirs.length)
+      return { hours: 0, minutes: 0, byDay: {} };
+    return avProject(avIntersect(avToUtc(mine, myTz), avToUtc(theirs, theirTz)), myTz);
+  }
+
   /* ---------- other learners (real rows only) ---------- */
 
   /* Everyone else who has signed up, newest first. Never invents anyone:
@@ -1321,6 +1469,8 @@ window.pf = (function(){
     signUpEmail: signUpEmail,
     signInEmail: signInEmail,
     signInOAuth: signInOAuth,
+    sharedAvailability: sharedAvailability,
+    availabilityHours: availabilityHours,
     currentUser: currentUser,
     getProfile: getProfile,
     signOut: signOut,

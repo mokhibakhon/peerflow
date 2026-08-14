@@ -116,30 +116,51 @@
       : chip('wait', 'wait', 'Waiting on you');
   }
 
-  var me = { track: '', topic: myTopic, avail: [] };
+  var me = { track: '', topic: myTopic, avail: [], tz: '' };
 
-  /* How many of the times you're free they are free too. This is the fact
-     that decides whether a partnership can physically happen, so it goes
-     on the row rather than being something you find out after asking. */
-  function overlap(theirs){
-    if (!me.avail.length || !theirs || !theirs.length) return 0;
-    var mine = {}, n = 0;
-    me.avail.forEach(function(s){ mine[s] = true; });
-    theirs.forEach(function(s){ if (mine[s]) n++; });
-    return n;
+  /* How many hours you are both free. This is the fact that decides whether
+     a partnership can physically happen, so it goes on the row rather than
+     being something you find out after asking.
+
+     It used to intersect the two lists of slot strings, which asks whether
+     you both wrote down the same words — a different question from whether
+     you are free at the same time, and the same answer only while everybody
+     shares one timezone. pf.sharedAvailability asks it on a real week; see
+     the long note in db.js. */
+  function overlap(them){
+    return pf.sharedAvailability(me.avail, me.tz, them.availability, them.timezone).hours;
   }
 
   /* Why this person is worth your attention, strongest reason first. The
      ranking is the whole point of the page — a list in signup order buries
      the one person on your topic under everyone who joined after them. */
+  function samePath(p){ return !!(me.track && p.track_id === me.track); }
+  function sameTopic(p){
+    return !!(me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase());
+  }
   function reason(p){
-    if (me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase()) return 'topic';
-    if (me.track && p.track_id === me.track) return 'path';
+    if (sameTopic(p) && samePath(p)) return 'topic';
+    if (samePath(p)) return 'path';
+    if (sameTopic(p)) return 'topic-elsewhere';
     return '';
+  }
+  /* A topic only means something inside the path it belongs to. "Interview
+     prep" is on the frontend list and on the data list, so matching the words
+     alone put a data analyst above every frontend developer for a frontend
+     developer — and labelled them "closest to what you're learning". Same
+     topic on the same path still wins outright; the same word on a different
+     path is worth something, and less than sharing the path. */
+  function topicScore(p){
+    if (sameTopic(p) && samePath(p)) return 200;
+    if (samePath(p)) return 100;
+    if (sameTopic(p)) return 50;
+    return 0;
   }
   function score(p){
     var r = reason(p);
-    return (r === 'topic' ? 200 : r === 'path' ? 100 : 0) + Math.min(overlap(p.availability), 20);
+    /* Capped well under the path bonus: hours in common break ties inside a
+       tier, they never lift a stranger above someone on your own path. */
+    return topicScore(p) + Math.min(overlap(p), 40);
   }
 
   function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
@@ -160,29 +181,31 @@
   /* "3 blocks" is our word for a cell in the availability grid, not a
      reader's. The cell says the whole thing instead, so the column needs no
      decoding: "3 times you're both free". */
-  function howMany(n){ return n === 1 ? '1 time' : n + ' times'; }
+  function howMany(n){ return n === 1 ? '1 hour' : n + ' hours'; }
   function timesShort(p){
     if (!me.avail.length) return '';
-    var n = overlap(p.availability);
+    var n = overlap(p);
     return n ? '<span class="overlap ok">' + howMany(n) + ' you\u2019re both free</span>'
-             : '<span class="overlap none">No times in common</span>';
+             : '<span class="overlap none">No hours in common</span>';
   }
 
   /* The top pick argues its case: the facts that made it the top pick sit on
      the card, so the suggestion is checkable rather than trust-me. */
   function heroCard(p){
-    var nm = p.name || 'Someone', t = tone(nm), why = reason(p), shared = overlap(p.availability);
-    var tag = why === 'topic' ? 'Closest to what you’re learning'
-            : why === 'path'  ? 'Closest on your path'
-                              : 'Free when you’re free';
+    var nm = p.name || 'Someone', t = tone(nm), why = reason(p), shared = overlap(p);
+    var tag = why === 'topic'           ? 'Closest to what you’re learning'
+            : why === 'path'            ? 'Closest on your path'
+            : why === 'topic-elsewhere' ? 'Same topic, different path'
+                                        : 'Free when you’re free';
 
     var facts = [];
-    if (why === 'topic')     facts.push(['Same topic', p.topic]);
-    else if (why === 'path') facts.push(['Same path', pathLabel[p.track_id] || '']);
-    else if (p.topic)        facts.push(['Learning', p.topic]);
+    if (why === 'topic')                facts.push(['Same topic', p.topic]);
+    else if (why === 'path')            facts.push(['Same path', pathLabel[p.track_id] || '']);
+    else if (why === 'topic-elsewhere') facts.push(['Same topic', p.topic]);
+    else if (p.topic)                   facts.push(['Learning', p.topic]);
     if (me.avail.length) {
       facts.push(shared ? ['You’re both free', howMany(shared)]
-                        : ['Times you’re both free', 'None yet']);
+                        : ['Hours you’re both free', 'None yet']);
     }
     if (levelLabel[p.level]) facts.push(['Stage', levelLabel[p.level]]);
     if (p.timezone)          facts.push(['Timezone', p.timezone]);
@@ -210,8 +233,9 @@
 
   function tableRow(p){
     var nm = p.name || 'Someone', t = tone(nm), why = reason(p);
-    var tags = why === 'topic' ? '<span class="same-tag">same topic</span>'
-             : why === 'path'  ? '<span class="same-tag alt">same path</span>' : '';
+    var tags = why === 'topic'           ? '<span class="same-tag">same topic</span>'
+             : why === 'path'            ? '<span class="same-tag alt">same path</span>'
+             : why === 'topic-elsewhere' ? '<span class="same-tag alt">same topic</span>' : '';
     var sub = [pathLabel[p.track_id] || '', levelLabel[p.level] || '']
                 .filter(Boolean).join(' \u00b7 ');
 
@@ -342,6 +366,7 @@
       me.track = profile.track_id || '';
       me.topic = profile.topic || myTopic;
       me.avail = profile.availability || [];
+      me.tz = profile.timezone || '';
     }
     return pf.fetchPeers(60);
   }).then(function(people){
