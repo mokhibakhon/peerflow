@@ -26,9 +26,18 @@ static site with no build step.
 | `app-badges.html` | What you've done so far |
 | `assets/` | Shared stylesheets and scripts |
 
-Three stylesheets, split by surface: `assets/home.css` (landing),
-`assets/app.css` (signed-in app), `assets/styles.css` (login, signup, reset,
-conduct).
+One token file plus three stylesheets, split by surface.
+`assets/tokens.css` holds every shared value — the ink and green ramps, the
+grounds, the corner radii, the type scale, the focus ring — and every page
+links it before its own sheet. On top of that sit `assets/home.css`
+(landing), `assets/app.css` (signed-in app) and `assets/auth.css` (login,
+signup, reset, conduct), which are layout and components only.
+
+Three radii, and a fourth for glyph-scale graphics: `--r-control` (10px) for
+anything you press, `--r-card` (16px) for anything holding content,
+`--r-pill`, and `--r-mark` (3px) for legend swatches and sparkline bars,
+which a control radius would turn into lozenges. Two primary buttons, on
+purpose: dark ink on the marketing and signed-out pages, green in the app.
 
 ## Run it locally
 

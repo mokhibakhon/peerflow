@@ -41,7 +41,7 @@
       '</svg>';
   };
 
-  var LOGO = '<svg width="24" height="24" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true">' +
+  var LOGO = '<svg width="26" height="26" viewBox="0 0 173 171" fill="currentColor" aria-hidden="true">' +
     '<rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/>' +
     '<rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/>' +
     '<path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/>' +
@@ -50,20 +50,20 @@
   /* Stroke colour is overridden to white by .tabs a.on in app.css. */
   var ICON = {
     sessions: '<svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
-      '<rect x="3" y="4" width="14" height="13" rx="2" stroke="#585C74" stroke-width="1.6"/>' +
-      '<path d="M3 8h14M7 2v3M13 2v3" stroke="#585C74" stroke-width="1.6" stroke-linecap="round"/></svg>',
+      '<rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.6"/>' +
+      '<path d="M3 8h14M7 2v3M13 2v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
     partner: '<svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
-      '<circle cx="7" cy="7" r="3" stroke="#585C74" stroke-width="1.6"/>' +
-      '<circle cx="14" cy="12" r="2.6" stroke="#585C74" stroke-width="1.6"/>' +
-      '<path d="M2 17c0-2.5 2.2-4 5-4" stroke="#585C74" stroke-width="1.6" stroke-linecap="round"/></svg>',
+      '<circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1.6"/>' +
+      '<circle cx="14" cy="12" r="2.6" stroke="currentColor" stroke-width="1.6"/>' +
+      '<path d="M2 17c0-2.5 2.2-4 5-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
     people: '<svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
-      '<circle cx="10" cy="6.5" r="3" stroke="#585C74" stroke-width="1.6"/>' +
-      '<path d="M4 17c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke="#585C74" stroke-width="1.6" stroke-linecap="round"/></svg>',
+      '<circle cx="10" cy="6.5" r="3" stroke="currentColor" stroke-width="1.6"/>' +
+      '<path d="M4 17c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
     progress: '<svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
-      '<path d="M4 15V9M10 15V5M16 15v-4" stroke="#585C74" stroke-width="1.6" stroke-linecap="round"/></svg>',
+      '<path d="M4 15V9M10 15V5M16 15v-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
     chat: '<svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
       '<path d="M17 12a2 2 0 0 1-2 2H7l-4 3V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" ' +
-      'stroke="#585C74" stroke-width="1.6" stroke-linejoin="round"/></svg>'
+      'stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>'
   };
 
   /* People used to come and go: hidden once you had a partner, shown again
@@ -118,7 +118,7 @@
   bar.className = 'topbar';
   bar.innerHTML =
     '<div class="tb">' +
-      '<a class="brand" href="app.html" aria-label="PeerFlow">' + LOGO + 'peerflow</a>' +
+      '<a class="brand" href="app.html" aria-label="PeerFlow">' + LOGO + '<span>peer<b>flow</b></span></a>' +
       '<span class="pathchip" id="pf-pathchip" hidden></span>' +
       '<nav class="tabs" aria-label="App" id="pf-tabs">' + tabsHtml() + '</nav>' +
       '<a class="firechip" id="pf-fire" href="app-progress.html" hidden></a>' +

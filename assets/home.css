@@ -1,31 +1,17 @@
 /* ============================================================
    PeerFlow — landing page only.
 
-   This file styles index.html and nothing else. The rest of the
-   site (signup, login, the app pages) still uses styles.css.
-   Keeping them apart means changing the landing page can't break
-   the signup flow, and vice versa.
+   This file styles index.html and nothing else. The app pages use
+   app.css and the signup, login, reset and conduct pages use
+   auth.css. All three read their values from tokens.css, so the
+   greens, the ink, the radii and the type scale are the same on
+   every surface, and changing the landing page still can't break
+   the signup flow.
    ============================================================ */
 
-:root{
-  --ink:#171A2E;
-  --ink-soft:#4A4E68;
-  --ink-faint:#82869C;
-  --paper:#F3F2F6;
-  --card:#FFFFFF;
-  --line:#E2E1E9;
-  --live:#0FA36B;
-  --live-soft:#E3F4EC;
-  --live-deep:#0A7350;
-  /* The band that closes the page. Darker than --live-deep so white text
-     sits on it comfortably at body size. */
-  --deep:#12352C;
-  /* One typeface for the whole page. Loaded as a variable font over the
-     400-800 range, so headings and body copy come from a single file.
-     The fallback is the same stack styles.css uses. */
-  --body:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
-}
+/* Every value this file used to define for itself — the ink, the greens,
+   the paper, the typeface — now comes from tokens.css, which the app and
+   the auth pages read too. This file is layout and components only. */
 
 *{box-sizing:border-box}
 
@@ -45,23 +31,22 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* 1320 is the number the signed-in app already uses for main and the top
-   bar, so the site stops changing width the moment you log in. At 1060 a
-   1512-wide screen was 30% empty margin and a 1920 one was 45%, while the
-   pictures in how-it-works — drawn to be read at that size — were stuck at
-   327px. The gutter matches the app's 32px too. */
-.wrap{max-width:1320px;margin:0 auto;padding:0 32px}
+/* --w is 1320, the width the signed-in app already uses for main and the
+   top bar, so the site stops changing width the moment you log in. */
+.wrap{max-width:var(--w);margin:0 auto;padding:0 var(--gutter)}
 a{color:inherit;text-decoration:none}
 
-/* Keyboard users need to see where they are. */
-a:focus-visible,button:focus-visible{
-  outline:2px solid var(--live-deep);
+/* Keyboard users need to see where they are. One ring, defined once, for
+   every surface — this page used a 2px --live-deep one, the app a 2px --p4
+   one with an 8px radius, and the auth pages a 2.5px green one. */
+:focus-visible{
+  outline:2px solid var(--focus);
   outline-offset:3px;
-  border-radius:4px;
+  border-radius:var(--r-mark);
 }
 
 .mono{
-  font-family:var(--mono);font-size:12px;letter-spacing:0.06em;
+  font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:0.07em;
   text-transform:uppercase;color:var(--ink-faint);
 }
 
@@ -70,18 +55,21 @@ a:focus-visible,button:focus-visible{
    so the gap is there to guarantee the wordmark and the buttons never touch.
    position:relative is what the mobile panel hangs off. */
 .nav{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:26px 0}
-/* The wordmark keeps its own greens (#0b8f66 mark, #097a57 "flow") rather
-   than the page's --live — it's the brand, not an accent. */
+/* The wordmark used to carry two greens of its own — #0b8f66 and #097a57,
+   the old auth system's pair, which matched nothing else on this page. It
+   reads from the ramp now, and the mark is 26px everywhere on the site
+   rather than 26 here, 30 on the auth pages and 24 in the app. */
 .logo{display:flex;align-items:center;gap:11px;font-weight:400;font-size:20px;letter-spacing:-0.015em}
-.logo svg{display:block;flex:0 0 auto;width:32px;height:32px}
-.logo b{font-weight:700;color:#097a57}
+.logo svg{display:block;flex:0 0 auto;width:26px;height:26px;color:var(--p4)}
+.logo b{font-weight:700;color:var(--p6)}
 .nav-right{display:flex;align-items:center;gap:28px;font-size:15.5px;color:var(--ink-soft)}
 
 /* Lifts on hover, presses back down on click — the same behaviour the app
    uses, so the two surfaces feel like one product. */
 .btn{
-  display:inline-block;color:#fff;padding:11px 20px;line-height:1.2;
-  border-radius:10px;font-size:14px;font-weight:600;border:0;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  color:#fff;padding:11px 20px;line-height:1.2;
+  border-radius:var(--r-control);font-size:14px;font-weight:600;border:0;cursor:pointer;
   font-family:var(--body);text-decoration:none;white-space:nowrap;
   background:linear-gradient(180deg,#2B2F49,var(--ink));
   box-shadow:0 1px 2px rgba(23,26,46,.3), inset 0 1px 0 rgba(255,255,255,.14);
@@ -107,7 +95,7 @@ a:focus-visible,button:focus-visible{
    a comfortable thumb target. */
 .menu-btn{
   align-items:center;gap:8px;flex:0 0 auto;
-  padding:10px 14px;border-radius:10px;cursor:pointer;
+  padding:10px 14px;border-radius:var(--r-control);cursor:pointer;
   font-family:var(--body);font-size:15px;font-weight:600;line-height:1.2;
   color:var(--ink);background:var(--card);border:1px solid var(--line);
   box-shadow:0 1px 2px rgba(23,26,46,.06);
@@ -118,7 +106,7 @@ a:focus-visible,button:focus-visible{
    colour, so it does not depend on seeing green. */
 .menu-btn .menu-ico-x{display:none}
 .menu-btn[aria-expanded="true"]{
-  color:var(--live-deep);background:var(--live-soft);border-color:#BFE6D5;
+  color:var(--p6);background:var(--p0);border-color:var(--p1);
 }
 .menu-btn[aria-expanded="true"] .menu-ico{display:none}
 .menu-btn[aria-expanded="true"] .menu-ico-x{display:block}
@@ -130,20 +118,20 @@ a:focus-visible,button:focus-visible{
   position:absolute;top:100%;right:0;z-index:60;
   width:min(260px,calc(100vw - 64px));
   flex-direction:column;gap:2px;padding:8px;
-  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   box-shadow:0 12px 34px rgba(23,26,46,.13);
   animation:navpop .14s ease-out;
 }
 /* The whole row is the target, not just the words in it. */
 .nav-menu a{
-  display:block;padding:12px 13px;border-radius:9px;
-  font-size:15px;font-weight:600;color:var(--live-deep);
+  display:block;padding:12px 13px;border-radius:var(--r-control);
+  font-size:15px;font-weight:600;color:var(--p6);
 }
-.nav-menu a:hover{background:var(--live-soft)}
+.nav-menu a:hover{background:var(--p0)}
 /* The primary action, full width at the foot of the panel. */
 .nav-menu a.btn{
   margin-top:6px;text-align:center;color:#fff;
-  padding:13px;font-size:15px;border-radius:10px;
+  padding:13px;font-size:15px;border-radius:var(--r-control);
 }
 .nav-menu a.btn:hover{transform:none}
 /* Killed wholesale by the prefers-reduced-motion rule at the end of the file. */
@@ -180,8 +168,14 @@ a:focus-visible,button:focus-visible{
    greedily gives the clean two-line break at the comma. Measured at every
    width from 320 to 1920; balance produced three lines at seven of them. */
 h1{
-  font-size:clamp(34px,4.6vw,55px);line-height:1.06;
+  font-size:var(--t-h1);line-height:1.06;
   letter-spacing:-0.03em;font-weight:800;margin:0 0 20px;
+  /* --p6 rather than --p4: the accent green is 2.9:1 against this ground,
+     which fails even the relaxed large-text bar, and a headline is the one
+     thing on a page nobody should have to squint at. --p6 is 5.2:1 and
+     reads as the same brand green. This lived in a style attribute on the
+     markup until it had a rule to live in. */
+  color:var(--p6);
 }
 /* A grid column is min-content wide by default, so one long unbroken word in
    the headline would push the card off the side rather than wrap. */
@@ -189,7 +183,7 @@ h1{
 /* 42ch rather than 38: the supporting line is a full sentence about the path,
    the match and the four weeks, and at 38 it broke into four short lines that
    read like a list. */
-.lede{font-size:18px;color:var(--ink-soft);margin:0 0 30px;max-width:42ch}
+.lede{font-size:var(--t-lede);color:var(--ink-soft);margin:0 0 30px;max-width:42ch}
 
 /* One way in. There was a second, quieter button beside it pointing at
    how-it-works; it promised matching the product doesn't do, and a hero reads
@@ -208,30 +202,35 @@ h1{
    facts, the clock. Everything below is a few pixels looser than it was — the
    card lost about seventy pixels of height with the strip, and keeping the old
    tight rhythm in a shorter card left it looking clipped rather than calm. */
-.session{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 26px}
+.session{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:24px 26px}
 .session-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .live{
   display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
-  letter-spacing:0.08em;text-transform:uppercase;color:var(--live-deep);
-  background:var(--live-soft);padding:5px 10px;border-radius:999px;
+  letter-spacing:0.08em;text-transform:uppercase;color:var(--p6);
+  background:var(--p0);padding:5px 10px;border-radius:var(--r-pill);
 }
-.live b{width:6px;height:6px;border-radius:50%;background:var(--live);display:block}
+.live b{width:6px;height:6px;border-radius:50%;background:var(--p4);display:block}
 
 /* Two camera tiles side by side — theirs plain, yours in the brand green.
    16:10 rather than 4:3 keeps the card from towering over the headline. */
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tile{
-  position:relative;aspect-ratio:16/10;border-radius:12px;display:flex;
+  position:relative;aspect-ratio:16/10;border-radius:var(--r-control);display:flex;
   align-items:center;justify-content:center;background:#EDECF2;border:1px solid var(--line);
 }
-.tile.you{background:var(--live-soft);border-color:#BFE6D5}
+.tile.you{background:var(--p0);border-color:var(--p1)}
 .tav{
   width:46px;height:46px;border-radius:50%;display:flex;align-items:center;
   justify-content:center;color:#fff;font-weight:500;font-size:14px;letter-spacing:0.02em;
 }
+/* Two people, two colours, neither of them written into the markup: the
+   other person takes the one hue on the site outside the green ramp, and
+   you are the brand green. */
+.tav.them{background:var(--indigo)}
+.tav.you{background:var(--p4)}
 .tname{
   position:absolute;left:9px;bottom:8px;font-family:var(--mono);font-size:11px;
-  color:var(--ink);background:#FFFFFFD9;border-radius:6px;padding:2px 8px;
+  color:var(--ink);background:#FFFFFFD9;border-radius:var(--r-pill);padding:2px 8px;
 }
 
 /* Same label/value row as the rest of the site. */
@@ -253,8 +252,8 @@ h1{
 .pom-ring{width:38px;height:38px;flex:0 0 auto}
 .pom-ring svg{width:100%;height:100%;display:block;transform:rotate(-90deg)}
 .pom-ring circle{fill:none;stroke-width:11;stroke-linecap:round}
-.pom-track{stroke:var(--live-soft)}
-.pom-arc{stroke:var(--live);stroke-dasharray:270.18;stroke-dashoffset:0}
+.pom-track{stroke:var(--p0)}
+.pom-arc{stroke:var(--p4);stroke-dasharray:270.18;stroke-dashoffset:0}
 .pom-txt b{
   display:block;font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink);
   font-variant-numeric:tabular-nums;letter-spacing:0.02em;line-height:1.2;
@@ -306,13 +305,13 @@ h1{
    edge missing. #DEDDE6 rather than var(--line) for the same reason the
    how-it-works cards restate their border: --line is picked to read against
    the grey, and on white it goes faint. */
-.prob{display:flex;align-items:center;gap:26px;padding:26px 4px;border-top:1px solid #DEDDE6}
-.prob:last-child{border-bottom:1px solid #DEDDE6}
+.prob{display:flex;align-items:center;gap:26px;padding:26px 4px;border-top:1px solid var(--line-strong)}
+.prob:last-child{border-bottom:1px solid var(--line-strong)}
 .prob svg{width:100px;flex:0 0 100px;display:block}
 /* Capped at 640 rather than left to run the full 1320: a single line of type
    that wide is a paragraph you scan rather than a sentence you read. */
 .prob h3{
-  margin:0;font-size:19px;font-weight:600;line-height:1.45;
+  margin:0;font-size:var(--t-h3);font-weight:600;line-height:1.45;
   letter-spacing:-0.015em;color:var(--ink);max-width:640px;text-wrap:pretty;
 }
 
@@ -322,73 +321,73 @@ h1{
    the real pages shrunk until the words turn into texture. */
 .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .how-card{
-  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   overflow:hidden;display:flex;flex-direction:column;
 }
-/* One shape for all four picture areas. The two PNGs are 1280×841 and
-   1280×813, so without this the third card's body would start a few pixels
-   above its neighbours' — and the two drawn panels would have to guess a
-   height. The 813 photo is covered rather than squashed: 1.7% off each side,
-   which is nothing, and it is never distorted. */
-.how-shot{
-  aspect-ratio:1280/841;line-height:0;
-  border-bottom:1px solid var(--line);background:#FAFAFB;
-}
-.how-shot img{width:100%;height:100%;display:block;object-fit:cover;object-position:center top}
-/* Step one's picture is an inline SVG rather than a PNG or a drawn panel. Its
-   viewBox is 400×263 — the same 1280:841 shape — so it fills the box exactly
-   and the row still lines up. */
-.how-map{width:100%;height:100%;display:block}
-.how-body{padding:20px 22px 24px}
-.how-body .mono{color:var(--live-deep)}
-.how-body h3{margin:8px 0 5px;font-size:18px;font-weight:700;letter-spacing:-0.015em}
-.how-body p{margin:0;font-size:14.5px;color:var(--ink-soft)}
+/* ---------- one shell for all four pictures ----------
+   The row used to hold three visual languages: a bare SVG map with no
+   chrome, two PNGs with chrome baked into the pixels — one a green
+   PeerFlow bar, one a white bar with dark type — and a CSS panel with a
+   green bar of its own. Four cards, four framings, side by side.
 
-/* ---------- the two drawn panels ----------
-   Steps one and four have no photograph and no PNG: nothing in assets says
-   "pick a field" or "you finished something". They are built here instead,
-   in the same shell the drawn PNGs use — green PeerFlow bar, white body — at
-   the same 1280:841 shape, so the four cards read as one set.
+   The bar is drawn here now, once, for all four. Both PNGs were cropped to
+   remove the bars they carried (assets/how-1-find.png lost 194px, the call
+   photo 70px), which also fixed the odd one out on shape: the photo was
+   1280×813 against everyone else's 1280×841 and had to be covered into
+   place. Cropped, both land within 0.15% of the body slot below.
 
-   Everything inside is sized in cqi (1% of the panel's own width), which is
-   what lets one set of numbers hold from a 250px card in a four-up row to a
-   550px card in a two-up one. The proportions are lifted straight from
-   assets/how-frames.html so the drawn panels and the PNGs match: the bar is
+   Everything inside is sized in cqi — 1% of the panel's own width — which
+   is what lets one set of numbers hold from a 250px card in a four-up row
+   to a 550px one in a two-up. The proportions come from
+   assets/how-frames.html, which is what the PNGs were drawn in: the bar is
    96/1280 of the width, the wordmark 30/1280, the mark 32/1280. */
-.how-draw{
+.how-shot{
   container-type:inline-size;
-  aspect-ratio:1280/841;background:var(--card);
-  display:flex;flex-direction:column;line-height:1.2;
+  aspect-ratio:1280/841;line-height:0;
+  border-bottom:1px solid var(--line);background:var(--card);
+  display:flex;flex-direction:column;overflow:hidden;
 }
 .hd-bar{
-  height:7.5cqi;flex:0 0 auto;background:#0F6E56;
-  display:flex;align-items:center;gap:.94cqi;padding:0 2.66cqi;
+  height:7.5cqi;flex:0 0 auto;background:var(--p6);
+  display:flex;align-items:center;gap:.94cqi;padding:0 2.66cqi;line-height:1.2;
 }
 .hd-bar svg{width:2.5cqi;height:2.5cqi;flex:0 0 auto;fill:#fff}
 .hd-bar b{font-size:2.34cqi;font-weight:800;letter-spacing:-0.03em;color:#fff}
-.hd-bar b i{font-style:normal;color:#9FE1CB}
-/* The body fills the panel rather than floating in the middle of it: the two
-   PNGs beside these use every pixel under their bar, and a drawn panel that
-   left a white margin top and bottom read as the odd one out at a glance. */
+.hd-bar b i{font-style:normal;color:var(--p1)}
+/* The body fills the panel rather than floating in the middle of it. */
 .hd-body{
   flex:1;min-height:0;padding:3.2cqi;
   display:flex;flex-direction:column;gap:2.4cqi;
 }
+/* A picture that is the whole body, rather than something drawn inside it. */
+.hd-body.flush{padding:0;gap:0}
+.hd-body.flush img{width:100%;height:100%;display:block;object-fit:cover;object-position:center top}
+/* Step one is an inline SVG on a 400×263 viewBox. `slice` makes it behave
+   like object-fit:cover, so it fills the body under the bar without being
+   squashed to a shape it wasn't drawn in. */
+.how-map{width:100%;height:100%;display:block}
+.how-body{padding:20px 22px 24px}
+.how-body .mono{color:var(--p6)}
+.how-body h3{margin:8px 0 5px;font-size:var(--t-h3);font-weight:700;letter-spacing:-0.015em}
+.how-body p{margin:0;font-size:var(--t-sm);color:var(--ink-soft)}
 
-/* --- 04: the thing you made, shipped --- */
+/* --- step four: the thing you made, shipped ---
+   Drawn here because nothing in assets says "you finished something". It
+   sits in the shared shell above, so it is the same panel as its three
+   neighbours with different contents. */
 .hd-win{
   flex:1;min-height:0;display:flex;flex-direction:column;
-  border:.3cqi solid #E7E6EC;border-radius:2.4cqi;overflow:hidden;background:#fff;
+  border:.3cqi solid var(--line);border-radius:2.4cqi;overflow:hidden;background:var(--card);
 }
 .hd-chrome{
   flex:0 0 auto;display:flex;align-items:center;gap:1cqi;
-  padding:1.8cqi 2cqi;background:#F3F2F6;border-bottom:.2cqi solid #E7E6EC;
+  padding:1.8cqi 2cqi;background:var(--paper);border-bottom:.2cqi solid var(--line);
 }
 .hd-chrome i{width:1.7cqi;height:1.7cqi;border-radius:50%;background:#D4D3DC;flex:0 0 auto}
 .hd-url{
   margin-left:1.2cqi;flex:1;min-width:0;
   padding:.8cqi 1.8cqi;border-radius:1.6cqi;background:#fff;
-  border:.2cqi solid #E7E6EC;color:#82869C;
+  border:.2cqi solid var(--line);color:var(--ink-faint);
   font-family:var(--mono);font-size:2.3cqi;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
@@ -399,12 +398,12 @@ h1{
   flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;
   gap:1.9cqi;padding:0 2.4cqi;
 }
-.hd-code span{display:block;height:1.8cqi;border-radius:999px;background:#EDECF2}
-.hd-code span.g{background:#9FE1CB}
+.hd-code span{display:block;height:1.8cqi;border-radius:var(--r-pill);background:#EDECF2}
+.hd-code span.g{background:var(--p1)}
 .hd-live{
   flex:0 0 auto;align-self:center;display:inline-flex;align-items:center;gap:1.2cqi;
-  padding:1.5cqi 3cqi;border-radius:999px;
-  background:linear-gradient(180deg,#1D9E75,#0F6E56);color:#fff;
+  padding:1.5cqi 3cqi;border-radius:var(--r-pill);
+  background:linear-gradient(180deg,var(--p4),var(--p6));color:#fff;
   font-size:3cqi;font-weight:700;letter-spacing:-0.015em;
   box-shadow:0 .5cqi 1.2cqi rgba(8,80,65,.22);
 }
@@ -441,52 +440,56 @@ h1{
    used to sit under it, 32px left the h2 resting on the cards. */
 #how .sec-head{margin-bottom:42px}
 .sec-head{margin-bottom:32px}
-.sec-head h2{font-size:clamp(27px,3.2vw,33px);letter-spacing:-0.026em;font-weight:700;margin:8px 0 6px;text-wrap:balance}
+.sec-head h2{font-size:var(--t-h2);letter-spacing:-0.026em;font-weight:700;margin:8px 0 6px;text-wrap:balance}
 /* Capped independently of the container. Width is for pictures and grids;
    a line of prose still wants about 65 characters however much room it is
    given. */
-.sec-head p{margin:0;color:var(--ink-soft);font-size:16px;max-width:62ch}
+.sec-head p{margin:0;color:var(--ink-soft);font-size:var(--t-body);max-width:62ch}
 
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+/* ---------- paths ----------
+   Eight cards that used to be eight posters: a full-bleed 200×130
+   illustration filling most of the card, the name underneath it, and below
+   that a "Find my partner" button — the same words as the hero button and
+   the nav button, repeated eight more times down one section. Everything
+   about the card already pointed at one destination, so the card is the
+   link now and the eight buttons are gone.
+
+   The illustration comes down to a 56px tile, which is the other half of
+   the fix: this was the only section on the page with fully saturated
+   indigo, rust and magenta fields in it, and at poster size a restrained
+   green page turned into somebody else's product for one screenful. Small,
+   the colours still tell the eight apart without setting the tone. */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .path{
-  background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
-  display:flex;flex-direction:column;
+  display:flex;align-items:center;gap:14px;
+  background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r-card);
+  padding:13px 15px;
   transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
 }
-/* focus-within as well as hover: the button inside is the only thing on the
-   card you can reach with a keyboard, and it used to get the focus ring while
-   the card around it stayed flat — the pointer got feedback and the keyboard
-   didn't. */
-.path:hover,.path:focus-within{
-  transform:translateY(-3px);border-color:#CFCEDA;
-  box-shadow:0 10px 24px rgba(23,26,46,.09);
+.path:hover{
+  transform:translateY(-2px);border-color:#CFCEDA;box-shadow:var(--lift);
 }
-/* The illustration runs to the card edge, so it needs a line under it or it
-   bleeds into the label. */
-.path svg{width:100%;display:block;border-bottom:1px solid var(--line)}
-.path-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:11px;flex:1}
-/* 700 rather than 600: the count above it is uppercase mono and the button
-   below it is 600, and at 600 the name of the path was the least emphatic
-   thing in its own card. */
-.path h3{margin:0;font-size:17.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.25}
-.path .cta{
-  margin-top:auto;text-align:center;border:1px solid var(--ink);border-radius:9px;
-  padding:11px 10px;font-size:14px;font-weight:600;line-height:1.2;
-  transition:background .15s ease,color .15s ease,box-shadow .15s ease;
+/* The illustrations are drawn on a 200×130 stage, so they are sliced rather
+   than squashed into the square — they are centred scenes and the crop
+   takes the empty margins. */
+.path-ic{
+  width:56px;height:56px;flex:0 0 auto;
+  border-radius:var(--r-control);overflow:hidden;line-height:0;
 }
-.path:hover .cta,.path:focus-within .cta{background:var(--ink);color:#fff;
-  box-shadow:0 2px 8px rgba(23,26,46,.2), inset 0 1px 0 rgba(255,255,255,.12)}
-.path .cta:active{transform:translateY(1px)}
+.path-ic svg{width:100%;height:100%;display:block}
+.path-txt{min-width:0;display:flex;flex-direction:column;gap:2px}
+/* The name leads now, rather than sitting between a picture and a button. */
+.path h3{margin:0;font-size:var(--t-h3);font-weight:700;letter-spacing:-0.015em;line-height:1.25}
 
 /* How many people are on this path right now. Filled in by home.js from
    real sign-ups — it stays invisible (but keeps its space, so the cards
    don't jump) until we actually know the number. */
 .waiting{
-  font-family:var(--mono);font-size:11.5px;letter-spacing:0.05em;color:var(--live-deep);
+  font-family:var(--mono);font-size:11.5px;letter-spacing:0.05em;color:var(--p6);
   display:flex;align-items:center;gap:6px;min-height:17px;visibility:hidden;
 }
 .waiting.shown{visibility:visible}
-.waiting b{width:6px;height:6px;border-radius:50%;background:var(--live);display:block;flex:0 0 auto}
+.waiting b{width:6px;height:6px;border-radius:50%;background:var(--p4);display:block;flex:0 0 auto}
 .waiting.none{color:var(--ink-faint)}
 .waiting.none b{background:#C9CBD6}
 
@@ -498,8 +501,8 @@ h1{
   box-shadow:0 0 0 100vmax var(--card);
   clip-path:inset(0 -100vmax);
 }
-/* var(--line) is chosen against grey; on white the cards need a shade more. */
-#paths .path{border-color:#DEDDE6}
+/* --line is chosen against grey; on a white band the cards take
+   --line-strong, which is what .path already uses. */
 
 .other{margin-top:18px;font-size:14px;color:var(--ink-soft)}
 .other a{border-bottom:1px solid var(--ink-faint)}
@@ -517,9 +520,12 @@ h1{
 }
 .founder .sec-head{margin-bottom:20px}
 .founder h2{
-  margin:0;font-size:clamp(27px,3.2vw,33px);
+  margin:0;font-size:var(--t-h2);
   letter-spacing:-0.026em;font-weight:700;color:#fff;
 }
+/* The ring has to change colour here: --focus is a deep green and these
+   two bands are a deeper one. */
+.founder :focus-visible,footer :focus-visible{outline-color:#fff}
 .founder blockquote{
   margin:0 auto;max-width:740px;font-size:27px;line-height:1.42;
   letter-spacing:-0.018em;font-weight:500;
@@ -528,6 +534,14 @@ h1{
   display:block;margin-top:18px;font-style:normal;font-size:14px;
   color:#8FD3BB;font-family:var(--mono);
 }
+/* The page used to run the most persuasive thing on it straight into the
+   footer with nothing to press. */
+.founder-cta{margin-top:36px}
+.btn.on-deep{
+  background:#fff;color:var(--deep);
+  box-shadow:0 1px 2px rgba(0,0,0,.22), inset 0 -1px 0 rgba(18,53,44,.12);
+}
+.btn.on-deep:hover{background:#EAF5F0;box-shadow:0 6px 18px rgba(0,0,0,.26)}
 
 /* ---------- footer ----------
    Sits on the same band as the quote, so the page closes once rather than
@@ -601,14 +615,14 @@ footer a{color:#CFE7DD}
   .session{max-width:460px}
 }
 @media (max-width:520px){
-  /* Eight paths, one per row, was 2,500px of scrolling before the page could
-     get to anything else — and each card gave a 212px illustration to a
-     one-word label. Two up holds all the way down instead, with the type
-     stepped down to suit the narrower column. */
-  .grid{grid-template-columns:repeat(2,1fr);gap:12px}
-  .path-body{padding:12px 13px 14px;gap:9px}
-  .path h3{font-size:15px}
-  .path .cta{padding:10px 6px;font-size:12.5px}
+  /* One per row on a phone. Eight poster cards stacked was 2,500px of
+     scrolling before the page could reach anything else; eight rows is
+     about a screen and a half, and the name has the width to sit beside
+     its tile rather than under it. */
+  .grid{grid-template-columns:1fr;gap:10px}
+  .path{padding:11px 13px;gap:12px}
+  .path-ic{width:46px;height:46px}
+  .path h3{font-size:16px}
   .nav{padding:18px 0}
   .logo{font-size:17px;gap:9px}
   .logo svg{width:26px;height:26px}
@@ -645,10 +659,10 @@ footer a{color:#CFE7DD}
 
 .um-wrap{position:relative;display:flex;align-items:center}
 .um-btn{display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:var(--card);
-  border-radius:999px;padding:4px 11px 4px 4px;font-family:inherit;cursor:pointer;
+  border-radius:var(--r-pill);padding:4px 11px 4px 4px;font-family:inherit;cursor:pointer;
   transition:border-color .15s,box-shadow .15s}
 .um-btn:hover{border-color:#C6C5D0;box-shadow:0 1px 3px rgba(23,26,46,.07)}
-.um-btn[aria-expanded="true"]{border-color:var(--live);box-shadow:0 0 0 3px rgba(15,163,107,.15)}
+.um-btn[aria-expanded="true"]{border-color:var(--p4);box-shadow:0 0 0 3px rgba(15,163,107,.15)}
 .um-btn[aria-expanded="true"] .um-chev{transform:rotate(180deg)}
 .um-face,.um-bigface{display:flex;align-items:center;justify-content:center;border-radius:50%;
   overflow:hidden;flex:0 0 auto;font-weight:700}
@@ -660,7 +674,7 @@ footer a{color:#CFE7DD}
 .um-chev{color:var(--ink-faint);flex:0 0 auto;transition:transform .15s}
 
 .um-menu{position:absolute;top:48px;right:0;width:248px;background:var(--card);
-  border:1px solid var(--line);border-radius:14px;padding:6px;z-index:40;
+  border:1px solid var(--line);border-radius:var(--r-card);padding:6px;z-index:40;
   box-shadow:0 12px 34px rgba(23,26,46,.13)}
 .um-head{display:flex;align-items:center;gap:11px;padding:11px 12px 12px;
   border-bottom:1px solid var(--line);margin:-6px -6px 6px}
@@ -669,12 +683,12 @@ footer a{color:#CFE7DD}
   max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .um-mail{display:block;font-size:12.5px;color:var(--ink-faint);margin-top:1px;
   max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.um-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;
+.um-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:var(--r-control);
   font-size:14px;color:var(--ink-soft);background:none;border:0;font-family:inherit;
   cursor:pointer;text-align:left}
 .um-item svg{flex:none;color:var(--ink-faint)}
 .um-item:hover{background:#EDECF2;color:var(--ink)}
-.um-item:hover svg{color:var(--live-deep)}
+.um-item:hover svg{color:var(--p6)}
 .um-item.danger{color:#C0392B}
 .um-item.danger svg{color:#C0392B}
 .um-item.danger:hover{background:#FDEEEC;color:#A53125}

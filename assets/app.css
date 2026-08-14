@@ -1,23 +1,26 @@
 /* ============================================================
    PeerFlow — the signed-in app.
 
-   Used by app.html, app-sessions.html, app-people.html,
-   app-profile.html and app-settings.html. The marketing pages use
-   home.css; login, signup and conduct still use styles.css.
+   Used by app.html and its sibling app-*.html pages. The landing page
+   uses home.css and the signed-out pages use auth.css; all three read
+   their values from tokens.css.
    ============================================================ */
 
 :root{
-  --ink:#171A2E; --soft:#585C74; --faint:#9497A9;
-  --bg:#F4F4F7; --card:#FFFFFF; --line:#E7E6EC;
-  /* One green, eight steps. p0 is a wash, p8 is nearly black. */
-  --p8:#085041; --p6:#0F6E56; --p4:#1D9E75; --p2:#5DCAA5; --p1:#9FE1CB; --p0:#E1F5EE;
+  /* Aliases, not definitions — the values live in tokens.css now.
 
-  --body:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+     Two of these used to be their own colours and are not any more:
+     --soft was #585C74 and --faint #9497A9 here, against the landing
+     page's #4A4E68 and #82869C, so the same paragraph changed colour
+     depending on whether you were signed in; and --bg was #F4F4F7
+     against the landing page's #F3F2F6, a difference nobody could see
+     and both files had to carry. */
+  --soft:var(--ink-soft); --faint:var(--ink-faint);
+  --bg:var(--paper);
 
-  /* Aliases so usermenu.js and notify.js keep the styles they were
-     written against, without having to touch either component. */
-  --border:var(--line); --band:#EFEEF3; --muted:var(--faint); --text:var(--soft);
+  /* Kept because the styles for usermenu.js and notify.js were written
+     against these names, and neither component needs disturbing. */
+  --border:var(--line); --muted:var(--faint); --text:var(--soft);
   --green:var(--p4); --green-dark:var(--p6); --green-deep:var(--p8); --green-tint:var(--p0);
 }
 
@@ -26,26 +29,31 @@
    attribute, which a bare display rule would otherwise win against. */
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
-  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  font-size:var(--t-body);line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 button{font-family:var(--body);cursor:pointer}
-:focus-visible{outline:2px solid var(--p4);outline-offset:3px;border-radius:8px}
+/* The same ring as the landing page and the auth pages. */
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:var(--r-mark)}
 
-.mono{font-family:var(--mono);font-size:11px;letter-spacing:.07em;
+.mono{font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.07em;
   text-transform:uppercase;color:var(--faint)}
 
 /* ---------- top bar ---------- */
 .topbar{position:sticky;top:0;z-index:20;background:rgba(250,250,251,.92);
   backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.tb{max-width:1320px;margin:0 auto;padding:0 32px;height:62px;
+.tb{max-width:var(--w);margin:0 auto;padding:0 var(--gutter);height:62px;
   display:flex;align-items:center;gap:18px}
+/* 26px and the ramp's greens, the same wordmark as every other page —
+   it used to be a 24px mark filled #0b8f66, which was the old auth
+   system's green and matched nothing in this file. */
 .brand{display:flex;align-items:center;gap:9px;font-weight:500;font-size:16px;flex:0 0 auto}
-.brand svg{display:block}
+.brand svg{display:block;width:26px;height:26px;color:var(--p4)}
+.brand b{font-weight:700;color:var(--p6)}
 .pathchip{background:var(--p0);color:var(--p6);font-family:var(--mono);font-size:10px;
-  letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:6px;flex:0 0 auto}
+  letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:var(--r-control);flex:0 0 auto}
 .tabs{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tabs a{display:flex;align-items:center;gap:8px;padding:8px 13px;border-radius:9px;
+.tabs a{display:flex;align-items:center;gap:8px;padding:8px 13px;border-radius:var(--r-control);
   font-size:14.5px;color:var(--soft);white-space:nowrap}
 .tabs a:hover{background:var(--band);color:var(--ink)}
 .tabs a.on{background:var(--ink);color:#fff}
@@ -56,7 +64,7 @@ button{font-family:var(--body);cursor:pointer}
    around it — the flame is already a shape, and boxing it made a small icon
    look like a button you were meant to press. */
 .firechip{display:flex;align-items:center;gap:7px;flex:0 0 auto;
-  padding:4px 6px;border-radius:10px;line-height:1;
+  padding:4px 6px;border-radius:var(--r-control);line-height:1;
   transition:background .15s}
 .firechip:hover{background:var(--band)}
 .firechip b{font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--ink);
@@ -73,8 +81,8 @@ button{font-family:var(--body);cursor:pointer}
 .firechip.risk .flame{filter:grayscale(1) opacity(.5)}
 .firechip.risk b{color:#93641A}
 
-main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
-.mfoot{max-width:1320px;margin:0 auto;padding:0 32px 44px;
+main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:0}
+.mfoot{max-width:var(--w);margin:0 auto;padding:0 var(--gutter) 44px;
   display:flex;gap:18px;font-size:12.5px;color:var(--faint);flex-wrap:wrap}
 
 /* ---------- the band: what to do now ----------
@@ -82,7 +90,7 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
    only moves colour — the layout never shifts underneath you when a proposal
    lands or a session starts, because a dashboard that reflows while you're
    reading it is a dashboard you stop trusting. */
-.now{border-radius:20px;padding:26px 30px;display:grid;
+.now{border-radius:var(--r-card);padding:26px 30px;display:grid;
   grid-template-columns:minmax(0,1fr) auto;gap:26px;align-items:center;
   background:var(--card);border:1px solid var(--line)}
 .now h1{font-size:27px;margin:0 0 8px}
@@ -135,7 +143,7 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .dash-main{display:grid;gap:16px;min-width:0}
 .dash-rail{display:grid;gap:16px;min-width:0;position:sticky;top:78px}
 
-.rail{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 18px}
+.rail{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:17px 18px}
 .rail h3{margin:0 0 13px;font-size:14px;font-weight:700;letter-spacing:-.01em}
 .rail .mono{display:block;margin-bottom:7px}
 .rail-l{display:inline-block;margin-top:13px;font-size:13px;font-weight:600;color:var(--p6)}
@@ -199,7 +207,7 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .st-hl{margin:0 0 9px;font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;
   text-transform:uppercase;color:var(--faint)}
 .st-bars{display:flex;gap:4px;justify-content:center}
-.st-bars i{width:8px;height:22px;border-radius:3px;background:#E6E8F0;
+.st-bars i{width:8px;height:22px;border-radius:var(--r-mark);background:#E6E8F0;
   transition:background .3s}
 .st-bars i.half{background:var(--p1)}
 .st-bars i.on{background:var(--p4)}
@@ -230,7 +238,7 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
   text-transform:uppercase;color:var(--faint);margin:9px 0 4px}
 .st-l:first-child{margin-top:0}
 .st-form select{width:100%;font-family:var(--body);font-size:14px;color:var(--ink);
-  padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+  padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-control);background:var(--card)}
 .st-form select:focus{outline:2px solid var(--p4);outline-offset:1px}
 .st-warn{margin:11px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
 .st-warn.ok{color:var(--p6)}
@@ -241,7 +249,7 @@ main{max-width:1320px;margin:0 auto;padding:24px 32px 46px;min-width:0}
 .wk-src{display:block;margin-top:6px;font-size:12.5px;color:var(--p6);font-weight:600}
 
 /* ---------- invite ---------- */
-.invstrip{margin-top:16px;border:1px dashed var(--line);background:#FAFAFB;border-radius:16px;
+.invstrip{margin-top:16px;border:1px dashed var(--line);background:#FAFAFB;border-radius:var(--r-card);
   padding:15px 18px;display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
 .invstrip p{margin:0;font-size:14px;color:var(--soft);max-width:66ch}
 .invstrip b{color:var(--ink);font-weight:600}
@@ -278,7 +286,7 @@ h1 .g{color:var(--p4)}
    gives the face a light top edge so it reads as raised rather than flat. */
 .btn{
   display:inline-block;padding:11px 20px;font-size:14.5px;border:0;color:#fff;
-  border-radius:10px;background:linear-gradient(180deg,var(--p4),var(--p6));
+  border-radius:var(--r-control);background:linear-gradient(180deg,var(--p4),var(--p6));
   box-shadow:0 1px 2px rgba(8,80,65,.22), inset 0 1px 0 rgba(255,255,255,.18);
 }
 .btn:hover{
@@ -299,7 +307,7 @@ h1 .g{color:var(--p4)}
 /* Outlined. White rather than transparent — a secondary button still has to
    look like a surface you can press, especially sitting on a grey page. */
 .ghost{
-  display:inline-block;padding:11px 18px;font-size:14.5px;border-radius:10px;
+  display:inline-block;padding:11px 18px;font-size:14.5px;border-radius:var(--r-control);
   background:var(--card);border:1px solid var(--line);color:var(--ink);
   box-shadow:0 1px 2px rgba(23,26,46,.05);
 }
@@ -313,7 +321,7 @@ h1 .g{color:var(--p4)}
    rectangles for the main actions, capsules for the row-level ones. */
 .small{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  padding:8px 14px;font-size:13px;border-radius:9px;flex:0 0 auto;
+  padding:8px 14px;font-size:13px;border-radius:var(--r-control);flex:0 0 auto;
   background:var(--card);border:1px solid var(--line);color:var(--soft);
   box-shadow:0 1px 2px rgba(23,26,46,.05);
 }
@@ -338,10 +346,10 @@ h1 .g{color:var(--p4)}
 /* ---------- card grid ---------- */
 .grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);
   gap:16px;margin-top:16px;align-items:start}
-.b{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+.b{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:20px 22px}
 .wide{grid-column:1/-1}
 .bh{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.gl{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;
+.gl{width:34px;height:34px;border-radius:var(--r-control);display:flex;align-items:center;
   justify-content:center;flex:0 0 auto}
 .bh h2{font-size:15.5px;font-weight:600;margin:0;letter-spacing:-.01em}
 .bh .mono{display:block;margin-bottom:1px}
@@ -363,7 +371,7 @@ h1 .g{color:var(--p4)}
   letter-spacing:.04em;text-transform:uppercase}
 .room .s{font-size:14px;color:var(--soft);margin:3px 0 0}
 .same-tag{background:var(--p0);color:var(--p8);font-family:var(--mono);font-size:9.5px;
-  letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:5px;margin-left:6px}
+  letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:var(--r-mark);margin-left:6px}
 
 /* ---------- next session ---------- */
 .nextup{display:flex;align-items:center;gap:12px;border-top:1px dashed var(--line);
@@ -394,7 +402,7 @@ h1 .g{color:var(--p4)}
 .dlabels span{font-family:var(--mono);font-size:8.5px;color:var(--faint);line-height:11px}
 .cells{flex:1;display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;
   grid-template-columns:repeat(52,minmax(0,1fr));gap:3px}
-.cells i{border-radius:2px;background:#EAE9EF;display:block}
+.cells i{border-radius:var(--r-mark);background:#EAE9EF;display:block}
 /* A day either had a session or it didn't. The four-step ramp was borrowed
    from contribution graphs, where the number per day is the point — here
    one session is the unit, so shading by minutes said nothing and needed a
@@ -416,7 +424,7 @@ h1 .g{color:var(--p4)}
 .inv p{margin:0;font-size:14.5px;color:var(--soft);max-width:60ch}
 .inv b{color:var(--ink);font-weight:600}
 
-.signedout{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:14px;
+.signedout{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:var(--r-card);
   padding:16px 18px;font-size:14.5px;color:#7A4A12;margin-bottom:16px}
 .signedout a{border-bottom:1px solid #D9B98B;font-weight:600}
 .note{font-size:13.5px;margin:12px 0 0}
@@ -427,16 +435,16 @@ h1 .g{color:var(--p4)}
 .field{margin-bottom:16px;max-width:460px}
 .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)}
 .field .hint{display:block;font-size:12.5px;color:var(--faint);font-weight:400;margin-top:2px}
-.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-control);
   padding:11px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--p4);outline:none}
 /* Date, time and length belong on one line — they're one answer. */
 
 .yourline{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap}
-.yourline input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;
+.yourline input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:var(--r-control);
   padding:11px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
 .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px}
-.choice{display:flex;padding:13px 15px;border:1px solid var(--line);border-radius:11px;
+.choice{display:flex;padding:13px 15px;border:1px solid var(--line);border-radius:var(--r-control);
   background:#fff;text-align:left;font-family:inherit;font-size:14.5px;color:var(--soft)}
 .choice b{display:block;color:var(--ink);font-weight:600;font-size:14.5px}
 .choice span span{display:block;font-size:12.5px;color:var(--faint)}
@@ -452,8 +460,8 @@ h1 .g{color:var(--p4)}
 .avail-grid .hd b{display:block;font-family:var(--mono);font-size:10px;
   font-weight:400;color:var(--faint);letter-spacing:.02em}
 .avail-grid .day{align-self:center;font-size:12.5px;font-weight:600;color:var(--ink)}
-.avail-grid button{position:relative;height:38px;border:1.5px solid var(--line);
-  background:var(--band);border-radius:9px;padding:0;
+.avail-grid button{position:relative;height:38px;border:1px solid var(--line);
+  background:var(--band);border-radius:var(--r-control);padding:0;
   transition:background .12s,border-color .12s}
 .avail-grid button:hover{border-color:var(--p4);background:var(--p0)}
 .avail-grid button.sel{background:var(--p4);border-color:var(--p4)}
@@ -475,7 +483,7 @@ h1 .g{color:var(--p4)}
    so it wants to look like a figure rather than a form field. Each tile shows
    the ring it will produce — the choice is drawn, not just numbered. */
 .goal-pick{display:flex;gap:10px;flex-wrap:wrap}
-.goal{width:84px;padding:13px 0 11px;border:1.5px solid var(--line);border-radius:14px;
+.goal{width:84px;padding:13px 0 11px;border:1.5px solid var(--line);border-radius:var(--r-card);
   background:var(--card);font-family:inherit;text-align:center;
   transition:border-color .15s,background .15s,box-shadow .15s}
 .goal:hover{border-color:var(--p2);background:var(--p0)}
@@ -523,7 +531,7 @@ h1 .g{color:var(--p4)}
      over a metre of empty track, which reads as "almost nothing" whatever the
      fraction actually is. At this width 5 of 12 looks like 5 of 12. */
   max-width:720px;
-  padding:22px 26px;margin:0 0 30px;border-radius:18px;
+  padding:22px 26px;margin:0 0 30px;border-radius:var(--r-card);
   background:radial-gradient(90% 130% at 8% 0%, #F2FBF7 0%, rgba(242,251,247,0) 62%),
              var(--card);
   border:1px solid var(--line)}
@@ -536,9 +544,9 @@ h1 .g{color:var(--p4)}
 .bstat-r{flex:1 1 260px;min-width:0}
 .bstat-k{margin:0;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
   text-transform:uppercase;color:var(--faint)}
-.bstat-bar{height:7px;margin:10px 0 0;border-radius:999px;background:#E4E6EE;
+.bstat-bar{height:7px;margin:10px 0 0;border-radius:var(--r-pill);background:#E4E6EE;
   overflow:hidden}
-.bstat-bar i{display:block;height:100%;border-radius:999px;
+.bstat-bar i{display:block;height:100%;border-radius:var(--r-pill);
   background:linear-gradient(90deg,var(--p4),var(--p6));
   transition:width .6s cubic-bezier(.2,.9,.3,1)}
 .bstat-next{margin:11px 0 0;font-size:13.5px;color:var(--soft)}
@@ -587,7 +595,7 @@ h1 .g{color:var(--p4)}
    than a house green — twelve drawings in nine colours under twelve identical
    green chips would read as one badge repeated. */
 .bdg-chip{display:inline-flex;align-items:center;gap:4px;margin-top:9px;
-  padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;
+  padding:3px 9px;border-radius:var(--r-pill);font-size:11.5px;font-weight:600;
   line-height:1.45;letter-spacing:-.005em}
 .bdg-chip.on{color:var(--p8);background:var(--p0)}
 .bdg-chip svg{flex:0 0 auto}
@@ -669,17 +677,17 @@ html{scroll-behavior:smooth}
 .um-wrap{position:relative;display:flex;align-items:center}
 .um-btn{border:2px solid transparent;cursor:pointer;font-family:inherit;padding:0;
   transition:border-color .15s,box-shadow .15s}
-.um-btn:hover{border-color:#b5dfcd;box-shadow:0 0 0 3px #0b8f6614}
-.um-btn[aria-expanded="true"]{border-color:var(--green);box-shadow:0 0 0 3px #0b8f661f}
+.um-btn:hover{border-color:#C6C5D0;box-shadow:0 1px 3px rgba(23,26,46,.07)}
+.um-btn[aria-expanded="true"]{border-color:var(--p4);box-shadow:0 0 0 3px rgba(29,158,117,.15)}
 
 .um-menu{position:absolute;top:46px;right:0;width:248px;background:#fff;border:1px solid var(--border);
-  border-radius:12px;box-shadow:0 18px 50px #21323b26;z-index:80;overflow:hidden;padding:6px}
+  border-radius:var(--r-control);box-shadow:0 12px 34px rgba(23,26,46,.13);z-index:80;overflow:hidden;padding:6px}
 .um-head{padding:11px 12px 12px;border-bottom:1px solid var(--border);margin:-6px -6px 6px}
 .um-name{display:block;font-size:14.5px;font-weight:700;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .um-mail{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.um-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;
+.um-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:var(--r-control);
   font-size:14.5px;color:var(--text);background:none;border:0;cursor:pointer;font-family:inherit;
   text-align:left;transition:background .12s,color .12s}
 .um-item svg{flex:none;color:var(--muted)}
@@ -697,12 +705,12 @@ html{scroll-behavior:smooth}
   transition:background .15s,border-color .15s,color .15s}
 .bell:hover{background:var(--band);border-color:var(--border);color:var(--ink)}
 .bell.has-unread{color:var(--green-dark)}
-.bell .badge{position:absolute;top:-3px;right:-4px;min-width:15px;height:15px;padding:0 3px;border-radius:999px;
+.bell .badge{position:absolute;top:-3px;right:-4px;min-width:15px;height:15px;padding:0 3px;border-radius:var(--r-pill);
   background:#c0392b;color:#fff;font-size:10.5px;font-weight:700;line-height:15px;text-align:center;
   border:2px solid #fff;box-sizing:content-box}
 
 .bell-panel{position:absolute;top:46px;right:0;width:340px;max-width:calc(100vw - 32px);background:#fff;
-  border:1px solid var(--border);border-radius:12px;box-shadow:0 18px 50px #21323b26;z-index:80;overflow:hidden}
+  border:1px solid var(--border);border-radius:var(--r-control);box-shadow:0 12px 34px rgba(23,26,46,.13);z-index:80;overflow:hidden}
 .bell-head{padding:13px 16px;font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
   color:var(--muted);border-bottom:1px solid var(--border)}
 .bell-list{max-height:min(420px,60vh);overflow-y:auto}
@@ -738,7 +746,7 @@ html{scroll-behavior:smooth}
 .app-head .lede{flex:1 0 100%;margin:3px 0 0}
 .app-head .date{font-family:var(--mono);font-size:11px;color:var(--faint);
   text-transform:uppercase;letter-spacing:.06em}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   padding:20px 22px;margin-bottom:16px}
 .card h2{font-size:18px;font-weight:700;letter-spacing:-.015em;margin:0 0 8px}
 .card h3{font-size:15.5px;font-weight:600;letter-spacing:-.01em;margin:0 0 8px}
@@ -746,7 +754,7 @@ html{scroll-behavior:smooth}
 .card .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .list-h{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.07em;
   color:var(--faint);font-weight:400;margin:26px 0 10px}
-.board{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px 22px}
+.board{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:4px 22px}
 .board:empty{display:none}
 /* No .btn.primary / .btn.ghost rules here on purpose. These sat further
    down the file than the button block and quietly flattened it back to a
@@ -754,14 +762,14 @@ html{scroll-behavior:smooth}
    rule at all — .btn is already the solid one — and class="btn ghost"
    resolves correctly on its own, because .ghost is declared after .btn and
    restates background, colour and shadow. */
-.signedout-note{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:14px;
+.signedout-note{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:var(--r-card);
   padding:16px 18px;font-size:14.5px;color:#7A4A12;margin:0 0 16px}
 .signedout-note a{border-bottom:1px solid #D9B98B;font-weight:600}
 .form-note{font-size:13.5px;margin:10px 0 0}
 .form-note.ok{color:var(--p8)}
 .form-note.bad{color:#B4471F}
 .seats{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:14px 16px}
 .stat b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em}
 .stat span{display:block;font-family:var(--mono);font-size:10px;color:var(--faint);
   text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
@@ -806,7 +814,7 @@ html{scroll-behavior:smooth}
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:72px}
 .pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);
-  padding:6px 10px;border:0;border-radius:8px;background:var(--band);
+  padding:6px 10px;border:0;border-radius:var(--r-control);background:var(--band);
   font-family:inherit;font-size:12px;font-weight:700;color:var(--p6);
   cursor:pointer;transition:background .15s}
 .pw-toggle:hover{background:var(--p0)}
@@ -856,7 +864,7 @@ html{scroll-behavior:smooth}
    ============================================================ */
 
 .um-btn{display:flex;align-items:center;gap:9px;width:auto;height:auto;
-  border:1px solid var(--line);background:#fff;border-radius:999px;
+  border:1px solid var(--line);background:#fff;border-radius:var(--r-pill);
   padding:4px 11px 4px 4px;font-family:inherit;box-shadow:none;
   transition:border-color .15s,box-shadow .15s}
 .um-btn:hover{border-color:#C6C5D0;box-shadow:0 1px 3px rgba(23,26,46,.07)}
@@ -900,7 +908,7 @@ html{scroll-behavior:smooth}
    size so the column stays straight however a row changes, and centred
    against the block rather than pinned to its first line. */
 .askbtn,.pstate{
-  align-self:center;flex:0 0 auto;height:36px;border-radius:10px;
+  align-self:center;flex:0 0 auto;height:36px;border-radius:var(--r-control);
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
   padding:0 16px;font-family:var(--body);font-size:13px;font-weight:600;
   letter-spacing:-.005em;white-space:nowrap;
@@ -972,7 +980,7 @@ html{scroll-behavior:smooth}
 
 /* The menu. The app's own, not the operating system's grey list. */
 #bk-sent .pop{position:absolute;top:calc(100% + 9px);left:-8px;z-index:40;min-width:236px;
-  background:var(--card);border:1px solid var(--line);border-radius:13px;padding:5px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-control);padding:5px;
   box-shadow:0 14px 34px rgba(23,26,46,.14),0 2px 6px rgba(23,26,46,.06);
   max-height:min(56vh,420px);overflow-y:auto;
   animation:popin .14s cubic-bezier(.2,.9,.3,1)}
@@ -984,7 +992,7 @@ html{scroll-behavior:smooth}
   color:var(--faint);padding:8px 11px 5px}
 #bk-sent .pop-sep{height:1px;background:var(--line);margin:5px}
 #bk-sent .opt{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;
-  padding:8px 11px;border-radius:8px;font-family:var(--body);font-size:14px;font-weight:600;
+  padding:8px 11px;border-radius:var(--r-control);font-family:var(--body);font-size:14px;font-weight:600;
   color:var(--ink);text-align:left;cursor:pointer;line-height:1.25}
 #bk-sent .opt:hover{background:var(--band)}
 #bk-sent .opt.on{background:var(--p0);color:var(--p8)}
@@ -997,7 +1005,7 @@ html{scroll-behavior:smooth}
   background:var(--p1);color:var(--p8);font-size:10.5px;font-weight:800}
 
 #bk-sent .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:1px 5px 5px}
-#bk-sent .tgrid button{border:0;background:var(--band);border-radius:7px;padding:8px 3px;white-space:nowrap;
+#bk-sent .tgrid button{border:0;background:var(--band);border-radius:var(--r-control);padding:8px 3px;white-space:nowrap;
   font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
 #bk-sent .tgrid button:hover{background:#E9E9EF}
 #bk-sent .tgrid button.on{background:var(--p8);color:#fff}
@@ -1013,7 +1021,7 @@ html{scroll-behavior:smooth}
 
 /* A day nobody listed. Reachable, but past the days that were. */
 #bk-sent .pop-any{display:flex;gap:6px;padding:4px 6px 5px}
-#bk-sent .pop-any input{flex:1 1 auto;min-width:0;border:1px solid var(--line);border-radius:8px;
+#bk-sent .pop-any input{flex:1 1 auto;min-width:0;border:1px solid var(--line);border-radius:var(--r-control);
   padding:7px 9px;font-family:var(--body);font-size:12.5px;color:var(--ink);background:var(--card)}
 #bk-sent .pop-any input:focus{border-color:var(--p4);outline:none}
 
@@ -1034,7 +1042,7 @@ html{scroll-behavior:smooth}
    are, what the two of you have done, what you can do next. The green spine
    this replaced was decoration that cost 96px of the row and told you nothing;
    the width now goes to the facts and the actions instead. */
-.pcard{background:var(--card);border:1px solid var(--line);border-radius:18px;
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   margin-bottom:14px;padding:20px 22px;
   display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .pcard:hover{border-color:#DAD9E2;box-shadow:0 3px 12px rgba(23,26,46,.05)}
@@ -1053,7 +1061,7 @@ html{scroll-behavior:smooth}
    what it is — "Tashkent, UTC+5" is already the label. */
 .pcard-chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
 .pchip{display:inline-flex;align-items:center;gap:6px;
-  padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;
+  padding:6px 12px;border-radius:var(--r-pill);font-size:13px;font-weight:600;
   background:var(--band);color:var(--soft)}
 .pchip svg{flex:0 0 auto;opacity:.75}
 /* The one chip that is a fact about the two of you, rather than about them. */
@@ -1067,15 +1075,15 @@ html{scroll-behavior:smooth}
    action you press weekly compete with the one you press twice a year. */
 .pmenu{position:relative;flex:0 0 auto}
 .pdots{display:flex;align-items:center;justify-content:center;
-  width:38px;height:38px;border-radius:10px;border:1px solid transparent;
+  width:38px;height:38px;border-radius:var(--r-control);border:1px solid transparent;
   background:transparent;color:var(--faint)}
 .pdots:hover{color:var(--ink);background:var(--band)}
 .pdots[aria-expanded="true"]{color:var(--ink);background:var(--band)}
 .pmenu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:20;
   min-width:190px;padding:6px;background:var(--card);
-  border:1px solid var(--line);border-radius:12px;
+  border:1px solid var(--line);border-radius:var(--r-control);
   box-shadow:0 10px 28px rgba(23,26,46,.14)}
-.pmenu-pop a{display:block;padding:9px 12px;border-radius:8px;
+.pmenu-pop a{display:block;padding:9px 12px;border-radius:var(--r-control);
   font-size:14px;color:var(--ink)}
 .pmenu-pop a:hover{background:var(--band)}
 
@@ -1112,7 +1120,7 @@ html{scroll-behavior:smooth}
 
 /* The one card on the page that is an invitation rather than a record, so it
    is the one card that is not white. */
-.find-card{border-radius:18px;padding:26px 28px;color:#fff;
+.find-card{border-radius:var(--r-card);padding:26px 28px;color:#fff;
   background:linear-gradient(160deg,var(--p6),var(--p8));
   display:flex;flex-direction:column;align-items:flex-start}
 .find-card h3{margin:0;color:#fff;font-size:19px}
@@ -1146,18 +1154,18 @@ html{scroll-behavior:smooth}
 /* A turned-down time isn't an error, it's an answer — warm rather than red,
    and it keeps a button because the useful next move is another time. */
 .prop.turned .prop-h b:first-child{color:var(--ink)}
-.prop.turned{background:#FFFBF4;border:1px solid #F0DCC2;border-radius:12px;
+.prop.turned{background:#FFFBF4;border:1px solid #F0DCC2;border-radius:var(--r-control);
   padding:14px 16px;margin:12px 0}
 .prop.turned:first-child{padding-top:14px}
 
 /* Choosing a time your partner never said they were free in is allowed, so
    this is a warning colour, not an error one. */
 .bk-warn{margin:14px 0 0;font-size:13.5px;color:#8A5A12;
-  background:#FFF6E8;border:1px solid #F0DCC2;border-radius:10px;padding:9px 12px}
+  background:#FFF6E8;border:1px solid #F0DCC2;border-radius:var(--r-control);padding:9px 12px}
 
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 /* Same rounded rectangle as every other button in the app, not a capsule. */
-.chip{border:1px solid var(--line);background:var(--card);border-radius:9px;
+.chip{border:1px solid var(--line);background:var(--card);border-radius:var(--r-control);
   padding:8px 14px;font-family:var(--body);font-size:13px;font-weight:600;
   color:var(--soft);cursor:pointer;
   transition:border-color .15s,background .15s,color .15s}
@@ -1168,12 +1176,12 @@ html{scroll-behavior:smooth}
 /* One person gets argued for, with the reasons spelled out, and everyone
    else is a table underneath. A flat list of names asks you to do the
    comparing; this page does the comparing and shows its working. */
-.top-pick{background:var(--card);border:1px solid var(--p2);border-radius:18px;
+.top-pick{background:var(--card);border:1px solid var(--p2);border-radius:var(--r-card);
   padding:24px 26px;margin:0 0 16px;box-shadow:0 2px 10px rgba(8,80,65,.07)}
 .tp-tag{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;
   color:var(--p6);margin:0 0 12px}
 .tp-top{display:flex;gap:16px;align-items:center}
-.tp-av{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;
+.tp-av{width:58px;height:58px;border-radius:var(--r-card);display:flex;align-items:center;
   justify-content:center;font-weight:700;font-size:20px;flex:0 0 auto}
 .tp-nm{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em}
 .tp-sub{margin:2px 0 0;font-size:15px;color:var(--soft)}
@@ -1190,7 +1198,7 @@ html{scroll-behavior:smooth}
 .tp-acts .askbox{margin-top:0;padding-top:0;border-top:0}
 
 /* ---------- people: the table ---------- */
-.ptable{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.ptable{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden}
 .pt-hd,.pt-row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 188px 152px;
   gap:16px;align-items:center;padding:13px 20px}
 /* No hours on your own profile means no shared-time column to fill. */
@@ -1207,13 +1215,13 @@ html{scroll-behavior:smooth}
    same padding back means the hover tint has room to breathe without moving
    the row. */
 .pt-who{display:flex;align-items:center;gap:11px;min-width:0;color:inherit;
-  border-radius:10px;margin:-6px -8px;padding:6px 8px}
+  border-radius:var(--r-control);margin:-6px -8px;padding:6px 8px}
 a.pt-who:hover{background:var(--band)}
 a.pt-who:hover .pt-nm-t{text-decoration:underline;text-underline-offset:2px}
 a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .pt-nm-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   color:var(--ink)}
-.pt-av{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;
+.pt-av{width:34px;height:34px;border-radius:var(--r-control);display:flex;align-items:center;
   justify-content:center;font-weight:700;font-size:13px;flex:0 0 auto}
 /* The tag is a separate flex item so a long name eats its own ellipsis
    instead of chopping "same topic" down to "s…". */
@@ -1254,7 +1262,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 
 .askbox{flex:1 0 100%;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
   margin-top:10px;padding-top:12px;border-top:1px dashed var(--line)}
-.askbox input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;
+.askbox input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:var(--r-control);
   padding:9px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
 .askbox input:focus{border-color:var(--p4);outline:none}
 .askbox .btn{padding:9px 16px;font-size:13.5px}
@@ -1286,7 +1294,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .cal-nav{display:flex;align-items:center;gap:2px;margin-left:auto}
 /* Plain chevrons, no ring around them — the reference keeps the week controls
    quiet so the grid is the only thing with edges. */
-.cal-step{width:34px;height:34px;border-radius:9px;border:0;background:transparent;
+.cal-step{width:34px;height:34px;border-radius:var(--r-control);border:0;background:transparent;
   color:var(--soft);display:flex;align-items:center;justify-content:center;
   font-size:20px;line-height:1;padding:0}
 .cal-step:hover{background:var(--band);color:var(--ink)}
@@ -1303,7 +1311,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    body moves, or you lose track of which column you are in. */
 .cal-scroll{overflow:auto;-webkit-overflow-scrolling:touch;min-width:0;
   max-height:calc(62px * 7 + 64px);
-  border:1px solid var(--line);border-radius:14px;background:var(--card)}
+  border:1px solid var(--line);border-radius:var(--r-card);background:var(--card)}
 .cal-corner,.cal-day{position:sticky;top:0;z-index:2}
 /* The scrollbar is the only thing that says the week continues past the edge
    of the card. A gradient overlay cannot do it here — the cells paint their
@@ -1312,7 +1320,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .cal-scroll{scrollbar-width:thin;scrollbar-color:#CFCEDA transparent}
 .cal-scroll::-webkit-scrollbar{width:8px;height:8px}
 .cal-scroll::-webkit-scrollbar-track{background:transparent}
-.cal-scroll::-webkit-scrollbar-thumb{background:#CFCEDA;border-radius:99px}
+.cal-scroll::-webkit-scrollbar-thumb{background:#CFCEDA;border-radius:var(--r-pill)}
 .cal-scroll::-webkit-scrollbar-corner{background:transparent}
 /* The corner also holds the left edge when scrolled sideways. */
 .cal-corner{left:0;z-index:3}
@@ -1388,7 +1396,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    block look like a table row; leaving the hour line visible underneath keeps
    it an object sitting on the grid, which is what the reference does. */
 .cal-ev{position:absolute;left:4px;right:4px;top:4px;height:50px;
-  border-radius:7px;border-left:3px solid;
+  border-radius:var(--r-control);border-left:3px solid;
   padding:7px 11px;overflow:hidden;line-height:1.3;text-align:left}
 /* A week column is about 170px here against roughly 225px in the reference,
    so the title is a size down and the padding a little tighter — that is
@@ -1418,7 +1426,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   margin-right:7px;vertical-align:-2px}
 .cal-key .k1 i{background:#EAF7F0;box-shadow:inset 4px 0 0 var(--p6)}
 .cal-key .k2 i{background:#EEEDFB;box-shadow:inset 4px 0 0 #6A61C9}
-.cal-key .k3 i{background:#F5FBF8;border:1px solid #DBEDE5;border-radius:4px}
+.cal-key .k3 i{background:#F5FBF8;border:1px solid #DBEDE5;border-radius:var(--r-mark)}
 .cal-empty{margin:12px 0 0;font-size:13px;color:var(--soft)}
 
 /* At 320 the week nav wanted 252px in a 212px card and pushed the page five
@@ -1440,7 +1448,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   .cal-h{font-size:11.5px;padding:7px 7px 0}
   .cal-cell{min-height:56px}
   .cal-scroll{max-height:calc(56px * 6 + 56px)}
-  .cal-ev{left:3px;right:3px;top:3px;height:46px;padding:6px 9px;border-radius:6px}
+  .cal-ev{left:3px;right:3px;top:3px;height:46px;padding:6px 9px;border-radius:var(--r-control)}
   .cal-ev b{font-size:13px}
   .cal-ev i{font-size:12.5px;margin-top:2px}
   /* A gradient overlay was the obvious way to hint at the rest of the week,
@@ -1463,7 +1471,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .plan-row.done .plan-t{color:var(--faint);text-decoration:line-through}
 /* The week you are on is lifted out of the list, not just bolded — it is the
    one row you should find without reading the others. */
-.plan-row.now{background:var(--p0);margin:0 -12px;padding:12px;border-radius:10px;
+.plan-row.now{background:var(--p0);margin:0 -12px;padding:12px;border-radius:var(--r-control);
   border-bottom:0}
 .plan-row.now .plan-n{color:var(--p6)}
 .plan-row.now .plan-t{font-weight:700}
@@ -1488,7 +1496,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    list. Nothing here is used by any other page.
    ============================================================ */
 .pt-sec{margin-top:22px;padding:22px 24px;background:var(--card);
-  border:1px solid var(--line);border-radius:16px}
+  border:1px solid var(--line);border-radius:var(--r-card)}
 .pt-sec h3{font-size:15px;margin:0 0 4px}
 .pt-sec .lede{color:var(--soft);font-size:13.5px;margin:0 0 16px}
 /* ---------- the record, at the top of Progress ----------
@@ -1530,9 +1538,9 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   text-transform:uppercase;color:var(--faint)}
 .run-h b{font-weight:400;color:var(--p6)}
 .run{display:flex;gap:5px;margin:10px 0 0;align-items:flex-end}
-.run i{position:relative;flex:1;height:38px;border-radius:6px;background:#E2E4EE;
+.run i{position:relative;flex:1;height:38px;border-radius:var(--r-control);background:#E2E4EE;
   overflow:hidden}
-.run i span{position:absolute;left:0;right:0;bottom:0;border-radius:6px;
+.run i span{position:absolute;left:0;right:0;bottom:0;border-radius:var(--r-control);
   background:var(--p2);transition:height .5s cubic-bezier(.2,.9,.3,1)}
 .run i.on span{background:var(--p4)}
 .run i.here{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--p2)}
@@ -1565,7 +1573,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 
 .pg-week{position:relative;display:flex;align-items:center;gap:14px;width:100%;
   text-align:left;padding:9px 12px 9px 0;border:0;background:transparent;
-  border-radius:10px;font:inherit;color:var(--ink)}
+  border-radius:var(--r-control);font:inherit;color:var(--ink)}
 .pg-week:hover{background:var(--band)}
 
 /* The rail runs the full height of each row and is trimmed at the two ends,
@@ -1625,7 +1633,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .pg-week.edit.now{background:transparent}
 .pg-week.edit.now .pg-in{border-color:var(--p4)}
 .pg-in{flex:1;min-width:0;font-family:inherit;font-size:14.5px;color:var(--ink);
-  padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+  padding:7px 10px;border:1px solid var(--line);border-radius:var(--r-control);background:var(--card)}
 .pg-in:focus{outline:none;border-color:var(--p4);box-shadow:0 0 0 3px rgba(29,158,117,.13)}
 
 /* Narrow screens: the 62px week label plus the rail left about 170px for the
@@ -1662,11 +1670,11 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    ============================================================ */
 .backlink{display:inline-block;margin-bottom:16px;font-size:13.5px;color:var(--soft)}
 .backlink:hover{color:var(--ink);text-decoration:underline}
-.pv-miss{background:var(--card);border:1px solid var(--line);border-radius:16px;
+.pv-miss{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   padding:22px 24px;font-size:15px;color:var(--soft)}
 .pv-miss a{color:var(--p6);font-weight:600;text-decoration:underline}
 
-.pv{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 28px}
+.pv{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:26px 28px}
 .pv-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .pv-av{width:58px;height:58px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
   background:var(--p0);color:var(--p6);font-size:22px;font-weight:800}
@@ -1692,11 +1700,11 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .pw-hd{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
   color:var(--faint);text-align:center;padding-bottom:2px}
 .pw-lb{font-size:12px;color:var(--soft);display:flex;align-items:center}
-.pw-c{height:34px;border-radius:7px;background:var(--bg);border:1px solid var(--line)}
+.pw-c{height:34px;border-radius:var(--r-control);background:var(--bg);border:1px solid var(--line)}
 .pw-c.them{background:var(--p1);border-color:var(--p1)}
 .pw-c.both{background:var(--p4);border-color:var(--p4)}
 .pv-key{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0 0;font-size:12.5px;color:var(--soft)}
-.pv-key i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;
+.pv-key i{display:inline-block;width:11px;height:11px;border-radius:var(--r-mark);margin-right:6px;
   vertical-align:-1px}
 .pv-key .k-both i{background:var(--p4)}
 .pv-key .k-them i{background:var(--p1)}
@@ -1713,7 +1721,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    ============================================================ */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
   clip:rect(0 0 0 0);white-space:nowrap;border:0}
-.ch-miss{background:var(--card);border:1px solid var(--line);border-radius:16px;
+.ch-miss{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   padding:22px 24px;font-size:15px;color:var(--soft)}
 
 /* Fills the page, the way every messenger does. Sizing the card to the
@@ -1726,14 +1734,14 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .chat{display:grid;grid-template-columns:302px minmax(0,1fr);gap:16px;align-items:stretch;
   height:calc(100vh - 250px);min-height:430px}
 @supports (height:100dvh){ .chat{height:calc(100dvh - 250px)} }
-.ch-list{background:var(--card);border:1px solid var(--line);border-radius:16px;
+.ch-list{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   padding:8px;min-width:0;display:flex;flex-direction:column;min-height:0}
 .ch-people{overflow-y:auto;min-height:0}
 .ch-none{margin:12px 10px;font-size:13.5px;color:var(--faint);line-height:1.5}
 .ch-none a{color:var(--p6);font-weight:600;text-decoration:underline}
 
 .ch-row{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;
-  padding:9px 10px;border-radius:11px;text-align:left;cursor:pointer;font-family:var(--body)}
+  padding:9px 10px;border-radius:var(--r-control);text-align:left;cursor:pointer;font-family:var(--body)}
 .ch-row:hover{background:var(--band)}
 .ch-row.on{background:var(--p0)}
 .ch-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
@@ -1746,25 +1754,25 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    row that has to be readable. */
 .ch-tag{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:8px;
   letter-spacing:.05em;text-transform:uppercase;background:var(--p0);color:var(--p6);
-  padding:2px 4px;border-radius:4px;margin-left:5px}
+  padding:2px 4px;border-radius:var(--r-mark);margin-left:5px}
 .ch-row.on .ch-tag{background:var(--card)}
 .ch-last{display:block;font-size:12.5px;color:var(--faint);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ch-right{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .ch-when{font-size:10.5px;color:var(--faint)}
-.ch-dot{min-width:19px;height:19px;padding:0 5px;border-radius:10px;
+.ch-dot{min-width:19px;height:19px;padding:0 5px;border-radius:var(--r-control);
   background:var(--p4);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
 
 /* Everybody you may write to but never have. Behind a control rather than
    filling the list with rows that say "No messages yet". */
 .ch-more{margin-top:auto;border-top:1px solid var(--line);padding:8px 4px 2px}
 .ch-more > button{width:100%;border:0;background:none;text-align:left;padding:6px;
-  border-radius:9px;font-family:var(--body);font-size:12.5px;font-weight:600;
+  border-radius:var(--r-control);font-family:var(--body);font-size:12.5px;font-weight:600;
   color:var(--p6);cursor:pointer}
 .ch-more > button:hover{background:var(--p0)}
 
 /* ---------- the conversation ---------- */
-.ch-pane{background:var(--card);border:1px solid var(--line);border-radius:16px;
+.ch-pane{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   display:flex;flex-direction:column;min-width:0;overflow:hidden;min-height:0}
 .ch-empty{flex:1;display:grid;place-items:center;padding:24px}
 .ch-empty p{margin:0;font-size:14px;color:var(--faint);text-align:center;max-width:32ch}
@@ -1781,7 +1789,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* The thing you are usually messaging about. */
 .ch-next{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--p0);
-  border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--p8)}
+  border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--p8)}
 .ch-next i{width:6px;height:6px;border-radius:50%;background:var(--p4);flex:0 0 auto}
 
 /* Plain ground. The bubbles carry the colour, so anything behind them fights
@@ -1801,7 +1809,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .ch-day{align-self:center;margin:10px 0 6px;font-size:11px;font-weight:600;color:var(--faint)}
 
 .ch-msg{position:relative;max-width:min(70%,520px);align-self:flex-start;
-  background:#EBEAEF;border-radius:19px;padding:9px 15px}
+  background:#EBEAEF;border-radius:var(--r-card);padding:9px 15px}
 .ch-msg.mine{align-self:flex-end;background:var(--p6)}
 .ch-msg p{position:relative;z-index:2;margin:0;font-size:14.5px;line-height:1.42;
   white-space:pre-wrap;word-wrap:break-word}
@@ -1831,12 +1839,12 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 
 .ch-form{display:flex;gap:9px;align-items:flex-end;padding:13px 15px;border-top:1px solid var(--line)}
 .ch-box{flex:1;min-width:0;display:flex;align-items:center;background:var(--bg);
-  border:1px solid transparent;border-radius:22px;padding:2px 4px 2px 16px}
+  border:1px solid transparent;border-radius:var(--r-card);padding:2px 4px 2px 16px}
 .ch-box:focus-within{background:var(--card);border-color:var(--p4)}
 .ch-form textarea{flex:1;min-width:0;resize:none;border:0;background:none;outline:none;
   font-family:var(--body);font-size:14.5px;line-height:1.45;color:var(--ink);
   padding:9px 0;max-height:150px}
-.ch-form .btn{border-radius:999px;flex:0 0 auto}
+.ch-form .btn{border-radius:var(--r-pill);flex:0 0 auto}
 .ch-err{margin:0;padding:0 17px 12px;font-size:13px;color:#B4471F}
 
 /* One pane at a time on a phone. Side by side at this width gives you two
@@ -1851,7 +1859,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 
 /* The unread count on the Chat tab. */
 .tabs a{position:relative}
-.tabdot{margin-left:6px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
+.tabdot{margin-left:6px;min-width:17px;height:17px;padding:0 4px;border-radius:var(--r-control);
   background:var(--p4);color:#fff;font-size:10.5px;font-weight:700;
   display:inline-grid;place-items:center;vertical-align:1px}
 .tabs a.on .tabdot{background:#fff;color:var(--ink)}
@@ -1885,7 +1893,7 @@ a.who:hover{text-decoration:underline}
 .bpop.out{opacity:0}
 
 .bpop-card{width:min(360px,100%);padding:30px 28px 26px;text-align:center;
-  background:var(--card);border-radius:22px;
+  background:var(--card);border-radius:var(--r-card);
   box-shadow:0 24px 60px rgba(16,20,34,.28),0 2px 8px rgba(16,20,34,.12);
   transform:translateY(10px) scale(.97);
   transition:transform .22s cubic-bezier(.2,.9,.3,1)}
@@ -1921,13 +1929,13 @@ a.who:hover{text-decoration:underline}
    label came from, and the two counts the number is made of. The bar is there
    because a percentage is a quantity and people read quantities faster as a
    length than as digits. */
-.rel{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 18px;
+.rel{border:1px solid var(--line);border-radius:var(--r-card);padding:16px 18px;margin:0 0 18px;
   background:var(--card)}
 .rel-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .rel-lab{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
 .rel-pct{font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
-.rel-bar{height:7px;border-radius:99px;background:var(--band);overflow:hidden;margin:12px 0 0}
-.rel-bar i{display:block;height:100%;border-radius:99px;background:var(--p4);
+.rel-bar{height:7px;border-radius:var(--r-pill);background:var(--band);overflow:hidden;margin:12px 0 0}
+.rel-bar i{display:block;height:100%;border-radius:var(--r-pill);background:var(--p4);
   transition:width .5s ease}
 .rel-sub{margin:10px 0 0;font-size:13px;color:var(--faint);line-height:1.5}
 
@@ -1965,7 +1973,7 @@ a.who:hover{text-decoration:underline}
    the recommendation lost. As a band it still says the block is addressed to
    you, and the shape is one the page already knows: the People table has the
    same move in grey. */
-.inbox{background:var(--card);border:1px solid var(--line);border-radius:16px;
+.inbox{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   overflow:hidden;margin:0 0 18px}
 .inbox-h{display:flex;align-items:center;gap:9px;margin:0;
   background:var(--p0);border-bottom:1px solid var(--p1);
@@ -1973,7 +1981,7 @@ a.who:hover{text-decoration:underline}
 .inbox-h b{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
 /* Green as a mark, not a field. */
 .inbox-n{display:inline-flex;align-items:center;justify-content:center;
-  min-width:20px;height:20px;padding:0 6px;border-radius:999px;
+  min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);
   background:var(--p4);color:#fff;font-size:11.5px;font-weight:800;
   font-variant-numeric:tabular-nums}
 /* Bottom trimmed with the standing line gone, so the last request sits the

@@ -1,0 +1,110 @@
+/* ============================================================
+   PeerFlow — design tokens.
+
+   One source for everything the three surfaces share: the ink and
+   green ramps, the grounds they sit on, the corner radii, the type
+   scale and the focus ring. Linked before the surface stylesheet on
+   every page, so home.css, app.css and auth.css stay about layout
+   and components and never about what green is.
+
+   Before this file there were three :root blocks that disagreed:
+   green was #0b8f66, #0FA36B and #1D9E75 depending on which page you
+   were on, ink was #21323b on the auth pages and #171A2E everywhere
+   else, and the body copy changed size when you pressed Sign up.
+   ============================================================ */
+
+:root{
+  /* ---------- ink ---------- */
+  --ink:#171A2E;
+  --ink-soft:#4A4E68;
+  --ink-faint:#82869C;
+
+  /* ---------- green, eight steps ----------
+     p0 is a wash, p8 is nearly black. p4 is the accent; p6 is the
+     lightest step that carries body-size text on a white ground, so
+     it is what small green type and the focus ring use. */
+  --p0:#E1F5EE;
+  --p1:#9FE1CB;
+  --p2:#5DCAA5;
+  --p4:#1D9E75;
+  --p6:#0F6E56;
+  --p8:#085041;
+  /* Darker than p8, and the only green outside the ramp: the band
+     that closes the landing page, picked so white body copy sits on
+     it comfortably rather than only white headings. */
+  --deep:#12352C;
+
+  /* ---------- grounds ---------- */
+  --paper:#F3F2F6;
+  --card:#FFFFFF;
+  --band:#EFEEF3;
+
+  /* Two hairlines, because one cannot serve both grounds. --line is
+     picked to read against --paper and goes nearly invisible on
+     white; anything sitting inside a white band takes --line-strong
+     instead. Both files used to hardcode #DEDDE6 at the few places
+     this came up. */
+  --line:#E4E3EB;
+  --line-strong:#D8D7E2;
+
+  /* The one hue outside the green ramp: other people, wherever an
+     avatar needs a colour that isn't yours. */
+  --indigo:#534AB7;
+
+  /* ---------- state ----------
+     Amber for "someone is waiting on you", red for "that didn't
+     work". Neither is a brand colour and neither appears anywhere
+     else. */
+  --warn-ink:#93641A;
+  --bad:#C0392B;
+  --bad-ink:#7A1B25;
+  --bad-bg:#FDECEE;
+  --bad-line:#F6CFD4;
+
+  /* ---------- type ---------- */
+  --body:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+
+  /* A scale with gaps you can see. The landing page used to run
+     55 / 33 / 18 / 18 / 17.5 — four sizes doing three jobs, with a
+     section heading and a card title a pixel and a half apart. The
+     h2 ceiling went up rather than the card titles coming down,
+     because the cards are what people actually read. */
+  --t-h1:clamp(34px,4.6vw,55px);
+  --t-h2:clamp(28px,3.2vw,36px);
+  --t-h3:19px;
+  --t-lede:18.5px;
+  --t-body:16px;
+  --t-sm:14.5px;
+  --t-xs:13px;
+  --t-kicker:11.5px;
+
+  /* ---------- radii ----------
+     Three of them, and the pill. Anything you press is a control;
+     anything holding content is a card. There were eight in use
+     across the three stylesheets — 6, 8, 9, 10, 12, 14, 16, 18 —
+     which is not a decision anybody made, it is what happens when
+     each component picks its own. */
+  --r-control:10px;
+  --r-card:16px;
+  --r-pill:999px;
+  /* The one exception, and it is not chrome: glyph-scale graphics — the
+     8px bars in a sparkline, an 11px legend swatch, a two-character tag.
+     A control radius on an 8px-wide bar turns it into a lozenge and on an
+     11px square into a circle, so these get a mark radius instead of being
+     forced into a scale built for things you press. */
+  --r-mark:3px;
+
+  /* ---------- the page ---------- */
+  --w:1320px;
+  --gutter:32px;
+
+  /* ---------- focus ----------
+     One ring, everywhere. p6 holds against paper, white and p0; the
+     dark bands override it to white where they appear. */
+  --focus:var(--p6);
+
+  /* ---------- lift ----------
+     The hover shadow every card and button shares. */
+  --lift:0 10px 24px rgba(23,26,46,.09);
+}
