@@ -15,6 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/app.css">
+<script src="assets/authgate.js"></script>
 </head>
 <body>
 
@@ -262,7 +263,6 @@
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
 <script src="assets/plans.js"></script>
-<script src="assets/authgate.js"></script>
 <script src="assets/appshell.js"></script>
 <script>
 (function(){
@@ -675,12 +675,17 @@
     err.hidden = true;
     /* cancelBooked, not cancelSession: this one has to leave a trace, so the
        other person is told rather than watching it vanish. */
-    pf.cancelBooked(btn.getAttribute('data-at'), btn.getAttribute('data-room')).then(function(res){
-      if (res && res.saved) { window.location.reload(); return; }
+    function back(msg){
       btn.disabled = false; btn.textContent = 'Cancel';
       btn.removeAttribute('data-armed'); btn.classList.remove('danger');
-      err.textContent = (res && res.error) || 'Could not cancel that — please try again.';
+      err.textContent = msg;
       err.hidden = false;
+    }
+    pf.cancelBooked(btn.getAttribute('data-at'), btn.getAttribute('data-room')).then(function(res){
+      if (res && res.saved) { window.location.reload(); return; }
+      back((res && res.error) || 'Could not cancel that — please try again.');
+    }, function(){
+      back('Could not cancel that — check your connection and try again.');
     });
   });
 
@@ -1192,6 +1197,15 @@
 
     Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = true; });
     err.hidden = true;
+    /* Every failure path comes back through here, including a rejected
+       promise. The buttons were only re-enabled on a resolved-with-error
+       result before, so losing the connection mid-accept left the whole
+       proposal frozen. */
+    function undo(msg){
+      Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = false; });
+      err.textContent = msg;
+      err.hidden = false;
+    }
 
     /* Declining marks the pair 'declined' so the proposer finds out. Deleting
        is for the proposer's own Cancel, and for dismissing a decline once it
@@ -1214,9 +1228,9 @@
         });
         return;
       }
-      Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.disabled = false; });
-      err.textContent = (res && res.error) || 'That didn\u2019t go through \u2014 please try again.';
-      err.hidden = false;
+      undo((res && res.error) || 'That didn\u2019t go through \u2014 please try again.');
+    }, function(){
+      undo('That didn\u2019t go through \u2014 check your connection and try again.');
     });
   });
 
@@ -1440,13 +1454,18 @@
      time, e.g. email confirmation was on). Save them now that we're signed in. */
   function flushPending(){
     var raw = '';
-    try { raw = localStorage.getItem('pf_pending') || ''; } catch(err) { return; }
-    if (!raw) return;
+    try { raw = localStorage.getItem('pf_pending') || ''; } catch(err) { return Promise.resolve(); }
+    if (!raw) return Promise.resolve();
     var profile;
-    try { profile = JSON.parse(raw); } catch(err) { return; }
-    pf.saveProfile(profile).then(function(res){
-      if (res && res.saved) { try { localStorage.removeItem('pf_pending'); } catch(e){} }
-    });
+    try { profile = JSON.parse(raw); } catch(err) { return Promise.resolve(); }
+    return pf.saveProfile(profile).then(function(res){
+      if (res && res.saved) {
+        try {
+          localStorage.removeItem('pf_pending');
+          localStorage.removeItem('pf_want_path');
+        } catch(e){}
+      }
+    }, function(){});
   }
 
   $('copy-invite').addEventListener('click', function(){
@@ -1469,8 +1488,13 @@
       $('rail-mo').hidden = true;
       return;
     }
-    flushPending();
+    /* Awaited, not fired and forgotten. The profile is read straight after
+       to decide whether this person still has onboarding to do, and asking
+       that question before the pending write has landed answers it wrong. */
+    flushPending().then(function(){ start(user); });
+  });
 
+  function start(user){
     /* Session first, cache second — the other way round showed the previous
        account's initial after switching accounts. */
     var cached = '';
@@ -1489,12 +1513,14 @@
       /* profile === false means the query failed, which is not the same as
          "this person never onboarded". Bouncing someone with a flaky
          connection into signup would make them answer everything again. */
+      /* This used to let anyone through who had a pf_track in localStorage,
+         which is a display cache written at signup and never cleared — so a
+         part-finished signup, or an old account from before the profile
+         columns existed, walked into the app with nothing behind it and no
+         way back to the questions. flushPending has already had its go by
+         here, so an unfinished profile now is genuinely unfinished. */
       var onboarded = profile && (profile.track_id || profile.topic);
-      if (!onboarded && profile !== false){
-        var ls = '';
-        try { ls = localStorage.getItem('pf_track') || ''; } catch(err){}
-        if (!ls){ window.location.replace('signup.html'); return; }
-      }
+      if (!onboarded && profile !== false){ window.location.replace('signup.html'); return; }
 
       myName  = (profile && profile.name) || name || '';
       myAvail = (profile && profile.availability) || [];
@@ -1712,7 +1738,7 @@
           renderWeek(profile, trackId, done.length);
         });
     });
-  });
+  }
 })();
 </script>
 <script src="assets/usermenu.js"></script>

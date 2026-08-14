@@ -22,7 +22,7 @@ window.pf = (function(){
   (function(){
     if (!client) return;
     var KEYS = ['pf_name','pf_email','pf_track','pf_topic','pf_pending',
-                'pf_paired','pf_streak'];
+                'pf_want_path','pf_paired','pf_streak'];
     client.auth.getSession().then(function(res){
       var s = res.data && res.data.session;
       var uid = (s && s.user && s.user.id) || '';

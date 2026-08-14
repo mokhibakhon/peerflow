@@ -15,6 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/app.css">
+<script src="assets/authgate.js"></script>
 </head>
 <body>
 
@@ -32,6 +33,12 @@
       <p id="match-sub"></p>
       <div class="row" id="match-find" hidden style="margin-top:16px">
         <a class="btn" href="app-people.html">Find someone</a>
+      </div>
+      <!-- The other dead end this card had: it said "finish setting up" and
+           then offered nothing to press. -->
+      <div class="row" id="match-finish" hidden style="margin-top:16px">
+        <a class="btn" href="signup.html">Finish setting up</a>
+        <a class="btn ghost" href="app-profile.html">Edit your profile</a>
       </div>
     </div>
 
@@ -123,7 +130,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
-<script src="assets/authgate.js"></script>
 <script>
 (function(){
   var track = '';
@@ -142,6 +148,8 @@
     var status = document.getElementById('match-status');
     var title = document.getElementById('match-title');
     var sub = document.getElementById('match-sub');
+    document.getElementById('match-find').hidden = true;
+    document.getElementById('match-finish').hidden = true;
     if (hasTrack) {
       status.textContent = 'NO PARTNER YET';
       title.textContent = 'You don\u2019t have a partner yet';
@@ -151,7 +159,9 @@
     } else {
       status.textContent = 'ALMOST THERE';
       title.textContent = 'Finish setting up first';
-      sub.textContent = 'Tell us what you\u2019re learning so we can start finding your partner.';
+      sub.textContent = 'Tell us what you\u2019re learning and when you\u2019re free, and you can ' +
+        'start browsing people on your path.';
+      document.getElementById('match-finish').hidden = false;
     }
   }
 
@@ -388,7 +398,7 @@
       document.getElementById('q-same').textContent = s.sameTopic;
       if (s.sameTopic > 0) {
         note.textContent = s.sameTopic === 1
-          ? 'One other person is learning the same thing as you. That’s your likely partner.'
+          ? 'One other person is learning the same thing as you — the closest match on your path.'
           : s.sameTopic + ' other people are learning the same thing as you.';
       } else if (s.total > 0) {
         note.textContent = 'Nobody has put down your exact topic yet. Broadening it on your profile ' +

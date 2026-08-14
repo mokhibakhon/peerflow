@@ -32,6 +32,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
   font-size:var(--t-body);line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 button{font-family:var(--body);cursor:pointer}
+/* Set by authgate.js before the first paint and removed once we know who
+   you are — see the note in that file. visibility rather than display so the
+   layout is already resolved when it comes back. */
+.pf-gate body{visibility:hidden}
+
 /* The same ring as the landing page and the auth pages. */
 :focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:var(--r-mark)}
 

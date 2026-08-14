@@ -102,7 +102,7 @@
     <p class="step-err" id="track-err" hidden>Pick the path closest to what you're learning.</p>
 
     <h2 class="q">What are you working on right now?</h2>
-    <p class="lead tight">This is what actually pairs you with someone. Pick the closest one — you can change it any time.</p>
+    <p class="lead tight">This is what people are sorted by, so you can find someone working on the same thing. Pick the closest one — you can change it any time.</p>
     <div class="chips" id="topic-chips" hidden></div>
     <div class="field free" id="f-topic">
       <input id="su-topic" type="text" placeholder="Or type something else — e.g. Security+ prep" autocomplete="off">
@@ -116,7 +116,7 @@
   <!-- ============ STEP 3 — level ============ -->
   <section class="onb-step" data-step="3">
     <h1>Where are you right now?</h1>
-    <p class="lead">So we pair you with someone at a similar stage.</p>
+    <p class="lead">So you can find someone at a similar stage.</p>
     <div class="choices one" id="level-choices">
       <button class="choice" data-level="new"><span><b>I haven't really started</b><span>Curious, motivated, little code written so far</span></span></button>
       <button class="choice" data-level="tutorials"><span><b>I've done tutorials</b><span>Courses and videos, but little on my own yet</span></span></button>
@@ -153,9 +153,25 @@
       Hours are shown in your own time, and your partner sees theirs.</p>
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
-      <button class="btn big" id="finish">Find my partner</button>
+      <button class="btn big" id="finish">See who's learning this</button>
     </div>
     <p id="su2-status" class="form-status"></p>
+  </section>
+
+  <!-- Shown instead of the steps when the account is real but unusable until
+       the address is confirmed. Not a step: the progress bar is hidden with
+       it, because there is nothing left to fill in. -->
+  <section id="confirm-email" hidden>
+    <h1>Check your inbox</h1>
+    <p class="lead">Your answers are saved. Confirm
+      <b id="confirm-addr">your email address</b> using the link we just sent,
+      then log in — you'll go straight to your dashboard with everything you
+      just told us already filled in.</p>
+    <div class="stack">
+      <a class="btn big wide" href="login.html">Go to log in</a>
+    </div>
+    <p class="onb-note">Nothing after a minute? Check your spam folder, or write to
+      <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a>.</p>
   </section>
 </main>
 
@@ -317,6 +333,11 @@
         return;
       }
       if (res.needsConfirm) {
+        /* No session until they click the link in their inbox, so the
+           profile save at the end of step 4 has nothing to write against.
+           The finish handler needs to know that rather than discovering it
+           as an unexplained failure. */
+        state.needsConfirm = true;
         suStatus.classList.add('ok');
         suStatus.textContent = 'Account created — check your inbox to confirm your email. Meanwhile, let’s finish setting you up.';
         suStatus.style.display = 'block';
@@ -393,6 +414,18 @@
      An unknown or missing value just leaves nothing selected. */
   (function(){
     var want = new URLSearchParams(location.search).get('path');
+    /* The path has to survive two round trips that cannot carry a query
+       string: the redirect out to Google and back, and the detour to
+       login.html for someone who realises they already have an account.
+       Stashing it covers both, and unlike appending ?path= to the OAuth
+       return address it does not depend on how the redirect allow-list is
+       configured in Supabase — an address that isn't on that list fails the
+       sign-in outright, which is a worse bug than the one being fixed.
+       Cleared when the profile saves, and on sign-out with the other keys. */
+    try {
+      if (want) localStorage.setItem('pf_want_path', want);
+      else want = localStorage.getItem('pf_want_path') || '';
+    } catch(err) {}
     if (!want) return;
     var c = trackBox.querySelector('.choice[data-track="' + CSS.escape(want) + '"]');
     if (!c) return;
@@ -525,26 +558,72 @@
     } catch(err) {}
 
     var btn = this;
+    var LABEL = btn.textContent;
     btn.disabled = true; btn.textContent = 'Saving…';
-    var left = false, errored = false;
-    function go(){ if (left || errored) return; left = true; window.location.href = 'app.html'; }
+
+    /* One settle, whichever gets there first. The old version let the
+       timeout navigate to the app while the save was still in flight, so
+       someone could land on the dashboard believing they had finished when
+       the write had not happened — or had failed. */
+    var settled = false;
+    function stop(){ if (settled) return false; settled = true; clearTimeout(timer); return true; }
+    function fail(msg){
+      btn.disabled = false; btn.textContent = LABEL;
+      su2Status.className = 'form-status';
+      su2Status.textContent = msg;
+      su2Status.style.display = 'block';
+    }
+
+    var timer = setTimeout(function(){
+      if (!stop()) return;
+      /* Not a navigation. The answers are on this device either way, so the
+         honest thing is to hand the button back rather than to pretend. */
+      fail('That is taking longer than it should. Your answers are safe on this ' +
+           'device — press the button again in a moment.');
+    }, 8000);
 
     pf.saveProfile(profile).then(function(res){
-      if (res && res.error) {
-        errored = true;
-        btn.disabled = false; btn.textContent = 'Done';
-        su2Status.textContent = res.error;
-        su2Status.style.display = 'block';
+      if (!stop()) return;
+
+      if (res && res.error) { fail(res.error); return; }
+
+      if (res && res.saved) {
+        try {
+          localStorage.removeItem('pf_pending');
+          localStorage.removeItem('pf_want_path');
+        } catch(e){}
+        window.location.href = 'app.html';
         return;
       }
-      if (res && res.saved) {
-        try { localStorage.removeItem('pf_pending'); } catch(e){}
-      }
-      go();
+
+      /* Saved nothing, and not an error either: there is no session to write
+         against. With a real backend that means one thing — Supabase is set
+         to confirm email addresses, so the account exists but cannot be used
+         until the link in the inbox is clicked. Sending them to app.html here
+         is what produced the silent bounce back to the login page. */
+      if (window.pf && pf.ready()) { showConfirm(); return; }
+
+      /* No backend at all: the offline demo, which runs on localStorage and
+         is supposed to reach the app. */
+      window.location.href = 'app.html';
+    }, function(){
+      if (!stop()) return;
+      fail('Could not save that — check your connection and try again.');
     });
-    /* Safety net if the network hangs — localStorage already holds the answers. */
-    setTimeout(function(){ if (!errored) go(); }, 8000);
   });
+
+  /* The end of the road for anyone whose account is waiting on a
+     confirmation email. Everything they typed is in pf_pending, and app.html
+     writes it the moment they are signed in, so this says what to do next
+     rather than dropping them on a login form with no explanation. */
+  function showConfirm(){
+    var addr = document.getElementById('confirm-addr');
+    if (state.email) addr.textContent = state.email;
+    document.querySelector('.onb-head').hidden = true;
+    steps.forEach(function(s){ s.classList.remove('on'); });
+    document.getElementById('confirm-email').hidden = false;
+    window.scrollTo(0,0);
+  }
 })();
 </script>
 </body>
