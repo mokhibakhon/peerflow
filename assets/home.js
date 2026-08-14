@@ -36,7 +36,7 @@
     /* Starts-with, because the path cards carry ?path=. */
     var ctas = document.querySelectorAll('a[href^="signup.html"]');
     Array.prototype.forEach.call(ctas, function(a){
-      var labelled = /find my partner|sign up/i.test(a.textContent || '');
+      var labelled = /find someone to learn with|sign up/i.test(a.textContent || '');
       a.href = 'app.html';
       /* Only the ones whose words promise signing up. A path card is a whole
          card with a name in it, and rewriting that to "Open app" would leave

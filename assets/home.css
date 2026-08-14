@@ -462,6 +462,11 @@ h1{
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .path{
   display:flex;align-items:center;gap:14px;
+  /* A grid item's min-width is auto, so a card whose longest word cannot
+     shrink pushes past its own column instead of wrapping. Four across at
+     just over 900 was the band where that showed: the two cards holding
+     "AI & machine learning" ran three pixels off the side of the page. */
+  min-width:0;
   background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r-card);
   padding:13px 15px;
   transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
@@ -586,28 +591,36 @@ footer a{color:#CFE7DD}
   .prob h3{font-size:15px}
 }
 
-@media (max-width:760px){
-  /* The one place the two navigations swap. Above this the inline row is the
-     nav and the button does not exist; at and below it the row's links go and
-     the button appears. Nothing is visible in both states, so there is no
-     width showing the same four links twice.
+/* The one place the two navigations swap. Above this the inline row is the
+   nav and the button does not exist; at and below it the row's links go and
+   the button appears. Nothing is visible in both states, so there is no width
+   showing the same four links twice.
 
-     .nav-right itself stays in the layout rather than being display:none'd:
-     usermenu.js appends the signed-in account chip to it, and the chip should
-     still sit in the top bar on a phone. Signed out it has no visible children
-     and collapses to nothing. */
+   900 rather than the 760 this used to be. The row is the logo, three links
+   and the button, and the button's words got longer when they stopped
+   promising a partner would be produced — "Find someone to learn with" is
+   about 240px against the old 130. Measured at 768 that left the four items
+   needing 703px of a 704px row, so flexbox took the difference out of the
+   links and broke "How it works" and "Log in" over two lines each. There is
+   no gap small enough to fix that honestly; the row simply stops fitting
+   before 900, which is where the hero already goes to one column.
+
+   .nav-right itself stays in the layout rather than being display:none'd:
+   usermenu.js appends the signed-in account chip to it, and the chip should
+   still sit in the top bar on a phone. Signed out it has no visible children
+   and collapses to nothing. */
+@media (max-width:900px){
   .nav-right > a{display:none}
   .menu-btn{display:inline-flex}
   .nav-menu{display:flex}
+}
+@media (max-width:760px){
   .sec{padding:56px 0}
   .founder{padding:60px 0}
   .founder blockquote{font-size:22px}
 }
 
 @media (max-width:900px){
-  /* 20 rather than 28 so the four links still have real space at 768 instead
-     of the 28px they were left with. */
-  .nav-right{gap:20px}
   .hero{grid-template-columns:1fr;gap:36px;padding:40px 0 52px}
   .grid{grid-template-columns:repeat(2,1fr)}
   /* Stacked, the card would run the full width of the page and the two camera
