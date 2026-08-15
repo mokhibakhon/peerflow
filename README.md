@@ -26,18 +26,23 @@ static site with no build step.
 | `app-badges.html` | What you've done so far |
 | `assets/` | Shared stylesheets and scripts |
 
-One token file plus three stylesheets, split by surface.
 `assets/tokens.css` holds every shared value — the ink and green ramps, the
-grounds, the corner radii, the type scale, the focus ring — and every page
-links it before its own sheet. On top of that sit `assets/home.css`
-(landing), `assets/app.css` (signed-in app) and `assets/auth.css` (login,
-signup, reset, conduct), which are layout and components only.
+grounds, the corner radii, the type scale, the focus ring. `assets/app.css`
+(the signed-in app) and `assets/auth.css` (login, signup, reset, conduct)
+link it before their own sheet and are layout and components only.
 
 Three radii, and a fourth for glyph-scale graphics: `--r-control` (10px) for
 anything you press, `--r-card` (16px) for anything holding content,
 `--r-pill`, and `--r-mark` (3px) for legend swatches and sparkline bars,
 which a control radius would turn into lozenges. Two primary buttons, on
-purpose: dark ink on the marketing and signed-out pages, green in the app.
+purpose: dark ink on the signed-out pages, green in the app.
+
+`assets/home.css` (the landing page) is the one surface still outside this.
+It carries its own `:root` — its own greens, its own radii, its own focus
+ring — so the landing page and the rest of the site are two systems that
+happen to look similar rather than one that is shared. Folding it in is a
+landing-page redesign, and worth doing as that rather than as a side effect
+of a stylesheet change.
 
 ## Run it locally
 

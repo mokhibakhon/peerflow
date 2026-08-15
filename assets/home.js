@@ -15,15 +15,7 @@
      be swapped, because which one is showing depends on how wide the window is
      when you look, and a window can be resized after this has run. Hence
      querySelectorAll against .nav rather than querySelector against
-     .nav-right; the match is still on href, never on the label.
-
-     Every other route into signup goes too, not just the nav's. The hero
-     button, the eight path cards and the closing button were left pointing at
-     signup.html on the reasoning that it forwards a finished account to the
-     app on its own — which it does, but only after loading a page, reading
-     the session, fetching the profile and then redirecting. Someone who
-     already has an account should not pay for that to press a button labelled
-     as the way in. */
+     .nav-right; the match is still on href, never on the label. */
 
   if (!window.pf || !pf.currentUser) return;
 
@@ -33,15 +25,10 @@
     var logins = document.querySelectorAll('.nav a[href="login.html"]');
     Array.prototype.forEach.call(logins, function(a){ a.remove(); });
 
-    /* Starts-with, because the path cards carry ?path=. */
-    var ctas = document.querySelectorAll('a[href^="signup.html"]');
+    var ctas = document.querySelectorAll('.nav a[href="signup.html"]');
     Array.prototype.forEach.call(ctas, function(a){
-      var labelled = /find someone to learn with|sign up/i.test(a.textContent || '');
       a.href = 'app.html';
-      /* Only the ones whose words promise signing up. A path card is a whole
-         card with a name in it, and rewriting that to "Open app" would leave
-         eight identical cards. */
-      if (labelled) a.textContent = 'Open app';
+      a.textContent = 'Open app';
     });
   });
 })();
