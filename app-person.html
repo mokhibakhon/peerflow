@@ -43,13 +43,13 @@
       <!-- Whether they turn up. Every other fact on this page is what somebody
            intends to do; this is the only one that is what they did, which is
            why it gets a block of its own rather than a fifth cell in a strip. -->
-      <div class="rel" id="pv-rel" hidden>
-        <div class="rel-h">
-          <b class="rel-lab" id="pv-rellab"></b>
-          <span class="rel-pct" id="pv-relpct"></span>
+      <div class="relbox" id="pv-rel" hidden>
+        <div class="relbox-h">
+          <b class="relbox-lab" id="pv-rellab"></b>
+          <span class="relbox-pct" id="pv-relpct"></span>
         </div>
-        <div class="rel-bar" id="pv-relbar"><i id="pv-relfill"></i></div>
-        <p class="rel-sub" id="pv-relsub"></p>
+        <div class="relbox-bar" id="pv-relbar"><i id="pv-relfill"></i></div>
+        <p class="relbox-sub" id="pv-relsub"></p>
       </div>
 
       <!-- Their week. The single most useful thing on this page: whether a
@@ -248,7 +248,7 @@
       $('pv-relpct').textContent = r.pct + '%';
       $('pv-relbar').hidden = false;
       fill.style.width = r.pct + '%';
-      box.className = 'rel ' + band;
+      box.className = 'relbox ' + band;
       $('pv-relsub').textContent = counts + '.';
       box.hidden = false;
     }).catch(function(){});

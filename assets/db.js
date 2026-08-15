@@ -1119,6 +1119,44 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* Check-out: whether you turned up.
+
+     sessions.attended has been read since the reliability score shipped and
+     written by nothing — db.js said so itself further down, and the score has
+     been showing a dash for every account since. This is the write.
+
+     Your own row only. reliability_of reads s.attended where s.user_id is the
+     person being scored, so attendance means "did I turn up", and answering
+     for yourself is the whole contract. Letting a partner mark you absent
+     would need a SECURITY DEFINER function and would hand every user a way to
+     wreck somebody else's score, which is a bad trade for a number. */
+  function markAttendance(startsAt, roomUrl, attended){
+    if (!client) return Promise.resolve({ demo: true });
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      var row = {
+        attended: !!attended,
+        completed_at: new Date().toISOString(),
+        status: attended ? 'completed' : 'no_show'
+      };
+      var q = client.from('sessions').update(row).eq('user_id', uid).eq('starts_at', startsAt);
+      if (roomUrl) q = q.eq('room_url', roomUrl);
+      return q.then(function(r){
+        if (r.error && (missingColumn(r.error) || /sessions_status_check/.test(String(r.error.message || '')))) {
+          try {
+            console.warn('PeerFlow: session attendance needs supabase/migration-mvp.sql.');
+          } catch(e){}
+          return { needsMigration: true,
+                   error: 'Check-out isn\u2019t switched on for this site yet.' };
+        }
+        if (r.error) return fail(r.error, 'Could not save that. Please try again.');
+        return { saved: true };
+      });
+    }).catch(function(e){
+      return fail(e, 'Could not save that \u2014 check your connection and try again.');
+    });
+  }
+
   /* ---------- availability, across timezones ----------
 
      A profile stores when someone is free as day-band strings — "tue-evening"
@@ -1545,6 +1583,7 @@ window.pf = (function(){
     signUpEmail: signUpEmail,
     signInEmail: signInEmail,
     signInOAuth: signInOAuth,
+    markAttendance: markAttendance,
     sharedAvailability: sharedAvailability,
     availabilityHours: availabilityHours,
     currentUser: currentUser,
