@@ -26,9 +26,23 @@ static site with no build step.
 | `app-badges.html` | What you've done so far |
 | `assets/` | Shared stylesheets and scripts |
 
-Three stylesheets, split by surface: `assets/home.css` (landing),
-`assets/app.css` (signed-in app), `assets/styles.css` (login, signup, reset,
-conduct).
+`assets/tokens.css` holds every shared value — the ink and green ramps, the
+grounds, the corner radii, the type scale, the focus ring. `assets/app.css`
+(the signed-in app) and `assets/auth.css` (login, signup, reset, conduct)
+link it before their own sheet and are layout and components only.
+
+Three radii, and a fourth for glyph-scale graphics: `--r-control` (10px) for
+anything you press, `--r-card` (16px) for anything holding content,
+`--r-pill`, and `--r-mark` (3px) for legend swatches and sparkline bars,
+which a control radius would turn into lozenges. Two primary buttons, on
+purpose: dark ink on the signed-out pages, green in the app.
+
+`assets/home.css` (the landing page) is the one surface still outside this.
+It carries its own `:root` — its own greens, its own radii, its own focus
+ring — so the landing page and the rest of the site are two systems that
+happen to look similar rather than one that is shared. Folding it in is a
+landing-page redesign, and worth doing as that rather than as a side effect
+of a stylesheet change.
 
 ## Run it locally
 
@@ -78,15 +92,29 @@ Supabase → Authentication → Sign In / Providers → Email.
 There is no automatic matching engine, and no hand-editing of tables.
 
 1. **People** ranks everyone by how close they are to what you're learning —
-   same topic first, then same path, then how many free windows you share.
+   same topic on the same path first, then the same path, then the same topic
+   somewhere else, and hours in common break the ties. Those hours are worked
+   out on a real week: everyone's weekly slots are stored in their own local
+   time, so they are converted through each side's timezone before being
+   compared. Comparing the slots as written makes two people twelve hours
+   apart look like a perfect match.
 2. You press **Send request** and can add a note. They get it in their bell.
 3. They accept, and you're partners. Either of you can have more than one.
 4. On **Sessions**, one of you proposes a time. Nothing is booked until the
    other accepts; they can also decline or suggest another time. Either side
    can cancel a booked session, and the other is told.
 
-Video calls are Jitsi rooms, one per pair, and the link opens 15 minutes
-before the session starts.
+Video calls are Jitsi rooms, **one per booked session**, and the link opens
+15 minutes before the session starts. The room used to be one per
+partnership — the same address for every session the two of you ever booked
+— which made the URL a standing key: block someone and they still held a
+working way into every future call. Which partnership a session belongs to
+is `sessions.pair_id` now (`supabase/migration-room-per-session.sql`), so
+streaks and per-partner history read a column instead of reading the room.
+
+Run that migration alongside the others; without it the app still works —
+the insert drops the column and the partnership is read back out of the
+older room names — but new rooms are unindexed and the backfill hasn't run.
 
 ## Status
 

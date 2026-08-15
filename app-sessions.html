@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My partners — PeerFlow</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,9 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/app.css">
+<script src="assets/authgate.js"></script>
 </head>
 <body>
 
@@ -31,6 +33,12 @@
       <p id="match-sub"></p>
       <div class="row" id="match-find" hidden style="margin-top:16px">
         <a class="btn" href="app-people.html">Find someone</a>
+      </div>
+      <!-- The other dead end this card had: it said "finish setting up" and
+           then offered nothing to press. -->
+      <div class="row" id="match-finish" hidden style="margin-top:16px">
+        <a class="btn" href="signup.html">Finish setting up</a>
+        <a class="btn ghost" href="app-profile.html">Edit your profile</a>
       </div>
     </div>
 
@@ -122,7 +130,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
-<script src="assets/authgate.js"></script>
 <script>
 (function(){
   var track = '';
@@ -141,6 +148,8 @@
     var status = document.getElementById('match-status');
     var title = document.getElementById('match-title');
     var sub = document.getElementById('match-sub');
+    document.getElementById('match-find').hidden = true;
+    document.getElementById('match-finish').hidden = true;
     if (hasTrack) {
       status.textContent = 'NO PARTNER YET';
       title.textContent = 'You don\u2019t have a partner yet';
@@ -150,7 +159,9 @@
     } else {
       status.textContent = 'ALMOST THERE';
       title.textContent = 'Finish setting up first';
-      sub.textContent = 'Tell us what you\u2019re learning so we can start finding your partner.';
+      sub.textContent = 'Tell us what you\u2019re learning and when you\u2019re free, and you can ' +
+        'start browsing people on your path.';
+      document.getElementById('match-finish').hidden = false;
     }
   }
 
@@ -219,7 +230,7 @@
       /* Only facts we actually hold. A chip reading "Timezone \u2014" is worse than
          two chips instead of three. */
       var chips = [];
-      var n = counts ? (counts[x.roomUrl] || 0) : null;
+      var n = counts ? (counts[x.requestId] || 0) : null;
       if (n !== null) {
         chips.push(['video', n ? n + (n === 1 ? ' session' : ' sessions') + ' together'
                               : 'No sessions yet', n > 0]);
@@ -306,10 +317,12 @@
       if (!all) return null;
       var now = Date.now(), by = {};
       all.forEach(function(s){
-        if (!s.roomUrl) return;
+        /* Counted per partnership. This used to key on the room URL, which
+           only worked while every session with one person shared a room. */
+        if (!s.pairId) return;
         var done = s.status === 'completed' ||
           (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
-        if (done) by[s.roomUrl] = (by[s.roomUrl] || 0) + 1;
+        if (done) by[s.pairId] = (by[s.pairId] || 0) + 1;
       });
       return by;
     }).catch(function(){ return null; });
@@ -327,10 +340,10 @@
 
   /* Counted from the sessions in this pair's room, so two partners get two
      separate records rather than one shared total that flatters both. */
-  function renderPair(person, room){
-    if (!room || !pf.momentum) return;
+  function renderPair(person, pairId){
+    if (!pairId || !pf.momentum) return;
     var who = (person.name || 'them').split(' ')[0];
-    pf.momentum(room).then(function(m){
+    pf.momentum(pairId).then(function(m){
       if (!m || !m.done) return;
       document.getElementById('pair-card').hidden = false;
       document.getElementById('pair-h').textContent = 'You and ' + who;
@@ -348,13 +361,13 @@
 
   /* The sessions the two of you actually had, most recent first. The date is
      the point; a list of "50 minutes" tells nobody anything. */
-  function renderHistory(room){
-    if (!room) return;
+  function renderHistory(pairId){
+    if (!pairId) return;
     pf.fetchSessions().then(function(all){
       if (!all) return;
       var now = Date.now();
       var mine = all.filter(function(s){
-        if (s.roomUrl !== room) return;
+        if (s.pairId !== pairId) return;
         return s.status === 'completed' ||
                (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
       }).sort(function(a, b){ return b.startsAt - a.startsAt; });
@@ -387,7 +400,7 @@
       document.getElementById('q-same').textContent = s.sameTopic;
       if (s.sameTopic > 0) {
         note.textContent = s.sameTopic === 1
-          ? 'One other person is learning the same thing as you. That’s your likely partner.'
+          ? 'One other person is learning the same thing as you — the closest match on your path.'
           : s.sameTopic + ' other people are learning the same thing as you.';
       } else if (s.total > 0) {
         note.textContent = 'Nobody has put down your exact topic yet. Broadening it on your profile ' +
@@ -415,8 +428,8 @@
                way rather than picking a favourite. */
             if (list.length === 1) {
               document.getElementById('pt-pair').hidden = false;
-              renderPair(list[0].profile || {}, list[0].roomUrl);
-              renderHistory(list[0].roomUrl);
+              renderPair(list[0].profile || {}, list[0].requestId);
+              renderHistory(list[0].requestId);
             }
           });
           return;

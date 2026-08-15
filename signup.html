@@ -4,19 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Join PeerFlow — free while we're getting started</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
-<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Loaded without blocking the first paint: text appears immediately in the
+     fallback face and swaps when the webfont lands. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/auth.css">
 </head>
 <body>
 
 <header>
   <div class="wrap nav">
     <a class="logo" href="index.html" aria-label="PeerFlow home">
-      <svg width="30" height="30" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
+      <svg width="26" height="26" viewBox="0 0 173 171" fill="currentColor" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
       <span>peer<b>flow</b></span>
     </a>
     <div class="nav-right">
-      <span style="font-size:14.5px;color:var(--muted)">Already have an account?</span>
+      <span class="nav-note">Already have an account?</span>
       <a class="login" href="login.html">Log in</a>
     </div>
   </div>
@@ -40,7 +49,7 @@
         Continue with Google
       </button>
       <button class="auth-btn" id="btn-github">
-        <svg width="18" height="18" viewBox="0 0 16 16" fill="#21323b" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.42 7.42 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.42 7.42 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         Continue with GitHub
       </button>
     </div>
@@ -70,9 +79,9 @@
       <span class="err">Password needs at least 8 characters.</span>
     </div>
     <div class="onb-nav solo">
-      <button class="btn primary big" id="create-email">Create my account</button>
+      <button class="btn big" id="create-email">Create my account</button>
     </div>
-    <p id="su-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px;max-width:430px"></p>
+    <p id="su-status" class="form-status"></p>
   </section>
 
   <!-- ============ STEP 2 — what are you learning + when are you free ============ -->
@@ -93,30 +102,31 @@
     <p class="step-err" id="track-err" hidden>Pick the path closest to what you're learning.</p>
 
     <h2 class="q">What are you working on right now?</h2>
-    <p class="lead" style="margin:0 0 12px">This is what actually pairs you with someone. Pick the closest one — you can change it any time.</p>
+    <p class="lead tight">This is what people are sorted by, so you can find someone working on the same thing. Pick the closest one — you can change it any time.</p>
     <div class="chips" id="topic-chips" hidden></div>
-    <div class="field" id="f-topic" style="max-width:none">
+    <div class="field free" id="f-topic">
       <input id="su-topic" type="text" placeholder="Or type something else — e.g. Security+ prep" autocomplete="off">
     </div>
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
-      <button class="btn primary big" id="topic-next">Continue</button>
+      <button class="btn big" id="topic-next">Continue</button>
     </div>
   </section>
 
   <!-- ============ STEP 3 — level ============ -->
   <section class="onb-step" data-step="3">
     <h1>Where are you right now?</h1>
-    <p class="lead">So we pair you with someone at a similar stage.</p>
+    <p class="lead">So you can find someone at a similar stage.</p>
     <div class="choices one" id="level-choices">
       <button class="choice" data-level="new"><span><b>I haven't really started</b><span>Curious, motivated, little code written so far</span></span></button>
       <button class="choice" data-level="tutorials"><span><b>I've done tutorials</b><span>Courses and videos, but little on my own yet</span></span></button>
+      <button class="choice" data-level="builder"><span><b>I build things on my own</b><span>Projects beyond tutorials, still learning as I go</span></span></button>
       <button class="choice" data-level="jobprep"><span><b>I'm preparing for the job hunt</b><span>Portfolio, certs, interviews — the last mile</span></span></button>
     </div>
     <p class="step-err" id="level-err" hidden>Pick the one that fits you best.</p>
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
-      <button class="btn primary big" id="level-next">Continue</button>
+      <button class="btn big" id="level-next">Continue</button>
     </div>
   </section>
 
@@ -144,9 +154,25 @@
       Hours are shown in your own time, and your partner sees theirs.</p>
     <div class="onb-nav">
       <button class="back" data-back>← Back</button>
-      <button class="btn primary big" id="finish">Find my partner</button>
+      <button class="btn big" id="finish">See who's learning this</button>
     </div>
-    <p id="su2-status" style="display:none;font-size:13.5px;color:#c0392b;margin-top:14px;max-width:430px"></p>
+    <p id="su2-status" class="form-status"></p>
+  </section>
+
+  <!-- Shown instead of the steps when the account is real but unusable until
+       the address is confirmed. Not a step: the progress bar is hidden with
+       it, because there is nothing left to fill in. -->
+  <section id="confirm-email" hidden>
+    <h1>Check your inbox</h1>
+    <p class="lead">Your answers are saved. Confirm
+      <b id="confirm-addr">your email address</b> using the link we just sent,
+      then log in — you'll go straight to your dashboard with everything you
+      just told us already filled in.</p>
+    <div class="stack">
+      <a class="btn big wide" href="login.html">Go to log in</a>
+    </div>
+    <p class="onb-note">Nothing after a minute? Check your spam folder, or write to
+      <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a>.</p>
   </section>
 </main>
 
@@ -308,7 +334,12 @@
         return;
       }
       if (res.needsConfirm) {
-        suStatus.style.color = '#0b8f66';
+        /* No session until they click the link in their inbox, so the
+           profile save at the end of step 4 has nothing to write against.
+           The finish handler needs to know that rather than discovering it
+           as an unexplained failure. */
+        state.needsConfirm = true;
+        suStatus.classList.add('ok');
         suStatus.textContent = 'Account created — check your inbox to confirm your email. Meanwhile, let’s finish setting you up.';
         suStatus.style.display = 'block';
         setTimeout(function(){ showSignedIn(); show(1); }, 1600);
@@ -384,6 +415,18 @@
      An unknown or missing value just leaves nothing selected. */
   (function(){
     var want = new URLSearchParams(location.search).get('path');
+    /* The path has to survive two round trips that cannot carry a query
+       string: the redirect out to Google and back, and the detour to
+       login.html for someone who realises they already have an account.
+       Stashing it covers both, and unlike appending ?path= to the OAuth
+       return address it does not depend on how the redirect allow-list is
+       configured in Supabase — an address that isn't on that list fails the
+       sign-in outright, which is a worse bug than the one being fixed.
+       Cleared when the profile saves, and on sign-out with the other keys. */
+    try {
+      if (want) localStorage.setItem('pf_want_path', want);
+      else want = localStorage.getItem('pf_want_path') || '';
+    } catch(err) {}
     if (!want) return;
     var c = trackBox.querySelector('.choice[data-track="' + CSS.escape(want) + '"]');
     if (!c) return;
@@ -516,26 +559,72 @@
     } catch(err) {}
 
     var btn = this;
+    var LABEL = btn.textContent;
     btn.disabled = true; btn.textContent = 'Saving…';
-    var left = false, errored = false;
-    function go(){ if (left || errored) return; left = true; window.location.href = 'app.html'; }
+
+    /* One settle, whichever gets there first. The old version let the
+       timeout navigate to the app while the save was still in flight, so
+       someone could land on the dashboard believing they had finished when
+       the write had not happened — or had failed. */
+    var settled = false;
+    function stop(){ if (settled) return false; settled = true; clearTimeout(timer); return true; }
+    function fail(msg){
+      btn.disabled = false; btn.textContent = LABEL;
+      su2Status.className = 'form-status';
+      su2Status.textContent = msg;
+      su2Status.style.display = 'block';
+    }
+
+    var timer = setTimeout(function(){
+      if (!stop()) return;
+      /* Not a navigation. The answers are on this device either way, so the
+         honest thing is to hand the button back rather than to pretend. */
+      fail('That is taking longer than it should. Your answers are safe on this ' +
+           'device — press the button again in a moment.');
+    }, 8000);
 
     pf.saveProfile(profile).then(function(res){
-      if (res && res.error) {
-        errored = true;
-        btn.disabled = false; btn.textContent = 'Done';
-        su2Status.textContent = res.error;
-        su2Status.style.display = 'block';
+      if (!stop()) return;
+
+      if (res && res.error) { fail(res.error); return; }
+
+      if (res && res.saved) {
+        try {
+          localStorage.removeItem('pf_pending');
+          localStorage.removeItem('pf_want_path');
+        } catch(e){}
+        window.location.href = 'app.html';
         return;
       }
-      if (res && res.saved) {
-        try { localStorage.removeItem('pf_pending'); } catch(e){}
-      }
-      go();
+
+      /* Saved nothing, and not an error either: there is no session to write
+         against. With a real backend that means one thing — Supabase is set
+         to confirm email addresses, so the account exists but cannot be used
+         until the link in the inbox is clicked. Sending them to app.html here
+         is what produced the silent bounce back to the login page. */
+      if (window.pf && pf.ready()) { showConfirm(); return; }
+
+      /* No backend at all: the offline demo, which runs on localStorage and
+         is supposed to reach the app. */
+      window.location.href = 'app.html';
+    }, function(){
+      if (!stop()) return;
+      fail('Could not save that — check your connection and try again.');
     });
-    /* Safety net if the network hangs — localStorage already holds the answers. */
-    setTimeout(function(){ if (!errored) go(); }, 8000);
   });
+
+  /* The end of the road for anyone whose account is waiting on a
+     confirmation email. Everything they typed is in pf_pending, and app.html
+     writes it the moment they are signed in, so this says what to do next
+     rather than dropping them on a login form with no explanation. */
+  function showConfirm(){
+    var addr = document.getElementById('confirm-addr');
+    if (state.email) addr.textContent = state.email;
+    document.querySelector('.onb-head').hidden = true;
+    steps.forEach(function(s){ s.classList.remove('on'); });
+    document.getElementById('confirm-email').hidden = false;
+    window.scrollTo(0,0);
+  }
 })();
 </script>
 </body>

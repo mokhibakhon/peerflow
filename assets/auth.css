@@ -1,0 +1,402 @@
+/* ============================================================
+   PeerFlow — log in, sign up, reset, conduct.
+
+   These four pages used to run on styles.css, a system that
+   predated the landing-page and app redesigns: system-ui instead of
+   Jakarta, a 1120px page instead of 1320, 17px body copy instead of
+   16, flat #0b8f66 buttons instead of the dark ink ones, and its own
+   green. Pressing "Find my partner" on the landing page changed the
+   typeface, the width, the green and the button under you all at
+   once, which is the most visible seam on the site.
+
+   Everything here reads its values from tokens.css, and the nav,
+   the buttons, the radii and the focus ring are the landing page's.
+   ============================================================ */
+
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:var(--t-body);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--p1)}
+a{color:inherit;text-decoration:none}
+
+/* One ring on every surface of the site. */
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:var(--r-mark)}
+
+.wrap{max-width:var(--w);margin:0 auto;padding:0 var(--gutter)}
+
+h1,h2,h3{color:var(--ink);letter-spacing:-.026em;text-wrap:balance}
+h1{font-size:var(--t-h2);line-height:1.14;font-weight:800;letter-spacing:-.03em}
+h2{font-size:var(--t-h2);line-height:1.2;font-weight:700}
+h3{font-size:var(--t-h3);font-weight:700;letter-spacing:-.015em}
+
+/* Same kicker as the landing page and the app, rather than the
+   .eyebrow this system used to have at a different size, a different
+   weight and four times the letter-spacing. */
+.mono{
+  font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-faint);
+}
+
+/* ---------- nav ----------
+   Not sticky and not bordered, because the landing page's isn't:
+   this is the same site two clicks later, and the chrome should not
+   grow a bar on the way. */
+header{background:var(--paper)}
+.nav{
+  position:relative;display:flex;align-items:center;gap:18px;
+  padding:26px 0;
+}
+.logo{display:flex;align-items:center;gap:11px;font-weight:400;font-size:20px;letter-spacing:-.015em}
+.logo svg{display:block;flex:0 0 auto;width:26px;height:26px;color:var(--p4)}
+.logo b{font-weight:700;color:var(--p6)}
+
+.nav-links{display:flex;gap:24px;font-size:15.5px;color:var(--ink-soft);margin-left:10px}
+.nav-links a:hover{color:var(--ink)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:18px}
+.nav-note{font-size:var(--t-sm);color:var(--ink-faint)}
+.nav-right .login{font-size:15.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap}
+.nav-right .login:hover{color:var(--ink)}
+
+/* ---------- buttons ----------
+   The landing page's primary: dark ink, lifts on hover, presses back
+   down on click. There is one other primary on the site — the app's
+   green — and that difference is deliberate. There is no third. */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  color:#fff;padding:11px 20px;line-height:1.2;
+  border-radius:var(--r-control);font-size:14px;font-weight:600;border:0;cursor:pointer;
+  font-family:var(--body);text-decoration:none;white-space:nowrap;
+  background:linear-gradient(180deg,#2B2F49,var(--ink));
+  box-shadow:0 1px 2px rgba(23,26,46,.3), inset 0 1px 0 rgba(255,255,255,.14);
+  transition:background .15s ease,box-shadow .15s ease,transform .1s ease;
+}
+.btn:hover{
+  transform:translateY(-1px);
+  background:linear-gradient(180deg,#232741,#0D0F1E);
+  box-shadow:0 4px 12px rgba(23,26,46,.28), inset 0 1px 0 rgba(255,255,255,.14);
+}
+.btn:active{transform:translateY(1px);box-shadow:0 1px 2px rgba(23,26,46,.26)}
+.btn.big{font-size:15px;padding:13px 22px}
+.btn.wide{width:100%}
+
+.btn.ghost{
+  background:none;color:var(--ink);border:1px solid var(--line-strong);
+  box-shadow:none;
+}
+.btn.ghost:hover{background:var(--band);border-color:#C6C5D0;box-shadow:none;transform:translateY(-1px)}
+.small-btn{font-size:var(--t-xs);padding:8px 15px}
+
+/* ---------- the card the forms sit in ----------
+   Grey page, white card — the pattern the landing page and the app
+   both already use. On the old white-on-white pages a login form was
+   a column of controls floating on nothing. */
+.auth-page,.onb{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
+  padding:38px 36px 34px;margin:14px auto 80px;
+}
+.auth-page{max-width:472px}
+.onb{max-width:692px}
+
+.auth-page h1,.onb h1{margin-bottom:8px}
+.auth-page .lead,.onb .lead{color:var(--ink-soft);margin-bottom:26px;font-size:var(--t-body)}
+.auth-page .swap{margin-top:24px;font-size:var(--t-sm);color:var(--ink-faint)}
+.auth-page .swap a{color:var(--p6);font-weight:600}
+.auth-page .swap a:hover{text-decoration:underline}
+.onb-note{font-size:var(--t-xs);color:var(--ink-faint);text-align:center;margin-top:34px}
+.onb-note a{color:var(--p6);font-weight:600}
+
+/* Status lines the pages toggle from JS. The colour lives here
+   rather than in a style attribute or a hex in a script. */
+.form-status{display:none;font-size:var(--t-xs);color:var(--bad);margin-top:14px;max-width:430px}
+/* The one status line that isn't a failure: account created, go and
+   check your inbox. */
+.form-status.ok{color:var(--p6)}
+
+/* ---------- provider buttons ---------- */
+.auth-btns{display:flex;flex-direction:column;gap:10px}
+.auth-btn{
+  display:flex;align-items:center;gap:12px;justify-content:center;
+  border:1px solid var(--line-strong);border-radius:var(--r-control);
+  padding:12px 20px;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;
+  background:var(--card);font-family:var(--body);
+  transition:border-color .15s,background .15s,transform .1s;
+}
+.auth-btn:hover{border-color:#C6C5D0;background:var(--band);transform:translateY(-1px)}
+.divider{display:flex;align-items:center;gap:14px;color:var(--ink-faint);font-size:var(--t-xs);margin:18px 0}
+.divider::before,.divider::after{content:"";height:1px;background:var(--line-strong);flex:1}
+
+/* ---------- fields ---------- */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
+/* "optional" sits inside the label, so without this it inherits the
+   label's 600 and reads as part of the field's name. */
+.field label .hint{font-weight:400;font-size:var(--t-xs);color:var(--ink-faint);letter-spacing:0}
+.field input,.field select{
+  width:100%;border:1px solid var(--line-strong);border-radius:var(--r-control);
+  padding:12px 14px;font-size:15px;font-family:var(--body);color:var(--ink);background:var(--card);
+  transition:border-color .15s,box-shadow .15s;
+}
+.field input::placeholder{color:var(--ink-faint)}
+.field input:focus,.field select:focus{
+  outline:none;border-color:var(--p4);box-shadow:0 0 0 3px rgba(29,158,117,.15);
+}
+.field .err{display:none;font-size:var(--t-xs);color:var(--bad);margin-top:5px}
+.field.bad input{border-color:#D9776A}
+.field.bad .err{display:block}
+
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:64px}
+.pw-toggle{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  background:none;border:0;color:var(--p6);cursor:pointer;
+  font-size:var(--t-xs);font-weight:700;font-family:var(--body);padding:6px;
+}
+.pw-toggle:hover{color:var(--p8)}
+
+.meter{height:5px;border-radius:var(--r-pill);background:var(--band);margin-top:8px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;border-radius:var(--r-pill);background:#D9776A;transition:width .2s,background .2s}
+.meter.ok i{background:#E0A83C}
+.meter.good i{background:var(--p4)}
+.meter-label{font-size:12px;color:var(--ink-faint);margin-top:4px;min-height:16px}
+
+/* ---------- log in: the one failure banner ----------
+   Above the form, so it is the first thing read after a failed
+   attempt rather than a note pinned under a button. */
+.auth-alert{
+  display:flex;align-items:center;gap:11px;
+  background:var(--bad-bg);border:1px solid var(--bad-line);border-radius:var(--r-control);
+  padding:14px 16px;margin:0 0 22px;
+  font-size:15px;font-weight:600;color:var(--bad-ink);
+}
+.auth-alert svg{flex:0 0 auto}
+
+.forgot{
+  display:inline-block;margin-top:8px;padding:0;border:0;background:none;
+  font-family:var(--body);font-size:var(--t-xs);font-weight:600;color:var(--p6);cursor:pointer;
+}
+.forgot:hover{text-decoration:underline}
+/* Boxed, so the reset request reads as a detour from logging in
+   rather than another field to fill in. */
+.forgot-box{
+  margin:10px 0 0;padding:14px 16px;
+  background:var(--band);border:1px solid var(--line-strong);border-radius:var(--r-control);
+}
+.forgot-box p{margin:0;font-size:var(--t-xs);color:var(--ink-soft);line-height:1.55}
+.forgot-box .small-btn{margin-top:11px}
+.forgot-said{margin:11px 0 0;font-size:var(--t-xs);color:var(--warn-ink);line-height:1.5}
+.forgot-said.ok{color:var(--p6);font-weight:600}
+
+.stack{margin-top:22px}
+
+/* ---------- the signup wizard ---------- */
+.onb-head{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.onb-progress{display:flex;gap:6px;flex:1}
+.onb-progress i{height:6px;flex:1;border-radius:var(--r-pill);background:var(--band);transition:background .3s}
+.onb-progress i.on{background:var(--p4)}
+.onb-count{
+  font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-faint);white-space:nowrap;
+}
+.onb-step{display:none}
+.onb-step.on{display:block}
+/* The wizard card is wide enough for the two-column path grid, which
+   makes it far too wide for a name box. Everything that is a single
+   run of controls stays capped at the width of the Google button, so
+   the fields, the divider and the lone action all line up. */
+.onb .field,.onb .auth-btns,.onb .divider,.onb-nav.solo{max-width:430px}
+.onb .avail-grid{max-width:480px}
+.onb h2.q{font-size:var(--t-h3);color:var(--ink);margin:26px 0 4px}
+.onb .lead.tight{margin:0 0 12px}
+/* "Hello, John." once we know who they are, above the step heading. */
+.greet{font-size:var(--t-sm);font-weight:700;color:var(--p6);margin:0 0 10px;letter-spacing:-.01em}
+
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choices.one{grid-template-columns:1fr}
+.choice{
+  border:1px solid var(--line-strong);border-radius:var(--r-control);padding:15px 17px;cursor:pointer;
+  display:flex;gap:13px;align-items:center;background:var(--card);text-align:left;
+  font-family:var(--body);font-size:15px;color:var(--ink-soft);
+  transition:border-color .15s,background .15s,transform .1s;
+}
+.choice:hover{border-color:var(--p4);transform:translateY(-1px)}
+.choice.sel{border-color:var(--p4);background:var(--p0)}
+.choice > span{display:block;min-width:0}
+.choice b{display:block;color:var(--ink);font-size:15px;font-weight:700}
+.choice b + span{display:block;font-size:var(--t-xs);color:var(--ink-faint);margin-top:2px}
+
+.step-err{color:var(--bad);font-size:var(--t-xs);font-weight:600;margin-top:14px}
+
+/* Suggested topics. Picking one fills the box underneath — they are
+   one field, so there is never a chip and a conflicting typed answer. */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{
+  border:1px solid var(--line-strong);background:var(--card);border-radius:var(--r-pill);
+  padding:8px 14px;font-size:14px;font-family:var(--body);color:var(--ink-soft);cursor:pointer;
+  transition:border-color .12s,background .12s,color .12s;
+}
+.chip:hover{border-color:var(--p4);color:var(--ink)}
+.chip.on{background:var(--p4);border-color:var(--p4);color:#fff;font-weight:600}
+.field.free{max-width:none}
+
+/* the shortcut sits above the grid, not in it */
+.avail-any{margin:0 0 12px}
+/* Same numbers as the profile page's copy of this grid in app.css: 46px
+   for the day column, 38px cells. It is the same control, so it should
+   not be a different size depending on whether you have signed up yet. */
+.avail-grid{
+  display:grid;grid-template-columns:46px repeat(4,minmax(0,1fr));gap:6px;
+  font-size:var(--t-xs);color:var(--ink-faint);
+}
+.avail-grid .hd{text-align:center;font-weight:600;padding-bottom:4px}
+.avail-grid .hd b{
+  display:block;font-weight:400;font-size:10.5px;color:var(--ink-faint);
+  font-family:var(--mono);letter-spacing:.02em;
+}
+.avail-grid .day{align-self:center;font-weight:600;color:var(--ink)}
+/* A tinted face and a tick, so the cells read as buttons you press
+   rather than as empty inputs. */
+.cell{
+  height:38px;border:1px solid var(--line-strong);border-radius:var(--r-control);
+  background:var(--band);cursor:pointer;padding:0;position:relative;
+  transition:background .12s,border-color .12s;
+}
+.cell:hover{border-color:var(--p4);background:var(--p0)}
+.cell.sel{background:var(--p4);border-color:var(--p4)}
+.cell.sel::after{
+  content:"";position:absolute;left:50%;top:50%;width:11px;height:6px;
+  border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;
+  transform:translate(-50%,-70%) rotate(-45deg);
+}
+.avail-count{font-size:var(--t-xs);color:var(--ink-faint);margin:12px 0 0}
+.avail-count.warn{color:var(--warn-ink)}
+.avail-count.good{color:var(--p6);font-weight:600}
+.tz-note{font-size:var(--t-xs);color:var(--ink-faint);margin-top:14px}
+.tz-note b{color:var(--ink)}
+
+.onb-nav{display:flex;justify-content:space-between;align-items:center;margin-top:26px;gap:14px}
+.onb-nav .back{
+  color:var(--ink-faint);font-size:var(--t-sm);background:none;border:0;cursor:pointer;
+  font-family:var(--body);padding:6px;
+}
+.onb-nav .back:hover{color:var(--ink)}
+/* Step one has no Back button; a lone action fills the row instead of
+   drifting to the right edge with nothing opposite it. */
+.onb-nav.solo{justify-content:stretch;margin-top:20px}
+.onb-nav.solo .btn{width:100%}
+
+/* ---------- conduct ---------- */
+.page-hero{padding:34px 0 0;text-align:center}
+.page-hero h1{font-size:var(--t-h2)}
+.sub{color:var(--ink-soft);max-width:44em;margin:14px auto 0;font-size:var(--t-lede)}
+/* The spacing lives on .prose rather than on a bare `section`, which also
+   caught every step of the signup wizard — they are <section>s too, and
+   80px of padding inside the card pushed the buttons a long way from the
+   last thing you answered. */
+.prose{
+  max-width:760px;margin:34px auto 80px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
+  padding:38px 40px 34px;
+}
+.prose h3{margin:28px 0 8px}
+.prose h3:first-child{margin-top:0}
+.prose p{margin-bottom:14px;color:var(--ink-soft)}
+.prose p:last-child{margin-bottom:0}
+
+/* ---------- footer ----------
+   The landing page's closing band, so the site ends the same way
+   whichever page you are on. */
+footer{
+  background:var(--deep);color:#A9BDB6;
+  box-shadow:0 0 0 100vmax var(--deep);
+  clip-path:inset(0 -100vmax);
+  padding:44px 0;font-size:var(--t-sm);
+}
+footer a{color:#CFE7DD}
+footer a:hover{text-decoration:underline}
+footer :focus-visible{outline-color:#fff}
+.foot-simple{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.foot-simple .logo{color:#fff}
+.foot-simple .logo svg{color:var(--p2)}
+.foot-simple .logo b{color:var(--p1)}
+.foot-simple p{max-width:30em}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap;margin-top:4px}
+
+/* ---------- responsive ---------- */
+@media (max-width:760px){
+  .nav-links{display:none}
+}
+@media (max-width:560px){
+  .nav{padding:18px 0;gap:12px}
+  .nav-note{display:none}
+  .logo{font-size:17px}
+  .logo svg{width:24px;height:24px}
+  .auth-page,.onb{padding:26px 20px 24px;margin:6px auto 56px;border-radius:var(--r-control)}
+  .prose{padding:26px 22px 22px}
+  .choices{grid-template-columns:1fr}
+  /* 7x4 of anything is tight on a phone: shrink the gutter, not the
+     tap target. */
+  .avail-grid{grid-template-columns:38px repeat(4,1fr);gap:4px}
+  .avail-grid .hd{font-size:11px}
+  .avail-grid .hd b{font-size:9.5px}
+  .cell{height:40px}
+  .chip{padding:7px 12px;font-size:13.5px}
+  .wrap{padding:0 20px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ============================================================
+   Account chip — appears once you're signed in, injected by
+   usermenu.js. Same component as the landing page and the app.
+   ============================================================ */
+.um-wrap{position:relative;display:flex;align-items:center}
+.um-btn{display:flex;align-items:center;gap:9px;border:1px solid var(--line-strong);background:var(--card);
+  border-radius:var(--r-pill);padding:4px 11px 4px 4px;font-family:var(--body);cursor:pointer;
+  transition:border-color .15s,box-shadow .15s}
+.um-btn:hover{border-color:#C6C5D0;box-shadow:0 1px 3px rgba(23,26,46,.07)}
+.um-btn[aria-expanded="true"]{border-color:var(--p4);box-shadow:0 0 0 3px rgba(29,158,117,.15)}
+.um-btn[aria-expanded="true"] .um-chev{transform:rotate(180deg)}
+.um-face,.um-bigface{display:flex;align-items:center;justify-content:center;border-radius:50%;
+  overflow:hidden;flex:0 0 auto;font-weight:700}
+.um-face{width:30px;height:30px;font-size:12.5px}
+.um-bigface{width:38px;height:38px;font-size:15px}
+.um-face img,.um-bigface img{width:100%;height:100%;object-fit:cover;display:block}
+.um-label{font-size:13.5px;font-weight:600;color:var(--ink);max-width:130px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.um-chev{color:var(--ink-faint);flex:0 0 auto;transition:transform .15s}
+
+.um-menu{position:absolute;top:48px;right:0;width:248px;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r-card);padding:6px;z-index:40;
+  box-shadow:0 12px 34px rgba(23,26,46,.13)}
+.um-head{display:flex;align-items:center;gap:11px;padding:11px 12px 12px;
+  border-bottom:1px solid var(--line);margin:-6px -6px 6px}
+.um-who{min-width:0}
+.um-name{display:block;font-size:14.5px;font-weight:700;color:var(--ink);
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.um-mail{display:block;font-size:12.5px;color:var(--ink-faint);margin-top:1px;
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.um-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:var(--r-control);
+  font-size:14px;color:var(--ink-soft);background:none;border:0;font-family:var(--body);
+  cursor:pointer;text-align:left}
+.um-item svg{flex:none;color:var(--ink-faint)}
+.um-item:hover{background:var(--band);color:var(--ink)}
+.um-item:hover svg{color:var(--p6)}
+.um-item.danger{color:var(--bad)}
+.um-item.danger svg{color:var(--bad)}
+.um-item.danger:hover{background:#FDEEEC;color:#A53125}
+.um-sep{height:1px;background:var(--line);margin:6px 4px}
+
+@media (max-width:820px){
+  .um-label,.um-chev{display:none}
+  .um-btn{padding:4px}
+}

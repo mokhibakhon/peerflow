@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>People — PeerFlow</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,9 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/app.css">
+<script src="assets/authgate.js"></script>
 </head>
 <body>
 
@@ -55,7 +57,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
-<script src="assets/authgate.js"></script>
 <script>
 (function(){
   var name = '', myTopic = '';
@@ -115,30 +116,51 @@
       : chip('wait', 'wait', 'Waiting on you');
   }
 
-  var me = { track: '', topic: myTopic, avail: [] };
+  var me = { track: '', topic: myTopic, avail: [], tz: '' };
 
-  /* How many of the times you're free they are free too. This is the fact
-     that decides whether a partnership can physically happen, so it goes
-     on the row rather than being something you find out after asking. */
-  function overlap(theirs){
-    if (!me.avail.length || !theirs || !theirs.length) return 0;
-    var mine = {}, n = 0;
-    me.avail.forEach(function(s){ mine[s] = true; });
-    theirs.forEach(function(s){ if (mine[s]) n++; });
-    return n;
+  /* How many hours you are both free. This is the fact that decides whether
+     a partnership can physically happen, so it goes on the row rather than
+     being something you find out after asking.
+
+     It used to intersect the two lists of slot strings, which asks whether
+     you both wrote down the same words — a different question from whether
+     you are free at the same time, and the same answer only while everybody
+     shares one timezone. pf.sharedAvailability asks it on a real week; see
+     the long note in db.js. */
+  function overlap(them){
+    return pf.sharedAvailability(me.avail, me.tz, them.availability, them.timezone).hours;
   }
 
   /* Why this person is worth your attention, strongest reason first. The
      ranking is the whole point of the page — a list in signup order buries
      the one person on your topic under everyone who joined after them. */
+  function samePath(p){ return !!(me.track && p.track_id === me.track); }
+  function sameTopic(p){
+    return !!(me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase());
+  }
   function reason(p){
-    if (me.topic && p.topic && p.topic.toLowerCase() === me.topic.toLowerCase()) return 'topic';
-    if (me.track && p.track_id === me.track) return 'path';
+    if (sameTopic(p) && samePath(p)) return 'topic';
+    if (samePath(p)) return 'path';
+    if (sameTopic(p)) return 'topic-elsewhere';
     return '';
+  }
+  /* A topic only means something inside the path it belongs to. "Interview
+     prep" is on the frontend list and on the data list, so matching the words
+     alone put a data analyst above every frontend developer for a frontend
+     developer — and labelled them "closest to what you're learning". Same
+     topic on the same path still wins outright; the same word on a different
+     path is worth something, and less than sharing the path. */
+  function topicScore(p){
+    if (sameTopic(p) && samePath(p)) return 200;
+    if (samePath(p)) return 100;
+    if (sameTopic(p)) return 50;
+    return 0;
   }
   function score(p){
     var r = reason(p);
-    return (r === 'topic' ? 200 : r === 'path' ? 100 : 0) + Math.min(overlap(p.availability), 20);
+    /* Capped well under the path bonus: hours in common break ties inside a
+       tier, they never lift a stranger above someone on your own path. */
+    return topicScore(p) + Math.min(overlap(p), 40);
   }
 
   function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
@@ -159,29 +181,31 @@
   /* "3 blocks" is our word for a cell in the availability grid, not a
      reader's. The cell says the whole thing instead, so the column needs no
      decoding: "3 times you're both free". */
-  function howMany(n){ return n === 1 ? '1 time' : n + ' times'; }
+  function howMany(n){ return n === 1 ? '1 hour' : n + ' hours'; }
   function timesShort(p){
     if (!me.avail.length) return '';
-    var n = overlap(p.availability);
+    var n = overlap(p);
     return n ? '<span class="overlap ok">' + howMany(n) + ' you\u2019re both free</span>'
-             : '<span class="overlap none">No times in common</span>';
+             : '<span class="overlap none">No hours in common</span>';
   }
 
   /* The top pick argues its case: the facts that made it the top pick sit on
      the card, so the suggestion is checkable rather than trust-me. */
   function heroCard(p){
-    var nm = p.name || 'Someone', t = tone(nm), why = reason(p), shared = overlap(p.availability);
-    var tag = why === 'topic' ? 'Closest to what you’re learning'
-            : why === 'path'  ? 'Closest on your path'
-                              : 'Free when you’re free';
+    var nm = p.name || 'Someone', t = tone(nm), why = reason(p), shared = overlap(p);
+    var tag = why === 'topic'           ? 'Closest to what you’re learning'
+            : why === 'path'            ? 'Closest on your path'
+            : why === 'topic-elsewhere' ? 'Same topic, different path'
+                                        : 'Free when you’re free';
 
     var facts = [];
-    if (why === 'topic')     facts.push(['Same topic', p.topic]);
-    else if (why === 'path') facts.push(['Same path', pathLabel[p.track_id] || '']);
-    else if (p.topic)        facts.push(['Learning', p.topic]);
+    if (why === 'topic')                facts.push(['Same topic', p.topic]);
+    else if (why === 'path')            facts.push(['Same path', pathLabel[p.track_id] || '']);
+    else if (why === 'topic-elsewhere') facts.push(['Same topic', p.topic]);
+    else if (p.topic)                   facts.push(['Learning', p.topic]);
     if (me.avail.length) {
       facts.push(shared ? ['You’re both free', howMany(shared)]
-                        : ['Times you’re both free', 'None yet']);
+                        : ['Hours you’re both free', 'None yet']);
     }
     if (levelLabel[p.level]) facts.push(['Stage', levelLabel[p.level]]);
     if (p.timezone)          facts.push(['Timezone', p.timezone]);
@@ -209,8 +233,9 @@
 
   function tableRow(p){
     var nm = p.name || 'Someone', t = tone(nm), why = reason(p);
-    var tags = why === 'topic' ? '<span class="same-tag">same topic</span>'
-             : why === 'path'  ? '<span class="same-tag alt">same path</span>' : '';
+    var tags = why === 'topic'           ? '<span class="same-tag">same topic</span>'
+             : why === 'path'            ? '<span class="same-tag alt">same path</span>'
+             : why === 'topic-elsewhere' ? '<span class="same-tag alt">same topic</span>' : '';
     var sub = [pathLabel[p.track_id] || '', levelLabel[p.level] || '']
                 .filter(Boolean).join(' \u00b7 ');
 
@@ -341,6 +366,7 @@
       me.track = profile.track_id || '';
       me.topic = profile.topic || myTopic;
       me.avail = profile.availability || [];
+      me.tz = profile.timezone || '';
     }
     return pf.fetchPeers(60);
   }).then(function(people){

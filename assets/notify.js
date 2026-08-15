@@ -204,16 +204,24 @@
     var status = acc ? 'accepted' : 'declined';
     el.disabled = true;
     el.textContent = acc ? 'Accepting…' : 'Declining…';
+    /* Both arms hand the button back. Without the second one a rejected
+       promise — the network dropping mid-request, say — left the button
+       disabled reading "Accepting…" with no way out but a reload. */
+    function give(msg){
+      el.disabled = false;
+      el.textContent = acc ? 'Accept' : 'Decline';
+      alert(msg);
+    }
     pf.respondToRequest(id, status).then(function(res){
       if (res && res.saved) {
         state.incoming.forEach(function(x){ if (x.id === id) { x.status = status; x.to_seen_at = new Date().toISOString(); } });
         paintBadge();
         paintList();
-      } else {
-        el.disabled = false;
-        el.textContent = acc ? 'Accept' : 'Decline';
-        alert((res && res.error) || 'Could not save that — please try again.');
+        return;
       }
+      give((res && res.error) || 'Could not save that — please try again.');
+    }, function(){
+      give('Could not save that — check your connection and try again.');
     });
   });
 

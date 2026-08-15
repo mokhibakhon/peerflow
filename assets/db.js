@@ -13,6 +13,38 @@ window.pf = (function(){
 
   function ready(){ return !!client; }
 
+  /* The partnership a pre-migration room was named after. Rooms built from a
+     user id rather than a request id simply don't match, which is the same
+     answer the migration gives them: no partner history. */
+  function legacyPair(room){
+    var m = /PeerFlow-([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/
+              .exec(String(room || ''));
+    return m ? m[1] : null;
+  }
+
+  /* A random id for a room name. crypto.randomUUID is everywhere current but
+     is https-only and absent from older Safari, and this must not be the
+     thing that stops somebody booking a session — the fallback is
+     getRandomValues, which is far older, laid out in the same shape. */
+  function newId(){
+    try {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      var b = new Uint8Array(16);
+      window.crypto.getRandomValues(b);
+      b[6] = (b[6] & 0x0f) | 0x40;
+      b[8] = (b[8] & 0x3f) | 0x80;
+      var h = [];
+      for (var i = 0; i < 16; i++) h.push((b[i] + 0x100).toString(16).slice(1));
+      return h.slice(0,4).join('') + '-' + h.slice(4,6).join('') + '-' +
+             h.slice(6,8).join('') + '-' + h.slice(8,10).join('') + '-' + h.slice(10).join('');
+    } catch (e) {
+      /* No CSPRNG at all. Still unique enough to key two rows together, and
+         the room's secrecy is not what authorises anybody — see the note on
+         proposeSession. */
+      return 'x' + Date.now().toString(16) + Math.random().toString(16).slice(2, 10);
+    }
+  }
+
   /* ---------- cached identity guard ---------- */
   /* A few things live in localStorage for first paint: your name, path and
      topic. They belong to ONE account. Log out and back in as someone else
@@ -22,7 +54,7 @@ window.pf = (function(){
   (function(){
     if (!client) return;
     var KEYS = ['pf_name','pf_email','pf_track','pf_topic','pf_pending',
-                'pf_paired','pf_streak'];
+                'pf_want_path','pf_paired','pf_streak'];
     client.auth.getSession().then(function(res){
       var s = res.data && res.data.session;
       var uid = (s && s.user && s.user.id) || '';
@@ -320,7 +352,7 @@ window.pf = (function(){
          on a database that hasn't run it yet fails the whole select, so the
          request falls back to the original column list — an un-migrated
          project keeps working and simply has no attendance to show. */
-      var FULL = 'id,partner_name,topic,starts_at,duration_min,room_url,status,' +
+      var FULL = 'id,partner_name,topic,starts_at,duration_min,room_url,pair_id,status,' +
                  'proposed_by,note,cancelled_by,attended,completed_at,cancelled_at';
       var BASE = 'id,partner_name,topic,starts_at,duration_min,room_url,status,' +
                  'proposed_by,note,cancelled_by';
@@ -349,6 +381,15 @@ window.pf = (function(){
               startsAt: new Date(s.starts_at),
               durationMin: s.duration_min || 50,
               roomUrl: s.room_url,
+              /* Which partnership this session belongs to. On a database that
+                 has not run migration-room-per-session.sql the column is not
+                 selected at all, so it is read back out of the room instead:
+                 every room made before that migration is the literal string
+                 'PeerFlow-' + the partner request id, which is the same thing
+                 the migration's own backfill matches on. Streaks and session
+                 counts therefore keep working un-migrated rather than quietly
+                 reading zero. */
+              pairId: s.pair_id || legacyPair(s.room_url),
               /* Rows written before proposals existed have no status; they
                  were already agreed, so they count as confirmed. */
               status: s.status || 'confirmed',
@@ -379,10 +420,18 @@ window.pf = (function(){
     return currentUser().then(function(me){
       if (!me) return { demo: true };
       var myName = opts.myName || (me.email || '').split('@')[0];
-      var room = opts.roomUrl || ('https://meet.jit.si/PeerFlow-' + (opts.pairId || me.id));
+      /* A room of its own, every time. It used to be
+         'PeerFlow-' + the partner request id, which is the same address for
+         every session the two of you ever book — so anyone who had once been
+         given it kept a working key to all the later ones, including after
+         being blocked. Which partnership a session belongs to is pair_id's
+         job now; room_url only has to be unguessable and shared by this
+         booking's two rows. */
+      var room = 'https://meet.jit.si/PeerFlow-' + newId();
       var common = {
         topic: opts.topic || null, starts_at: opts.startsAt,
         duration_min: opts.durationMin || 50, room_url: room,
+        pair_id: opts.pairId || null,
         status: 'proposed', proposed_by: me.id, note: opts.note || null
       };
       function row(userId, partnerName){
@@ -391,10 +440,31 @@ window.pf = (function(){
         return o;
       }
       var rows = [ row(me.id, opts.partnerName || null), row(opts.partnerId, myName) ];
-      return client.from('sessions').insert(rows).then(function(r){
-        if (r.error) return fail(r.error, 'Could not send that time. Please try again.');
-        return { saved: true };
-      });
+
+      /* pair_id arrives with migration-room-per-session.sql. Writing it to a
+         database that hasn't run that yet fails the whole insert, and losing
+         somebody's booking over a column they never asked for would be
+         absurd — drop it and write the rest. The session is still correct;
+         it just can't say which partnership it belongs to, and fetchSessions
+         reads that back out of the room name for exactly these rows. */
+      function put(list){
+        return client.from('sessions').insert(list).then(function(r){
+          if (r.error && missingColumn(r.error) && /pair_id/.test(String(r.error.message || '')) &&
+              list.length && ('pair_id' in list[0])) {
+            try {
+              console.warn('PeerFlow: sessions.pair_id is missing. ' +
+                           'Run supabase/migration-room-per-session.sql.');
+            } catch(e){}
+            return put(list.map(function(o){
+              var c = {}; for (var k in o) if (o.hasOwnProperty(k) && k !== 'pair_id') c[k] = o[k];
+              return c;
+            }));
+          }
+          if (r.error) return fail(r.error, 'Could not send that time. Please try again.');
+          return { saved: true };
+        });
+      }
+      return put(rows);
     }).catch(function(e){
       return fail(e, 'Could not send that time \u2014 check your connection and try again.');
     });
@@ -611,7 +681,10 @@ window.pf = (function(){
           return {
             requestId: x.id,
             profile: x.other,
-            roomUrl: 'https://meet.jit.si/PeerFlow-' + x.id,
+            /* No roomUrl here any more. Handing out one address per
+               partnership is what made it a standing key; a room is minted
+               when a session is booked. requestId is what callers now use to
+               mean "this partnership". */
             /* null on a database without migration-standing.sql, which the
                dashboard reads as "no standing slot" — the honest answer. */
             standing: x.standing_anchor ? {
@@ -774,18 +847,21 @@ window.pf = (function(){
 
   /* Everything the ring and the record need, from one read of the sessions.
 
-     partnerRoom, when given, narrows it to the sessions you had with one
-     person — which is how a streak becomes "you and Amir" rather than
-     "you". A meeting is two rows sharing a room and a time, so your own rows
-     filtered by their room are exactly the pair's history. */
-  function momentum(partnerRoom){
+     pairId, when given, narrows it to the sessions you had with one person —
+     which is how a streak becomes "you and Amir" rather than "you".
+
+     This used to filter on the room URL, which worked only while every
+     session with the same person reused one room. Now that a room belongs to
+     a single booking, the partnership is its own column and the filter reads
+     that instead. */
+  function momentum(pairId){
     return momentumSource().then(function(r){
       var list = r[0], profile = r[1] || {};
       if (!list) return null;
 
       var now = Date.now(), nowWeek = weekStart(now);
       var done = finished(list, now);
-      if (partnerRoom) done = done.filter(function(s){ return s.roomUrl === partnerRoom; });
+      if (pairId) done = done.filter(function(s){ return s.pairId === pairId; });
 
       var weeks = {};
       done.forEach(function(s){
@@ -1041,6 +1117,154 @@ window.pf = (function(){
         };
       });
     }).catch(function(){ return null; });
+  }
+
+  /* ---------- availability, across timezones ----------
+
+     A profile stores when someone is free as day-band strings — "tue-evening"
+     — chosen in their own local time, with the zone in a column beside them.
+     Signup says as much: "Hours are shown in your own time, and your partner
+     sees theirs."
+
+     Every page that compared two people's availability used to intersect
+     those strings directly, which asks whether two people wrote down the same
+     words rather than whether they are free at the same time. For anyone in
+     the same zone the two questions have the same answer, which is why it
+     held together; across zones it inverts. Someone in Tashkent and someone
+     in Los Angeles who both mark five evenings share no hour at all, and the
+     People page ranked that pair top with "5 times you're both free" —
+     printing America/Los_Angeles on the same card.
+
+     setStanding, four hundred lines up, already says why: "two people in two
+     timezones would not agree on which Thursday 19:00 they meant". Sessions
+     are stored as instants and were always right. It was only the question
+     of who to suggest, and which hours to offer, that was being asked in
+     words instead of in time.
+
+     So: expand each side's bands into real intervals on a UTC week,
+     intersect those, and hand the result back in the viewer's own hours.
+
+     Two things this deliberately does not do. It reads the offset as it
+     stands today, because a weekly slot has no date to read it at — when the
+     clocks go back, a shared window moves by an hour and both people see it
+     move. And an hour is only reported as shared when the whole of it is
+     inside both windows, so a half-hour zone loses an hour at each edge
+     rather than a menu offering a time one of you never claimed. */
+
+  var AV_DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
+  /* Local clock hours each band covers, as [start, end). Night ends at 26
+     rather than at 2 because it runs into the next day and the week wraps. */
+  var AV_BANDS = { morning:[6,12], afternoon:[12,17], evening:[17,22], night:[22,26] };
+  var WEEK_MIN = 7 * 24 * 60;
+
+  /* Minutes east of UTC for an IANA zone, right now. Formatting an instant in
+     the zone and reading the result back as though it were UTC gives the
+     offset without carrying a timezone library. */
+  function tzOffset(tz, when){
+    if (!tz) return null;
+    try {
+      var f = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour12: false,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      var p = {};
+      f.formatToParts(when).forEach(function(x){ p[x.type] = x.value; });
+      var asUtc = Date.UTC(+p.year, +p.month - 1, +p.day, (+p.hour) % 24, +p.minute, +p.second);
+      return Math.round((asUtc - when.getTime()) / 60000);
+    } catch (e) { return null; }        /* a zone this browser doesn't know */
+  }
+
+  /* Fold a list of [start,end) minute intervals onto one week: wrap anything
+     that runs past Saturday midnight round to Sunday, then sort and merge. */
+  function avNormalise(list){
+    var out = [];
+    list.forEach(function(iv){
+      var len = iv[1] - iv[0];
+      if (len <= 0) return;
+      var s = ((iv[0] % WEEK_MIN) + WEEK_MIN) % WEEK_MIN;
+      if (s + len <= WEEK_MIN) out.push([s, s + len]);
+      else { out.push([s, WEEK_MIN]); out.push([0, s + len - WEEK_MIN]); }
+    });
+    out.sort(function(a, b){ return a[0] - b[0]; });
+    var merged = [];
+    out.forEach(function(iv){
+      var last = merged[merged.length - 1];
+      if (last && iv[0] <= last[1]) { if (iv[1] > last[1]) last[1] = iv[1]; }
+      else merged.push([iv[0], iv[1]]);
+    });
+    return merged;
+  }
+
+  /* Local day-band slots -> intervals on the UTC week. An unknown or missing
+     zone is treated as UTC, which is the old behaviour for that row rather
+     than a new kind of wrong. */
+  function avToUtc(slots, tz){
+    var off = tzOffset(tz, new Date());
+    if (off === null) off = 0;
+    var out = [];
+    (slots || []).forEach(function(slot){
+      var bits = String(slot).split('-');
+      var day = AV_DAYS.indexOf(bits[0]), band = AV_BANDS[bits[1]];
+      if (day < 0 || !band) return;
+      var start = day * 1440 + band[0] * 60 - off;
+      out.push([start, start + (band[1] - band[0]) * 60]);
+    });
+    return avNormalise(out);
+  }
+
+  function avIntersect(a, b){
+    var out = [], i = 0, j = 0;
+    while (i < a.length && j < b.length) {
+      var s = Math.max(a[i][0], b[j][0]), e = Math.min(a[i][1], b[j][1]);
+      if (e > s) out.push([s, e]);
+      if (a[i][1] < b[j][1]) i++; else j++;
+    }
+    return out;
+  }
+
+  /* UTC intervals -> whole hours in the viewer's own week. An hour counts
+     only when the whole of it is covered, which is what keeps a menu from
+     offering a time that is only half inside somebody's window. */
+  function avProject(intervals, viewerTz){
+    var minutes = 0;
+    intervals.forEach(function(iv){ minutes += iv[1] - iv[0]; });
+
+    var off = tzOffset(viewerTz, new Date());
+    if (off === null) off = 0;
+    var local = avNormalise(intervals.map(function(iv){ return [iv[0] + off, iv[1] + off]; }));
+
+    var byDay = {}, hours = 0;
+    for (var h = 0; h < 168; h++) {
+      var s = h * 60, e = s + 60, inside = false;
+      for (var k = 0; k < local.length; k++) {
+        if (local[k][0] <= s && local[k][1] >= e) { inside = true; break; }
+      }
+      if (!inside) continue;
+      var d = Math.floor(h / 24);
+      if (!byDay[d]) byDay[d] = [];
+      byDay[d].push(h % 24);
+      hours++;
+    }
+    return { hours: hours, minutes: minutes, byDay: byDay };
+  }
+
+  /* One person's week, read in somebody else's clock. What the partner page
+     needs to shade "when they are free" against your own days rather than
+     against theirs. */
+  function availabilityHours(slots, tz, viewerTz){
+    if (!slots || !slots.length) return { hours: 0, minutes: 0, byDay: {} };
+    return avProject(avToUtc(slots, tz), viewerTz);
+  }
+
+  /* The one call every page makes.
+
+     Returns the hours the two of you really share, counted and laid out by
+     weekday in the *viewer's* local time, so a caller can rank on `hours`,
+     say so in a sentence, light up a calendar or fill a menu without ever
+     handling a zone itself. */
+  function sharedAvailability(mine, myTz, theirs, theirTz){
+    if (!mine || !mine.length || !theirs || !theirs.length)
+      return { hours: 0, minutes: 0, byDay: {} };
+    return avProject(avIntersect(avToUtc(mine, myTz), avToUtc(theirs, theirTz)), myTz);
   }
 
   /* ---------- other learners (real rows only) ---------- */
@@ -1321,6 +1545,8 @@ window.pf = (function(){
     signUpEmail: signUpEmail,
     signInEmail: signInEmail,
     signInOAuth: signInOAuth,
+    sharedAvailability: sharedAvailability,
+    availabilityHours: availabilityHours,
     currentUser: currentUser,
     getProfile: getProfile,
     signOut: signOut,
