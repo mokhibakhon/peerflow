@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Draft — Nothing booked, with several partners — PeerFlow</title>
+<title>Draft — the band after a session, and the rail — PeerFlow</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,26 +12,38 @@
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/app.css">
 <style>
-/* DRAFT ONLY. Scoped to .opt-* and living in this file alone. */
+/* DRAFT ONLY. Everything here is scoped to .dr-* and lives in this file
+   alone, so nothing on this page can reach the real dashboard. */
 .dr-wrap{max-width:1100px;margin:0 auto;padding:34px 22px 90px}
 .dr-h{margin:0 0 6px;font-size:30px;font-weight:800;letter-spacing:-.03em}
 .dr-lede{margin:0;font-size:15px;color:var(--soft);line-height:1.6;max-width:72ch}
 .dr-warn{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;
-  padding:8px 14px;border-radius:999px;background:#FFF6E8;border:1px solid #F0DCC2;
+  padding:8px 14px;border-radius:var(--r-pill);background:#FFF6E8;border:1px solid #F0DCC2;
   color:#8A5A12;font-size:13px;font-weight:600}
-.dr-sec{margin:46px 0 0;padding-top:30px;border-top:1px solid var(--line)}
+.dr-part{margin:54px 0 0;padding-top:22px;border-top:2px solid var(--ink)}
+.dr-part h2{margin:0;font-size:25px;font-weight:800;letter-spacing:-.03em}
+.dr-sec{margin:40px 0 0;padding-top:28px;border-top:1px solid var(--line)}
 .dr-tag{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;
   text-transform:uppercase;color:var(--faint);margin:0 0 10px}
-.dr-sec h2{margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-.02em}
+.dr-sec h3{margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-.02em}
 .dr-note{margin:0 0 18px;font-size:14px;color:var(--soft);line-height:1.6;max-width:76ch}
 .dr-note b{color:var(--ink)}
 .dr-why{margin:16px 0 0;font-size:13.5px;color:var(--soft);line-height:1.65;max-width:76ch}
 .dr-why b{color:var(--ink)}
 .dr-cap{margin:0 0 8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
   text-transform:uppercase;color:var(--faint)}
-.dr-stage{background:var(--bg);border-radius:18px;padding:22px;margin-bottom:16px}
-/* The band is normally the top of a page, so its own top margin is not wanted here. */
+.dr-stage{background:var(--bg);border-radius:var(--r-card);padding:22px;margin-bottom:16px}
+/* The band is normally the top of a page, so its own top margin is not wanted. */
 .dr-stage .now{margin:0}
+/* A rail is 306px in the app; hold it to that here so the cards are the size
+   they will really be rather than stretched across the stage. */
+.dr-rail{display:grid;gap:16px;max-width:306px}
+.dr-rails{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+.dr-rails > div{min-width:0}
+.dr-x{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:#B4471F}
+.dr-ok{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--p6)}
 </style>
 </head>
 <body>
@@ -39,10 +51,13 @@
 <main>
   <div class="dr-wrap">
     <p class="dr-tag">Draft</p>
-    <h1 class="dr-h">"Nothing booked", once you have more than one partner</h1>
+    <h1 class="dr-h">The band after a session, and what the rail is for</h1>
     <p class="dr-lede">
-      You are right that it does not hold up. Below: what it does today at two,
-      four and six partners, then three ways out. Nothing here is live.
+      The two things I left out of the dashboard pass, because both are
+      decisions rather than clean-ups. First: check-out now exists, and the
+      band ignores it. Second: the rail is four cards deep and offers a power
+      feature to people who have not had a session yet. Nothing here is live —
+      the dashboard still behaves the way the "Now" panels below show.
     </p>
     <p class="dr-warn">
       <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -52,167 +67,354 @@
       Preview only — the buttons here do nothing
     </p>
 
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec" style="border-top:0;padding-top:0">
+
+    <!-- ================================================================
+         PART ONE — the band after a session
+         ================================================================ -->
+    <div class="dr-part"><h2>One — the band after a session has ended</h2></div>
+
+    <section class="dr-sec" style="border-top:0;padding-top:22px">
       <p class="dr-tag">Now</p>
-      <h2>What it does today</h2>
+      <h3>It asks you to book while it is still waiting to be told what happened</h3>
       <p class="dr-note">
-        Four faults, and they get worse with each partner. <b>A headline turns
-        into an inventory</b> — the band exists to say what to do next, and a
-        roll-call is a list to read instead of a decision made. <b>It names
-        everyone equally</b>, so it tells you nothing about which of them you
-        have actually left hanging. <b>The names are already on the page</b>,
-        in the "Your partners" rail, with their topics — this is the second
-        time you read them. And <b>it cannot overflow gracefully</b>: names are
-        typed by people, there is no cap and no "+2 more", so the band's one
-        line becomes three.
+        Check-out is live: a session whose end time has passed asks whether it
+        happened, and the answer is the first thing ever written to
+        <code>sessions.attended</code>. But it asks from the card, and the band
+        above carries on as though the session never took place. <b>The band is
+        the one element whose job is "what to do now"</b>, and here the thing to
+        do now is answer a question about Friday — not book Tuesday.
       </p>
 
-      <p class="dr-cap">Two partners — the case it was written for</p>
+      <p class="dr-cap">What you see today</p>
       <div class="dr-stage">
         <section class="now" data-tone="idle">
           <div class="now-txt">
             <span class="mono now-k">Nothing booked</span>
-            <h1>Book your next session with qwwq wqeq and Mohibakhon Omonkhonova.</h1>
+            <h1>Book your next session with Asalxon.</h1>
             <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
             <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
           </div>
         </section>
+        <p class="dr-cap" style="margin:16px 0 8px"><span class="dr-x">and further down the page</span></p>
+        <div class="b wide" style="padding:18px 20px">
+          <p class="mono sub-h" style="margin-top:0">Did these happen?</p>
+          <div class="slot done">
+            <span class="when">Fri, Aug 14, 07:00 PM</span>
+            <span class="what">with Asalxon · Linux privesc<span>50 min</span></span>
+            <span class="co-a">
+              <button class="btn" type="button">I made it</button>
+              <button class="small" type="button">I missed it</button>
+            </span>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <p class="dr-cap">Four</p>
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Option A</p>
+      <h3>The band asks, and it is the only thing it asks</h3>
+      <p class="dr-note">
+        A seventh tone, slotted below "your room is open" and "needs your
+        answer" and above everything else. It holds one session — the most
+        recent — and the card keeps any others.
+      </p>
       <div class="dr-stage">
-        <section class="now" data-tone="idle">
+        <section class="now" data-tone="answer">
           <div class="now-txt">
-            <span class="mono now-k">Nothing booked</span>
-            <h1>Book your next session with qwwq wqeq, Mohibakhon Omonkhonova, Asalxon Axmadxo’jayeva and Bekzod Toshmatov.</h1>
-            <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
-            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
+            <span class="mono now-k">One question</span>
+            <h1>Did Friday happen?</h1>
+            <p class="now-s">You and Asalxon had 50 minutes booked at 7:00 PM. Nobody has said either way.</p>
+            <div class="now-a">
+              <button class="btn" type="button">We did it</button>
+              <button class="ghost" type="button">I missed it</button>
+            </div>
+            <p class="now-f">Only your own answer — Asalxon is asked separately about theirs.</p>
           </div>
         </section>
       </div>
+      <p class="dr-why">
+        <b>Trade-off.</b> It is the honest reading of what the band is for, and
+        it is two taps to clear. But it is retrospective, and it pushes "book
+        your next session" down for as long as you ignore it — a band that
+        nags about last week is a band you learn to scroll past. It also has to
+        cap: three un-answered sessions cannot become three bands.
+      </p>
+    </section>
 
-      <p class="dr-cap">Six</p>
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Option B</p>
+      <h3>The band stays on what is next, and mentions it underneath</h3>
+      <p class="dr-note">
+        The footnote line the band already has — the one that says when the
+        call link opens — carries the question instead, as a link down to the
+        card.
+      </p>
       <div class="dr-stage">
         <section class="now" data-tone="idle">
           <div class="now-txt">
             <span class="mono now-k">Nothing booked</span>
-            <h1>Book your next session with qwwq wqeq, Mohibakhon Omonkhonova, Asalxon Axmadxo’jayeva, Bekzod Toshmatov, Dilnoza Rahimova and Nodira Yusupova.</h1>
+            <h1>Book your next session with Asalxon.</h1>
+            <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
+            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
+            <p class="now-f">Friday’s session still needs a yes or no →</p>
+          </div>
+        </section>
+      </div>
+      <p class="dr-why">
+        <b>Trade-off.</b> Nothing gets pushed down and the band keeps facing
+        forwards, which is where a dashboard should face. But the footnote is
+        the quietest line in the band, it is grey on green, and asking for the
+        one piece of data the whole reliability score depends on in the
+        smallest type on the page is how it stays unanswered.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Option C</p>
+      <h3>A strip above the band, not a tone inside it</h3>
+      <p class="dr-note">
+        Its own row, sitting between the top bar and the band. One line, two
+        buttons, and it disappears the moment it is answered.
+      </p>
+      <div class="dr-stage">
+        <div class="invstrip" style="margin:0 0 12px;border-style:solid;border-color:#F0DCC2;background:#FFF9EC">
+          <p style="margin:0;font-size:14.5px;color:#7A5310">
+            <b style="color:#5E3F0B">Friday, 7:00 PM with Asalxon.</b> Did it happen?
+          </p>
+          <span style="display:flex;gap:8px">
+            <button class="btn" type="button">We did</button>
+            <button class="small" type="button">I missed it</button>
+          </span>
+        </div>
+        <section class="now" data-tone="idle">
+          <div class="now-txt">
+            <span class="mono now-k">Nothing booked</span>
+            <h1>Book your next session with Asalxon.</h1>
             <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
             <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
           </div>
         </section>
       </div>
       <p class="dr-why">
-        Note the sub-line too: <b>"an hour you’re both free"</b> and <b>"once
-        they accept"</b> are written for exactly one other person. With four
-        partners "both" is simply wrong.
+        <b>Trade-off.</b> Both things get said at full volume and neither
+        displaces the other, and several unanswered sessions stack as several
+        thin rows rather than fighting over one band. The cost is a new piece
+        of furniture above the element that is supposed to be the top of the
+        page — and the band stops being the first thing you read, which is the
+        one rule this dashboard has held to so far.
       </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec opt-a">
-      <p class="dr-tag">Option A</p>
-      <h2>Stop naming them</h2>
-      <p class="dr-note">
-        The band says what to do; the rail below already says who with. One
-        line at any number of partners.
-      </p>
-      <div class="dr-stage">
-        <section class="now" data-tone="idle">
-          <div class="now-txt">
-            <span class="mono now-k">Nothing booked</span>
-            <h1>Book your next session.</h1>
-            <p class="now-s">You have four partners — choose who and when, and it lands on both calendars once they accept.</p>
-            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
-          </div>
-        </section>
-      </div>
-      <p class="dr-why"><b>Trade-off.</b> Safe, short, never breaks. But it is
-        the least useful of the three: it tells you to do something without
-        helping you decide anything.</p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec opt-b">
-      <p class="dr-tag">Option B</p>
-      <h2>Name the one you have left longest</h2>
-      <p class="dr-note">
-        Instead of listing everyone, lead with the partner you have gone
-        longest without meeting, and let the rest be a count. This is the only
-        option that makes a decision rather than describing a state — and the
-        gap is a fact we already hold, since sessions carry a date and a room.
-      </p>
-      <div class="dr-stage">
-        <section class="now" data-tone="idle">
-          <div class="now-txt">
-            <span class="mono now-k">Nothing booked</span>
-            <h1>It’s been three weeks since you studied with Bekzod.</h1>
-            <p class="now-s">Longest of your four partners. Pick an hour you’re both free and it lands on both calendars once they accept.</p>
-            <div class="now-a">
-              <a class="btn" href="#">Propose a time with Bekzod</a>
-              <a class="ghost" href="#">Someone else</a>
-            </div>
-          </div>
-        </section>
-      </div>
-      <p class="dr-cap">And when nobody has a history to rank on yet</p>
-      <div class="dr-stage">
-        <section class="now" data-tone="idle">
-          <div class="now-txt">
-            <span class="mono now-k">Nothing booked</span>
-            <h1>Book your first session with one of your partners.</h1>
-            <p class="now-s">You have four — choose who and when, and it lands on both calendars once they accept.</p>
-            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
-          </div>
-        </section>
-      </div>
-      <p class="dr-why"><b>Trade-off.</b> Most useful and the most work: it
-        needs the last session per partner, and it needs a second button so the
-        suggestion is not a cage. It also has to fall back to Option A's
-        wording for anybody brand new, which is the second band above.</p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec opt-c">
-      <p class="dr-tag">Option C</p>
-      <h2>Keep the names, cap the list</h2>
-      <p class="dr-note">
-        The smallest possible change: two names, then a count.
-      </p>
-      <div class="dr-stage">
-        <section class="now" data-tone="idle">
-          <div class="now-txt">
-            <span class="mono now-k">Nothing booked</span>
-            <h1>Book your next session with qwwq wqeq, Mohibakhon and 2 others.</h1>
-            <p class="now-s">Choose who and when — it lands on both calendars once they accept.</p>
-            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
-          </div>
-        </section>
-      </div>
-      <p class="dr-why"><b>Trade-off.</b> One line of code, and it stops the
-        overflow. It does not fix the real problem: it is still a roll-call,
-        still duplicates the rail, and "and 2 others" is a worse thing to say
-        about a person than not naming them at all.</p>
     </section>
 
     <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec">
       <p class="dr-tag">If you want my opinion</p>
-      <h2>B, with A as its fallback</h2>
+      <h3>C, and A if you would rather not add a row</h3>
       <p class="dr-note">
-        The band is the one place on Today that is supposed to tell you what to
-        do next. A list of names is not that; the longest gap is. <b>B</b> also
-        happens to fix the thing the current copy gets wrong — it stops saying
-        "both" about four people — and it needs the fallback anyway, which is
-        <b>A</b>, so building B gets you A for free.
-      </p>
-      <p class="dr-note">
-        If you would rather not touch the data layer today, <b>A</b> alone is a
-        real improvement and about ten lines. I would skip <b>C</b>: it costs
-        nearly the same as A and keeps the flaw.
+        The question is worth asking properly — it is the only source of the
+        attendance data, the reliability score is dark without it, and the
+        conduct page implies people can see who turns up. B asks properly but
+        quietly, which is the same as not asking. Between A and C: A is
+        cheaper and reuses a tone, C is honest that these are two different
+        kinds of thing and scales to more than one. I would take C, and I
+        would make it disappear for good once answered rather than nagging on
+        the next load.
       </p>
     </section>
+
+
+    <!-- ================================================================
+         PART TWO — the rail
+         ================================================================ -->
+    <div class="dr-part"><h2>Two — what the rail is for</h2></div>
+
+    <section class="dr-sec" style="border-top:0;padding-top:22px">
+      <p class="dr-tag">Now</p>
+      <h3>Four cards, and one of them is offered too early</h3>
+      <p class="dr-note">
+        The rail runs about a thousand pixels — taller than the main column now
+        that the sessions list collapses, so the booked state has a short left
+        side and a long right one. More to the point, <b>"Standing slot" is a
+        power feature shown to somebody who has not completed a session yet</b>,
+        and <b>"Your partner" repeats a name the band above has already said</b>
+        when you only have one.
+      </p>
+      <div class="dr-stage">
+        <div class="dr-rail">
+          <section class="rail streak">
+            <div class="st-ring">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
+                <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
+              </svg>
+              <span class="st-mid"><b>3</b><i>week streak</i></span>
+            </div>
+            <p class="st-h">Don’t leave Asalxon hanging</p>
+            <p class="st-w">1 session left, 2 days to book it.</p>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+          <section class="rail">
+            <h3>Your partner</h3>
+            <p style="margin:0;font-size:14.5px;font-weight:700">Asalxon Axmadxo’jayeva</p>
+            <p style="margin:2px 0 0;font-size:13px;color:var(--faint)">Linux privilege escalation</p>
+            <a class="rail-l" href="#">Partner page &rarr;</a>
+          </section>
+          <section class="rail">
+            <h3>Standing slot</h3>
+            <p class="st-now">Nothing standing yet.</p>
+            <p class="st-sub">Agree one hour a week with Asalxon and it books itself from then on.</p>
+            <div class="st-acts"><button class="btn" type="button">Set one up</button></div>
+          </section>
+          <section class="rail">
+            <span class="mono">Week 2 of 12</span>
+            <p class="wk-t">Ports, protocols and packets</p>
+            <a class="rail-l" href="#">All 12 weeks &rarr;</a>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Option A</p>
+      <h3>Each card earns its place</h3>
+      <p class="dr-note">
+        Nothing is deleted; things appear when they mean something. Standing
+        slot waits for your first completed session — until then it is
+        describing a habit you have not started. Your partner waits until you
+        have two, because with one the band has already named them.
+      </p>
+      <div class="dr-rails">
+        <div>
+          <p class="dr-cap">Before your first session <span class="dr-ok">two cards</span></p>
+          <div class="dr-stage">
+            <div class="dr-rail">
+              <section class="rail streak">
+                <div class="st-ring">
+                  <svg viewBox="0 0 120 120" aria-hidden="true">
+                    <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
+                    <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
+                  </svg>
+                  <span class="st-mid"><b>0</b><i>week streak</i></span>
+                </div>
+                <p class="st-h">Your first session starts it</p>
+                <p class="st-w">0 of 2 this week.</p>
+                <a class="rail-l" href="#">Your progress &rarr;</a>
+              </section>
+              <section class="rail">
+                <span class="mono">Week 1 of 12</span>
+                <p class="wk-t">What a network actually is</p>
+                <a class="rail-l" href="#">All 12 weeks &rarr;</a>
+              </section>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="dr-cap">Once you are going <span class="dr-ok">three</span></p>
+          <div class="dr-stage">
+            <div class="dr-rail">
+              <section class="rail streak">
+                <div class="st-ring">
+                  <svg viewBox="0 0 120 120" aria-hidden="true">
+                    <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
+                    <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
+                  </svg>
+                  <span class="st-mid"><b>3</b><i>week streak</i></span>
+                </div>
+                <p class="st-h">Don’t leave Asalxon hanging</p>
+                <p class="st-w">1 session left, 2 days to book it.</p>
+                <a class="rail-l" href="#">Your progress &rarr;</a>
+              </section>
+              <section class="rail">
+                <h3>Standing slot</h3>
+                <p class="st-now">Nothing standing yet.</p>
+                <p class="st-sub">Agree one hour a week with Asalxon and it books itself from then on.</p>
+                <div class="st-acts"><button class="btn" type="button">Set one up</button></div>
+              </section>
+              <section class="rail">
+                <span class="mono">Week 2 of 12</span>
+                <p class="wk-t">Ports, protocols and packets</p>
+                <a class="rail-l" href="#">All 12 weeks &rarr;</a>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="dr-why">
+        <b>Trade-off.</b> Cheapest of the three — two conditions, no new
+        components — and it fixes the thing that actually reads as wrong,
+        which is being sold a standing slot before you have had one session.
+        It does not shorten the rail for an established user, so the long-right
+        short-left imbalance stays in the booked state.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Option B</p>
+      <h3>The streak and the plan are one card</h3>
+      <p class="dr-note">
+        They are both answers to "how am I doing" — one looks back, one looks
+        forward, and they sit in two boxes with a gap between them. One card,
+        one heading, the week you are on underneath the ring.
+      </p>
+      <div class="dr-stage">
+        <div class="dr-rail">
+          <section class="rail streak">
+            <div class="st-ring">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
+                <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
+              </svg>
+              <span class="st-mid"><b>3</b><i>week streak</i></span>
+            </div>
+            <p class="st-h">Don’t leave Asalxon hanging</p>
+            <p class="st-w">1 session left, 2 days to book it.</p>
+            <div class="st-hist">
+              <p class="st-hl">You’re on week 2 of 12</p>
+              <p class="wk-t" style="margin:2px 0 0">Ports, protocols and packets</p>
+            </div>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+          <section class="rail">
+            <h3>Standing slot</h3>
+            <p class="st-now">Nothing standing yet.</p>
+            <p class="st-sub">Agree one hour a week with Asalxon and it books itself from then on.</p>
+            <div class="st-acts"><button class="btn" type="button">Set one up</button></div>
+          </section>
+        </div>
+      </div>
+      <p class="dr-why">
+        <b>Trade-off.</b> Two cards instead of four, and the two halves of
+        "how am I doing" finally sit together. But the twelve-week plan is the
+        only forward-looking thing on the dashboard and folding it under a
+        streak ring makes it a footnote to a counter — and the counter is about
+        turning up, not about what you are learning.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">If you want my opinion</p>
+      <h3>A, and leave the length alone</h3>
+      <p class="dr-note">
+        A fixes a real thing — offering a standing slot to someone with no
+        sessions is selling a habit to a person who has not started — and it
+        costs two conditions. B is tidier and I do not think it is right: the
+        plan is the only part of this page about the subject rather than the
+        scheduling, and it should not become a line inside a streak card.
+        The short-left long-right imbalance is worth living with; it is the
+        honest shape of a page whose main column is empty because you have
+        nothing booked, and the fix for that is having something booked.
+      </p>
+      <p class="dr-why">
+        Say which way and I will build it. Both are small; A is about twenty
+        lines in <b>app.html</b> and no new CSS.
+      </p>
+    </section>
+
   </div>
 </main>
 
