@@ -99,8 +99,17 @@ There is no automatic matching engine, and no hand-editing of tables.
    other accepts; they can also decline or suggest another time. Either side
    can cancel a booked session, and the other is told.
 
-Video calls are Jitsi rooms, one per pair, and the link opens 15 minutes
-before the session starts.
+Video calls are Jitsi rooms, **one per booked session**, and the link opens
+15 minutes before the session starts. The room used to be one per
+partnership — the same address for every session the two of you ever booked
+— which made the URL a standing key: block someone and they still held a
+working way into every future call. Which partnership a session belongs to
+is `sessions.pair_id` now (`supabase/migration-room-per-session.sql`), so
+streaks and per-partner history read a column instead of reading the room.
+
+Run that migration alongside the others; without it the app still works —
+the insert drops the column and the partnership is read back out of the
+older room names — but new rooms are unindexed and the backfill hasn't run.
 
 ## Status
 

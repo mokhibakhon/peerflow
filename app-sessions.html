@@ -230,7 +230,7 @@
       /* Only facts we actually hold. A chip reading "Timezone \u2014" is worse than
          two chips instead of three. */
       var chips = [];
-      var n = counts ? (counts[x.roomUrl] || 0) : null;
+      var n = counts ? (counts[x.requestId] || 0) : null;
       if (n !== null) {
         chips.push(['video', n ? n + (n === 1 ? ' session' : ' sessions') + ' together'
                               : 'No sessions yet', n > 0]);
@@ -317,10 +317,12 @@
       if (!all) return null;
       var now = Date.now(), by = {};
       all.forEach(function(s){
-        if (!s.roomUrl) return;
+        /* Counted per partnership. This used to key on the room URL, which
+           only worked while every session with one person shared a room. */
+        if (!s.pairId) return;
         var done = s.status === 'completed' ||
           (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
-        if (done) by[s.roomUrl] = (by[s.roomUrl] || 0) + 1;
+        if (done) by[s.pairId] = (by[s.pairId] || 0) + 1;
       });
       return by;
     }).catch(function(){ return null; });
@@ -338,10 +340,10 @@
 
   /* Counted from the sessions in this pair's room, so two partners get two
      separate records rather than one shared total that flatters both. */
-  function renderPair(person, room){
-    if (!room || !pf.momentum) return;
+  function renderPair(person, pairId){
+    if (!pairId || !pf.momentum) return;
     var who = (person.name || 'them').split(' ')[0];
-    pf.momentum(room).then(function(m){
+    pf.momentum(pairId).then(function(m){
       if (!m || !m.done) return;
       document.getElementById('pair-card').hidden = false;
       document.getElementById('pair-h').textContent = 'You and ' + who;
@@ -359,13 +361,13 @@
 
   /* The sessions the two of you actually had, most recent first. The date is
      the point; a list of "50 minutes" tells nobody anything. */
-  function renderHistory(room){
-    if (!room) return;
+  function renderHistory(pairId){
+    if (!pairId) return;
     pf.fetchSessions().then(function(all){
       if (!all) return;
       var now = Date.now();
       var mine = all.filter(function(s){
-        if (s.roomUrl !== room) return;
+        if (s.pairId !== pairId) return;
         return s.status === 'completed' ||
                (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
       }).sort(function(a, b){ return b.startsAt - a.startsAt; });
@@ -426,8 +428,8 @@
                way rather than picking a favourite. */
             if (list.length === 1) {
               document.getElementById('pt-pair').hidden = false;
-              renderPair(list[0].profile || {}, list[0].roomUrl);
-              renderHistory(list[0].roomUrl);
+              renderPair(list[0].profile || {}, list[0].requestId);
+              renderHistory(list[0].requestId);
             }
           });
           return;

@@ -13,6 +13,38 @@ window.pf = (function(){
 
   function ready(){ return !!client; }
 
+  /* The partnership a pre-migration room was named after. Rooms built from a
+     user id rather than a request id simply don't match, which is the same
+     answer the migration gives them: no partner history. */
+  function legacyPair(room){
+    var m = /PeerFlow-([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/
+              .exec(String(room || ''));
+    return m ? m[1] : null;
+  }
+
+  /* A random id for a room name. crypto.randomUUID is everywhere current but
+     is https-only and absent from older Safari, and this must not be the
+     thing that stops somebody booking a session — the fallback is
+     getRandomValues, which is far older, laid out in the same shape. */
+  function newId(){
+    try {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      var b = new Uint8Array(16);
+      window.crypto.getRandomValues(b);
+      b[6] = (b[6] & 0x0f) | 0x40;
+      b[8] = (b[8] & 0x3f) | 0x80;
+      var h = [];
+      for (var i = 0; i < 16; i++) h.push((b[i] + 0x100).toString(16).slice(1));
+      return h.slice(0,4).join('') + '-' + h.slice(4,6).join('') + '-' +
+             h.slice(6,8).join('') + '-' + h.slice(8,10).join('') + '-' + h.slice(10).join('');
+    } catch (e) {
+      /* No CSPRNG at all. Still unique enough to key two rows together, and
+         the room's secrecy is not what authorises anybody — see the note on
+         proposeSession. */
+      return 'x' + Date.now().toString(16) + Math.random().toString(16).slice(2, 10);
+    }
+  }
+
   /* ---------- cached identity guard ---------- */
   /* A few things live in localStorage for first paint: your name, path and
      topic. They belong to ONE account. Log out and back in as someone else
@@ -320,7 +352,7 @@ window.pf = (function(){
          on a database that hasn't run it yet fails the whole select, so the
          request falls back to the original column list — an un-migrated
          project keeps working and simply has no attendance to show. */
-      var FULL = 'id,partner_name,topic,starts_at,duration_min,room_url,status,' +
+      var FULL = 'id,partner_name,topic,starts_at,duration_min,room_url,pair_id,status,' +
                  'proposed_by,note,cancelled_by,attended,completed_at,cancelled_at';
       var BASE = 'id,partner_name,topic,starts_at,duration_min,room_url,status,' +
                  'proposed_by,note,cancelled_by';
@@ -349,6 +381,15 @@ window.pf = (function(){
               startsAt: new Date(s.starts_at),
               durationMin: s.duration_min || 50,
               roomUrl: s.room_url,
+              /* Which partnership this session belongs to. On a database that
+                 has not run migration-room-per-session.sql the column is not
+                 selected at all, so it is read back out of the room instead:
+                 every room made before that migration is the literal string
+                 'PeerFlow-' + the partner request id, which is the same thing
+                 the migration's own backfill matches on. Streaks and session
+                 counts therefore keep working un-migrated rather than quietly
+                 reading zero. */
+              pairId: s.pair_id || legacyPair(s.room_url),
               /* Rows written before proposals existed have no status; they
                  were already agreed, so they count as confirmed. */
               status: s.status || 'confirmed',
@@ -379,10 +420,18 @@ window.pf = (function(){
     return currentUser().then(function(me){
       if (!me) return { demo: true };
       var myName = opts.myName || (me.email || '').split('@')[0];
-      var room = opts.roomUrl || ('https://meet.jit.si/PeerFlow-' + (opts.pairId || me.id));
+      /* A room of its own, every time. It used to be
+         'PeerFlow-' + the partner request id, which is the same address for
+         every session the two of you ever book — so anyone who had once been
+         given it kept a working key to all the later ones, including after
+         being blocked. Which partnership a session belongs to is pair_id's
+         job now; room_url only has to be unguessable and shared by this
+         booking's two rows. */
+      var room = 'https://meet.jit.si/PeerFlow-' + newId();
       var common = {
         topic: opts.topic || null, starts_at: opts.startsAt,
         duration_min: opts.durationMin || 50, room_url: room,
+        pair_id: opts.pairId || null,
         status: 'proposed', proposed_by: me.id, note: opts.note || null
       };
       function row(userId, partnerName){
@@ -391,10 +440,31 @@ window.pf = (function(){
         return o;
       }
       var rows = [ row(me.id, opts.partnerName || null), row(opts.partnerId, myName) ];
-      return client.from('sessions').insert(rows).then(function(r){
-        if (r.error) return fail(r.error, 'Could not send that time. Please try again.');
-        return { saved: true };
-      });
+
+      /* pair_id arrives with migration-room-per-session.sql. Writing it to a
+         database that hasn't run that yet fails the whole insert, and losing
+         somebody's booking over a column they never asked for would be
+         absurd — drop it and write the rest. The session is still correct;
+         it just can't say which partnership it belongs to, and fetchSessions
+         reads that back out of the room name for exactly these rows. */
+      function put(list){
+        return client.from('sessions').insert(list).then(function(r){
+          if (r.error && missingColumn(r.error) && /pair_id/.test(String(r.error.message || '')) &&
+              list.length && ('pair_id' in list[0])) {
+            try {
+              console.warn('PeerFlow: sessions.pair_id is missing. ' +
+                           'Run supabase/migration-room-per-session.sql.');
+            } catch(e){}
+            return put(list.map(function(o){
+              var c = {}; for (var k in o) if (o.hasOwnProperty(k) && k !== 'pair_id') c[k] = o[k];
+              return c;
+            }));
+          }
+          if (r.error) return fail(r.error, 'Could not send that time. Please try again.');
+          return { saved: true };
+        });
+      }
+      return put(rows);
     }).catch(function(e){
       return fail(e, 'Could not send that time \u2014 check your connection and try again.');
     });
@@ -611,7 +681,10 @@ window.pf = (function(){
           return {
             requestId: x.id,
             profile: x.other,
-            roomUrl: 'https://meet.jit.si/PeerFlow-' + x.id,
+            /* No roomUrl here any more. Handing out one address per
+               partnership is what made it a standing key; a room is minted
+               when a session is booked. requestId is what callers now use to
+               mean "this partnership". */
             /* null on a database without migration-standing.sql, which the
                dashboard reads as "no standing slot" — the honest answer. */
             standing: x.standing_anchor ? {
@@ -774,18 +847,21 @@ window.pf = (function(){
 
   /* Everything the ring and the record need, from one read of the sessions.
 
-     partnerRoom, when given, narrows it to the sessions you had with one
-     person — which is how a streak becomes "you and Amir" rather than
-     "you". A meeting is two rows sharing a room and a time, so your own rows
-     filtered by their room are exactly the pair's history. */
-  function momentum(partnerRoom){
+     pairId, when given, narrows it to the sessions you had with one person —
+     which is how a streak becomes "you and Amir" rather than "you".
+
+     This used to filter on the room URL, which worked only while every
+     session with the same person reused one room. Now that a room belongs to
+     a single booking, the partnership is its own column and the filter reads
+     that instead. */
+  function momentum(pairId){
     return momentumSource().then(function(r){
       var list = r[0], profile = r[1] || {};
       if (!list) return null;
 
       var now = Date.now(), nowWeek = weekStart(now);
       var done = finished(list, now);
-      if (partnerRoom) done = done.filter(function(s){ return s.roomUrl === partnerRoom; });
+      if (pairId) done = done.filter(function(s){ return s.pairId === pairId; });
 
       var weeks = {};
       done.forEach(function(s){

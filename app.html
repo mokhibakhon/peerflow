@@ -1067,7 +1067,8 @@
       startsAt: w.toISOString(),
       durationMin: bkLen,
       note: document.getElementById('bk-msg').value.trim(),
-      roomUrl: bookPartner.roomUrl,
+      /* No roomUrl: proposeSession mints one for this booking. Passing the
+         partnership's old standing room is what kept the address alive. */
       pairId: bookPartner.requestId
     }).then(function(res){
       btn.disabled = false; btn.textContent = 'Propose this time';
@@ -1559,7 +1560,7 @@
           })[0] || null;
           var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
           var partner = partners[0] || null;
-          /* acceptedPartners() gives {requestId, profile, roomUrl} — the name
+          /* acceptedPartners() gives {requestId, profile} — the name
              lives on .profile, not on the row itself. */
           var pname = partner && partner.profile && partner.profile.name;
           /* "You're paired with Munisa" was a lie the moment a second person
@@ -1580,7 +1581,6 @@
                 topic: x.profile.topic,
                 availability: x.profile.availability || [],
                 timezone: x.profile.timezone || '',
-                roomUrl: x.roomUrl,
                 requestId: x.requestId,
                 standing: x.standing || null
               };
@@ -1733,9 +1733,12 @@
              disagree about what a week is, which they did. Narrowed to one
              partner's room where there is one, so the streak can be named
              after the two of you. */
-          var room = bookPartners.length === 1 ? bookPartners[0].roomUrl : null;
-          pf.momentum(room).then(function(m){
-            renderMomentum(m, room ? bookPartners[0].name : '');
+          /* Narrowed to one partnership where there is one, so the streak
+             can be named after the two of you. The partnership, not the
+             room — a room belongs to a single booking now. */
+          var pair = bookPartners.length === 1 ? bookPartners[0].requestId : null;
+          pf.momentum(pair).then(function(m){
+            renderMomentum(m, pair ? bookPartners[0].name : '');
           });
 
           var done = all.filter(function(x){
