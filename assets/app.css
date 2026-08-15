@@ -143,6 +143,12 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 .now[data-tone="load"] h1{color:var(--faint)}
 
 /* ---------- the two columns ---------- */
+/* Nothing in the main column yet — no partner, so no calendar and no
+   sessions. Two columns with one of them empty left a 700px void beside the
+   rail, which reads worse than the empty grid it replaced. The rail comes
+   back to the left and keeps its width, so a new account sees a band and two
+   cards rather than a band and a hole. */
+.dash.solo{grid-template-columns:306px}
 .dash{display:grid;grid-template-columns:minmax(0,1fr) 306px;gap:16px;
   align-items:start;margin-top:16px}
 .dash-main{display:grid;gap:16px;min-width:0}
@@ -394,7 +400,15 @@ h1 .g{color:var(--p4)}
 @media (max-width:600px){ .slot .when{width:auto;flex:1 1 100%} }
 .slot .what{flex:1;min-width:140px;font-size:14.5px}
 .slot .what span{display:block;font-size:12.5px;color:var(--faint)}
-.slot .rel{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+/* The relative time in a session row. Plain text: it says when, it is not
+   something you press. */
+.slot .when-rel{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+
+/* Check-out rows. Same shape as a booked slot so the card reads as one list
+   rather than three, with the question carried by the sub-heading above. */
+.slot.done{opacity:.92}
+.slot.done .what{color:var(--soft)}
+.co-a{display:flex;gap:8px;flex:0 0 auto}
 
 /* ---------- session calendar ---------- */
 .calhead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
@@ -1934,24 +1948,29 @@ a.who:hover{text-decoration:underline}
    label came from, and the two counts the number is made of. The bar is there
    because a percentage is a quantity and people read quantities faster as a
    length than as digits. */
-.rel{border:1px solid var(--line);border-radius:var(--r-card);padding:16px 18px;margin:0 0 18px;
+/* The reliability block on the partner page. Renamed from .rel because a
+   session row also had a .rel — the relative time in it — and this rule's
+   border, radius and 16px padding leaked onto that span, which is why "in 1
+   day" rendered as a bordered pill next to Cancel and read as a button. Two
+   unrelated components cannot share a name this generic. */
+.relbox{border:1px solid var(--line);border-radius:var(--r-card);padding:16px 18px;margin:0 0 18px;
   background:var(--card)}
-.rel-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.rel-lab{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
-.rel-pct{font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
-.rel-bar{height:7px;border-radius:var(--r-pill);background:var(--band);overflow:hidden;margin:12px 0 0}
-.rel-bar i{display:block;height:100%;border-radius:var(--r-pill);background:var(--p4);
+.relbox-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.relbox-lab{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
+.relbox-pct{font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.relbox-bar{height:7px;border-radius:var(--r-pill);background:var(--band);overflow:hidden;margin:12px 0 0}
+.relbox-bar i{display:block;height:100%;border-radius:var(--r-pill);background:var(--p4);
   transition:width .5s ease}
-.rel-sub{margin:10px 0 0;font-size:13px;color:var(--faint);line-height:1.5}
+.relbox-sub{margin:10px 0 0;font-size:13px;color:var(--faint);line-height:1.5}
 
 /* Three bands. Green is not the default — an unproven score is grey, because
    colouring it green would be the page vouching for somebody it cannot. */
-.rel.good .rel-pct{color:var(--p6)}
-.rel.good .rel-bar i{background:var(--p4)}
-.rel.mid  .rel-pct{color:#8A6410}
-.rel.mid  .rel-bar i{background:#D9A21B}
-.rel.low  .rel-pct{color:#B4471F}
-.rel.low  .rel-bar i{background:#C9603A}
+.relbox.good .relbox-pct{color:var(--p6)}
+.relbox.good .relbox-bar i{background:var(--p4)}
+.relbox.mid  .relbox-pct{color:#8A6410}
+.relbox.mid  .relbox-bar i{background:#D9A21B}
+.relbox.low .relbox-pct{color:#B4471F}
+.relbox.low .relbox-bar i{background:#C9603A}
 
 /* The same score, compressed to fit a directory row. */
 .relchip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;

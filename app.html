@@ -143,6 +143,12 @@
 
         <p class="mono sub-h" id="up-h" hidden>Booked</p>
         <div id="upcoming"></div>
+
+        <!-- Check-out. sessions.attended has been read by the reliability
+             score since it shipped and written by nothing, so the score reads
+             as a dash for everybody. This is where it gets answered. -->
+        <p class="mono sub-h" id="past-h" hidden>Did these happen?</p>
+        <div id="past-list"></div>
       </section>
 
     </div>
@@ -641,7 +647,7 @@
     var right = past ? ''
       : (s.roomUrl && isOpen(s))
         ? '<a class="btn" href="' + esc(s.roomUrl) + '" target="_blank" rel="noopener">Join</a>'
-        : '<span class="rel">' + esc(relative(s.startsAt)) + '</span>';
+        : '<span class="when-rel">' + esc(relative(s.startsAt)) + '</span>';
     var key = ' data-at="' + esc(s.startsAt.toISOString()) + '" data-room="' + esc(s.roomUrl || '') + '"';
     return '<div class="slot">' +
       '<span class="when">' + esc(when(s.startsAt)) + '</span>' +
@@ -1098,16 +1104,113 @@
   /* The card exists to hold sessions. With nothing waiting and nothing booked
      it has nothing to head, so it goes rather than standing there empty. Both
      sub-headings already track their own list, so they answer the question. */
-  function syncSessCard(){
-    var prop = document.getElementById('prop-h').hidden;
-    var up   = document.getElementById('up-h').hidden;
-    document.getElementById('sess-card').hidden = prop && up;
+  /* How many rows the card is holding, so it can tell whether it is saying
+     anything the band has not already said. */
+  var sessRows = { prop: 0, up: 0, past: 0 };
+
+  /* The card exists to list things. With one booked session and nothing else
+     it listed the one thing the band above it was already describing, in
+     smaller type — the same fact three times counting the calendar. It stays
+     shut until it has more to say than that, and any relay from the band
+     opens it so an error is never reported into a hidden card. */
+  /* The rail stops sitting beside an empty column. */
+  function syncDash(){
+    var main = document.querySelector('.dash-main');
+    var empty = !Array.prototype.some.call(main.children, function(el){ return !el.hidden; });
+    document.querySelector('.dash').classList.toggle('solo', empty);
   }
+
+  function syncSessCard(){
+    document.getElementById('prop-h').hidden = !sessRows.prop;
+    document.getElementById('up-h').hidden   = !sessRows.up;
+    document.getElementById('past-h').hidden = !sessRows.past;
+    var total = sessRows.prop + sessRows.up;
+    document.getElementById('sess-card').hidden = !sessRows.past && total <= 1;
+    syncDash();
+  }
+  function openSessCard(){ document.getElementById('sess-card').hidden = false; }
+
+  /* ---------- check-out ----------
+     A session whose end time has passed and which nobody has answered for.
+     Only your own answer is asked for and only your own row is written: the
+     score reads attendance off the row belonging to the person being scored,
+     so "did I turn up" is the whole question. Being able to mark somebody
+     else absent would be a gift to anyone with a grudge. */
+  function renderCheckout(all){
+    var now = Date.now();
+    var ended = (all || []).filter(function(x){
+      return x.status === 'confirmed' &&
+             x.startsAt.getTime() + (x.durationMin || 50) * 60000 <= now;
+    }).sort(function(a, b){ return b.startsAt - a.startsAt; }).slice(0, 3);
+
+    sessRows.past = ended.length;
+    document.getElementById('past-list').innerHTML = ended.map(function(s){
+      var label = [s.partnerName ? 'with ' + s.partnerName : '', s.topic || ''].filter(Boolean).join(' \u00b7 ');
+      var key = ' data-at="' + esc(s.startsAt.toISOString()) + '" data-room="' + esc(s.roomUrl || '') + '"';
+      return '<div class="slot done">' +
+        '<span class="when">' + esc(when(s.startsAt)) + '</span>' +
+        '<span class="what">' + esc(label || 'Session') + '<span>' + (s.durationMin || 50) + ' min</span></span>' +
+        '<span class="co-a">' +
+          '<button class="btn" data-co="1"' + key + '>I made it</button>' +
+          '<button class="small" data-co="0"' + key + '>I missed it</button>' +
+        '</span>' +
+        '<p class="slot-err" hidden></p></div>';
+    }).join('');
+    syncSessCard();
+  }
+
+  document.getElementById('past-list').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-co]');
+    if (!btn) return;
+    var row = btn.closest('.slot'), err = row.querySelector('.slot-err');
+    var yes = btn.getAttribute('data-co') === '1';
+    Array.prototype.forEach.call(row.querySelectorAll('button'), function(b){ b.disabled = true; });
+    err.hidden = true;
+    function back(msg){
+      Array.prototype.forEach.call(row.querySelectorAll('button'), function(b){ b.disabled = false; });
+      err.textContent = msg; err.hidden = false;
+    }
+    pf.markAttendance(btn.getAttribute('data-at'), btn.getAttribute('data-room'), yes).then(function(res){
+      if (res && res.saved) { window.location.reload(); return; }
+      back((res && res.error) || 'Could not save that \u2014 please try again.');
+    }, function(){
+      back('Could not save that \u2014 check your connection and try again.');
+    });
+  });
+
+  /* ---------- the band's own buttons ----------
+     The band is the "what to do now" element and it used to point at a card
+     below it — "Answer it" scrolled you to the Accept button rather than
+     being it. These are that button: the real control still lives in the
+     list and still owns the confirm-before-destroying step, the error line
+     and the disabled state, so there is one implementation and the band
+     borrows it.
+
+     A destructive relay arms here first and then sends the two clicks the
+     real button wants, one to arm it and one to confirm, so nothing
+     irreversible happens on a single press in either place. */
+  document.getElementById('now-a').addEventListener('click', function(e){
+    var b = e.target.closest('[data-relay]');
+    if (!b) return;
+    var target = document.querySelector(b.getAttribute('data-relay'));
+    if (!target) return;
+    e.preventDefault();
+    var arm = b.getAttribute('data-arm');
+    if (arm && b.getAttribute('data-armed') !== '1') {
+      b.setAttribute('data-armed', '1');
+      b.classList.add('danger');
+      b.textContent = arm;
+      return;
+    }
+    openSessCard();
+    target.click();
+    if (arm) target.click();
+  });
 
   function renderProposals(list){
     return Promise.resolve().then(function(){
       var head = document.getElementById('prop-h');
-      if (!list) { head.hidden = true; syncSessCard(); return; }
+      if (!list) { sessRows.prop = 0; syncSessCard(); return; }
       var now = Date.now();
       var open = list.filter(function(x){
         if (x.startsAt.getTime() <= now) return false;
@@ -1122,7 +1225,7 @@
       /* Empty the list as well as hiding it, so nothing answered is left
          sitting in the DOM waiting to reappear. */
       if (!open.length) {
-        head.hidden = true;
+        sessRows.prop = 0;
         document.getElementById('prop-list').innerHTML = '';
         syncSessCard();
         return;
@@ -1155,7 +1258,7 @@
           (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
           '<div class="prop-acts">' + acts + '</div><p class="prop-err" hidden></p></div>';
       }).join('');
-      head.hidden = false;
+      sessRows.prop = open.length;
       syncSessCard();
     });
   }
@@ -1388,9 +1491,13 @@
 
     var none = !sharedAny();
     $('cal-empty').hidden = !none;
-    if (none) $('cal-empty').textContent = bookPartner
-      ? 'Once you and ' + shortName() + ' have both said when you’re free, the hours you share light up here.'
-      : 'Set your weekly availability in your profile and the hours you share with a partner light up here.';
+    /* Which of you has not answered decides the sentence. It used to tell
+       everybody to go and set their availability, including the people who
+       already had. */
+    if (none) $('cal-empty').textContent = !myAvail.length
+      ? 'Set your weekly hours in your profile and the ones you share with ' +
+        shortName() + ' light up here.'
+      : 'Once ' + shortName() + ' has said when they’re free, the hours you share light up here.';
   }
 
   /* Clicking a free hour hands it to the form below rather than opening a
@@ -1647,7 +1754,8 @@
                    ? '<a class="btn" href="' + esc(next.roomUrl) + '" target="_blank" rel="noopener">Join the call</a>' +
                      '<a class="ghost" href="#sess-card">All sessions</a>'
                    : '<a class="btn" data-open-book href="#book-card">Book another</a>' +
-                     '<a class="ghost" href="#sess-card">See the booking</a>',
+                     '<button class="ghost" type="button" data-relay="#upcoming [data-cancel-booked]"' +
+                     ' data-arm="Sure? Cancel it">Cancel this one</button>',
               f: live ? '' : 'The call link opens fifteen minutes before you start.'
             });
           } else if (waiting){
@@ -1656,7 +1764,10 @@
               h: esc(waiting.partnerName || pname || 'Your partner') + ' proposed ' +
                  friendlyMid(waiting.startsAt) + '.',
               s: waiting.durationMin + ' minutes. Nothing is booked until you say yes.',
-              a: '<a class="btn" href="#sess-card">Answer it</a>'
+              a: '<button class="btn" type="button" data-relay="#prop-list [data-accept]">Accept</button>' +
+                 '<button class="ghost" type="button" data-relay="#prop-list [data-no]"' +
+                 ' data-arm="Sure? Turn it down">Decline</button>' +
+                 '<button class="ghost" type="button" data-relay="#prop-list [data-swap]">Suggest another time</button>'
             });
           } else if (standingAsk){
             band({
@@ -1707,11 +1818,9 @@
             });
           }
 
-          if (upcoming.length){
-            $('upcoming').innerHTML = upcoming.map(function(s){ return slot(s, false); }).join('');
-            $('up-h').hidden = false;
-          }
-          syncSessCard();
+          $('upcoming').innerHTML = upcoming.map(function(s){ return slot(s, false); }).join('');
+          sessRows.up = upcoming.length;
+          renderCheckout(all);
 
           /* ----- calendar -----
              Everything except proposals somebody already answered: a declined
@@ -1719,14 +1828,25 @@
           calSessions = all.filter(function(x){
             return x.status === 'confirmed' || x.status === 'proposed';
           });
-          calMonday = mondayOf(new Date());
-          /* Always drawn. It used to appear only once you had a partner, on
-             the reasoning that an empty grid has nothing to say — but a
-             section that is simply absent reads as a bug, and the week still
-             shows your own hours and the note underneath says what will fill
-             it. */
-          $('cal-card').hidden = false;
+          /* Open on the week holding whatever is being asked of you rather
+             than always on this one. A proposal for next Monday used to sit in
+             the band asking for an answer while the grid beside it showed the
+             current week — the time you were being asked about was not on
+             screen, which is the one thing a calendar is for here. */
+          var focusAt = (waiting && waiting.startsAt) ||
+                        (upcoming[0] && upcoming[0].startsAt) ||
+                        (pending[0] && pending[0].startsAt) || null;
+          calMonday = mondayOf(focusAt && focusAt.getTime() > Date.now() ? focusAt : new Date());
+
+          /* Hidden until there is somebody to share hours with. It was drawn
+             always, on the reasoning that an absent section reads as a bug —
+             but for a new account it is a seven-by-five grid of nothing, and
+             it is the largest thing on their first screen. An empty grid does
+             not read as a bug when there is a band above it saying you have
+             no partner yet. */
+          $('cal-card').hidden = !bookPartners.length;
           renderCal();
+          syncDash();
 
           /* ----- the streak and the plan -----
              pf.momentum() owns the counting so this page and Progress cannot
