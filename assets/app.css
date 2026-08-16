@@ -404,6 +404,14 @@ h1 .g{color:var(--p4)}
    something you press. */
 .slot .when-rel{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
 
+/* The goal, before and after. On a proposal it is what the hour is for, so
+   somebody deciding whether to accept can see it; afterwards it is the
+   question itself, printed back rather than paraphrased. */
+.prop-goal{margin:6px 0 0;font-size:13.5px;color:var(--soft);line-height:1.5}
+.prop-goal b{color:var(--ink);font-weight:700}
+.goalrow .gr-g{display:block;font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.4}
+.gr-a{display:flex;gap:8px;flex:0 0 auto}
+
 
 /* ---------- session calendar ---------- */
 .calhead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;

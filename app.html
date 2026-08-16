@@ -74,8 +74,17 @@
       <span class="pick" data-k="len"></span>.</p>
     <p class="bk-line" id="bk-warn"></p>
 
+    <!-- The goal. Declared here because a goal only works as a pair —
+         written before, answered after — and this is the one moment the
+         session is being thought about that already exists. It also makes the
+         proposal easier to say yes to: it says what the hour is for, not just
+         when it is. -->
     <div class="field" style="margin:20px 0 0">
-      <label for="bk-msg">Note <span class="hint">(optional)</span></label>
+      <label for="bk-goal">What you want to have done by the end <span class="hint">(optional)</span></label>
+      <input id="bk-goal" type="text" maxlength="140" placeholder="e.g. Get a root shell on the SUID box">
+    </div>
+    <div class="field" style="margin:14px 0 0">
+      <label for="bk-msg">Anything to add <span class="hint">(optional)</span></label>
       <input id="bk-msg" type="text" maxlength="140" placeholder="What you'd like to work on">
     </div>
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
@@ -143,6 +152,11 @@
 
         <p class="mono sub-h" id="up-h" hidden>Booked</p>
         <div id="upcoming"></div>
+
+        <!-- The other half of the goal. Only ever shown for a session that
+             had one written, so nobody who skipped the box is ever asked. -->
+        <p class="mono sub-h" id="goal-h" hidden>Did you get it done?</p>
+        <div id="goal-list"></div>
       </section>
 
     </div>
@@ -1067,6 +1081,7 @@
       startsAt: w.toISOString(),
       durationMin: bkLen,
       note: document.getElementById('bk-msg').value.trim(),
+      goal: document.getElementById('bk-goal').value.trim(),
       /* No roomUrl: proposeSession mints one for this booking. Passing the
          partnership's old standing room is what kept the address alive. */
       pairId: bookPartner.requestId
@@ -1076,6 +1091,7 @@
         note.style.color = 'var(--green-dark)';
         note.textContent = 'Sent \u2014 waiting on ' + shortName() + '.';
         document.getElementById('bk-msg').value = '';
+        document.getElementById('bk-goal').value = '';
         loadProposals();
       } else {
         note.textContent = (res && res.error) ||
@@ -1100,7 +1116,7 @@
      sub-headings already track their own list, so they answer the question. */
   /* How many rows the card is holding, so it can tell whether it is saying
      anything the band has not already said. */
-  var sessRows = { prop: 0, up: 0 };
+  var sessRows = { prop: 0, up: 0, goal: 0 };
 
   /* The card exists to list things. With one booked session and nothing else
      it listed the one thing the band above it was already describing, in
@@ -1117,10 +1133,58 @@
   function syncSessCard(){
     document.getElementById('prop-h').hidden = !sessRows.prop;
     document.getElementById('up-h').hidden   = !sessRows.up;
-    document.getElementById('sess-card').hidden = sessRows.prop + sessRows.up <= 1;
+    document.getElementById('goal-h').hidden = !sessRows.goal;
+    document.getElementById('sess-card').hidden = !sessRows.goal && sessRows.prop + sessRows.up <= 1;
     syncDash();
   }
   function openSessCard(){ document.getElementById('sess-card').hidden = false; }
+
+  /* ---------- the goal, answered ----------
+     A finished session that had a goal written and no answer yet. The
+     question is the goal itself, printed back, so it is obvious this is not
+     a register — whether anybody turned up is the room's business, and the
+     room is a link to another tab. */
+  function renderGoals(all){
+    var now = Date.now();
+    var due = (all || []).filter(function(x){
+      return x.goal && x.goalDone === null &&
+             x.status !== 'cancelled' && x.status !== 'declined' && x.status !== 'proposed' &&
+             x.startsAt.getTime() + (x.durationMin || 50) * 60000 <= now;
+    }).sort(function(a, b){ return b.startsAt - a.startsAt; }).slice(0, 2);
+
+    sessRows.goal = due.length;
+    document.getElementById('goal-list').innerHTML = due.map(function(s){
+      var key = ' data-at="' + esc(s.startsAt.toISOString()) + '" data-room="' + esc(s.roomUrl || '') + '"';
+      return '<div class="slot goalrow">' +
+        '<span class="what"><b class="gr-g">' + esc(s.goal) + '</b>' +
+          '<span>' + esc(when(s.startsAt)) + (s.partnerName ? ' \u00b7 with ' + esc(s.partnerName) : '') + '</span></span>' +
+        '<span class="gr-a">' +
+          '<button class="btn" data-goal="1"' + key + '>Done</button>' +
+          '<button class="small" data-goal="0"' + key + '>Not yet</button>' +
+        '</span>' +
+        '<p class="slot-err" hidden></p></div>';
+    }).join('');
+    syncSessCard();
+  }
+
+  document.getElementById('goal-list').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-goal]');
+    if (!btn) return;
+    var row = btn.closest('.slot'), err = row.querySelector('.slot-err');
+    Array.prototype.forEach.call(row.querySelectorAll('button'), function(b){ b.disabled = true; });
+    err.hidden = true;
+    function back(msg){
+      Array.prototype.forEach.call(row.querySelectorAll('button'), function(b){ b.disabled = false; });
+      err.textContent = msg; err.hidden = false;
+    }
+    pf.markGoal(btn.getAttribute('data-at'), btn.getAttribute('data-room'),
+                btn.getAttribute('data-goal') === '1').then(function(res){
+      if (res && res.saved) { window.location.reload(); return; }
+      back((res && res.error) || 'Could not save that \u2014 please try again.');
+    }, function(){
+      back('Could not save that \u2014 check your connection and try again.');
+    });
+  });
 
   /* ---------- the band's own buttons ----------
      The band is the "what to do now" element and it used to point at a card
@@ -1199,6 +1263,7 @@
         return '<div class="prop' + (turned ? ' turned' : '') + '">' +
           '<p class="prop-h">' + head + '</p>' +
           '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') + '</p>' +
+          (x.goal ? '<p class="prop-goal"><b>By the end:</b> ' + esc(x.goal) + '</p>' : '') +
           (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
           '<div class="prop-acts">' + acts + '</div><p class="prop-err" hidden></p></div>';
       }).join('');
@@ -1764,7 +1829,7 @@
 
           $('upcoming').innerHTML = upcoming.map(function(s){ return slot(s, false); }).join('');
           sessRows.up = upcoming.length;
-          syncSessCard();
+          renderGoals(all);
 
           /* ----- calendar -----
              Everything except proposals somebody already answered: a declined
