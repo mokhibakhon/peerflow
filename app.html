@@ -143,12 +143,6 @@
 
         <p class="mono sub-h" id="up-h" hidden>Booked</p>
         <div id="upcoming"></div>
-
-        <!-- Check-out. sessions.attended has been read by the reliability
-             score since it shipped and written by nothing, so the score reads
-             as a dash for everybody. This is where it gets answered. -->
-        <p class="mono sub-h" id="past-h" hidden>Did these happen?</p>
-        <div id="past-list"></div>
       </section>
 
     </div>
@@ -1106,7 +1100,7 @@
      sub-headings already track their own list, so they answer the question. */
   /* How many rows the card is holding, so it can tell whether it is saying
      anything the band has not already said. */
-  var sessRows = { prop: 0, up: 0, past: 0 };
+  var sessRows = { prop: 0, up: 0 };
 
   /* The card exists to list things. With one booked session and nothing else
      it listed the one thing the band above it was already describing, in
@@ -1123,60 +1117,10 @@
   function syncSessCard(){
     document.getElementById('prop-h').hidden = !sessRows.prop;
     document.getElementById('up-h').hidden   = !sessRows.up;
-    document.getElementById('past-h').hidden = !sessRows.past;
-    var total = sessRows.prop + sessRows.up;
-    document.getElementById('sess-card').hidden = !sessRows.past && total <= 1;
+    document.getElementById('sess-card').hidden = sessRows.prop + sessRows.up <= 1;
     syncDash();
   }
   function openSessCard(){ document.getElementById('sess-card').hidden = false; }
-
-  /* ---------- check-out ----------
-     A session whose end time has passed and which nobody has answered for.
-     Only your own answer is asked for and only your own row is written: the
-     score reads attendance off the row belonging to the person being scored,
-     so "did I turn up" is the whole question. Being able to mark somebody
-     else absent would be a gift to anyone with a grudge. */
-  function renderCheckout(all){
-    var now = Date.now();
-    var ended = (all || []).filter(function(x){
-      return x.status === 'confirmed' &&
-             x.startsAt.getTime() + (x.durationMin || 50) * 60000 <= now;
-    }).sort(function(a, b){ return b.startsAt - a.startsAt; }).slice(0, 3);
-
-    sessRows.past = ended.length;
-    document.getElementById('past-list').innerHTML = ended.map(function(s){
-      var label = [s.partnerName ? 'with ' + s.partnerName : '', s.topic || ''].filter(Boolean).join(' \u00b7 ');
-      var key = ' data-at="' + esc(s.startsAt.toISOString()) + '" data-room="' + esc(s.roomUrl || '') + '"';
-      return '<div class="slot done">' +
-        '<span class="when">' + esc(when(s.startsAt)) + '</span>' +
-        '<span class="what">' + esc(label || 'Session') + '<span>' + (s.durationMin || 50) + ' min</span></span>' +
-        '<span class="co-a">' +
-          '<button class="btn" data-co="1"' + key + '>I made it</button>' +
-          '<button class="small" data-co="0"' + key + '>I missed it</button>' +
-        '</span>' +
-        '<p class="slot-err" hidden></p></div>';
-    }).join('');
-    syncSessCard();
-  }
-
-  document.getElementById('past-list').addEventListener('click', function(e){
-    var btn = e.target.closest('[data-co]');
-    if (!btn) return;
-    var row = btn.closest('.slot'), err = row.querySelector('.slot-err');
-    var yes = btn.getAttribute('data-co') === '1';
-    Array.prototype.forEach.call(row.querySelectorAll('button'), function(b){ b.disabled = true; });
-    err.hidden = true;
-    function back(msg){
-      Array.prototype.forEach.call(row.querySelectorAll('button'), function(b){ b.disabled = false; });
-      err.textContent = msg; err.hidden = false;
-    }
-    pf.markAttendance(btn.getAttribute('data-at'), btn.getAttribute('data-room'), yes).then(function(res){
-      if (res && res.saved) { window.location.reload(); return; }
-      back((res && res.error) || 'Could not save that \u2014 please try again.');
-    }, function(){
-      back('Could not save that \u2014 check your connection and try again.');
-    });
-  });
 
   /* ---------- the band's own buttons ----------
      The band is the "what to do now" element and it used to point at a card
@@ -1820,7 +1764,7 @@
 
           $('upcoming').innerHTML = upcoming.map(function(s){ return slot(s, false); }).join('');
           sessRows.up = upcoming.length;
-          renderCheckout(all);
+          syncSessCard();
 
           /* ----- calendar -----
              Everything except proposals somebody already answered: a declined

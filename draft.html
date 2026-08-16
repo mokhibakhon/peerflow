@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Draft — the band after a session, and the rail — PeerFlow</title>
+<title>Draft — the session goal, and the rail — PeerFlow</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -51,13 +51,14 @@
 <main>
   <div class="dr-wrap">
     <p class="dr-tag">Draft</p>
-    <h1 class="dr-h">The band after a session, and what the rail is for</h1>
+    <h1 class="dr-h">What to ask after a session, and what the rail is for</h1>
     <p class="dr-lede">
-      The two things I left out of the dashboard pass, because both are
-      decisions rather than clean-ups. First: check-out now exists, and the
-      band ignores it. Second: the rail is four cards deep and offers a power
-      feature to people who have not had a session yet. Nothing here is live —
-      the dashboard still behaves the way the "Now" panels below show.
+      Two decisions rather than clean-ups. First: you were right that asking
+      people whether they turned up is the wrong question — the room should
+      know, and we have not built a room. So the question that is actually
+      left is what you meant to get done, which the schema has columns for and
+      nobody is asked. Second: the rail is four cards deep and offers a power
+      feature to people who have not had a session yet. Nothing here is live.
     </p>
     <p class="dr-warn">
       <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -69,158 +70,192 @@
 
 
     <!-- ================================================================
-         PART ONE — the band after a session
+         PART ONE — the question worth asking after a session
          ================================================================ -->
-    <div class="dr-part"><h2>One — the band after a session has ended</h2></div>
+    <div class="dr-part"><h2>One — the question worth asking after a session</h2></div>
 
     <section class="dr-sec" style="border-top:0;padding-top:22px">
       <p class="dr-tag">Now</p>
-      <h3>It asks you to book while it is still waiting to be told what happened</h3>
+      <h3>We cannot see whether anybody turned up, and asking was the wrong fix</h3>
       <p class="dr-note">
-        Check-out is live: a session whose end time has passed asks whether it
-        happened, and the answer is the first thing ever written to
-        <code>sessions.attended</code>. But it asks from the card, and the band
-        above carries on as though the session never took place. <b>The band is
-        the one element whose job is "what to do now"</b>, and here the thing to
-        do now is answer a question about Friday — not book Tuesday.
+        There was a version of this draft that offered three places to ask
+        <em>"did Friday happen?"</em>. That was wrong and it is gone. Attendance
+        is not something to ask a person — it is something the room knows. The
+        reason we do not know it is that <b>there is no room</b>: the call is a
+        link to a public Jitsi address opened in another tab, so PeerFlow sees
+        nothing at all — not who joined, not when, not for how long.
       </p>
-
-      <p class="dr-cap">What you see today</p>
+      <p class="dr-note">
+        The schema already assumed the room would tell us.
+        <code>migration-reliability.sql</code> scores a session partly on how
+        late somebody joined:
+      </p>
       <div class="dr-stage">
-        <section class="now" data-tone="idle">
-          <div class="now-txt">
-            <span class="mono now-k">Nothing booked</span>
-            <h1>Book your next session with Asalxon.</h1>
-            <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
-            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
-          </div>
-        </section>
-        <p class="dr-cap" style="margin:16px 0 8px"><span class="dr-x">and further down the page</span></p>
-        <div class="b wide" style="padding:18px 20px">
-          <p class="mono sub-h" style="margin-top:0">Did these happen?</p>
-          <div class="slot done">
-            <span class="when">Fri, Aug 14, 07:00 PM</span>
-            <span class="what">with Asalxon · Linux privesc<span>50 min</span></span>
-            <span class="co-a">
-              <button class="btn" type="button">I made it</button>
-              <button class="small" type="button">I missed it</button>
-            </span>
-          </div>
-        </div>
+        <pre style="margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--soft);overflow-x:auto"><code>when s.attended is true and s.joined_at is not null
+     and s.joined_at &gt; s.starts_at + interval '10 minutes' then 0.8</code></pre>
       </div>
+      <p class="dr-note">
+        <code>joined_at</code> is written by nothing, and can only ever be
+        written by the call itself. So the reliability score stays a dash until
+        the call is ours — and a self-reported number in its place would be
+        worse than the dash, because it renders as a percentage on the People
+        page that strangers use to decide whether to partner with you.
+      </p>
+      <p class="dr-why">
+        <b>So: attendance waits for the video work.</b> Join and leave events
+        from the call fill <code>attended</code> and <code>joined_at</code>,
+        and nobody is ever asked. What follows is the question that is left —
+        the one no server can answer.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">The gap</p>
+      <h3>A session has a topic and nothing else</h3>
+      <p class="dr-note">
+        Today a session carries a free-text topic typed once when it was
+        booked — <em>"Linux privesc"</em> — and that is the whole record of
+        what the two of you did. <code>sessions.goal</code> and
+        <code>sessions.goal_done</code> exist in the schema and are empty.
+        Whether you did the thing you sat down to do is the one fact about a
+        session that a machine cannot observe, and it is the one nobody is
+        asked.
+      </p>
+      <p class="dr-note">
+        A goal only works as a pair: <b>declared before, answered after.</b>
+        Asked only afterwards it becomes a diary entry nobody writes. So the
+        three options below differ in <em>when it is declared</em> — the
+        answering half is the same short row in every one.
+      </p>
     </section>
 
     <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec">
       <p class="dr-tag">Option A</p>
-      <h3>The band asks, and it is the only thing it asks</h3>
+      <h3>Declared when you book it</h3>
       <p class="dr-note">
-        A seventh tone, slotted below "your room is open" and "needs your
-        answer" and above everything else. It holds one session — the most
-        recent — and the card keeps any others.
+        One more line in the booking form, beside the note you can already
+        leave. Your partner sees it when they accept, so they turn up knowing
+        what the hour is for.
       </p>
       <div class="dr-stage">
-        <section class="now" data-tone="answer">
-          <div class="now-txt">
-            <span class="mono now-k">One question</span>
-            <h1>Did Friday happen?</h1>
-            <p class="now-s">You and Asalxon had 50 minutes booked at 7:00 PM. Nobody has said either way.</p>
-            <div class="now-a">
-              <button class="btn" type="button">We did it</button>
-              <button class="ghost" type="button">I missed it</button>
-            </div>
-            <p class="now-f">Only your own answer — Asalxon is asked separately about theirs.</p>
+        <div class="b bookp" style="margin:0">
+          <div class="bh" style="margin-bottom:14px">
+            <div><span class="mono" style="color:var(--p6)">Propose</span><h2 style="margin:0;font-size:19px">Tuesday at 7:00 PM</h2></div>
           </div>
-        </section>
+          <div class="bk-f">
+            <label class="bk-l" for="d-goal">What you want to have done by the end</label>
+            <input id="d-goal" type="text" value="Get a root shell on the SUID box" readonly>
+          </div>
+          <div class="bk-f" style="margin-top:10px">
+            <label class="bk-l" for="d-msg">Anything to add <span style="font-weight:400;color:var(--faint)">(optional)</span></label>
+            <input id="d-msg" type="text" placeholder="What you’d like to work on" readonly>
+          </div>
+          <div class="bk-go" style="margin-top:14px">
+            <button class="btn" type="button">Propose this time</button>
+            <span class="bk-hint">Nothing is booked until they accept.</span>
+          </div>
+        </div>
       </div>
       <p class="dr-why">
-        <b>Trade-off.</b> It is the honest reading of what the band is for, and
-        it is two taps to clear. But it is retrospective, and it pushes "book
-        your next session" down for as long as you ignore it — a band that
-        nags about last week is a band you learn to scroll past. It also has to
-        cap: three un-answered sessions cannot become three bands.
+        <b>Trade-off.</b> It costs nothing to build — the form is already
+        there — and it makes the proposal more persuasive to accept, because
+        it says what the hour is <em>for</em> rather than just when it is. But
+        it is asked at the point furthest from the session, sometimes a week
+        out, when you genuinely may not know yet. Expect a lot of blanks and
+        a few that no longer match by the time Tuesday arrives.
       </p>
     </section>
 
     <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec">
       <p class="dr-tag">Option B</p>
-      <h3>The band stays on what is next, and mentions it underneath</h3>
+      <h3>Declared when the room opens</h3>
       <p class="dr-note">
-        The footnote line the band already has — the one that says when the
-        call link opens — carries the question instead, as a link down to the
-        card.
+        The band already changes fifteen minutes before a session to
+        <em>"your room is open"</em>. It asks there, in the one moment you are
+        certainly thinking about this session, and the answer rides along into
+        the call.
       </p>
       <div class="dr-stage">
-        <section class="now" data-tone="idle">
+        <section class="now" data-tone="live">
           <div class="now-txt">
-            <span class="mono now-k">Nothing booked</span>
-            <h1>Book your next session with Asalxon.</h1>
-            <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
-            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
-            <p class="now-f">Friday’s session still needs a yes or no →</p>
+            <span class="mono now-k">Your room is open</span>
+            <h1>Asalxon is waiting.</h1>
+            <p class="now-s">50 minutes · Linux privesc</p>
+            <div class="bk-f" style="margin:14px 0 0;max-width:520px">
+              <label class="bk-l" for="d-goal2" style="color:#BFE6D8">What do you want to have done by the end?</label>
+              <input id="d-goal2" type="text" placeholder="One line — you’ll be asked about it after" readonly>
+            </div>
+            <div class="now-a">
+              <a class="btn" href="#">Join the call</a>
+              <button class="ghost" type="button">Skip</button>
+            </div>
           </div>
         </section>
       </div>
       <p class="dr-why">
-        <b>Trade-off.</b> Nothing gets pushed down and the band keeps facing
-        forwards, which is where a dashboard should face. But the footnote is
-        the quietest line in the band, it is grey on green, and asking for the
-        one piece of data the whole reliability score depends on in the
-        smallest type on the page is how it stays unanswered.
+        <b>Trade-off.</b> Asked at the moment it is easiest to answer and
+        hardest to forget, and it is the one point where both of you are
+        present, so the two goals could be shown to each other. The cost is
+        that it stands between somebody and a call that has already started —
+        which is exactly when nobody wants a form. It has to be skippable in
+        one tap, and if it is skippable it will often be skipped.
       </p>
     </section>
 
     <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec">
       <p class="dr-tag">Option C</p>
-      <h3>A strip above the band, not a tone inside it</h3>
+      <h3>No goal — just say what you got done</h3>
       <p class="dr-note">
-        Its own row, sitting between the top bar and the band. One line, two
-        buttons, and it disappears the moment it is answered.
+        Drop the before-half entirely. After the session, one line, free text,
+        and it becomes the session's record on the partner page and on
+        Progress.
       </p>
       <div class="dr-stage">
-        <div class="invstrip" style="margin:0 0 12px;border-style:solid;border-color:#F0DCC2;background:#FFF9EC">
-          <p style="margin:0;font-size:14.5px;color:#7A5310">
-            <b style="color:#5E3F0B">Friday, 7:00 PM with Asalxon.</b> Did it happen?
-          </p>
-          <span style="display:flex;gap:8px">
-            <button class="btn" type="button">We did</button>
-            <button class="small" type="button">I missed it</button>
-          </span>
-        </div>
-        <section class="now" data-tone="idle">
-          <div class="now-txt">
-            <span class="mono now-k">Nothing booked</span>
-            <h1>Book your next session with Asalxon.</h1>
-            <p class="now-s">Pick an hour you’re both free — it lands on both calendars once they accept.</p>
-            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
+        <div class="b wide" style="padding:18px 20px;margin:0">
+          <p class="mono sub-h" style="margin-top:0">Friday with Asalxon</p>
+          <div class="bk-f">
+            <label class="bk-l" for="d-got">What did the two of you get done?</label>
+            <input id="d-got" type="text" placeholder="One line, for your own record" readonly>
           </div>
-        </section>
+          <div class="bk-go" style="margin-top:12px">
+            <button class="btn" type="button">Save</button>
+            <button class="small" type="button">Nothing much</button>
+          </div>
+        </div>
       </div>
       <p class="dr-why">
-        <b>Trade-off.</b> Both things get said at full volume and neither
-        displaces the other, and several unanswered sessions stack as several
-        thin rows rather than fighting over one band. The cost is a new piece
-        of furniture above the element that is supposed to be the top of the
-        page — and the band stops being the first thing you read, which is the
-        one rule this dashboard has held to so far.
+        <b>Trade-off.</b> Nothing stands between you and a call, and a written
+        record of twelve sessions is genuinely worth having — it is the thing
+        you would show somebody. But without a goal declared first there is
+        nothing to compare it against, so it can never answer "did you do what
+        you planned", only "what happened". That is a journal, not a loop, and
+        journals are the feature people stop filling in second.
       </p>
     </section>
 
     <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec">
       <p class="dr-tag">If you want my opinion</p>
-      <h3>C, and A if you would rather not add a row</h3>
+      <h3>A now, B when the call is ours</h3>
       <p class="dr-note">
-        The question is worth asking properly — it is the only source of the
-        attendance data, the reliability score is dark without it, and the
-        conduct page implies people can see who turns up. B asks properly but
-        quietly, which is the same as not asking. Between A and C: A is
-        cheaper and reuses a tone, C is honest that these are two different
-        kinds of thing and scales to more than one. I would take C, and I
-        would make it disappear for good once answered rather than nagging on
-        the next load.
+        A costs one input in a form that already exists and improves the thing
+        it sits in — a proposal that says what the hour is for is easier to
+        accept than one that only says when. Take it now.
+      </p>
+      <p class="dr-note">
+        B is the better moment and the wrong time to build it. Once the call is
+        in-app there is a room to put it in — a goal on the way in and the
+        check on the way out, both inside the session rather than bolted to the
+        dashboard around it. Building it into the band first means building it
+        twice.
+      </p>
+      <p class="dr-why">
+        C I would not do on its own. As the second half of A it is the same
+        row with the goal printed above the box, which is where it belongs.
       </p>
     </section>
 
