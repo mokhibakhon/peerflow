@@ -47,6 +47,14 @@
 .dr-ok{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--p6)}
 
+/* The twelve tally marks, kept alive here for the before-picture only. They
+   came out of app.css when the dashboard stopped drawing them. */
+.st-bars{display:flex;gap:4px;justify-content:center}
+.st-bars i{width:8px;height:22px;border-radius:var(--r-mark);background:#E6E8F0}
+.st-bars i.half{background:var(--p1)}
+.st-bars i.on{background:var(--p4)}
+.st-bars i.here{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--p2)}
+
 /* ---- alternatives to the ring, draft only ---- */
 /* Twelve weeks as a column chart. Height is the number of sessions that
    week — this is the thing the earlier drafts got wrong: every bar was the
@@ -307,7 +315,7 @@
     <div class="dr-part"><h2>Two — the streak card, and what the rail is for</h2></div>
 
     <section class="dr-sec" style="border-top:0;padding-top:22px">
-      <p class="dr-tag">Now</p>
+      <p class="dr-tag">Before</p>
       <h3>The number and the ring are about different things</h3>
       <p class="dr-note">
         The circle is not messy because it is a circle. It is messy because
@@ -393,7 +401,7 @@ Two clocks at two speeds in one object, which is the point.</code></pre>
         instead — both across the three states the card has to hold.
       </p>
 
-      <p class="dr-cap">Say what is left <span class="dr-ok">recommended</span></p>
+      <p class="dr-cap">Say what is left <span class="dr-x">not taken</span></p>
       <div class="dr-stage">
         <div class="dr-mini">
           <section class="rail streak">
@@ -439,7 +447,8 @@ Two clocks at two speeds in one object, which is the point.</code></pre>
         because there is nothing left to say and "2 of 2" is a sum nobody needs.
       </p>
 
-      <p class="dr-cap" style="margin-top:26px">Say what is done, with the unit named</p>
+      <p class="dr-cap" style="margin-top:26px">Say what is done, with the unit named
+        <span class="dr-ok">built &mdash; this is what the dashboard does now</span></p>
       <div class="dr-stage">
         <div class="dr-mini">
           <section class="rail streak">
@@ -478,11 +487,13 @@ Two clocks at two speeds in one object, which is the point.</code></pre>
         </div>
       </div>
       <p class="dr-why">
-        Reads immediately too, and it never has to know what your target is —
-        which makes it the safer one if the weekly goal ever stops being a
-        number people set. But it says what has happened rather than what is
-        left, and a card whose job is to get you to book one more session
-        should probably be about the one more.
+        <b>This is the one that shipped.</b> It reads without arithmetic, and
+        it never has to know what your target is — which makes it the safer of
+        the two if the weekly goal ever stops being a number people set. The
+        push to book one more has not been lost: it moved to the sentence
+        underneath, which is where the deadline already lived
+        (<em>&ldquo;1 more, 2 days left to book it.&rdquo;</em>), so the
+        headline can just say plainly where you are.
       </p>
 
       <p class="dr-why">
