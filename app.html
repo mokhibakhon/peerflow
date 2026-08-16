@@ -330,6 +330,38 @@
     return { n:Math.round(mins / 1440) + 'd', l:'from now' };
   }
 
+  /* Small counts read better as words inside a sentence. Past ten they stop
+     being a quantity you feel and go back to being a number. */
+  var NUM = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
+             'eight', 'nine', 'ten'];
+  function numWord(n){ return NUM[n] || String(n); }
+
+  /* How long ago, the way a person would say it. Only ever asked past a
+     week, so there is no "0 days" case to handle. */
+  function sinceWords(days){
+    if (days < 14) return days + ' days';
+    if (days < 60) return numWord(Math.round(days / 7)) + ' weeks';
+    return numWord(Math.round(days / 30)) + ' months';
+  }
+
+  /* The last session you actually sat through with each partner. Sessions
+     carry the other person's name and not their id, so they match the way
+     everything else here matches them: on the trimmed name. */
+  function lastWithEach(list, sessions){
+    var seen = {}, now = Date.now();
+    sessions.forEach(function(s){
+      if (s.status !== 'confirmed') return;
+      var t = s.startsAt.getTime();
+      if (t + (s.durationMin || 0) * 60000 > now) return;
+      var k = (s.partnerName || '').trim().toLowerCase();
+      if (!k) return;
+      if (!seen[k] || t > seen[k]) seen[k] = t;
+    });
+    return list.map(function(p, i){
+      return { p:p, i:i, last: seen[String(p.name || '').trim().toLowerCase()] || null };
+    });
+  }
+
   /* ---------- the band ----------
      One element, six states. The loader works out which state you're in once,
      in priority order, and calls this once — so there is exactly one place
@@ -352,6 +384,79 @@
     } else {
       $('now-side').hidden = true;
     }
+  }
+
+  /* Partners, and nothing on the calendar — the state you see most often.
+     It used to read "Book your next session with A, B, C and D", which at
+     two people was a sentence and at four was a roll-call: it named everyone
+     equally, so it said nothing about which of them you'd left hanging, it
+     repeated the rail directly below it, and it grew a line per partner. It
+     also said "both" and "they" about four people.
+
+     One name is a decision, so the band picks one: whoever has waited
+     longest. Where there is nothing to rank on — or nobody has waited long
+     enough to be worth mentioning — it names no one and lets the rail below
+     say who with. */
+  function idleBand(list, sessions){
+    var n = list.length;
+    var count = numWord(n) + ' partner' + (n === 1 ? '' : 's');
+    var tail = 'it lands on both calendars once they accept.';
+    /* "you're both free" is only true of one other person, so it is the
+       one-partner half of every sentence here. */
+    var pickWhen = n === 1 ? 'Pick an hour you’re both free — '
+                           : 'You have ' + count + ' — choose who and when, and ';
+
+    var rows = lastWithEach(list, sessions);
+    /* Never met beats a long time ago, so a missing date sorts first. */
+    var pick = rows.slice().sort(function(a, b){ return (a.last || 0) - (b.last || 0); })[0];
+    /* Whole days between the two dates, not hours divided by 24 — a session
+       nine evenings ago is "nine days" to a person and 8.7 to a subtraction. */
+    var days = pick && pick.last
+      ? Math.round((dayKey(new Date()) - dayKey(new Date(pick.last))) / 86400000) : null;
+    var some = rows.some(function(r){ return r.last; });
+
+    /* Nobody has a history yet: there is no one to single out. */
+    if (!some){
+      band({
+        tone:'idle', k:'Nothing booked',
+        h: n === 1 ? 'Book your first session with ' + esc(list[0].name || 'your partner') + '.'
+                   : 'Book your first session with one of your partners.',
+        s: pickWhen + tail,
+        a: '<a class="btn" data-open-book href="#book-card">Propose a time</a>'
+      });
+      return;
+    }
+
+    /* Everyone is recent. Nagging about a three-day gap is noise, so say the
+       useful half of the sentence and stop. */
+    if (pick.last && days < 7){
+      band({
+        tone:'idle', k:'Nothing booked',
+        h: 'Book your next session.',
+        s: pickWhen + tail,
+        a: '<a class="btn" data-open-book href="#book-card">Propose a time</a>'
+      });
+      return;
+    }
+
+    var first = String(pick.p.name || '').trim().split(/\s+/)[0] || 'your partner';
+    /* The suggestion is only a suggestion if the form agrees with it, and
+       only fair if there's a way past it. */
+    var acts = '<a class="btn" data-open-book data-pick="' + pick.i + '" href="#book-card">' +
+                 (n === 1 ? 'Propose a time' : 'Propose a time with ' + esc(first)) + '</a>' +
+               (n === 1 ? '' :
+                 '<a class="ghost" data-open-book data-focus="who" href="#book-card">Someone else</a>');
+
+    band({
+      tone:'idle', k:'Nothing booked',
+      h: pick.last
+           ? 'It’s been ' + sinceWords(days) + ' since you studied with ' + esc(first) + '.'
+           : 'You haven’t studied with ' + esc(first) + ' yet.',
+      s: (n === 1 ? '' : (pick.last ? 'The longest gap of your ' + count + '. '
+                                    : 'One of your ' + count + '. ')) +
+         'Pick an hour you’re both free and ' + tail,
+      a: acts
+    });
   }
 
   /* ---------- the rail ---------- */
@@ -727,7 +832,12 @@
     var t = e.target.closest && e.target.closest('[data-open-book]');
     if (!t) return;
     e.preventDefault();
-    openBook();
+    /* The band can point the form at one particular partner before it opens —
+       "Propose a time with Bekzod" has to land on Bekzod — or send you
+       straight to the who menu, which is what "Someone else" does. */
+    var pick = t.getAttribute('data-pick');
+    if (pick !== null) pickPartner(parseInt(pick, 10) || 0);
+    openBook(t.getAttribute('data-focus') || '');
   });
 
   /* Everything below moved here from the Partner page. Proposing a time, the
@@ -1655,11 +1765,6 @@
           /* acceptedPartners() gives {requestId, profile} — the name
              lives on .profile, not on the row itself. */
           var pname = partner && partner.profile && partner.profile.name;
-          /* "You're paired with Munisa" was a lie the moment a second person
-             accepted. Name them all. */
-          var names = partners.map(function(x){ return x.profile && x.profile.name; }).filter(Boolean);
-          var allNames = names.length < 2 ? (names[0] || 'your partner')
-            : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
 
           /* Every accepted partner, not just the first. Nothing stops two
              people accepting you, and the form used to be wired to
@@ -1788,12 +1893,7 @@
               a: '<a class="ghost" href="#sess-card">See the proposal</a>'
             });
           } else if (partner){
-            band({
-              tone:'idle', k:'Nothing booked',
-              h: 'Book your next session with ' + esc(allNames) + '.',
-              s: 'Pick an hour you’re both free — it lands on both calendars once they accept.',
-              a: '<a class="btn" data-open-book href="#book-card">Propose a time</a>'
-            });
+            idleBand(bookPartners, all);
           } else {
             band({
               tone:'none', k:'No partner yet',
