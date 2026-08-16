@@ -40,6 +40,8 @@
 .dr-rail{display:grid;gap:16px;max-width:306px}
 .dr-rails{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
 .dr-rails > div{min-width:0}
+.dr-mini{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.dr-mini .rail{max-width:none}
 .dr-x{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
   color:#B4471F}
 .dr-ok{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
@@ -380,21 +382,49 @@ Two clocks at two speeds in one object, which is the point.</code></pre>
       <h3>This week, and the run — no ring, no number</h3>
       <p class="dr-note">
         The headline is the week you are in, because that is the only part you
-        can still do something about. Underneath, twelve weeks as a real
-        column chart. The streak stays in the top bar where it already is.
+        can still do something about. Underneath, twelve weeks as a real column
+        chart. The streak stays in the top bar where it already is.
       </p>
+      <p class="dr-note">
+        <b>"1 of 2 this week" was the wrong headline</b> and you are right about
+        why: it asks you to read a fraction, and the 2 is a weekly target that
+        defaults to two and that almost nobody has ever set, so half of it
+        refers to something you do not know you have. Two ways to say it
+        instead — both across the three states the card has to hold.
+      </p>
+
+      <p class="dr-cap">Say what is left <span class="dr-ok">recommended</span></p>
       <div class="dr-stage">
-        <div class="dr-rail">
+        <div class="dr-mini">
           <section class="rail streak">
-            <p class="dn">1 <span>of 2 this week</span></p>
+            <p class="dn">2 <span>to go this week</span></p>
+            <p class="st-h" style="margin-top:10px">Nothing booked with Asalxon yet</p>
+            <p class="st-w">Five days left.</p>
+            <div class="st-hist" style="margin-top:16px">
+              <p class="st-hl">Last 12 weeks</p>
+              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n0 dw-now"></i></div>
+              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
+            </div>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+          <section class="rail streak">
+            <p class="dn">1 <span>to go this week</span></p>
             <p class="st-h" style="margin-top:10px">Don’t leave Asalxon hanging</p>
             <p class="st-w">2 days left to book it.</p>
             <div class="st-hist" style="margin-top:16px">
               <p class="st-hl">Last 12 weeks</p>
-              <div class="dw" aria-hidden="true">
-                <i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i>
-                <i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n1 dw-now"></i>
-              </div>
+              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n1 dw-now"></i></div>
+              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
+            </div>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+          <section class="rail streak">
+            <p class="dn">Done <span>this week</span></p>
+            <p class="st-h" style="margin-top:10px">You and Asalxon, going strong</p>
+            <p class="st-w">Back on Monday.</p>
+            <div class="st-hist" style="margin-top:16px">
+              <p class="st-hl">Last 12 weeks</p>
+              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2 dw-now"></i></div>
               <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
             </div>
             <a class="rail-l" href="#">Your progress &rarr;</a>
@@ -402,12 +432,67 @@ Two clocks at two speeds in one object, which is the point.</code></pre>
         </div>
       </div>
       <p class="dr-why">
-        <b>Trade-off.</b> Nothing on the card repeats the chrome, the one
-        graphic left is a real chart, and the biggest type is the number you
-        can still change. The streak is still on screen — three inches up and
-        to the right, on a flame, permanently. The cost is that the card is
-        quieter than it was, and if you think the streak deserves to be the
-        loudest thing on the dashboard then it argues the other way.
+        One word and one number, no fraction, and the number is the thing you
+        can still change. The count of what you have already done is not lost —
+        it is the last column of the chart, which is where a count of finished
+        things belongs. When the week is met the number goes away entirely,
+        because there is nothing left to say and "2 of 2" is a sum nobody needs.
+      </p>
+
+      <p class="dr-cap" style="margin-top:26px">Say what is done, with the unit named</p>
+      <div class="dr-stage">
+        <div class="dr-mini">
+          <section class="rail streak">
+            <p class="dn">0 <span>sessions this week</span></p>
+            <p class="st-h" style="margin-top:10px">Nothing booked with Asalxon yet</p>
+            <p class="st-w">Five days left.</p>
+            <div class="st-hist" style="margin-top:16px">
+              <p class="st-hl">Last 12 weeks</p>
+              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n0 dw-now"></i></div>
+              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
+            </div>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+          <section class="rail streak">
+            <p class="dn">1 <span>session this week</span></p>
+            <p class="st-h" style="margin-top:10px">Don’t leave Asalxon hanging</p>
+            <p class="st-w">One more by Sunday, 2 days left.</p>
+            <div class="st-hist" style="margin-top:16px">
+              <p class="st-hl">Last 12 weeks</p>
+              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n1 dw-now"></i></div>
+              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
+            </div>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+          <section class="rail streak">
+            <p class="dn">2 <span>sessions this week</span></p>
+            <p class="st-h" style="margin-top:10px">You and Asalxon, going strong</p>
+            <p class="st-w">Back on Monday.</p>
+            <div class="st-hist" style="margin-top:16px">
+              <p class="st-hl">Last 12 weeks</p>
+              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2 dw-now"></i></div>
+              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
+            </div>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+        </div>
+      </div>
+      <p class="dr-why">
+        Reads immediately too, and it never has to know what your target is —
+        which makes it the safer one if the weekly goal ever stops being a
+        number people set. But it says what has happened rather than what is
+        left, and a card whose job is to get you to book one more session
+        should probably be about the one more.
+      </p>
+
+      <p class="dr-why">
+        <b>Trade-off for the option as a whole.</b> Nothing on the card repeats
+        the chrome, the one graphic left is a real chart, and the biggest type
+        is the number you can still act on. The streak is still on screen —
+        three inches up and to the right, on a flame, permanently. The cost is
+        that the card is quieter than it was, and if you think the streak
+        deserves to be the loudest thing on the dashboard then it argues the
+        other way.
       </p>
     </section>
 
