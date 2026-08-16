@@ -160,76 +160,78 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 .rail-l{display:inline-block;margin-top:13px;font-size:13px;font-weight:600;color:var(--p6)}
 .rail-l:hover{text-decoration:underline}
 
-/* ---------- the streak ring ----------
-   The number is weeks; the ring is this week against the goal. Two clocks at
-   two speeds in one object, which is the point: the count only moves weekly,
-   but you can see today whether the week is safe.
+/* ---------- this week, and the run ----------
+   Not the streak. appshell.js draws the streak in the top bar of every page in
+   the app, so the 42px number that used to sit in the middle of this card was
+   the second time you read it on one screen — and it sat inside a ring that
+   was measuring something else entirely, this week against the goal. Two
+   clocks at two speeds in one object.
+
+   What the chrome cannot show is where this week stands and what the run
+   behind it looks like, and that is all this card is now. (The ring itself
+   survives, on Progress, where the number is the only thing it means: see
+   .st-ring further down, beside .rec.)
 
    The card gets a tinted ground rather than the plain white of its neighbours.
    It is the only thing in the rail that is about you rather than about a
    booking, and it should not look like another row of admin. */
-.streak{text-align:center;padding:22px 18px 18px;
+.streak{text-align:center;padding:20px 18px 18px;
   background:
     radial-gradient(120% 90% at 50% -10%, #F2FBF7 0%, rgba(242,251,247,0) 62%),
     var(--card)}
+/* Late in the week with the goal unmet, the ground goes warm — the same amber
+   as the sentence, said quietly and once. */
+.streak.warn{background:
+    radial-gradient(120% 90% at 50% -10%, #FFF6E8 0%, rgba(255,246,232,0) 62%),
+    var(--card)}
 
-.st-ring{position:relative;width:146px;height:146px;margin:0 auto 16px}
-/* Direct child only. The ring is rotated so its arcs start at twelve o'clock;
-   as a descendant selector this also turned the flame badge sitting on the rim
-   on its side, which is how a flame came to look like a leaf. */
-.st-ring > svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
-.st-seg{fill:none;stroke-width:10;stroke-linecap:round;stroke:#E6E8F0;
-  transition:stroke .45s cubic-bezier(.2,.9,.3,1)}
-.st-seg.on{stroke:url(#st-g)}
-/* The whole week done: a soft halo, so a met week is felt before it is read. */
-.st-ring.met::before{content:"";position:absolute;inset:6px;border-radius:50%;
-  background:radial-gradient(circle,rgba(29,158,117,.16) 0%,rgba(29,158,117,0) 68%)}
+/* The count with its unit spelled out next to it. This read "1 of 2 this
+   week", which is a fraction to divide before it means anything, and the 2 was
+   sessions_per_week — a target that defaults to two and that almost nobody
+   opens their profile to set, so half of the headline referred to something
+   the reader did not know they had. */
+.st-n{margin:0;font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.05}
+.st-n b{font-weight:inherit;font-variant-numeric:tabular-nums}
+.st-n span{font-size:15px;font-weight:700;color:var(--soft);letter-spacing:-.01em}
+.streak.met .st-n b{color:var(--p8)}
 
-.st-mid{position:absolute;inset:0;display:grid;place-content:center;gap:0;line-height:1}
-.st-mid b{display:block;font-size:42px;font-weight:800;letter-spacing:-.045em;
-  color:var(--ink);font-variant-numeric:tabular-nums}
-.st-mid i{display:block;font-style:normal;font-family:var(--mono);font-size:8.5px;
-  letter-spacing:.11em;text-transform:uppercase;color:var(--faint);margin-top:7px}
-.st-ring.met .st-mid b{color:var(--p8)}
-
-/* The flame is a struck badge on the rim, not an emoji dropped on top: a white
-   disc lifts it off the ring and gives it an edge to sit against. It only
-   lights once there is a streak to burn — an unlit one on an empty account is
-   decoration promising something that has not happened. Late in the week with
-   nothing booked it goes grey: the streak is still yours, but you can see it
-   going out. */
-.st-flame{position:absolute;top:-2px;right:0;width:34px;height:34px;
-  display:grid;place-items:center;line-height:1;
-  background:var(--card);border-radius:50%;
-  box-shadow:0 2px 8px rgba(23,26,46,.14),0 0 0 1px rgba(23,26,46,.05);
-  transition:filter .3s,transform .3s}
-.st-ring.cool .st-flame{filter:grayscale(1) opacity(.55);transform:scale(.86)}
-
-.st-h{margin:0;font-size:15px;font-weight:700;letter-spacing:-.015em;line-height:1.35}
+.st-h{margin:10px 0 0;font-size:15px;font-weight:700;letter-spacing:-.015em;line-height:1.35}
 .st-w{margin:6px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
 .st-w.ok{color:var(--p6);font-weight:600}
 /* Late in the week with the goal unmet. Amber once, not a siren. */
 .st-w.warn{color:#93641A;font-weight:600}
 
-/* Twelve weeks as twelve marks. Missed weeks are drawn, not hidden — the gaps
-   are what make the run mean anything. Ruled off from the sentence above it,
-   because it is evidence rather than more copy. */
+/* Twelve weeks as twelve columns, the height of each being how many sessions
+   that week held: a full column, a half column, or a stub for a week with
+   none. Missed weeks are drawn, not hidden — the gaps are what make the run
+   mean anything.
+
+   These were twelve identical bars with only their fill changing, which is a
+   row of tally marks dressed as a chart: you could not tell a good week from a
+   thin one without stopping to read the colour. Ruled off from the sentence
+   above, because it is evidence rather than more copy. */
 .st-hist{margin:16px 0 0;padding:14px 0 0;border-top:1px solid var(--line)}
 .st-hl{margin:0 0 9px;font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;
   text-transform:uppercase;color:var(--faint)}
-.st-bars{display:flex;gap:4px;justify-content:center}
-.st-bars i{width:8px;height:22px;border-radius:var(--r-mark);background:#E6E8F0;
-  transition:background .3s}
-.st-bars i.half{background:var(--p1)}
-.st-bars i.on{background:var(--p4)}
-/* "here", not "now": .now is the band at the top of the dashboard, and a mark
-   in this strip inheriting its 22px padding blew one week up into a tile. */
-.st-bars i.here{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--p2)}
+.st-run{display:flex;gap:5px;align-items:flex-end;justify-content:center;height:46px}
+.st-run i{display:block;width:14px;border-radius:var(--r-mark);background:#E6E8F0;
+  transition:height .4s cubic-bezier(.2,.9,.3,1)}
+.st-run i.n0{height:5px}
+.st-run i.n1{height:24px;background:var(--p1)}
+.st-run i.n2{height:46px;background:var(--p4)}
+/* The week in progress, drawn open so it reads as still filling rather than
+   finished. Called on-now and not now: .now is the band at the top of the
+   dashboard, and a 14px column that inherited the band's 26px padding and
+   border rendered taller than a completed week. */
+.st-run i.on-now{background:repeating-linear-gradient(-45deg,var(--p1) 0 3px,#EDF6F2 3px 6px)}
+.st-rl{display:flex;justify-content:space-between;margin:9px 2px 0;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint)}
 
 .streak .rail-l{margin-top:14px}
 
 @media (prefers-reduced-motion:reduce){
-  .st-seg,.st-flame,.st-bars i,.run i span{transition:none}
+  .st-run i{transition:none}
 }
 
 /* The partner, in the rail. */
@@ -1530,6 +1532,47 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
     radial-gradient(90% 120% at 12% 0%, #F2FBF7 0%, rgba(242,251,247,0) 58%),
     var(--card)}
 .rec-top{display:flex;align-items:center;gap:28px;padding:26px 28px 24px;flex-wrap:wrap}
+
+/* The ring, which used to be in the dashboard rail as well. Here it has only
+   one meaning — the number in the middle is the streak, the arc around it is
+   this week — and the sentence beside it names both, which is what the rail
+   copy never did. */
+.st-ring{position:relative;width:146px;height:146px;margin:0 auto 16px}
+/* Direct child only. The ring is rotated so its arcs start at twelve o'clock;
+   as a descendant selector this also turned the flame badge sitting on the rim
+   on its side, which is how a flame came to look like a leaf. */
+.st-ring > svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.st-seg{fill:none;stroke-width:10;stroke-linecap:round;stroke:#E6E8F0;
+  transition:stroke .45s cubic-bezier(.2,.9,.3,1)}
+.st-seg.on{stroke:url(#st-g)}
+/* The whole week done: a soft halo, so a met week is felt before it is read. */
+.st-ring.met::before{content:"";position:absolute;inset:6px;border-radius:50%;
+  background:radial-gradient(circle,rgba(29,158,117,.16) 0%,rgba(29,158,117,0) 68%)}
+
+.st-mid{position:absolute;inset:0;display:grid;place-content:center;gap:0;line-height:1}
+.st-mid b{display:block;font-size:42px;font-weight:800;letter-spacing:-.045em;
+  color:var(--ink);font-variant-numeric:tabular-nums}
+.st-mid i{display:block;font-style:normal;font-family:var(--mono);font-size:8.5px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--faint);margin-top:7px}
+.st-ring.met .st-mid b{color:var(--p8)}
+
+/* The flame is a struck badge on the rim, not an emoji dropped on top: a white
+   disc lifts it off the ring and gives it an edge to sit against. It only
+   lights once there is a streak to burn — an unlit one on an empty account is
+   decoration promising something that has not happened. Late in the week with
+   nothing booked it goes grey: the streak is still yours, but you can see it
+   going out. */
+.st-flame{position:absolute;top:-2px;right:0;width:34px;height:34px;
+  display:grid;place-items:center;line-height:1;
+  background:var(--card);border-radius:50%;
+  box-shadow:0 2px 8px rgba(23,26,46,.14),0 0 0 1px rgba(23,26,46,.05);
+  transition:filter .3s,transform .3s}
+.st-ring.cool .st-flame{filter:grayscale(1) opacity(.55);transform:scale(.86)}
+
+@media (prefers-reduced-motion:reduce){
+  .st-seg,.st-flame,.run i span{transition:none}
+}
+
 .rec .st-ring{flex:0 0 auto;width:132px;height:132px;margin:0}
 /* The sentence takes the slack, which pushes the figures to the right edge
    rather than leaving half the card empty. */

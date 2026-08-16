@@ -176,31 +176,24 @@
            counter disappoints you; breaking one with somebody's name on it
            lets a specific person down, and that is the whole product. -->
       <section class="rail streak" id="rail-mo">
-        <div class="st-ring" id="mo-ring">
-          <svg viewBox="0 0 120 120" aria-hidden="true">
-            <defs>
-              <linearGradient id="st-g" x1="0" y1="1" x2="1" y2="0">
-                <stop offset="0" stop-color="#1D9E75"/>
-                <stop offset="1" stop-color="#0B7F62"/>
-              </linearGradient>
-            </defs>
-            <!-- One segment per session in the week's goal, so "one of two"
-                 is a shape you read rather than a fraction you work out. -->
-            <g id="mo-seg"></g>
-          </svg>
-          <span class="st-mid">
-            <b id="mo-n">0</b>
-            <i id="mo-u">week streak</i>
-          </span>
-          <span class="st-flame" id="mo-flame" hidden></span>
-        </div>
+        <!-- The streak is not here any more. appshell.js already draws it in
+             the top bar of every page, with the same at-risk states, so a
+             42px copy of it in the rail was the second time you read the same
+             number on one screen — inside a ring that was measuring something
+             else entirely. What the chrome cannot show is where this week
+             stands and what the run looks like, and that is all this is. -->
+        <p class="st-n" id="mo-n"><b>0</b> <span id="mo-nu">sessions this week</span></p>
         <p class="st-h" id="mo-h">&nbsp;</p>
         <p class="st-w" id="mo-w"></p>
-        <!-- The run itself, twelve weeks of it. A streak is a claim about the
-             past; this is the past, and the gaps are the honest part. -->
+        <!-- Twelve weeks, and height is the number of sessions: a full column,
+             a half column, or a stub. It was twelve identical bars with
+             different fills, which is a row of tally marks rather than a
+             chart — you could not see a good week from a thin one without
+             reading the colour. -->
         <div class="st-hist" id="mo-hist" hidden>
           <p class="st-hl">Last 12 weeks</p>
-          <div class="st-bars" id="mo-bars" aria-hidden="true"></div>
+          <div class="st-run" id="mo-bars" aria-hidden="true"></div>
+          <div class="st-rl"><span>12 weeks ago</span><span>Now</span></div>
         </div>
         <a class="rail-l" href="app-progress.html">Your progress &rarr;</a>
       </section>
@@ -363,10 +356,6 @@
 
   /* ---------- the rail ---------- */
 
-  /* ---------- the streak ring ---------- */
-  /* Geometry, once. r=52 in a 120 box leaves room for the 10px stroke and the
-     flame sitting on the rim. */
-  var R = 52, C = 2 * Math.PI * R;
 
   /* One arc per session in the goal, with a gap between them. Two sessions is
      two half-rings, four is four quarters — you read "one of two" as a shape
@@ -375,29 +364,19 @@
      The gap has to clear the round end caps or it closes up: a cap adds half
      the stroke at each end, which at r=52 and a 10px stroke is about 11° of
      arc eaten per gap. 18° leaves roughly 7° of daylight. */
-  function ringSegments(goal, done){
-    var gap = goal === 1 ? 0 : 18;                       /* degrees */
-    var step = C / goal, seg = step - (gap / 360) * C;
-    var out = '';
-    for (var i = 0; i < goal; i++) {
-      var off = -(i * step) - (gap / 720) * C;           /* half a gap either side */
-      var on = i < done;
-      out += '<circle class="st-seg' + (on ? ' on' : '') + '" cx="60" cy="60" r="' + R + '" ' +
-             'stroke-dasharray="' + seg.toFixed(2) + ' ' + (C - seg).toFixed(2) + '" ' +
-             'stroke-dashoffset="' + off.toFixed(2) + '" ' +
-             'style="transition-delay:' + (i * 90) + 'ms"/>';
-    }
-    return out;
-  }
 
-  function runStrip(history){
+  /* One column per week, its height the number of sessions that week against
+     the goal. Nothing here is a fraction to decode: a tall column is a good
+     week, a short one is a thin week, a stub is a week you missed. */
+  function runStrip(history, goal){
+    var g = goal || 2;
     return (history || []).map(function(w){
-      var cls = w.met ? 'on' : w.count ? 'half' : '';
-      if (w.current) cls += ' here';
+      var n = w.count || 0;
+      var cls = n >= g ? 'n2' : n > 0 ? 'n1' : 'n0';
+      if (w.current) cls += ' on-now';
       var when = new Date(w.start).toLocaleDateString([], { day:'numeric', month:'short' });
-      return '<i class="' + cls.trim() + '" title="Week of ' + when + ' — ' +
-             (w.count ? w.count + (w.count === 1 ? ' session' : ' sessions') : 'nothing') +
-             '"></i>';
+      return '<i class="' + cls + '" title="Week of ' + when + ' \u2014 ' +
+             (n ? n + (n === 1 ? ' session' : ' sessions') : 'nothing') + '"></i>';
     }).join('');
   }
 
@@ -412,37 +391,27 @@
 
     var who = partnerName ? partnerName.split(' ')[0] : '';
 
-    $('mo-seg').innerHTML = ringSegments(m.goal || 2, m.thisWeek);
+    /* The headline names its unit. It used to read "1 of 2 this week", which
+       asks for a fraction to be divided before it means anything — and the 2
+       is sessions_per_week, a target that defaults to two and that almost
+       nobody has opened their profile to set, so half of it referred to
+       something the reader did not know they had. */
+    $('mo-n').innerHTML = '<b>' + m.thisWeek + '</b> <span>' +
+      (m.thisWeek === 1 ? 'session this week' : 'sessions this week') + '</span>';
+
     /* Twelve empty marks under a zero would read as a loading skeleton, and
        there is no run to show yet. It appears with the first session. */
     $('mo-hist').hidden = !m.done;
-    $('mo-bars').innerHTML = m.done ? runStrip(m.history) : '';
+    $('mo-bars').innerHTML = m.done ? runStrip(m.history, m.goal) : '';
 
-    /* The flame belongs to the streak, not to the week — a four-week run is
-       still burning on a Monday morning with nothing booked. What the week
-       changes is how it burns: late and unmet, it goes grey and low, which is
-       a warning you read before you have read a word of the sentence. */
     var atRisk = m.streak && !m.metThisWeek && m.daysLeft <= 3;
-    $('mo-ring').className = 'st-ring' +
-      (m.metThisWeek ? ' met' : (m.thisWeek ? ' part' : '')) +
-      (atRisk ? ' cool' : '');
-    /* The same drawn flame as the top bar, bigger. appshell.js defines it;
-       this page loads that file after its own script, so the call is guarded
-       for the one frame before it exists. */
-    var flame = $('mo-flame');
-    flame.hidden = !m.streak;
-    if (m.streak && !flame.firstChild && window.pfFlame) flame.innerHTML = window.pfFlame(20);
+    $('rail-mo').className = 'rail streak' +
+      (m.metThisWeek ? ' met' : '') + (atRisk ? ' warn' : '');
 
-    $('mo-n').textContent = m.streak;
-
-    /* The count is already enormous in the middle of the ring; repeating it in
-       the sentence underneath wasted the one line the rail has and wrapped it
-       over two. The sentence's job is to say whose streak it is — and to agree
-       with the line under it, which "going strong" over a warning did not. */
     var pair = who ? 'You and ' + esc(who) : 'You';
     $('mo-h').innerHTML =
       !m.streak      ? (m.done ? 'Start it again this week' : 'Your first session starts it') :
-      atRisk         ? (who ? 'Don’t leave ' + esc(who) + ' hanging' : 'Don’t break it now') :
+      atRisk         ? (who ? 'Don\u2019t leave ' + esc(who) + ' hanging' : 'Don\u2019t break it now') :
       m.metThisWeek  ? pair + ', going strong' :
                        pair + ', week ' + (m.streak + 1);
 
@@ -451,14 +420,21 @@
        already banked does not. */
     var left = m.goal - m.thisWeek;
     if (m.metThisWeek) {
-      $('mo-w').textContent = 'This week is done — ' + m.thisWeek + ' of ' + m.goal + '.';
+      $('mo-w').textContent = 'Back on Monday.';
       $('mo-w').className = 'st-w ok';
     } else if (atRisk) {
-      $('mo-w').textContent = left + (left === 1 ? ' session' : ' sessions') + ' left, ' +
-        (m.daysLeft === 1 ? 'and the week ends today.' : m.daysLeft + ' days to book it.');
+      $('mo-w').textContent = left + ' more, ' +
+        (m.daysLeft === 1 ? 'and the week ends today.' : m.daysLeft + ' days left to book it.');
       $('mo-w').className = 'st-w warn';
+    } else if (!m.streak) {
+      /* Nothing running yet, so there is no week to keep. Say how much of this
+         one is left instead — "2 more to keep the week" to somebody who has
+         never had a session is a threat about a thing they do not have. */
+      $('mo-w').textContent = m.daysLeft === 1 ? 'The week ends today.'
+                                               : m.daysLeft + ' days left in the week.';
+      $('mo-w').className = 'st-w';
     } else {
-      $('mo-w').textContent = m.thisWeek + ' of ' + m.goal + ' this week.' +
+      $('mo-w').textContent = left + ' more to keep the week.' +
         (m.rested ? ' (A week off is forgiven once.)' : '');
       $('mo-w').className = 'st-w';
     }
