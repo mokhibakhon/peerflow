@@ -44,6 +44,31 @@
   color:#B4471F}
 .dr-ok{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--p6)}
+
+/* ---- alternatives to the ring, draft only ---- */
+/* Weeks as bars. Twelve of them at 14px fit a 306px rail with room to spare,
+   and the streak stops being a number you trust and becomes a run you count. */
+.dw{display:flex;gap:5px;align-items:flex-end;justify-content:center;height:44px;padding-bottom:6px}
+.dw i{display:block;width:14px;height:44px;border-radius:var(--r-mark);background:#E6E8F0;
+  position:relative;overflow:hidden}
+.dw i.on{background:var(--p4)}
+.dw i.half::after{content:"";position:absolute;left:0;right:0;bottom:0;height:50%;background:var(--p1)}
+/* The current week is the last bar and the label under it says so, so it
+   needs marking, not ringing — a halo round one bar made it read as a
+   separate boxed thing rather than the end of a run. */
+.dw i.now{background:#DDE7E3}
+.dw i.now::before{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;background:var(--p4)}
+.dw-l{display:flex;justify-content:space-between;margin:8px 2px 0;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+/* The streak as type, and this week as two pills that are not a chart. */
+.dn{font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.05;margin:0}
+.dn span{font-size:15px;font-weight:700;color:var(--soft);letter-spacing:-.01em}
+.dp{display:flex;gap:6px;justify-content:center;margin:14px 0 0}
+.dp i{display:block;width:38px;height:7px;border-radius:var(--r-pill);background:#E6E8F0}
+.dp i.on{background:var(--p4)}
+/* A ring that is only ever about this week. */
+.dr-ring .st-mid b{font-size:30px}
+.dr-ring .st-mid i{margin-top:5px}
 </style>
 </head>
 <body>
@@ -239,8 +264,16 @@
 
     <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec">
-      <p class="dr-tag">If you want my opinion</p>
-      <h3>A now, B when the call is ours</h3>
+      <p class="dr-tag">Built</p>
+      <h3>A is live — B when the call is ours</h3>
+      <p class="dr-note">
+        <b>A is no longer a proposal.</b> The booking form asks for the goal,
+        it rides with the proposal so whoever accepts can see what the hour is
+        for, and after the session a row prints the goal back and asks whether
+        you got it done — only ever for a session that had one written, so
+        nobody who left the box empty is asked anything. The rest of this
+        section is the reasoning, kept because it is why B is not built yet.
+      </p>
       <p class="dr-note">
         A costs one input in a form that already exists and improves the thing
         it sits in — a proposal that says what the hour is for is easier to
@@ -263,10 +296,190 @@
     <!-- ================================================================
          PART TWO — the rail
          ================================================================ -->
-    <div class="dr-part"><h2>Two — what the rail is for</h2></div>
+    <div class="dr-part"><h2>Two — the streak card, and what the rail is for</h2></div>
 
     <section class="dr-sec" style="border-top:0;padding-top:22px">
       <p class="dr-tag">Now</p>
+      <h3>The number and the ring are about different things</h3>
+      <p class="dr-note">
+        The circle is not messy because it is a circle. It is messy because
+        <b>the 42px number in the middle is your streak in weeks, and the arc
+        around it is this week against your goal</b> — two measures at two
+        speeds, sharing one shape. A big <b>3</b> inside a half-filled ring
+        reads as "three out of something", and the something is never named.
+        The comment in <code>app.css</code> says so outright and calls it the
+        point:
+      </p>
+      <div class="dr-stage">
+        <pre style="margin:0 0 18px;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--soft);overflow-x:auto"><code>The number is weeks; the ring is this week against the goal.
+Two clocks at two speeds in one object, which is the point.</code></pre>
+        <div class="dr-rail">
+          <section class="rail streak">
+            <div class="st-ring">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
+                <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
+              </svg>
+              <span class="st-mid"><b>3</b><i>week streak</i></span>
+            </div>
+            <p class="st-h">Don’t leave Asalxon hanging</p>
+            <p class="st-w">1 session left, 2 days to book it.</p>
+            <div class="st-hist">
+              <p class="st-hl">Last 12 weeks</p>
+              <div class="st-bars">
+                <i class="on"></i><i class="on"></i><i class="half"></i><i class="on"></i><i></i><i class="on"></i>
+                <i class="half"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i><i class="on here"></i>
+              </div>
+            </div>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+        </div>
+      </div>
+      <p class="dr-why">
+        There is a third telling of the same story underneath it — the twelve
+        bars — so the card says "how am I doing" three times in three shapes.
+        Every option below removes at least one of them.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Option A</p>
+      <h3>The weeks are the graphic — no ring at all</h3>
+      <p class="dr-note">
+        Promote the strip that is already there. Each bar is a week, a full bar
+        is a week you met, a half bar is a week you started. <b>The streak
+        stops being a number you have to trust and becomes a run you can
+        count</b>, and the current week is the last bar filling up — which is
+        the "where do I stand on a Wednesday" reading the ring was built for,
+        without a second shape.
+      </p>
+      <div class="dr-stage">
+        <div class="dr-rail">
+          <section class="rail streak">
+            <p class="dn">3 weeks <span>in a row</span></p>
+            <div class="dw" style="margin-top:16px" aria-hidden="true">
+              <i class="on"></i><i class="on"></i><i class="half"></i><i class="on"></i><i></i><i class="on"></i>
+              <i class="half"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half now"></i>
+            </div>
+            <div class="dw-l"><span>12 weeks ago</span><span>This week</span></div>
+            <p class="st-h" style="margin-top:16px">Don’t leave Asalxon hanging</p>
+            <p class="st-w">1 session left, 2 days to book it.</p>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+        </div>
+      </div>
+      <p class="dr-why">
+        <b>Trade-off.</b> One graphic instead of two, the history is no longer
+        a footnote, and a gap in the run is visible rather than hidden behind a
+        number that only counts the unbroken end. The cost is that the card
+        loses its centrepiece — the ring is the only round thing on the page
+        and it does draw the eye, which for the one card about you rather than
+        about admin is worth something.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Option B</p>
+      <h3>Say it in words, show the week as two pills</h3>
+      <p class="dr-note">
+        Nothing is a chart. The streak is type, this week is two pills the
+        width of the card, and the twelve weeks stay where they are as the only
+        drawn thing.
+      </p>
+      <div class="dr-stage">
+        <div class="dr-rail">
+          <section class="rail streak">
+            <p class="dn">3 weeks <span>in a row</span></p>
+            <div class="dp" aria-hidden="true"><i class="on"></i><i></i></div>
+            <p class="st-w" style="margin-top:10px">1 of 2 booked this week</p>
+            <p class="st-h" style="margin-top:14px">Don’t leave Asalxon hanging</p>
+            <p class="st-w">2 days left to book it.</p>
+            <div class="st-hist">
+              <p class="st-hl">Last 12 weeks</p>
+              <div class="st-bars">
+                <i class="on"></i><i class="on"></i><i class="half"></i><i class="on"></i><i></i><i class="on"></i>
+                <i class="half"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half here"></i>
+              </div>
+            </div>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+        </div>
+      </div>
+      <p class="dr-why">
+        <b>Trade-off.</b> The least ambiguous of the four — two pills for two
+        sessions cannot be misread, and "3 weeks in a row" needs no decoding at
+        all. But it is the plainest, and a card that is four lines of type and
+        a dash of colour is not going to be the thing anybody looks forward to
+        opening.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Option C</p>
+      <h3>Keep the ring, but let it be about one thing</h3>
+      <p class="dr-note">
+        The ring stays and stops carrying the streak: the middle shows this
+        week and only this week, and the streak moves into the line underneath
+        where it can be a sentence. Same shape, one meaning.
+      </p>
+      <div class="dr-stage">
+        <div class="dr-rail">
+          <section class="rail streak">
+            <div class="st-ring dr-ring">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
+                <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
+              </svg>
+              <span class="st-mid"><b>1<span style="color:var(--faint)">/2</span></b><i>this week</i></span>
+            </div>
+            <p class="st-h">Three weeks in a row</p>
+            <p class="st-w">One more with Asalxon by Sunday keeps it.</p>
+            <div class="st-hist">
+              <p class="st-hl">Last 12 weeks</p>
+              <div class="st-bars">
+                <i class="on"></i><i class="on"></i><i class="half"></i><i class="on"></i><i></i><i class="on"></i>
+                <i class="half"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half here"></i>
+              </div>
+            </div>
+            <a class="rail-l" href="#">Your progress &rarr;</a>
+          </section>
+        </div>
+      </div>
+      <p class="dr-why">
+        <b>Trade-off.</b> The smallest change of the three — the ring geometry
+        does not move, only what sits in the hole — and "1/2 this week" against
+        an arc that is half filled finally agrees with itself. The card still
+        tells the story three times though, and the streak has gone from the
+        biggest thing on the card to a line of body copy, which may be further
+        than you want to demote it.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">If you want my opinion</p>
+      <h3>A</h3>
+      <p class="dr-note">
+        A streak is a run of weeks, and twelve bars with a filled tail is
+        literally a picture of one — you can see the length, the gaps, and how
+        this week is going in a single object, which is the whole job. C is the
+        safest and I would take it if you want the ring kept; B is the clearest
+        and the dullest.
+      </p>
+      <p class="dr-why">
+        A is about thirty lines: the ring markup and its CSS come out, the bars
+        grow from 8×22 to 14×44 and move above the heading. Nothing behind it
+        changes — <b>momentum()</b> already returns the twelve weeks and the
+        streak, and the bars are already drawn from them.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Also</p>
       <h3>Four cards, and one of them is offered too early</h3>
       <p class="dr-note">
         The rail runs about a thousand pixels — taller than the main column now

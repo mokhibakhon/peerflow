@@ -353,7 +353,7 @@ window.pf = (function(){
          request falls back to the original column list — an un-migrated
          project keeps working and simply has no attendance to show. */
       var FULL = 'id,partner_name,topic,starts_at,duration_min,room_url,pair_id,status,' +
-                 'proposed_by,note,cancelled_by,attended,completed_at,cancelled_at';
+                 'proposed_by,note,goal,goal_done,cancelled_by,attended,completed_at,cancelled_at';
       var BASE = 'id,partner_name,topic,starts_at,duration_min,room_url,status,' +
                  'proposed_by,note,cancelled_by';
       function read(cols){
@@ -390,6 +390,8 @@ window.pf = (function(){
                  counts therefore keep working un-migrated rather than quietly
                  reading zero. */
               pairId: s.pair_id || legacyPair(s.room_url),
+              goal: s.goal || '',
+              goalDone: (s.goal_done === true || s.goal_done === false) ? s.goal_done : null,
               /* Rows written before proposals existed have no status; they
                  were already agreed, so they count as confirmed. */
               status: s.status || 'confirmed',
@@ -431,7 +433,7 @@ window.pf = (function(){
       var common = {
         topic: opts.topic || null, starts_at: opts.startsAt,
         duration_min: opts.durationMin || 50, room_url: room,
-        pair_id: opts.pairId || null,
+        pair_id: opts.pairId || null, goal: opts.goal || null,
         status: 'proposed', proposed_by: me.id, note: opts.note || null
       };
       function row(userId, partnerName){
@@ -449,14 +451,14 @@ window.pf = (function(){
          reads that back out of the room name for exactly these rows. */
       function put(list){
         return client.from('sessions').insert(list).then(function(r){
-          if (r.error && missingColumn(r.error) && /pair_id/.test(String(r.error.message || '')) &&
-              list.length && ('pair_id' in list[0])) {
+          var lost = /pair_id|goal/.exec(String(r.error && r.error.message || ''));
+          if (r.error && missingColumn(r.error) && lost && list.length && (lost[0] in list[0])) {
             try {
               console.warn('PeerFlow: sessions.pair_id is missing. ' +
                            'Run supabase/migration-room-per-session.sql.');
             } catch(e){}
             return put(list.map(function(o){
-              var c = {}; for (var k in o) if (o.hasOwnProperty(k) && k !== 'pair_id') c[k] = o[k];
+              var c = {}; for (var k in o) if (o.hasOwnProperty(k) && k !== lost[0]) c[k] = o[k];
               return c;
             }));
           }
@@ -1119,6 +1121,36 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* Whether you did the thing you sat down to do.
+
+     Not attendance — that is the room's to report and there is no room yet.
+     This is the one fact about a session no server can observe, and it is
+     only ever asked about a session where somebody actually wrote a goal, so
+     it cannot nag anyone who never set one.
+
+     Your own row: the goal is the session's and shared by both copies, the
+     answer is yours. */
+  function markGoal(startsAt, roomUrl, done){
+    if (!client) return Promise.resolve({ demo: true });
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      var q = client.from('sessions')
+        .update({ goal_done: !!done, completed_at: new Date().toISOString() })
+        .eq('user_id', uid).eq('starts_at', startsAt);
+      if (roomUrl) q = q.eq('room_url', roomUrl);
+      return q.then(function(r){
+        if (r.error && missingColumn(r.error)) {
+          try { console.warn('PeerFlow: session goals need supabase/migration-mvp.sql.'); } catch(e){}
+          return { needsMigration: true, error: 'Goals aren\u2019t switched on for this site yet.' };
+        }
+        if (r.error) return fail(r.error, 'Could not save that. Please try again.');
+        return { saved: true };
+      });
+    }).catch(function(e){
+      return fail(e, 'Could not save that \u2014 check your connection and try again.');
+    });
+  }
+
   /* ---------- availability, across timezones ----------
 
      A profile stores when someone is free as day-band strings — "tue-evening"
@@ -1545,6 +1577,7 @@ window.pf = (function(){
     signUpEmail: signUpEmail,
     signInEmail: signInEmail,
     signInOAuth: signInOAuth,
+    markGoal: markGoal,
     sharedAvailability: sharedAvailability,
     availabilityHours: availabilityHours,
     currentUser: currentUser,
