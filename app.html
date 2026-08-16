@@ -300,6 +300,16 @@
     return now >= start - 15 * 60000 && now <= start + s.durationMin * 60000;
   }
 
+  /* Join used to be a link straight out to meet.jit.si, in a new tab. It goes
+     through app-room.html now — same Jitsi room, same address underneath, but
+     inside PeerFlow, which is the only way the app ever finds out that either
+     of you turned up. The pair (starts_at, room_url) is how a session is
+     named everywhere else, so it is what the room page is handed. */
+  function roomHref(s){
+    return 'app-room.html?at=' + encodeURIComponent(s.startsAt.toISOString()) +
+           '&room=' + encodeURIComponent(s.roomUrl || '');
+  }
+
   /* "Mon, Aug 10, 10:00 AM" is how you write a date in a list of dates. On the
      band it is the only one on screen, so it can say what a person would say.
      Weekday names carry past tomorrow but stop being unambiguous at a week. */
@@ -735,7 +745,7 @@
     var label = [s.partnerName ? 'with ' + s.partnerName : '', s.topic || ''].filter(Boolean).join(' · ');
     var right = past ? ''
       : (s.roomUrl && isOpen(s))
-        ? '<a class="btn" href="' + esc(s.roomUrl) + '" target="_blank" rel="noopener">Join</a>'
+        ? '<a class="btn" href="' + esc(roomHref(s)) + '">Join</a>'
         : '<span class="when-rel">' + esc(relative(s.startsAt)) + '</span>';
     var key = ' data-at="' + esc(s.startsAt.toISOString()) + '" data-room="' + esc(s.roomUrl || '') + '"';
     return '<div class="slot">' +
@@ -1716,6 +1726,12 @@
        partner and sessions queries were even sent, which made the page wait
        out two round trips end to end instead of one. Nothing in the partner
        or session queries depends on the profile. */
+    /* Sessions that finished with you not in the room settle themselves here,
+       rather than on a schedule. Fired and forgotten on purpose: it grades
+       history, nothing on this screen reads the result, and making the page
+       wait on it would trade a visible delay for an invisible tidiness. */
+    if (pf.settleSessions) { try { pf.settleSessions(); } catch(e){} }
+
     Promise.all([pf.getProfile(), pf.acceptedPartners(), pf.fetchSessions()])
       .then(function(rows){
       var profile = rows[0];
@@ -1841,7 +1857,7 @@
               s: next.durationMin + ' minutes' + (next.topic ? ' · ' + next.topic : '') +
                  (live ? '' : '. Both of you have agreed to this one.'),
               a: live
-                   ? '<a class="btn" href="' + esc(next.roomUrl) + '" target="_blank" rel="noopener">Join the call</a>' +
+                   ? '<a class="btn" href="' + esc(roomHref(next)) + '">Join the call</a>' +
                      '<a class="ghost" href="#sess-card">All sessions</a>'
                    : '<a class="btn" data-open-book href="#book-card">Book another</a>' +
                      '<button class="ghost" type="button" data-relay="#upcoming [data-cancel-booked]"' +

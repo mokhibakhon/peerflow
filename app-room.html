@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your session — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<link rel="preconnect" href="https://meet.jit.si">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/app.css">
+<script src="assets/authgate.js"></script>
+</head>
+<body class="room-body">
+
+<main>
+  <div class="room">
+
+    <!-- The bar is the only chrome. It is the same height in every state so
+         the video does not jump when the timer starts counting. -->
+    <header class="room-bar">
+      <a class="room-out" href="app.html" aria-label="Leave and go back to Today">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M12 5l-5 5 5 5" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Leave</span>
+      </a>
+      <div class="room-id">
+        <strong id="rm-who">&nbsp;</strong>
+        <span id="rm-what"></span>
+      </div>
+      <div class="room-clock" id="rm-clock" hidden>
+        <span class="room-dot" id="rm-dot"></span>
+        <span id="rm-left"></span>
+      </div>
+    </header>
+
+    <!-- One stage, four states, only ever one of them showing. -->
+    <div class="room-stage">
+
+      <!-- 1. still loading -->
+      <section class="room-card" id="rm-load">
+        <p class="room-quiet">Finding your session…</p>
+      </section>
+
+      <!-- 2. not yours, gone, or never was -->
+      <section class="room-card" id="rm-none" hidden>
+        <h1 id="rm-none-h">We couldn’t find that session.</h1>
+        <p class="room-sub" id="rm-none-s">
+          The link may be old, or the session may have been cancelled.
+        </p>
+        <div class="room-acts"><a class="btn" href="app.html">Back to Today</a></div>
+      </section>
+
+      <!-- 3. real, yours, but not yet -->
+      <section class="room-card" id="rm-early" hidden>
+        <span class="mono room-k">Not open yet</span>
+        <h1 id="rm-early-h">&nbsp;</h1>
+        <p class="room-sub" id="rm-early-s"></p>
+        <p class="room-note">
+          The room opens fifteen minutes before you start. This page will let
+          you in on its own — you can leave it up.
+        </p>
+        <div class="room-acts">
+          <a class="ghost" href="app.html">Back to Today</a>
+        </div>
+      </section>
+
+      <!-- 4. the call -->
+      <section class="room-live" id="rm-live" hidden>
+        <div class="room-goal" id="rm-goal" hidden>
+          <span class="mono room-k">Today’s goal</span>
+          <p id="rm-goal-t"></p>
+        </div>
+        <div class="room-video" id="rm-video">
+          <div class="room-boot" id="rm-boot">
+            <p class="room-quiet">Starting the call…</p>
+          </div>
+        </div>
+        <p class="room-fail" id="rm-fail" hidden>
+          The call couldn’t start here — your browser or your network may be
+          blocking it. <a id="rm-fail-a" href="#" target="_blank" rel="noopener">Open it
+          in a new tab instead</a>.
+        </p>
+      </section>
+
+      <!-- 5. it ended -->
+      <section class="room-card" id="rm-done" hidden>
+        <span class="mono room-k">Session over</span>
+        <h1 id="rm-done-h">That’s it — nice work.</h1>
+        <p class="room-sub" id="rm-done-s"></p>
+        <div class="room-acts">
+          <a class="btn" href="app.html">Back to Today</a>
+          <a class="ghost" href="app-sessions.html">Book the next one</a>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script>
+/* PeerFlow — the room.
+
+   The call used to be somewhere else. A session handed you a meet.jit.si
+   address, you left the site, and PeerFlow never learned anything about what
+   happened next — which is why `attended` and `joined_at` sat null on every
+   row ever written and the reliability score, which reads both, could never
+   count to five.
+
+   So the call comes back inside the app. Jitsi still hosts the video; this
+   page embeds it, puts your partner's name and the goal the two of you set
+   around it, and tells the database you arrived. That last part is the whole
+   reason the page exists — everything visible here is a by-product of needing
+   somewhere honest to write from.
+
+   The room name is read out of the stored room_url, so a session booked
+   before this page existed opens in exactly the same room as before. Nothing
+   about the URL changes; only who is looking at it.
+
+   No appshell.js on purpose. The nav rail belongs on pages you browse; this
+   is one you sit inside, and the tabs would be an invitation to click away
+   mid-sentence. Leave is the only way out and it is top left, where a person
+   already expects it. */
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+
+  var OPEN_BEFORE = 15 * 60000;   /* the Join button's window, kept in step */
+  var GRACE_AFTER = 15 * 60000;
+
+  var qs = new URLSearchParams(location.search);
+  var atParam   = qs.get('at')   || '';
+  var roomParam = qs.get('room') || '';
+
+  var session = null, api = null, tick = null, recorded = false;
+
+  function show(id){
+    ['rm-load','rm-none','rm-early','rm-live','rm-done'].forEach(function(k){
+      $(k).hidden = (k !== id);
+    });
+  }
+
+  function first(n){ return String(n || '').trim().split(/\s+/)[0] || 'your partner'; }
+
+  /* "in 4 minutes", "in 2 hours", "on Tuesday at 7:00 PM" — near things get a
+     countdown because you are about to act on them, far ones get a date
+     because a countdown of 91 hours is not a fact anybody uses. */
+  function untilWords(d){
+    var mins = Math.round((d.getTime() - Date.now()) / 60000);
+    if (mins < 1)   return 'any moment now';
+    if (mins < 60)  return 'in ' + mins + (mins === 1 ? ' minute' : ' minutes');
+    if (mins < 300) {
+      var hrs = Math.round(mins / 60);
+      return hrs === 1 ? 'in about an hour' : 'in about ' + hrs + ' hours';
+    }
+    return 'on ' + d.toLocaleDateString(undefined, { weekday:'long' }) + ' at ' +
+           d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
+  }
+
+  function leftWords(ms){
+    if (ms <= 0) return 'time’s up';
+    var mins = Math.ceil(ms / 60000);
+    if (mins < 60) return mins + ' min left';
+    return Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm left';
+  }
+
+  function endsAt(s){ return s.startsAt.getTime() + s.durationMin * 60000; }
+  function openAt(s){ return s.startsAt.getTime() - OPEN_BEFORE; }
+
+  /* ---------- the states ---------- */
+
+  function paintIdentity(s){
+    $('rm-who').textContent  = s.partnerName || 'Your session';
+    $('rm-what').textContent = s.durationMin + ' min' + (s.topic ? ' · ' + s.topic : '');
+  }
+
+  function missing(h, sub){
+    $('rm-none-h').textContent = h;
+    if (sub) $('rm-none-s').textContent = sub;
+    show('rm-none');
+  }
+
+  function early(s){
+    $('rm-early-h').textContent =
+      'You’re early — ' + first(s.partnerName) + ' at ' +
+      s.startsAt.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }) + '.';
+    $('rm-early-s').textContent = 'The room opens ' + untilWords(new Date(openAt(s))) + '.';
+    show('rm-early');
+    /* Let itself in rather than making them refresh. */
+    clearInterval(tick);
+    tick = setInterval(function(){
+      if (Date.now() >= openAt(s)) { clearInterval(tick); live(s); }
+      else $('rm-early-s').textContent = 'The room opens ' + untilWords(new Date(openAt(s))) + '.';
+    }, 15000);
+  }
+
+  function over(s){
+    $('rm-done-s').textContent = recorded
+      ? 'Your fifty minutes with ' + first(s.partnerName) + ' are counted.'
+      : 'This one finished ' + untilWords(new Date(endsAt(s))).replace(/^in /, '') + ' ago.';
+    show('rm-done');
+  }
+
+  /* ---------- the call ---------- */
+
+  /* The stored URL says which room this is, so the name is read back off it
+     rather than rebuilt — a session booked before this page existed has to
+     open in the room it was booked with.
+
+     It is treated as hostile input all the same. room_url is written by
+     proposeSession, which composes it itself, but that insert writes both
+     rows of the booking — so the string on *your* row travelled through
+     somebody else's client, and only the database's word says what is in it.
+     Two things follow from that, and both matter:
+
+       the host must be meet.jit.si, or a crafted row could point the call at
+       a server of the writer's choosing;
+
+       and it must parse as https, because the failure branch below puts this
+       string in an href, where a javascript: URL is not a link but a script
+       waiting for a click.
+
+     Returns null rather than a guess. Everything downstream treats null as
+     "we cannot open this", which is the honest answer. */
+  function safeRoom(url){
+    var u;
+    try { u = new URL(String(url || '')); } catch (e) { return null; }
+    if (u.protocol !== 'https:' || u.hostname !== 'meet.jit.si') return null;
+    var name = u.pathname.replace(/^\/+/, '');
+    return /^[A-Za-z0-9_-]{4,120}$/.test(name) ? { name: name, href: u.href } : null;
+  }
+
+  function startClock(s){
+    $('rm-clock').hidden = false;
+    function paint(){
+      var ms = endsAt(s) - Date.now();
+      $('rm-left').textContent = leftWords(ms);
+      $('rm-dot').className = 'room-dot' + (ms <= 5 * 60000 ? ' room-dot-warn' : '');
+      if (ms <= -GRACE_AFTER) { clearInterval(tick); teardown(); over(s); }
+    }
+    paint();
+    clearInterval(tick);
+    tick = setInterval(paint, 30000);
+  }
+
+  function teardown(){
+    if (api) { try { api.dispose(); } catch(e){} api = null; }
+    $('rm-clock').hidden = true;
+  }
+
+  /* Only ever handed a URL safeRoom() has already vouched for. Where there
+     isn't one, the message stands on its own without an escape hatch: a link
+     we cannot vouch for is worse than no link. */
+  function fallbackLink(room){
+    var a = $('rm-fail-a');
+    if (room) { a.href = room.href; a.hidden = false; }
+    else { a.removeAttribute('href'); a.hidden = true; }
+    $('rm-fail').hidden = false;
+    $('rm-boot').hidden = true;
+  }
+
+  function live(s){
+    show('rm-live');
+    if (s.goal) { $('rm-goal-t').textContent = s.goal; $('rm-goal').hidden = false; }
+    startClock(s);
+
+    var room = safeRoom(s.roomUrl);
+    if (!room) return fallbackLink(null);
+
+    /* Jitsi's embed script. If it cannot be fetched — offline, blocked, an
+       extension — the page says so and hands over the plain link rather than
+       leaving somebody staring at "Starting the call…" until they give up. */
+    var tag = document.createElement('script');
+    tag.src = 'https://meet.jit.si/external_api.js';
+    tag.onerror = function(){ fallbackLink(room); };
+    tag.onload = function(){
+      if (typeof JitsiMeetExternalAPI !== 'function') return fallbackLink(room);
+      try {
+        api = new JitsiMeetExternalAPI('meet.jit.si', {
+          roomName: room.name,
+          parentNode: $('rm-video'),
+          userInfo: { displayName: window.__pfName || '' },
+          configOverwrite: {
+            prejoinPageEnabled: false,
+            disableDeepLinking: true,
+            startWithAudioMuted: false,
+            startWithVideoMuted: false
+          },
+          interfaceConfigOverwrite: {
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_BRAND_WATERMARK: false,
+            MOBILE_APP_PROMO: false
+          }
+        });
+      } catch (e) { return fallbackLink(room); }
+
+      $('rm-boot').hidden = true;
+
+      /* The one line this whole page is built around. */
+      api.addListener('videoConferenceJoined', function(){
+        if (recorded) return;
+        recorded = true;
+        pf.joinSession(s.startsAt.toISOString(), s.roomUrl);
+      });
+
+      /* Hanging up inside Jitsi should leave the page, not strand you in a
+         dead iframe with a working timer. */
+      api.addListener('readyToClose', function(){ teardown(); over(s); });
+    };
+    document.head.appendChild(tag);
+  }
+
+  /* ---------- boot ---------- */
+
+  function route(s){
+    paintIdentity(s);
+    var now = Date.now();
+
+    if (s.status === 'cancelled')
+      return missing('That session was cancelled.',
+        'Nothing is booked for this time any more. You can propose another.');
+    if (s.status !== 'confirmed')
+      return missing('That session isn’t confirmed yet.',
+        'The room opens once you have both agreed to the time.');
+
+    if (now < openAt(s))          return early(s);
+    if (now > endsAt(s) + GRACE_AFTER) return over(s);
+    return live(s);
+  }
+
+  if (!atParam || !roomParam) {
+    missing('That link is missing something.',
+            'Open your session from Today and the room will come with it.');
+  } else if (!window.pf) {
+    missing('We couldn’t reach PeerFlow.', 'Check your connection and try again.');
+  } else {
+    /* The name is only for the tile in the call, so a failure to read it is
+       not worth blocking on. */
+    pf.getProfile().then(function(p){ window.__pfName = (p && p.name) || ''; })
+      .catch(function(){});
+
+    pf.sessionAt(atParam, roomParam).then(function(s){
+      if (!s) return missing('We couldn’t find that session.',
+        'It may have been cancelled, or the link may belong to someone else’s session.');
+      session = s;
+      route(s);
+    }).catch(function(e){
+      try { console.error('PeerFlow room:', e); } catch(err){}
+      missing('Something went wrong loading that session.',
+              'Refresh the page, or open it again from Today.');
+    });
+  }
+
+  window.addEventListener('beforeunload', teardown);
+})();
+</script>
+</body>
+</html>

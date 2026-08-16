@@ -504,6 +504,65 @@ window.pf = (function(){
     }).catch(function(e){ return fail(e, msg); });
   }
 
+  /* ---------- who turned up ----------
+     Called by the room page the moment the video connects, and by nothing
+     else. It writes only the caller's own row: a booking is two rows and the
+     two people are graded apart, so arriving is not something you can do on
+     your partner's behalf.
+
+     A failure here is deliberately quiet. The call is already running by the
+     time this resolves, and telling somebody mid-session that their
+     attendance did not record would be alarming about a number they cannot
+     do anything about from inside a video call. It is logged and dropped. */
+  function joinSession(startsAt, roomUrl){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.rpc('join_session', { p_starts_at: startsAt, p_room: roomUrl })
+      .then(function(r){
+        if (r.error) {
+          try { console.warn('PeerFlow: join not recorded —', r.error.message || r.error); } catch(e){}
+          return { recorded: false };
+        }
+        return { recorded: true, at: r.data ? new Date(r.data) : null };
+      })
+      .catch(function(e){
+        try { console.warn('PeerFlow: join not recorded —', e); } catch(err){}
+        return { recorded: false };
+      });
+  }
+
+  /* The other half: sessions that finished with the caller never in the room.
+     Only marks a no-show where the partner can be shown to have been there —
+     if neither of you used the room you may well have met elsewhere, and the
+     session counts for nobody rather than being held against you both.
+
+     Called on load rather than on a schedule. Nothing depends on it having
+     run by any particular moment, and a cron job is one more thing that can
+     be quietly not running. */
+  function settleSessions(){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.rpc('settle_sessions').then(function(r){
+      if (r.error) {
+        try { console.warn('PeerFlow: settle skipped —', r.error.message || r.error); } catch(e){}
+        return { settled: 0 };
+      }
+      return { settled: r.data || 0 };
+    }).catch(function(){ return { settled: 0 }; });
+  }
+
+  /* One session, by the pair that identifies it everywhere else. Built on
+     fetchSessions so the room page sees exactly the shape and the fallbacks
+     every other page sees, rather than a second slightly different read. */
+  function sessionAt(startsAt, roomUrl){
+    var want = new Date(startsAt).getTime();
+    return fetchSessions().then(function(list){
+      if (!list) return null;
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].roomUrl === roomUrl && list[i].startsAt.getTime() === want) return list[i];
+      }
+      return null;
+    });
+  }
+
   function acceptSession(startsAt, roomUrl){
     return answer(startsAt, roomUrl, 'confirmed', 'Could not accept that time. Please try again.');
   }
@@ -1604,6 +1663,12 @@ window.pf = (function(){
         }).catch(function(e){ out.dropSessionExists = false; out.detail = String(e); return out; });
     },
     proposeSession: proposeSession,
+
+    /* The room */
+    sessionAt: sessionAt,
+    joinSession: joinSession,
+    settleSessions: settleSessions,
+
     acceptSession: acceptSession,
     declineSession: declineSession,
     cancelBooked: cancelBooked,

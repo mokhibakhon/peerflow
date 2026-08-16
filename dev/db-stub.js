@@ -136,6 +136,20 @@ window.pf = (function(){
     materialiseStanding:function(){note('materialise');
       return P({saved:true,count:window.__materialiseCount||0})},
     fetchSessions:function(){return P(window.__sessions||(window.__empty?[]:SESSIONS))},
+    /* The room. __joinFail makes join_session refuse, the way the real one
+       does outside the window or on somebody else's session. */
+    sessionAt:function(at,room){
+      var want=new Date(at).getTime();
+      var list=window.__sessions||(window.__empty?[]:SESSIONS);
+      for(var i=0;i<list.length;i++){
+        if(list[i].roomUrl===room && list[i].startsAt.getTime()===want) return P(list[i]);
+      }
+      return P(null);
+    },
+    joinSession:function(at,room){ note('join:'+room);
+      if(window.__joinFail) return P({recorded:false});
+      return P({recorded:true,at:new Date()}); },
+    settleSessions:function(){ note('settle'); return P({settled:window.__settled||0}); },
     /* The real one crosses two timezones; here it is a fixed set of shared
        hours so the booking sentence has days to offer. Tue/Thu/Sun evenings,
        keyed by JS weekday like the real byDay. */

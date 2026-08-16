@@ -2076,3 +2076,82 @@ a.who:hover{text-decoration:underline}
   .inreq-acts{margin-left:0;width:100%}
   .inreq-acts .btn,.inreq-acts .small{flex:1 1 auto}
 }
+
+/* ---------- the room ----------
+   A page you sit inside rather than browse, so it is the one app page with no
+   nav rail and no page scroll: the video takes the height it is given and the
+   chrome around it never moves. Everything is sized off the viewport rather
+   than the content, because content that grows would push the call off screen
+   mid-sentence. */
+.room-body{overflow:hidden;background:var(--deep)}
+/* main is the app's page shell — a max width, a gutter, and 46px of air at
+   the bottom. All three are wrong for a video call, which wants the glass.
+   This is the one page that opts out of the shell entirely. */
+.room-body main{max-width:none;width:100%;margin:0;padding:0}
+.room{display:flex;flex-direction:column;height:100dvh;background:var(--deep)}
+
+.room-bar{flex:0 0 auto;display:flex;align-items:center;gap:16px;
+  padding:12px 18px;background:var(--deep);color:#fff;min-height:58px}
+.room-out{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;
+  padding:7px 12px 7px 8px;border-radius:var(--r-pill);
+  background:rgba(255,255,255,.10);color:#fff;text-decoration:none;
+  font-size:13.5px;font-weight:600}
+.room-out:hover{background:rgba(255,255,255,.18)}
+.room-out:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.room-id{flex:1 1 auto;min-width:0;line-height:1.25}
+.room-id strong{display:block;font-size:15px;font-weight:700;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room-id span{display:block;font-size:12.5px;color:rgba(255,255,255,.62)}
+.room-clock{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;
+  padding:7px 14px;border-radius:var(--r-pill);background:rgba(255,255,255,.10);
+  color:#fff;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.room-dot{width:8px;height:8px;border-radius:50%;background:var(--p3);
+  box-shadow:0 0 0 0 rgba(255,255,255,.5);animation:room-pulse 2.6s infinite}
+/* The last five minutes are the only time the clock is worth interrupting for. */
+.room-dot-warn{background:#F0B429;animation-duration:1.2s}
+@keyframes room-pulse{
+  0%{box-shadow:0 0 0 0 rgba(255,255,255,.45)}
+  70%{box-shadow:0 0 0 7px rgba(255,255,255,0)}
+  100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}
+}
+@media (prefers-reduced-motion:reduce){ .room-dot{animation:none} }
+
+.room-stage{flex:1 1 auto;min-height:0;display:flex;align-items:center;
+  justify-content:center;padding:0}
+
+/* The states that are not a call are a card on the paper ground, centred. */
+.room-card{width:100%;max-width:560px;margin:0 auto;padding:34px;
+  background:var(--card);border-radius:var(--r-card);text-align:center}
+.room-stage:has(.room-card:not([hidden])){background:var(--bg);padding:22px}
+.room-card h1{margin:8px 0 0;font-size:24px;font-weight:800;letter-spacing:-.02em;
+  line-height:1.25}
+.room-k{display:inline-block;font-size:var(--t-kicker);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--green-dark)}
+.room-sub{margin:10px 0 0;font-size:15px;color:var(--soft);line-height:1.6}
+.room-note{margin:16px auto 0;max-width:44ch;font-size:13.5px;color:var(--faint);
+  line-height:1.6}
+.room-quiet{margin:0;font-size:15px;color:var(--soft)}
+.room-acts{display:flex;gap:10px;justify-content:center;margin:22px 0 0;flex-wrap:wrap}
+
+/* The call itself fills what is left. */
+.room-live{display:flex;flex-direction:column;width:100%;height:100%;min-height:0}
+.room-goal{flex:0 0 auto;padding:10px 18px;background:rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.08)}
+.room-goal .room-k{color:var(--p2)}
+.room-goal p{margin:2px 0 0;font-size:14px;color:#fff;line-height:1.4}
+.room-video{position:relative;flex:1 1 auto;min-height:0;background:#000}
+.room-video iframe{display:block;width:100%;height:100%;border:0}
+.room-boot{position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;background:var(--deep)}
+.room-boot .room-quiet{color:rgba(255,255,255,.7)}
+.room-fail{flex:0 0 auto;margin:0;padding:14px 18px;background:var(--bad-bg);
+  color:var(--bad-ink);font-size:14px;line-height:1.55;text-align:center}
+.room-fail a{color:var(--bad-ink);font-weight:700}
+
+@media (max-width:620px){
+  .room-bar{gap:10px;padding:10px 12px}
+  .room-out span{display:none}
+  .room-out{padding:8px}
+  .room-card{padding:26px 20px}
+  .room-card h1{font-size:21px}
+}
