@@ -46,19 +46,25 @@
   color:var(--p6)}
 
 /* ---- alternatives to the ring, draft only ---- */
-/* Weeks as bars. Twelve of them at 14px fit a 306px rail with room to spare,
-   and the streak stops being a number you trust and becomes a run you count. */
-.dw{display:flex;gap:5px;align-items:flex-end;justify-content:center;height:44px;padding-bottom:6px}
-.dw i{display:block;width:14px;height:44px;border-radius:var(--r-mark);background:#E6E8F0;
-  position:relative;overflow:hidden}
-.dw i.on{background:var(--p4)}
-.dw i.half::after{content:"";position:absolute;left:0;right:0;bottom:0;height:50%;background:var(--p1)}
-/* The current week is the last bar and the label under it says so, so it
-   needs marking, not ringing — a halo round one bar made it read as a
-   separate boxed thing rather than the end of a run. */
-.dw i.now{background:#DDE7E3}
-.dw i.now::before{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;background:var(--p4)}
-.dw-l{display:flex;justify-content:space-between;margin:8px 2px 0;
+/* Twelve weeks as a column chart. Height is the number of sessions that
+   week — this is the thing the earlier drafts got wrong: every bar was the
+   same height and only the fill changed, which is not a chart, it is a row
+   of tally marks wearing one. Two sessions is a full column, one is half,
+   none is a stub you can still see. */
+.dw{display:flex;gap:5px;align-items:flex-end;justify-content:center;height:46px}
+.dw i{display:block;width:14px;border-radius:var(--r-mark);background:#E6E8F0;position:relative}
+.dw i.n0{height:5px}
+.dw i.n1{height:24px;background:var(--p1)}
+.dw i.n2{height:46px;background:var(--p4)}
+/* The week in progress, drawn open so it reads as still being filled rather
+   than finished.
+   Named .dw-now, not .now: .now is the band's class in app.css, and calling a
+   14px bar the same thing as the biggest component on the dashboard gave it
+   the band's 26px padding and a border — a 24px column rendered at 54px, and
+   the current week came out taller than a full one. The same collision as
+   .rel and .relbox, made by me a day after finding that one. */
+.dw i.dw-now{background:repeating-linear-gradient(-45deg,var(--p1) 0 3px,#EDF6F2 3px 6px)}
+.dw-l{display:flex;justify-content:space-between;margin:9px 2px 0;
   font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
 /* The streak as type, and this week as two pills that are not a chart. */
 .dn{font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.05;margin:0}
@@ -344,117 +350,108 @@ Two clocks at two speeds in one object, which is the point.</code></pre>
 
     <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec">
-      <p class="dr-tag">Option A</p>
-      <h3>The weeks are the graphic — no ring at all</h3>
+      <p class="dr-tag">And the thing I missed</p>
+      <h3>The streak is already in the top bar</h3>
       <p class="dr-note">
-        Promote the strip that is already there. Each bar is a week, a full bar
-        is a week you met, a half bar is a week you started. <b>The streak
-        stops being a number you have to trust and becomes a run you can
-        count</b>, and the current week is the last bar filling up — which is
-        the "where do I stand on a Wednesday" reading the ring was built for,
-        without a second shape.
+        <code>appshell.js</code> draws a flame and the number in the chrome of
+        every page in the app — same three states as the ring, so the bar and
+        the card were built to agree with each other. Which means
+        <b>the 42px number in the middle of the ring is the second time you
+        read your streak on the same screen</b>, and the first one never
+        scrolls away.
+      </p>
+      <p class="dr-note">
+        So the card does not need to say it at all. What the chrome cannot
+        show is the two things the card is actually for: <b>where this week
+        stands</b>, and <b>what the run looks like</b>. Both options below drop
+        the number and keep those.
+      </p>
+      <p class="dr-why">
+        The earlier drafts also drew the twelve weeks as twelve identical
+        bars with different fills, which is why they still looked odd — a
+        chart whose height means nothing is not a chart. Height is the number
+        of sessions now: full column, half column, or a stub.
+      </p>
+    </section>
+
+    <!-- ---------------------------------------------------------------- -->
+    <section class="dr-sec">
+      <p class="dr-tag">Option A</p>
+      <h3>This week, and the run — no ring, no number</h3>
+      <p class="dr-note">
+        The headline is the week you are in, because that is the only part you
+        can still do something about. Underneath, twelve weeks as a real
+        column chart. The streak stays in the top bar where it already is.
       </p>
       <div class="dr-stage">
         <div class="dr-rail">
           <section class="rail streak">
-            <p class="dn">3 weeks <span>in a row</span></p>
-            <div class="dw" style="margin-top:16px" aria-hidden="true">
-              <i class="on"></i><i class="on"></i><i class="half"></i><i class="on"></i><i></i><i class="on"></i>
-              <i class="half"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half now"></i>
+            <p class="dn">1 <span>of 2 this week</span></p>
+            <p class="st-h" style="margin-top:10px">Don’t leave Asalxon hanging</p>
+            <p class="st-w">2 days left to book it.</p>
+            <div class="st-hist" style="margin-top:16px">
+              <p class="st-hl">Last 12 weeks</p>
+              <div class="dw" aria-hidden="true">
+                <i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i>
+                <i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n1 dw-now"></i>
+              </div>
+              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
             </div>
-            <div class="dw-l"><span>12 weeks ago</span><span>This week</span></div>
-            <p class="st-h" style="margin-top:16px">Don’t leave Asalxon hanging</p>
-            <p class="st-w">1 session left, 2 days to book it.</p>
             <a class="rail-l" href="#">Your progress &rarr;</a>
           </section>
         </div>
       </div>
       <p class="dr-why">
-        <b>Trade-off.</b> One graphic instead of two, the history is no longer
-        a footnote, and a gap in the run is visible rather than hidden behind a
-        number that only counts the unbroken end. The cost is that the card
-        loses its centrepiece — the ring is the only round thing on the page
-        and it does draw the eye, which for the one card about you rather than
-        about admin is worth something.
+        <b>Trade-off.</b> Nothing on the card repeats the chrome, the one
+        graphic left is a real chart, and the biggest type is the number you
+        can still change. The streak is still on screen — three inches up and
+        to the right, on a flame, permanently. The cost is that the card is
+        quieter than it was, and if you think the streak deserves to be the
+        loudest thing on the dashboard then it argues the other way.
       </p>
     </section>
 
     <!-- ---------------------------------------------------------------- -->
     <section class="dr-sec">
       <p class="dr-tag">Option B</p>
-      <h3>Say it in words, show the week as two pills</h3>
+      <h3>No card — the chrome has the streak, Progress has the rest</h3>
       <p class="dr-note">
-        Nothing is a chart. The streak is type, this week is two pills the
-        width of the card, and the twelve weeks stay where they are as the only
-        drawn thing.
+        The rail loses it entirely. The flame in the bar carries the streak,
+        the twelve weeks live on the Progress page the card was linking to
+        anyway, and the dashboard goes back to being only about what to do
+        next. The nudge — <em>don’t leave Asalxon hanging</em> — moves into the
+        band, which is the element that already exists to say exactly that.
       </p>
       <div class="dr-stage">
+        <section class="now" data-tone="idle">
+          <div class="now-txt">
+            <span class="mono now-k">Two days left</span>
+            <h1>Don’t leave Asalxon hanging.</h1>
+            <p class="now-s">One more session by Sunday keeps your run going — you’ve done one of two this week.</p>
+            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
+          </div>
+        </section>
+        <p class="dr-cap" style="margin:16px 0 8px">and the rail is two cards, not four</p>
         <div class="dr-rail">
-          <section class="rail streak">
-            <p class="dn">3 weeks <span>in a row</span></p>
-            <div class="dp" aria-hidden="true"><i class="on"></i><i></i></div>
-            <p class="st-w" style="margin-top:10px">1 of 2 booked this week</p>
-            <p class="st-h" style="margin-top:14px">Don’t leave Asalxon hanging</p>
-            <p class="st-w">2 days left to book it.</p>
-            <div class="st-hist">
-              <p class="st-hl">Last 12 weeks</p>
-              <div class="st-bars">
-                <i class="on"></i><i class="on"></i><i class="half"></i><i class="on"></i><i></i><i class="on"></i>
-                <i class="half"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half here"></i>
-              </div>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
+          <section class="rail">
+            <h3>Standing slot</h3>
+            <p class="st-now">Nothing standing yet.</p>
+            <p class="st-sub">Agree one hour a week with Asalxon and it books itself from then on.</p>
+            <div class="st-acts"><button class="btn" type="button">Set one up</button></div>
+          </section>
+          <section class="rail">
+            <span class="mono">Week 2 of 12</span>
+            <p class="wk-t">Ports, protocols and packets</p>
+            <a class="rail-l" href="#">All 12 weeks &rarr;</a>
           </section>
         </div>
       </div>
       <p class="dr-why">
-        <b>Trade-off.</b> The least ambiguous of the four — two pills for two
-        sessions cannot be misread, and "3 weeks in a row" needs no decoding at
-        all. But it is the plainest, and a card that is four lines of type and
-        a dash of colour is not going to be the thing anybody looks forward to
-        opening.
-      </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Option C</p>
-      <h3>Keep the ring, but let it be about one thing</h3>
-      <p class="dr-note">
-        The ring stays and stops carrying the streak: the middle shows this
-        week and only this week, and the streak moves into the line underneath
-        where it can be a sentence. Same shape, one meaning.
-      </p>
-      <div class="dr-stage">
-        <div class="dr-rail">
-          <section class="rail streak">
-            <div class="st-ring dr-ring">
-              <svg viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
-                <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
-              </svg>
-              <span class="st-mid"><b>1<span style="color:var(--faint)">/2</span></b><i>this week</i></span>
-            </div>
-            <p class="st-h">Three weeks in a row</p>
-            <p class="st-w">One more with Asalxon by Sunday keeps it.</p>
-            <div class="st-hist">
-              <p class="st-hl">Last 12 weeks</p>
-              <div class="st-bars">
-                <i class="on"></i><i class="on"></i><i class="half"></i><i class="on"></i><i></i><i class="on"></i>
-                <i class="half"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half here"></i>
-              </div>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-        </div>
-      </div>
-      <p class="dr-why">
-        <b>Trade-off.</b> The smallest change of the three — the ring geometry
-        does not move, only what sits in the hole — and "1/2 this week" against
-        an arc that is half filled finally agrees with itself. The card still
-        tells the story three times though, and the streak has gone from the
-        biggest thing on the card to a line of body copy, which may be further
-        than you want to demote it.
+        <b>Trade-off.</b> The shortest dashboard of anything drawn so far, and
+        the nudge lands in the loudest place on the page instead of the third
+        card down the rail. But the run of weeks stops being glanceable — you
+        have to go to Progress to see it — and a streak you never see is a
+        streak you stop minding, which is most of what it is for.
       </p>
     </section>
 
@@ -463,17 +460,17 @@ Two clocks at two speeds in one object, which is the point.</code></pre>
       <p class="dr-tag">If you want my opinion</p>
       <h3>A</h3>
       <p class="dr-note">
-        A streak is a run of weeks, and twelve bars with a filled tail is
-        literally a picture of one — you can see the length, the gaps, and how
-        this week is going in a single object, which is the whole job. C is the
-        safest and I would take it if you want the ring kept; B is the clearest
-        and the dullest.
+        B is tempting and I think it goes one step too far: the twelve weeks
+        are the only place on the dashboard you can see a gap, and moving them
+        behind a click means nobody looks. A keeps them, drops everything that
+        was being said twice, and leaves the card with one number and one
+        chart that are about two different things and look it.
       </p>
       <p class="dr-why">
-        A is about thirty lines: the ring markup and its CSS come out, the bars
-        grow from 8×22 to 14×44 and move above the heading. Nothing behind it
-        changes — <b>momentum()</b> already returns the twelve weeks and the
-        streak, and the bars are already drawn from them.
+        A is roughly forty lines out and fifteen in — the ring markup, its
+        SVG, the segment maths and about thirty lines of CSS go; the bars gain
+        a height class. <b>momentum()</b> already returns the count per week,
+        so nothing behind it changes.
       </p>
     </section>
 
