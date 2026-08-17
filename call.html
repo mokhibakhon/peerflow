@@ -74,7 +74,6 @@
 
       <div class="rm-acts">
         <button class="btn" type="button" id="lb-join">Join the call</button>
-        <a class="ghost" href="app.html">Not now</a>
       </div>
       <p class="lb-err" id="lb-err" hidden></p>
     </div>
@@ -87,7 +86,14 @@
     <div class="rm-stage" id="stage">
       <div class="tile tile-far" id="far">
         <video id="far-v" autoplay playsinline></video>
-        <p class="tile-wait" id="far-wait">Waiting for <b id="far-who">your partner</b>…</p>
+        <!-- The sentence is wrapped, and has to be. .tile-wait is a flex
+             container so the text can sit dead centre of the tile, and a
+             flex container turns each run of inline content into its own
+             anonymous item — then strips the whitespace between them. The
+             three pieces here ("Waiting for", the name, the ellipsis) came
+             out as "Waiting forChatgpt…". One element means one flex item,
+             and ordinary inline layout inside it. -->
+        <p class="tile-wait" id="far-wait"><span>Waiting for <b id="far-who">your partner</b>…</span></p>
         <p class="tile-n" id="far-n" hidden></p>
         <p class="tile-off" id="far-off" hidden>Camera off</p>
       </div>
