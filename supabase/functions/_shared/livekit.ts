@@ -8,9 +8,18 @@
  *
  * Doing it here rather than pulling in livekit-server-sdk keeps a cold start
  * to the function's own code and keeps the whole project's dependency list
- * where it has always been: Supabase, and nothing else. The output is
- * checked byte-for-byte against the official SDK in the test suite, so this
- * is a shortcut in dependencies only.
+ * where it has always been: Supabase, and nothing else.
+ *
+ * That is only a good trade while something proves the output is right, so
+ * `node dev/livekit-tests.js` runs this file against Node's own crypto
+ * module, which shares no code with it: same HMAC over the same signing
+ * input, plus the refusals verifyWebhook has to make. A token signed wrongly
+ * here would not fail here — it would fail as "could not join" on somebody's
+ * call, a long way from the cause.
+ *
+ * This comment used to claim the output was checked byte-for-byte against
+ * the official SDK. It was not: that suite lived in a scratchpad and went
+ * with it, leaving the file asserting a guarantee nothing was providing.
  */
 
 const enc = new TextEncoder();

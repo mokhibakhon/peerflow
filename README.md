@@ -139,6 +139,10 @@ agreed to, which it had been doing quietly on every page load.
 `dev/sql-tests.sh` runs the whole schema against a throwaway PostgreSQL 16 and
 asserts on it; `PF_WITHOUT_FIX=1 dev/sql-tests.sh` re-runs it against the
 schema as it was before that migration, so the cases can be seen to fail.
+`node dev/livekit-tests.js` checks the hand-written JWTs in
+`supabase/functions/_shared/livekit.ts` against Node's own crypto — a token
+signed wrongly there surfaces as "could not join" on somebody's call, which is
+a long way from the cause.
 
 Which partnership a session belongs to is `sessions.pair_id`
 (`supabase/migration-room-per-session.sql`), so streaks and per-partner
