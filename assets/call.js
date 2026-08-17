@@ -45,7 +45,10 @@
           '<path d="M10.5 6h3a2 2 0 0 1 2 2v1.2l6-3.2v9"/><path d="M3.5 3.5l17 17"/></svg>',
     share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round">' +
           '<rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>' +
-          '<path d="M12 13.5v-6M9.4 10.1L12 7.5l2.6 2.6"/></svg>'
+          '<path d="M12 13.5v-6M9.4 10.1L12 7.5l2.6 2.6"/></svg>',
+    sound:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round">' +
+          '<path d="M11 4.5 6 9H3v6h3l5 4.5z"/><path d="M15.4 8.6a4.8 4.8 0 0 1 0 6.8"/>' +
+          '<path d="M18.2 5.8a8.8 8.8 0 0 1 0 12.4"/></svg>'
   };
 
   /* ---------- the five screens ---------- */
@@ -327,26 +330,155 @@
 
   /* How long is left, from the booking rather than from when you joined —
      the session ends when it was always going to end. */
+  function mmss(ms){
+    var s = Math.max(0, Math.round(ms / 1000));
+    return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+  }
+
+  /* The bar used to say "23 min in", which was true and not much help. What
+     you want mid-session is which stretch you are in and how much of it is
+     left, and pfPhases works both out from the booking's own start time —
+     so both people see the same thing with nothing sent between them.
+
+     It ticks every second now rather than every twenty. A countdown that
+     jumps five seconds at a time reads as broken, and one interval on a page
+     that is already decoding video is not the expensive part. */
   function startClock(){
     stopClock();
     if (!pass.startsAt) return;
-    var starts = new Date(pass.startsAt).getTime();
+
+    var mins = (window.pfPhases && pass.endsAt)
+      ? window.pfPhases.bookedMinutes(pass.startsAt, pass.endsAt) : 0;
+
     function tick(){
-      var mins = Math.round((Date.now() - starts) / 60000);
-      var el = $('bar-clock');
-      el.textContent = mins < 0 ? 'starts in ' + (-mins) + ' min'
-                     : mins === 0 ? 'just started'
-                     : mins + ' min in';
-      /* The end of the booking, not the end of the token: the twenty extra
-         minutes exist so a call is not cut off, not so it can be planned
-         around. */
-      var ends = pass.endsAt ? new Date(pass.endsAt).getTime() - 20 * 60000 : 0;
-      el.classList.toggle('soon', !!ends && ends - Date.now() < 5 * 60000);
+      var el = $('bar-clock'), rail = $('ph-rail');
+      if (!el) return;
+
+      /* Without the module, or without an end to measure against, fall back
+         to what the bar said before rather than showing nothing. */
+      if (!window.pfPhases || !mins) {
+        var m = Math.round((Date.now() - new Date(pass.startsAt).getTime()) / 60000);
+        el.className = 'bar-clock';
+        el.textContent = m < 0 ? 'starts in ' + (-m) + ' min'
+                       : m === 0 ? 'just started' : m + ' min in';
+        return;
+      }
+
+      var r = window.pfPhases.at(Date.now(), pass.startsAt, mins);
+      var lab, left = '', cls = 'bar-clock';
+
+      if (r.state === 'before')      { lab = 'Starts in'; left = mmss(r.leftMs); }
+      else if (r.state === 'after')  { lab = 'Session over'; cls += ' done'; }
+      else if (r.kind === 'break')   { lab = 'Break'; left = mmss(r.leftMs); cls += ' brk'; }
+      else {
+        var f = window.pfPhases.focusNumber(r.blocks, r.index);
+        /* "Focus 1 of 1" is a fact nobody needs — a single sitting is just
+           focus. */
+        lab = f.of > 1 ? ('Focus ' + f.n + ' of ' + f.of) : 'Focus';
+        left = mmss(r.leftMs);
+      }
+      if (r.state === 'running' && r.leftMs < 2 * 60000) cls += ' soon';
+
+      el.className = cls;
+      el.innerHTML = '<span class="ph-dot"></span><span class="ph-lab">' + esc(lab) +
+                     '</span>' + (left ? '<span class="ph-left">' + left + '</span>' : '');
+
+      if (rail) {
+        var html = '';
+        for (var i = 0; i < r.blocks.length; i++) {
+          var b = r.blocks[i];
+          var on = r.state === 'after' || (r.state === 'running' && i <= r.index);
+          html += '<i class="' + (b.kind === 'break' ? 'brk ' : '') + (on ? 'on' : '') +
+                  '" style="width:' + (b.min * 2.2) + 'px"></i>';
+        }
+        rail.innerHTML = html;
+      }
     }
     tick();
-    clockT = setInterval(tick, 20000);
+    clockT = setInterval(tick, 1000);
   }
   function stopClock(){ if (clockT) clearInterval(clockT); clockT = null; }
+
+  /* ---------- background sound ----------
+     Local to whoever chose it. assets/ambience.js says at length why it is
+     never mixed into what we publish; the short version is that rain is the
+     exact signal the far side's noise suppression is built to destroy. */
+  var SOUNDS = [
+    { id:'off',   name:'Off',
+      svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>' },
+    { id:'rain',  name:'Rain',
+      svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13a4 4 0 0 1 .6-7.96 5.5 5.5 0 0 1 10.4 1.7A3.5 3.5 0 0 1 17.5 13z"/><path d="M8 17l-1 3M12 17l-1 3M16 17l-1 3"/></svg>' },
+    { id:'noise', name:'Deep noise',
+      svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 11v2M21 12h0"/></svg>' },
+    { id:'ocean', name:'Ocean',
+      svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 11c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 21c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg>' }
+  ];
+
+  function paintSound(){
+    var on = (window.pfAmbience && window.pfAmbience.playing()) || 'off';
+    var grid = $('snd-grid');
+    if (grid) {
+      Array.prototype.forEach.call(grid.querySelectorAll('.snd-b'), function(b){
+        b.setAttribute('aria-pressed', b.getAttribute('data-snd') === on ? 'true' : 'false');
+      });
+    }
+    var btn = $('c-sound');
+    if (btn) btn.classList.toggle('on', on !== 'off');
+  }
+
+  function buildSound(){
+    var grid = $('snd-grid');
+    if (!grid || !window.pfAmbience) return;
+    grid.innerHTML = SOUNDS.map(function(s){
+      return '<button class="snd-b" type="button" data-snd="' + s.id +
+             '" aria-pressed="false">' + s.svg + '<span>' + s.name + '</span></button>';
+    }).join('');
+
+    var vol = $('snd-vol');
+    if (vol) {
+      vol.value = window.pfAmbience.volume();
+      vol.addEventListener('input', function(){ window.pfAmbience.volume(+vol.value); });
+    }
+
+    grid.addEventListener('click', function(e){
+      var b = e.target.closest('[data-snd]');
+      if (!b) return;
+      var want = b.getAttribute('data-snd');
+      /* Pressing what is already on turns it off, so the tile is a toggle and
+         not a trap you need the Off tile to escape. */
+      window.pfAmbience.play(want === window.pfAmbience.playing() ? 'off' : want);
+      paintSound();
+    });
+
+    icon($('c-sound-ic'), IC.sound);
+
+    var open = $('c-sound');
+    open.addEventListener('click', function(e){
+      e.stopPropagation();
+      var pop = $('sound-pop');
+      var show = pop.hidden;
+      pop.hidden = !show;
+      open.setAttribute('aria-expanded', show ? 'true' : 'false');
+    });
+    /* Anywhere else, and Escape, closes it — a panel that traps you in the
+       middle of a call is worse than one that is slightly too eager to go. */
+    document.addEventListener('click', function(e){
+      var pop = $('sound-pop');
+      if (!pop || pop.hidden) return;
+      if (e.target.closest('#sound-pop') || e.target.closest('#c-sound')) return;
+      pop.hidden = true;
+      $('c-sound').setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function(e){
+      var pop = $('sound-pop');
+      if (e.key === 'Escape' && pop && !pop.hidden) {
+        pop.hidden = true;
+        $('c-sound').setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    paintSound();
+  }
 
   /* The far tile says one of three things, and it used to work them out in
      four places that could disagree.
@@ -490,6 +622,7 @@
         $('bar-goal').hidden = false;
       }
       paintControls();
+      buildSound();
       startClock();
       show('st-live');
     }).catch(function(e){
@@ -503,6 +636,10 @@
   function done(h, s){
     stopClock();
     stopMeter();
+    /* The sound belongs to the call, so it leaves with it. Rain still playing
+       over the "you've left" screen would be somebody else's decision about
+       your speakers. */
+    if (window.pfAmbience) window.pfAmbience.shutdown();
     $('done-h').textContent = h || 'You’ve left the call';
     $('done-s').textContent = s || '';
     /* Rejoining is only offered while the booking is still open, so the

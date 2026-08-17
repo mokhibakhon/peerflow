@@ -17,6 +17,9 @@
      __standing    {minutes, agreed, mine} for a standing slot
      __sharedBy    shared hours by JS weekday, overriding the default
      __callRefuse  a reason string, to see call.html turn one down
+     __callMinsIn  how far into the booked session the room thinks it is, so
+                   the phase pill can be caught mid-break
+     __pfNoPartner true to keep the far tile empty (read by dev/livekit-fake.js)
      __clash       a sentence, to see a booking refused because the hour has
                    gone — what the database now says when two people reach the
                    same minute at once, or when the partner is already busy
@@ -199,7 +202,10 @@ window.pf = (function(){
       note('callToken:'+id);
       if(window.__callRefuse) return P({ok:false,reason:window.__callRefuse,
         startsAt:new Date(Date.now()+40*60000).toISOString()});
-      var s=new Date(); s.setMinutes(s.getMinutes()-4);
+      /* __callMinsIn moves the clock inside the booking, so the phase pill
+         can be seen at a break or in the last stretch without waiting
+         twenty-five minutes for one. */
+      var s=new Date(); s.setMinutes(s.getMinutes()-(window.__callMinsIn||4));
       return P({ok:true,token:'stub.token',url:'wss://example.invalid',
         room:'pf-stub',identity:'u1',display:PROFILE.name,
         partner:PARTNER.profile.name,topic:'Cybersecurity',

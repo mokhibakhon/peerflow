@@ -116,9 +116,28 @@
         <button class="c-b" type="button" id="c-share" aria-pressed="false" title="Share your screen">
           <span class="c-ic" id="c-share-ic"></span><span class="c-l">Share</span>
         </button>
+        <button class="c-b" type="button" id="c-sound" aria-expanded="false"
+                aria-controls="sound-pop" title="Background sound, only for you">
+          <span class="c-ic" id="c-sound-ic"></span><span class="c-l">Sound</span>
+        </button>
         <button class="c-b c-leave" type="button" id="c-leave">Leave</button>
+
+        <!-- Only ever heard by the person who chose it; nothing here is
+             published into the call. -->
+        <div class="snd-pop" id="sound-pop" hidden>
+          <p class="snd-k">Background sound<span>only you hear this</span></p>
+          <div class="snd-grid" id="snd-grid"></div>
+          <label class="snd-vol">
+            <span class="snd-vl">Volume</span>
+            <input type="range" id="snd-vol" min="0" max="100" value="35"
+                   aria-label="Background sound volume">
+          </label>
+        </div>
       </div>
-      <p class="bar-clock" id="bar-clock"></p>
+      <div class="bar-end">
+        <p class="bar-clock" id="bar-clock"></p>
+        <div class="ph-rail" id="ph-rail" aria-hidden="true"></div>
+      </div>
     </div>
 
     <p class="rm-flash" id="rm-flash" hidden></p>
@@ -147,6 +166,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
+<script src="assets/phases.js"></script>
+<script src="assets/ambience.js"></script>
 <script src="assets/call.js"></script>
 </body>
 </html>

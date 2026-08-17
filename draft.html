@@ -190,17 +190,18 @@ body{background:var(--bg)}
            and the one that most sounds like a place.</p>
         <button class="btn" type="button" data-mix="rain">Play rain</button>
       </div>
-      <div class="mix" id="mix-brown">
+      <div class="mix" id="mix-noise">
         <h3>Deep noise</h3>
         <p>Brown noise — the low, even one. No features to notice, which is the point: it
            covers a room without giving you anything to listen to.</p>
-        <button class="btn" type="button" data-mix="brown">Play deep noise</button>
+        <button class="btn" type="button" data-mix="noise">Play deep noise</button>
       </div>
-      <div class="mix" id="mix-wind">
-        <h3>Wind</h3>
-        <p>A band of noise drifting slowly up and down. Airier than the other two, and the
-           easiest to leave on for an hour.</p>
-        <button class="btn" type="button" data-mix="wind">Play wind</button>
+      <div class="mix" id="mix-ocean">
+        <h3>Ocean</h3>
+        <p>A long swell in both loudness and brightness, because a wave coming in is louder
+           and brighter and going out is quieter and duller. Two drifts at rates that do not
+           divide into each other, so it never audibly repeats.</p>
+        <button class="btn" type="button" data-mix="ocean">Play ocean</button>
       </div>
     </div>
 
@@ -221,6 +222,7 @@ body{background:var(--bg)}
 </main>
 
 <script src="assets/phases.js"></script>
+<script src="assets/ambience.js"></script>
 <script>
 (function(){
   var P = window.pfPhases;
@@ -282,96 +284,24 @@ body{background:var(--bg)}
   paint();
 
   /* ---------- ambience ----------
-     One AudioContext, built on the first click because no browser will let
-     one start without a gesture, and the texture swapped underneath a shared
-     output gain so changing it does not click. */
-  var ctx = null, node = null, out = null;
-  var LABEL = { rain:'Play rain', brown:'Play deep noise', wind:'Play wind' };
+     The real assets/ambience.js, loaded above — not a copy of it. A draft that
+     reimplements the thing it is demonstrating stops being evidence about the
+     thing the moment either one is edited. */
+  var LABEL = { rain:'Play rain', noise:'Play deep noise', ocean:'Play ocean' };
 
-  function noiseBuffer(seconds, brown){
-    var n = Math.floor(ctx.sampleRate * seconds);
-    var buf = ctx.createBuffer(1, n, ctx.sampleRate);
-    var d = buf.getChannelData(0), last = 0;
-    for (var i = 0; i < n; i++) {
-      var w = Math.random() * 2 - 1;
-      if (brown) { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; }
-      else d[i] = w;
-    }
-    /* A looping noise buffer clicks at the seam, once per loop, for as long
-       as it plays. Crossfading the tail over the head removes the
-       discontinuity — without this the whole idea is unusable, and the cause
-       is not obvious from the symptom. */
-    var f = Math.min(Math.floor(ctx.sampleRate * 0.05), Math.floor(n / 4));
-    for (var j = 0; j < f; j++) {
-      var k = j / f;
-      d[n - f + j] = d[n - f + j] * (1 - k) + d[j] * k;
-    }
-    return buf;
-  }
-
-  function source(buf){
-    var s = ctx.createBufferSource();
-    s.buffer = buf; s.loop = true; s.start();
-    return s;
-  }
-
-  /* Each texture is noise through a different filter, plus a very slow
-     oscillator moving that filter so it breathes instead of sitting still.
-     A static filter on static noise is a hiss; the movement is what makes it
-     sound like weather. */
-  function build(kind){
-    var g = ctx.createGain();
-    if (kind === 'brown') {
-      source(noiseBuffer(4, true)).connect(g);
-      g.gain.value = 0.9;
-      return g;
-    }
-    var f = ctx.createBiquadFilter(), lfo = ctx.createOscillator(), amt = ctx.createGain();
-    if (kind === 'rain') {
-      f.type = 'lowpass'; f.frequency.value = 1600; f.Q.value = 0.6;
-      var hp = ctx.createBiquadFilter();
-      hp.type = 'highpass'; hp.frequency.value = 380;
-      source(noiseBuffer(4, false)).connect(hp); hp.connect(f);
-      g.gain.value = 0.55; lfo.frequency.value = 0.08; amt.gain.value = 220;
-    } else {
-      f.type = 'bandpass'; f.frequency.value = 500; f.Q.value = 0.7;
-      source(noiseBuffer(4, false)).connect(f);
-      g.gain.value = 1.6; lfo.frequency.value = 0.05; amt.gain.value = 280;
-    }
-    f.connect(g);
-    lfo.connect(amt); amt.connect(f.frequency); lfo.start();
-    return g;
-  }
-
-  function volume(){ return Math.pow(document.getElementById('vol').value / 100, 2); }
-
-  function stop(){
-    if (node) { try { node.disconnect(); } catch(e){} node = null; }
+  function paintMixes(){
+    var on = window.pfAmbience.playing();
     Array.prototype.forEach.call(document.querySelectorAll('.mix'), function(m){
-      m.classList.remove('playing');
+      m.classList.toggle('playing', m.id === 'mix-' + on);
     });
     Object.keys(LABEL).forEach(function(k){
       var b = document.querySelector('[data-mix="' + k + '"]');
-      if (b) b.textContent = LABEL[k];
+      if (b) b.textContent = (k === on) ? 'Playing' : LABEL[k];
     });
   }
 
-  function play(kind){
-    if (!ctx) {
-      ctx = new (window.AudioContext || window.webkitAudioContext)();
-      out = ctx.createGain(); out.gain.value = volume(); out.connect(ctx.destination);
-    }
-    if (ctx.state === 'suspended') ctx.resume();
-    stop();
-    node = build(kind); node.connect(out);
-    /* Draft-only handle, so a test can put an analyser on the output and
-       confirm this actually makes a sound rather than silently building a
-       graph that is wired wrong. */
-    window.__pfAudio = { ctx: ctx, out: out };
-    document.getElementById('mix-' + kind).classList.add('playing');
-    var b = document.querySelector('[data-mix="' + kind + '"]');
-    if (b) b.textContent = 'Playing';
-  }
+  function play(kind){ window.pfAmbience.play(kind); paintMixes(); }
+  function stop(){ window.pfAmbience.stop(); paintMixes(); }
 
   document.addEventListener('click', function(e){
     var m = e.target.closest('[data-mix]');
@@ -380,9 +310,9 @@ body{background:var(--bg)}
     if (e.target.closest('#sound-b'))
       document.getElementById('mix-rain').scrollIntoView({ behavior:'smooth', block:'center' });
   });
-  document.getElementById('vol').addEventListener('input', function(){
-    if (out) out.gain.value = volume();
-  });
+  var vol = document.getElementById('vol');
+  vol.value = window.pfAmbience.volume();
+  vol.addEventListener('input', function(){ window.pfAmbience.volume(+vol.value); });
 })();
 </script>
 
