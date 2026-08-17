@@ -90,6 +90,22 @@ congratulating the user.
   `assets/`**, and ask for it before believing a bug report about behaviour you
   have already fixed.
 
+- **Pushing to `main` does not deploy anything.** The Vercel project's GitHub
+  connection is broken — its Git settings still name the repository
+  `mokhibakhon/posfps`, which is what this repo was called before it was
+  renamed, and no push has produced a deployment since. Production tracks
+  `main` and simply never hears about it. Deploy by hand from the user's
+  clone:
+
+      git pull && npx vercel --prod
+
+  This cost most of a day. Several correct fixes appeared to do nothing,
+  because the live site was serving a build from before the video work
+  existed, and the hunt went through the code instead of the deploy. **If a
+  fix you have verified does not show up live, ask for `PF_BUILD` from the
+  browser console before writing another line.** Reconnecting the repository
+  in Vercel → Settings → Git is still to do.
+
 ## Migrations
 
 `supabase/*.sql` are run by hand by the user in the Supabase SQL editor. They
