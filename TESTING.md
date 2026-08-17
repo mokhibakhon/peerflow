@@ -96,7 +96,9 @@ side that didn't click.
 - [ ] **M: refresh** → **also** shows the booked session, not a pending
       proposal. *(This is the one that was broken.)*
 - [ ] Both: it's under **Booked** in the Sessions card.
-- [ ] Both: no call link yet — it says the link opens 15 minutes before.
+- [ ] Both: no Join button yet — it says the room opens 15 minutes before.
+- [ ] Opening `call.html?s=<the session id>` early says *"the room opens
+      fifteen minutes before you start"* and tells you how long to wait.
 - [ ] **N:** bell count drops.
 
 ### 4b. Cancel

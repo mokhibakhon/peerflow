@@ -422,17 +422,23 @@ window.pf = (function(){
     return currentUser().then(function(me){
       if (!me) return { demo: true };
       var myName = opts.myName || (me.email || '').split('@')[0];
-      /* A room of its own, every time. It used to be
-         'PeerFlow-' + the partner request id, which is the same address for
-         every session the two of you ever book — so anyone who had once been
-         given it kept a working key to all the later ones, including after
-         being blocked. Which partnership a session belongs to is pair_id's
-         job now; room_url only has to be unguessable and shared by this
-         booking's two rows. */
-      var room = 'https://meet.jit.si/PeerFlow-' + newId();
+      /* A room of its own, every time, and no longer an address.
+         It used to be 'PeerFlow-' + the partner request id — the same public
+         Jitsi URL for every session the two of you ever book, so anyone who
+         had once been given it kept a working key to all the later ones.
+         Then it became one URL per booking. Now it is not a URL at all: the
+         room lives on our own server and the only way in is a signed token
+         that call-token mints after checking the booking, so there is
+         nothing left for an address to leak.
+
+         room_url keeps its other job unchanged — it is the string that ties
+         a booking's two rows together, and answer_session and drop_session
+         still key on it. room_name is the room itself. */
+      var id = newId();
       var common = {
         topic: opts.topic || null, starts_at: opts.startsAt,
-        duration_min: opts.durationMin || 50, room_url: room,
+        duration_min: opts.durationMin || 50,
+        room_url: 'pf:' + id, room_name: 'pf-' + id,
         pair_id: opts.pairId || null, goal: opts.goal || null,
         status: 'proposed', proposed_by: me.id, note: opts.note || null
       };
@@ -443,15 +449,16 @@ window.pf = (function(){
       }
       var rows = [ row(me.id, opts.partnerName || null), row(opts.partnerId, myName) ];
 
-      /* pair_id arrives with migration-room-per-session.sql. Writing it to a
-         database that hasn't run that yet fails the whole insert, and losing
-         somebody's booking over a column they never asked for would be
-         absurd — drop it and write the rest. The session is still correct;
-         it just can't say which partnership it belongs to, and fetchSessions
-         reads that back out of the room name for exactly these rows. */
+      /* pair_id arrives with migration-room-per-session.sql and room_name
+         with migration-video.sql. Writing either to a database that hasn't
+         run them fails the whole insert, and losing somebody's booking over
+         a column they never asked for would be absurd — drop it and write
+         the rest. A session that lands without room_name simply has no room
+         until the migration is run, and says so plainly when somebody tries
+         to join rather than sending them anywhere. */
       function put(list){
         return client.from('sessions').insert(list).then(function(r){
-          var lost = /pair_id|goal/.exec(String(r.error && r.error.message || ''));
+          var lost = /pair_id|goal|room_name/.exec(String(r.error && r.error.message || ''));
           if (r.error && missingColumn(r.error) && lost && list.length && (lost[0] in list[0])) {
             try {
               console.warn('PeerFlow: sessions.pair_id is missing. ' +
@@ -1151,6 +1158,58 @@ window.pf = (function(){
     });
   }
 
+  /* ---------- the call ----------
+
+     Asking to be let into a session's room. The answer is a signed LiveKit
+     token, or a word saying why not.
+
+     This is a raw fetch rather than functions.invoke because the refusal is
+     the interesting part: invoke turns any non-2xx into an opaque error
+     object and the reason has to be dug back out of it, and the reason is
+     the whole message the page shows. Here the status and the body are just
+     read.
+
+     Nothing about which room, or who you are, is sent — only which session.
+     The server reads the booking and decides both, which is what stops a
+     room being somewhere you can talk your way into. */
+  function callToken(sessionId){
+    if (!client) return Promise.resolve({ ok: false, reason: 'offline' });
+    return client.auth.getSession().then(function(res){
+      var s = res && res.data && res.data.session;
+      if (!s) return { ok: false, reason: 'signed-out' };
+
+      return fetch(cfg.url + '/functions/v1/call-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': cfg.key,
+          'Authorization': 'Bearer ' + s.access_token
+        },
+        body: JSON.stringify({ session: sessionId })
+      }).then(function(r){
+        return r.json().catch(function(){ return {}; }).then(function(body){
+          if (r.ok && body.token) return Object.assign({ ok: true }, body);
+          /* A function that was never deployed answers 404 with a body that
+             is not ours. Telling those apart matters: one is "you cannot
+             join this", the other is "this site is not finished". */
+          var reason = body.reason ||
+            (r.status === 404 ? 'not-deployed' : 'server');
+          try {
+            if (reason === 'not-deployed' || reason === 'not-configured') {
+              console.warn('PeerFlow: the call-token function is not deployed or ' +
+                           'has no LiveKit keys. See docs/VIDEO.md.');
+            }
+          } catch(e){}
+          return { ok: false, reason: reason, status: r.status,
+                   startsAt: body.startsAt || null };
+        });
+      });
+    }).catch(function(e){
+      try { console.error('PeerFlow:', e); } catch(err){}
+      return { ok: false, reason: 'offline' };
+    });
+  }
+
   /* ---------- availability, across timezones ----------
 
      A profile stores when someone is free as day-band strings — "tue-evening"
@@ -1578,6 +1637,7 @@ window.pf = (function(){
     signInEmail: signInEmail,
     signInOAuth: signInOAuth,
     markGoal: markGoal,
+    callToken: callToken,
     sharedAvailability: sharedAvailability,
     availabilityHours: availabilityHours,
     currentUser: currentUser,

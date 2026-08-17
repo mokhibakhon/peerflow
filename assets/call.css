@@ -1,0 +1,254 @@
+/* PeerFlow — the room.
+
+   The only dark page in the product, and deliberately so: video is the
+   content here, and a white page around two video tiles makes both of them
+   look like screenshots pasted into a document. Everything else — the type
+   scale, the green, the radii — is the same as the rest of the app, so it
+   reads as a room inside PeerFlow rather than a different site.
+
+   The palette is local to this file because it exists nowhere else in the
+   product. Two greys and the same green. */
+.callpage{
+  --rm-bg:#0E1018;
+  --rm-panel:#171A24;
+  --rm-tile:#1E2230;
+  --rm-line:#2A2F3E;
+  --rm-t:#F4F5F8;
+  --rm-soft:#A2A7B8;
+  --rm-faint:#767C90;
+  background:var(--rm-bg);
+  color:var(--rm-t);
+  min-height:100vh;
+  min-height:100dvh;
+}
+.callpage .room{
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ---------- the three full-page states: loading, refused, over ---------- */
+.rm-mid{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:32px 22px;
+}
+.rm-load{color:var(--rm-faint);font-size:14px;margin:0}
+.rm-card{
+  max-width:460px;
+  background:var(--rm-panel);
+  border:1px solid var(--rm-line);
+  border-radius:var(--r-card);
+  padding:30px 32px 28px;
+}
+.rm-k{
+  margin:0 0 10px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--rm-faint);
+}
+.rm-card h1{margin:0;font-size:23px;font-weight:800;letter-spacing:-.025em;line-height:1.2}
+.rm-s{margin:10px 0 0;font-size:14.5px;line-height:1.6;color:var(--rm-soft)}
+.rm-acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:22px}
+
+/* The app's buttons, re-grounded. .btn and .ghost are app.css's; on a dark
+   panel the ghost's ink border disappears into the background, so only the
+   two colours change and every other property stays shared. */
+.callpage .btn{background:var(--p6);border-color:var(--p6);color:#fff}
+.callpage .btn:hover{background:var(--p7);border-color:var(--p7)}
+.callpage .ghost{
+  background:transparent;border-color:var(--rm-line);color:var(--rm-t);
+}
+.callpage .ghost:hover{background:var(--rm-tile);border-color:var(--rm-faint)}
+
+/* ---------- the lobby ---------- */
+.rm-lobby{
+  flex:1;
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);
+  gap:34px;
+  align-items:center;
+  max-width:1060px;
+  width:100%;
+  margin:0 auto;
+  padding:32px 24px;
+}
+.lb-prev{
+  position:relative;
+  aspect-ratio:4/3;
+  background:var(--rm-tile);
+  border:1px solid var(--rm-line);
+  border-radius:var(--r-card);
+  overflow:hidden;
+}
+/* Mirrored, because a preview of your own face that moves the wrong way when
+   you tilt your head is disorienting — every video app does this and the one
+   that does not feels broken. The far tile is never mirrored. */
+.lb-prev video{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transform:scaleX(-1);background:var(--rm-tile);
+}
+.lb-off{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  margin:0;color:var(--rm-faint);font-size:14px;background:var(--rm-tile);
+}
+/* Proof the microphone is picking you up, before it matters. A device
+   picker that says "Default" tells you nothing; a bar that moves does. */
+.lb-meter{
+  position:absolute;left:14px;right:14px;bottom:14px;height:4px;
+  background:rgba(255,255,255,.14);border-radius:var(--r-pill);overflow:hidden;
+}
+.lb-meter i{
+  display:block;height:100%;width:0;background:var(--p4);
+  border-radius:var(--r-pill);transition:width .1s linear;
+}
+
+.lb-side h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.15}
+.lb-goal{
+  margin:16px 0 0;padding:12px 14px;
+  background:var(--rm-tile);border:1px solid var(--rm-line);border-radius:var(--r-control);
+  font-size:13.5px;line-height:1.5;color:var(--rm-soft);
+}
+.lb-goal b{color:var(--rm-t);font-weight:600}
+
+.lb-toggles{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap}
+.lb-t{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--body);font-size:13px;font-weight:600;
+  padding:9px 14px;border-radius:var(--r-pill);
+  background:var(--rm-tile);border:1px solid var(--rm-line);color:var(--rm-soft);
+  cursor:pointer;
+}
+.lb-t.on{color:var(--rm-t);border-color:var(--p6)}
+.lb-t:focus-visible{outline:2px solid var(--p4);outline-offset:2px}
+
+.lb-dev{margin-top:18px}
+.lb-l{
+  display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--rm-faint);margin:12px 0 5px;
+}
+.lb-dev select{
+  width:100%;font-family:var(--body);font-size:13.5px;color:var(--rm-t);
+  padding:9px 11px;border:1px solid var(--rm-line);border-radius:var(--r-control);
+  background:var(--rm-tile);
+}
+.lb-dev select:focus{outline:2px solid var(--p4);outline-offset:1px}
+.lb-err{margin:16px 0 0;font-size:13.5px;line-height:1.55;color:#FFB4A0}
+
+/* ---------- the call ---------- */
+.rm-live{flex:1;display:flex;flex-direction:column;min-height:0}
+/* A grid of one, so the far tile stretches to the stage.
+   It was `flex:1` here and `height:100%` on the tile, which does not work:
+   a percentage height resolves against the parent's computed height, and
+   `flex:1` leaves that `auto`. The tile fell back to the intrinsic size of
+   an empty <video> — 300x150 — so the call opened with a letterbox at the
+   top of a black page and the self tile floating in the middle of nothing. */
+.rm-stage{
+  flex:1;position:relative;min-height:0;
+  padding:16px 16px 0;
+  display:grid;
+}
+.tile{
+  position:relative;background:var(--rm-tile);
+  border:1px solid var(--rm-line);border-radius:var(--r-card);overflow:hidden;
+}
+.tile video{width:100%;height:100%;object-fit:cover;display:block;background:var(--rm-tile)}
+.tile-far{min-width:0;min-height:0}
+/* Your own tile is small, in the corner, and mirrored. It is the least
+   important thing on this screen — it exists so you know you are still in
+   frame, not so you can watch yourself. */
+.tile-me{
+  position:absolute;right:30px;bottom:14px;
+  width:min(23%,232px);aspect-ratio:4/3;
+  box-shadow:0 8px 26px rgba(0,0,0,.44);
+}
+.tile-me video{transform:scaleX(-1)}
+/* Screen share takes the big tile; the camera you were watching moves in
+   beside your own, because during a share the thing being shared is the
+   conversation. */
+.rm-stage.sharing .tile-far video{object-fit:contain;background:#000}
+
+.tile-n{
+  position:absolute;left:12px;bottom:10px;margin:0;
+  padding:4px 10px;border-radius:var(--r-pill);
+  background:rgba(14,16,24,.66);backdrop-filter:blur(6px);
+  font-size:12px;font-weight:600;color:#fff;
+}
+.tile-off,.tile-wait{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  margin:0;color:var(--rm-faint);font-size:14.5px;text-align:center;padding:20px;
+}
+.tile-wait b{color:var(--rm-soft);font-weight:600}
+.tile-me .tile-off{font-size:12px}
+
+/* ---------- the bar ---------- */
+.rm-bar{
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;
+  padding:14px 20px 18px;
+}
+.bar-c{display:flex;gap:8px;justify-content:center}
+.c-b{
+  display:inline-flex;flex-direction:column;align-items:center;gap:4px;
+  font-family:var(--body);font-size:10.5px;font-weight:600;letter-spacing:.01em;
+  min-width:66px;padding:9px 12px 7px;border-radius:var(--r-control);
+  background:var(--rm-panel);border:1px solid var(--rm-line);color:var(--rm-soft);
+  cursor:pointer;
+}
+.c-b:hover{background:var(--rm-tile);color:var(--rm-t)}
+.c-b:focus-visible{outline:2px solid var(--p4);outline-offset:2px}
+.c-b.on{color:var(--rm-t)}
+/* Off is the state worth seeing at a glance — a muted mic you have forgotten
+   about is the single most common thing to go wrong in a call. */
+.c-b.off{background:#3A2028;border-color:#5A2E3A;color:#FFC7BA}
+.c-b.c-leave{background:#B4331F;border-color:#B4331F;color:#fff;justify-content:center}
+.c-b.c-leave:hover{background:#9C2A18;border-color:#9C2A18;color:#fff}
+.c-ic{width:20px;height:20px;display:block}
+.c-ic svg{display:block;width:100%;height:100%}
+
+.bar-goal{
+  margin:0;font-size:12.5px;color:var(--rm-faint);line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.bar-goal b{color:var(--rm-soft);font-weight:600}
+.bar-clock{
+  margin:0;text-align:right;font-family:var(--mono);font-size:11px;
+  letter-spacing:.06em;color:var(--rm-faint);
+}
+.bar-clock.soon{color:#E8B860}
+
+/* Something happened that is worth one sentence and no decision — the
+   partner left, the screen share stopped. */
+.rm-flash{
+  /* Clear of the bar rather than tucked behind the Mic button. */
+  position:fixed;left:50%;transform:translateX(-50%);bottom:118px;
+  margin:0;padding:9px 16px;border-radius:var(--r-pill);
+  background:var(--rm-panel);border:1px solid var(--rm-line);
+  font-size:13px;color:var(--rm-t);box-shadow:0 8px 26px rgba(0,0,0,.4);
+}
+
+/* ---------- narrow ---------- */
+@media (max-width:860px){
+  /* align-content too, not just align-items: the lobby is a flex child that
+     fills the page, so a two-row grid inside it shares the leftover height
+     between the rows and opens a hundred-pixel hole under the preview. */
+  .rm-lobby{grid-template-columns:1fr;gap:22px;
+    align-items:start;align-content:start;padding:22px 18px 30px}
+  .lb-prev{aspect-ratio:16/10}
+  .lb-side h1{font-size:22px}
+}
+@media (max-width:620px){
+  .rm-stage{padding:10px 10px 0}
+  .tile-me{right:14px;bottom:10px;width:min(34%,150px)}
+  .rm-bar{grid-template-columns:1fr;gap:10px;padding:12px 14px 16px}
+  .bar-goal,.bar-clock{text-align:center;order:2}
+  .bar-c{order:1}
+  .c-b{min-width:60px;font-size:10px}
+  .rm-card{padding:24px 22px 22px}
+  .rm-card h1{font-size:20px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .lb-meter i{transition:none}
+}

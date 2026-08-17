@@ -1,0 +1,15 @@
+# Supabase CLI project config. Only the parts PeerFlow actually needs.
+
+project_id = "peerflow"
+
+[functions.call-token]
+# Supabase checks the caller's JWT before the function runs, so a request
+# with no session never reaches our code.
+verify_jwt = true
+
+[functions.livekit-webhook]
+# LiveKit has no Supabase session and cannot get one. This endpoint
+# authenticates itself: the function verifies LiveKit's own signature over
+# the exact request body before believing a single field. Leaving verify_jwt
+# on here would mean the webhook is rejected before it can prove who it is.
+verify_jwt = false

@@ -628,9 +628,12 @@
   /* ---------- sessions list ---------- */
   function slot(s, past){
     var label = [s.partnerName ? 'with ' + s.partnerName : '', s.topic || ''].filter(Boolean).join(' · ');
+    /* Same tab, and no rel="noopener" to think about, because the room is
+       ours now: call.html is a PeerFlow page rather than a public address on
+       somebody else's server. */
     var right = past ? ''
-      : (s.roomUrl && isOpen(s))
-        ? '<a class="btn" href="' + esc(s.roomUrl) + '" target="_blank" rel="noopener">Join</a>'
+      : isOpen(s)
+        ? '<a class="btn" href="call.html?s=' + encodeURIComponent(s.id) + '">Join</a>'
         : '<span class="when-rel">' + esc(relative(s.startsAt)) + '</span>';
     var key = ' data-at="' + esc(s.startsAt.toISOString()) + '" data-room="' + esc(s.roomUrl || '') + '"';
     return '<div class="slot">' +
@@ -1724,7 +1727,7 @@
              already agreed, which looks different from an empty week. */
           if (upcoming.length){
             var next = upcoming[0];
-            var live = next.roomUrl && isOpen(next);
+            var live = isOpen(next);
             var who  = next.partnerName || pname;
             band({
               tone: live ? 'live' : 'booked',
@@ -1736,12 +1739,14 @@
               s: next.durationMin + ' minutes' + (next.topic ? ' · ' + next.topic : '') +
                  (live ? '' : '. Both of you have agreed to this one.'),
               a: live
-                   ? '<a class="btn" href="' + esc(next.roomUrl) + '" target="_blank" rel="noopener">Join the call</a>' +
+                   ? '<a class="btn" href="call.html?s=' + encodeURIComponent(next.id) + '">Join the call</a>' +
                      '<a class="ghost" href="#sess-card">All sessions</a>'
                    : '<a class="btn" data-open-book href="#book-card">Book another</a>' +
                      '<button class="ghost" type="button" data-relay="#upcoming [data-cancel-booked]"' +
                      ' data-arm="Sure? Cancel it">Cancel this one</button>',
-              f: live ? '' : 'The call link opens fifteen minutes before you start.'
+              /* Not "the call link" any more: there is no link. The room is
+                 a PeerFlow page that opens when the session does. */
+              f: live ? '' : 'Your room opens fifteen minutes before you start.'
             });
           } else if (waiting){
             band({
