@@ -1033,6 +1033,12 @@ html{scroll-behavior:smooth}
   font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
 #bk-sent .tgrid button:hover{background:#E9E9EF}
 #bk-sent .tgrid button.on{background:var(--p8);color:#fff}
+/* "Now" takes the whole row. It is one option rather than one of a set of
+   hours, and a third of a row next to two empty cells reads as the first of
+   three times somebody forgot to fill in. */
+#bk-sent .tgrid button.wide{grid-column:1/-1;background:var(--p0);color:var(--p8)}
+#bk-sent .tgrid button.wide:hover{background:var(--p1)}
+#bk-sent .tgrid button.wide.on{background:var(--p8);color:#fff}
 /* Hours outside the windows you share. Secondary, not unavailable — these
    used to be bare grey text on white, which is exactly how a disabled control
    looks, so the menu read as "these are the only times you may pick". An

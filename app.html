@@ -811,7 +811,11 @@
                   { v:80, why:'a proper session' } ];
 
   var myAvail = [], myTz = '', bookPartner = null, myName = '', bookPartners = [];
-  var bkDay = null, bkHour = 19, bkLen = 50, bkOpen = null;
+  /* bkMin exists for one option: "Now". Every other time in this form is a
+     whole hour, because availability is bands rather than clock times — but
+     "we are both here, let's start" is a real thing to want and no whole hour
+     can say it. */
+  var bkDay = null, bkHour = 19, bkMin = 0, bkLen = 50, bkOpen = null;
   var canBook = false;
 
   /* The panel starts closed. Booking is something you do twice a week, not
@@ -861,7 +865,29 @@
   function dayKey(d){ return midnight(d).getTime(); }
   function chosen(){
     if (!bkDay) return null;
-    var d = new Date(bkDay); d.setHours(bkHour, 0, 0, 0); return d;
+    var d = new Date(bkDay); d.setHours(bkHour, bkMin, 0, 0); return d;
+  }
+
+  /* A couple of minutes from now, on the minute. Not this exact instant: the
+     form still has to be submitted and the other person still has to accept,
+     and a start time already in the past is rejected on the way out. */
+  function nowSlot(){
+    var d = new Date(Date.now() + 2 * 60000);
+    d.setSeconds(0, 0);
+    return d;
+  }
+
+  /* Hours that have not already gone.
+     Today's shared window has usually started by the time anybody looks —
+     "you're both free in the evening" is still true at 21:30, and 17:00 is no
+     longer a time you can meet. Every menu used to offer the whole window
+     anyway, and pickPartner opened the form on the day's FIRST shared hour,
+     so on any afternoon the form loaded already holding a time in the past
+     and the only sign was a red line under the button once you pressed it. */
+  function aheadOnly(d, hrs){
+    if (!d || dayKey(d) !== dayKey(new Date())) return hrs;
+    var h = new Date().getHours();
+    return hrs.filter(function(x){ return x > h; });
   }
 
   /* The hours the two of you really share, by weekday, in your own clock.
@@ -891,7 +917,13 @@
     for (var d = 0; d < 7; d++) {
       if (!by[d] || !by[d].length) continue;
       var when = nextWeekday(d);
-      if (when) out.push({ date: midnight(when), bands: bandsFor(by[d]) });
+      if (!when) continue;
+      /* Today only counts while some of it is left. Offering a day whose
+         window closed two hours ago is offering a day on which the time menu
+         is empty. */
+      var left = aheadOnly(midnight(when), by[d]);
+      if (!left.length) continue;
+      out.push({ date: midnight(when), bands: bandsFor(left) });
     }
     return out.sort(function(a, b){ return a.date - b.date; });
   }
@@ -918,11 +950,19 @@
   function hoursOn(d){
     if (!d) return [];
     var hrs = sharedByDay()[d.getDay()] || [];
-    return hrs.slice().sort(function(a, b){ return a - b; });
+    return aheadOnly(d, hrs.slice().sort(function(a, b){ return a - b; }));
   }
-  function bothFree(){ return chosen() ? hoursOn(bkDay).indexOf(bkHour) >= 0 : false; }
+  /* Whether the hour is inside a window you share — which is a question about
+     availability, not about the clock. Asked of hoursOn it would go through
+     aheadOnly and answer no for the hour we are currently in, so picking
+     "Now" inside a shared afternoon claimed your partner had not said they
+     were free then. */
+  function bothFree(){
+    if (!chosen() || !bkDay) return false;
+    return (sharedByDay()[bkDay.getDay()] || []).indexOf(bkHour) >= 0;
+  }
 
-  function clockOf(h){ var d = new Date(); d.setHours(h, 0, 0, 0);
+  function clockOf(h, m){ var d = new Date(); d.setHours(h, m || 0, 0, 0);
     return d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }); }
   function dayLong(d){ return d.toLocaleDateString(undefined,
     { weekday:'long', day:'numeric', month:'short' }); }
@@ -983,13 +1023,24 @@
     if (kind === 'time'){
       var mine = hoursOn(bkDay);
       var cell = function(h){
-        return '<button type="button" class="' + (h === bkHour ? 'on' : '') +
+        return '<button type="button" class="' + (h === bkHour && !bkMin ? 'on' : '') +
           '" data-hour="' + h + '">' + esc(clockOf(h)) + '</button>';
       };
-      if (!mine.length) return '<p class="pop-h">Any time</p><div class="tgrid alt">' +
-        ALL_HOURS.map(cell).join('') + '</div>';
-      var rest = ALL_HOURS.filter(function(h){ return mine.indexOf(h) < 0; });
-      return '<p class="pop-h">' + esc(bandsOn(bkDay).join(' and ')) +
+      /* Two people who are both looking at this want to start, not to pick an
+         hour. Whole hours cannot express it — the current one is always
+         already in the past — so it gets its own cell, and it moves the day
+         to today as well, because "now" answers both questions at once. */
+      var now = '<p class="pop-h">Straight away</p><div class="tgrid">' +
+        '<button type="button" class="wide' + (bkMin ? ' on' : '') + '" data-now="1">' +
+        'Now — ' + esc(clockOf(nowSlot().getHours(), nowSlot().getMinutes())) +
+        '</button></div><div class="pop-sep"></div>';
+
+      /* Hours already gone are dropped by aheadOnly, so on today this list
+         starts at the next one rather than at midnight. */
+      var rest = aheadOnly(bkDay, ALL_HOURS).filter(function(h){ return mine.indexOf(h) < 0; });
+      if (!mine.length) return now + '<p class="pop-h">Any time</p><div class="tgrid alt">' +
+        rest.map(cell).join('') + '</div>';
+      return now + '<p class="pop-h">' + esc(bandsOn(bkDay).join(' and ')) +
         ' — you’re both free</p><div class="tgrid">' + mine.map(cell).join('') + '</div>' +
         (rest.length ? '<div class="pop-sep"></div><p class="pop-h">Any other time</p>' +
           '<div class="tgrid alt">' + rest.map(cell).join('') + '</div>' : '');
@@ -1011,7 +1062,9 @@
   function pickLabel(kind){
     if (kind === 'who')  return shortName();
     if (kind === 'day')  return bkDay ? dayLong(bkDay) : 'a day';
-    if (kind === 'time') return clockOf(bkHour);
+    /* "at now" is not a sentence. The cell is labelled Now because that is
+       what you are choosing; the sentence says the time it actually means. */
+    if (kind === 'time') return clockOf(bkHour, bkMin);
     return bkLen + ' minutes';
   }
 
@@ -1092,8 +1145,18 @@
     }
 
     /* choosing */
-    var el = e.target.closest('[data-v],[data-day],[data-hour],[data-len],[data-any]');
+    var el = e.target.closest('[data-v],[data-day],[data-hour],[data-len],[data-any],[data-now]');
     if (!el) return;
+
+    if (el.hasAttribute('data-now')){
+      /* Read once. Called twice — once for the hour, once for the minute —
+         it can straddle a minute boundary and book :59 of the hour before. */
+      var n = nowSlot();
+      bkDay = midnight(n); bkHour = n.getHours(); bkMin = n.getMinutes();
+      closeMenu();
+      paintSentence();
+      return;
+    }
 
     if (el.hasAttribute('data-any')){
       var field = document.getElementById('bk-any');
@@ -1104,6 +1167,9 @@
       bkDay = new Date(parseInt(el.getAttribute('data-day'), 10));
     } else if (el.hasAttribute('data-hour')){
       bkHour = parseInt(el.getAttribute('data-hour'), 10);
+      /* Any hour chosen deliberately is a whole hour, so the stray minutes
+         "Now" left behind have to go, or 7pm quietly means 19:43. */
+      bkMin = 0;
     } else if (el.hasAttribute('data-len')){
       bkLen = parseInt(el.getAttribute('data-len'), 10);
     } else {
@@ -1116,8 +1182,17 @@
        that day's first shared hour when there is one, and leave the hour alone
        when there isn't — an ordinary day shouldn't jump to 6am. */
     if (el.hasAttribute('data-day') || el.hasAttribute('data-any')){
+      /* Moving off today carries nothing from "Now" with it. */
+      bkMin = 0;
       var hs = hoursOn(bkDay);
       if (hs.length && hs.indexOf(bkHour) < 0) bkHour = hs[0];
+      /* No shared window left on the day picked, and the hour still held is
+         one that has already gone — which only happens on today. Step to the
+         next hour rather than sitting on an invalid time. */
+      else if (!hs.length && chosen() && chosen().getTime() < Date.now()) {
+        bkHour = new Date().getHours() + 1;
+        if (bkHour > 23) { bkHour = 0; bkDay = midnight(new Date(Date.now() + 86400000)); }
+      }
     }
     closeMenu();
     paintSentence();
@@ -1133,9 +1208,15 @@
     if (!bookPartner) return;
     document.getElementById('bk-note').textContent = '';
     buildPicks();
+    bkMin = 0;
     var first = freeDays()[0];
     if (first){
       bkDay = first.date;
+      /* hoursOn drops hours that have gone, and freeDays no longer offers a
+         day with none left, so this is always a time you can still propose.
+         It used to be the day's first shared hour whether or not it had
+         already happened, which is how the form came to open on a time the
+         Propose button then rejected. */
       bkHour = hoursOn(bkDay)[0];
     } else if (!bkDay){
       /* Tomorrow evening, not tomorrow at whatever time it happens to be now —
