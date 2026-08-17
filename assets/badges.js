@@ -319,6 +319,99 @@ window.pfBadges = (function(){
      other. */
   var queue = [], showing = false;
 
+  /* ---------- the confetti ----------
+
+     Written out rather than pulled in: a party-popper library is a dependency
+     and a download for one second of a page nobody visits twice, and this is
+     forty lines.
+
+     The particles are three tints of the badge's own colour plus white, not a
+     rainbow. That is the whole point — the burst for "Ten sessions" is pink
+     because that badge is pink, so two different achievements do not produce
+     the same confetti and stop meaning anything individually. */
+  function tints(hex){
+    var r = parseInt(hex.slice(1, 3), 16),
+        g = parseInt(hex.slice(3, 5), 16),
+        b = parseInt(hex.slice(5, 7), 16), out = [];
+    /* Lighter and darker than the badge, so the throw has depth instead of
+       reading as one flat sheet of colour. */
+    [[1, 1], [1.32, .92], [.72, 1]].forEach(function(m){
+      out.push('rgba(' + Math.min(255, Math.round(r * m[0])) + ',' +
+                         Math.min(255, Math.round(g * m[0])) + ',' +
+                         Math.min(255, Math.round(b * m[0])) + ',' + m[1] + ')');
+    });
+    out.push('rgba(255,255,255,.9)');
+    return out;
+  }
+
+  function burst(wrap, hue){
+    var canvas = wrap.querySelector('.bfx'), art = wrap.querySelector('.bpop-art');
+    if (!canvas || !art || !canvas.getContext) return;
+
+    var ctx = canvas.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    /* Where the drawn badge actually is, in the canvas's own coordinates,
+       read off the elements. A number written down here instead would be
+       correct until the first time the card's padding changed, and then
+       silently wrong — which is how the first version of this ended up
+       firing its rays into empty space above the badge. */
+    var cr = canvas.getBoundingClientRect(), ar = art.getBoundingClientRect();
+    var ox = (ar.left - cr.left) + ar.width / 2;
+    var oy = (ar.top - cr.top) + ar.height * (72 / 118) / 2;
+
+    var cols = tints(hue), bits = [];
+    for (var i = 0; i < 70; i++) {
+      bits.push({ x: ox, y: oy,
+        vx: (Math.random() - .5) * 9, vy: -(2 + Math.random() * 7),
+        r: 2 + Math.random() * 3.4, c: cols[i % cols.length],
+        a: 1, rot: Math.random() * 6.3, sp: (Math.random() - .5) * .35 });
+    }
+
+    var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+    (function frame(now){
+      /* The popup can be dismissed before the confetti has finished, and
+         drawing into a canvas that has left the document is work nobody will
+         ever see. */
+      if (!wrap.parentNode) { return; }
+      var age = now - t0, alive = 0;
+      ctx.clearRect(0, 0, w, h);
+      for (var i = 0; i < bits.length; i++) {
+        var p = bits[i];
+        p.vy += .21;                 /* thrown up, and gravity takes it back */
+        p.vx *= .995;
+        p.x += p.vx; p.y += p.vy; p.rot += p.sp;
+        p.a = Math.max(0, 1 - age / 1150);
+        if (p.a <= 0 || p.y > h + 30) continue;
+        alive++;
+        ctx.save();
+        ctx.globalAlpha = p.a;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.c;
+        /* Rectangles rather than dots: they catch the rotation and read as
+           paper, where circles read as bubbles. */
+        ctx.fillRect(-p.r, -p.r * .6, p.r * 2, p.r * 1.2);
+        ctx.restore();
+      }
+      if (alive) requestAnimationFrame(frame);
+      else ctx.clearRect(0, 0, w, h);
+    })(t0);
+  }
+
+  /* Asked once, and honoured by both halves: the stylesheet hides the layers,
+     and this stops a single particle being computed for them. */
+  function stillPlease(){
+    try {
+      return window.matchMedia &&
+             window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) { return false; }
+  }
+
   function celebrate(list){
     if (!list || !list.length) return;
     queue = queue.concat(list);
@@ -336,10 +429,17 @@ window.pfBadges = (function(){
     wrap.setAttribute('role', 'dialog');
     wrap.setAttribute('aria-modal', 'true');
     wrap.setAttribute('aria-label', 'Badge earned: ' + b.name);
+    /* The badge's own colour carries the whole celebration — the rays, the
+       confetti and the label above the drawing. HUE is the same map the
+       progress chips read, so a badge looks like itself here too. */
+    var hue = HUE[b.id] || '#12977E';
+
     wrap.innerHTML =
       '<div class="bpop-card">' +
-        '<p class="bpop-k">Badge earned</p>' +
-        '<img class="bpop-art" src="assets/badges/' + file + '-hero.svg" width="132" height="132" alt="">' +
+        '<span class="rays" style="color:' + hue + '"></span>' +
+        '<canvas class="bfx"></canvas>' +
+        '<p class="bpop-k" style="color:' + hue + '">Badge earned</p>' +
+        '<img class="bpop-art" src="assets/badges/' + file + '-hero.svg" width="124" height="203" alt="">' +
         '<h2>' + esc(b.name) + '</h2>' +
         '<p class="bpop-d">' + esc(b.desc) + '</p>' +
         '<button class="btn" type="button" data-close>Nice</button>' +
@@ -365,7 +465,12 @@ window.pfBadges = (function(){
 
     document.body.appendChild(wrap);
     /* Next frame, so the entry transition has a state to come from. */
-    requestAnimationFrame(function(){ wrap.classList.add('in'); });
+    requestAnimationFrame(function(){
+      wrap.classList.add('in');
+      /* A beat behind the rays, so the burst opens and the paper follows it
+         rather than both arriving in the same instant and cancelling out. */
+      if (!stillPlease()) setTimeout(function(){ burst(wrap, hue); }, 60);
+    });
     var btn = wrap.querySelector('[data-close]');
     if (btn) btn.focus();
   }

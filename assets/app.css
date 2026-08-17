@@ -1943,10 +1943,17 @@ a.who:hover{text-decoration:underline}
   transition:transform .22s cubic-bezier(.2,.9,.3,1)}
 .bpop.in .bpop-card{transform:none}
 
+/* Tinted with the badge's own colour, set inline from the HUE map, so the
+   label belongs to the badge rather than to the house green. Falls back to
+   the green if nothing sets it. */
 .bpop-k{margin:0 0 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
   text-transform:uppercase;color:var(--p6)}
-/* The hero drawing, which is what the -hero files in the set are for. */
-.bpop-art{display:block;width:132px;height:132px;margin:0 auto 16px}
+/* The hero drawing, which is what the -hero files in the set are for.
+   Sized to the drawing's own ratio: the hero viewBox is 72x118, and in the
+   132x132 box this used to be it fitted by height and sat about 80px wide —
+   noticeably smaller than it was drawn to be, with the spare width doing
+   nothing. */
+.bpop-art{display:block;width:124px;height:203px;margin:0 auto 4px}
 .bpop-card h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.025em;
   line-height:1.2}
 .bpop-d{margin:8px 0 22px;font-size:14px;color:var(--soft);line-height:1.5}
@@ -1962,9 +1969,57 @@ a.who:hover{text-decoration:underline}
 }
 .bpop.in .bpop-art{animation:bpop-pop .42s cubic-bezier(.2,.9,.3,1) both}
 
+/* ---------- the burst ----------
+
+   Earning a badge is the one moment in PeerFlow worth marking, and the copy
+   cannot do it: the house voice does not congratulate, and "Badge earned" is
+   the right register to keep. So the light does it instead — a ray burst
+   opening behind the badge and a short throw of confetti, both tinted from
+   that badge's own colour rather than a generic party palette, so ten
+   sessions and six weeks do not feel like the same event.
+
+   It happens once and stops. Nothing here loops. */
+
+/* This pair has to be written BEFORE the layers below, not after. Both are
+   one-class selectors, so the later rule wins a tie — and written the other
+   way round it forced .bfx to position:relative, where a canvas takes up its
+   natural 300x150 in the flow and shoves the badge 217px down the card. The
+   result looked deliberate enough that it took measuring the element to
+   notice, which is the whole argument for source order mattering here. */
+.bpop-card{position:relative;overflow:visible}
+.bpop-card > *{position:relative;z-index:3}
+
+/* The confetti surface, overhanging the card so particles can leave it, and
+   never in the way of the button underneath. */
+.bfx{position:absolute;inset:-40px;pointer-events:none;z-index:2}
+
+/* The rays. currentColor is set inline to the badge's hue; the radial mask
+   keeps the middle solid and lets the ends dissolve rather than stopping at
+   a hard circular edge. top is the measured centre of the drawn badge inside
+   the card — the hero's artwork occupies the top 72 of its 118 units, so the
+   centre is not the middle of the box. */
+.rays{position:absolute;left:50%;top:121px;width:340px;height:340px;
+  margin:-170px 0 0 -170px;z-index:1;pointer-events:none;opacity:0;
+  background:repeating-conic-gradient(from 0deg,
+    currentColor 0deg 3.2deg, transparent 3.2deg 15deg);
+  -webkit-mask-image:radial-gradient(closest-side,#000 18%,rgba(0,0,0,.55) 42%,transparent 72%);
+  mask-image:radial-gradient(closest-side,#000 18%,rgba(0,0,0,.55) 42%,transparent 72%)}
+.bpop.in .rays{animation:rays-in 1100ms cubic-bezier(.16,.84,.34,1) both}
+@keyframes rays-in{
+  0%  {opacity:0;transform:scale(.35) rotate(0deg)}
+  22% {opacity:.30}
+  100%{opacity:0;transform:scale(1.18) rotate(26deg)}
+}
+
+/* Somebody who has asked for less movement still gets the badge — it simply
+   arrives instead of performing. The canvas is hidden rather than merely
+   still, and badges.js checks the same preference before it starts a single
+   particle, so nothing is computed for a screen that will not show it. */
 @media (prefers-reduced-motion:reduce){
   .bpop,.bpop-card{transition:none}
   .bpop.in .bpop-art{animation:none}
+  .rays,.bfx{display:none}
+  .bpop.in .rays{animation:none}
 }
 
 /* ---------- reliability ---------- */
