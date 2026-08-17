@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-17g';
+window.PF_BUILD = '2026-08-17h';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -112,6 +112,27 @@ window.pf = (function(){
   function missingFunction(err){
     return !!err && (err.code === 'PGRST202' ||
                      /function .* does not exist/i.test(String(err.message || '')));
+  }
+
+  /* The database refusing a booking because the hour is already taken.
+     supabase/migration-no-double-booking.sql raises PF001 from a trigger and
+     from answer_session, with a sentence already written for the person
+     reading it, so that one is passed straight through. 23P01 is the raw
+     exclusion constraint underneath, which only surfaces when two requests
+     race past the trigger in the same instant; its message names an index, so
+     it gets a written one instead.
+
+     Both are the same event as far as the page is concerned: the time went
+     while you were looking at it. */
+  function clashError(err){
+    return !!err && (err.code === 'PF001' || err.code === '23P01' ||
+                     /sessions_no_overlap/.test(String(err.message || '')));
+  }
+  function clashMessage(err){
+    var m = String((err && err.message) || '');
+    return (err && err.code === 'PF001' && m && !/sessions_no_overlap/.test(m))
+      ? m
+      : 'That time is already taken. Pick another one.';
   }
 
   /* ---------- auth ---------- */
@@ -469,7 +490,21 @@ window.pf = (function(){
    * and declined rows are not bookings and hold no time. A proposal does
    * hold time, because the whole point of proposing is that it may become a
    * session, and offering the same hour twice is how you end up standing
-   * somebody up. */
+   * somebody up.
+   *
+   * This is now advice rather than the rule. supabase/migration-no-double-
+   * booking.sql puts an exclusion constraint on the table, which is the part
+   * that is actually race-proof and the part that can see both people.
+   *
+   * It is still worth doing first, because it answers instantly, off
+   * a calendar already in memory, and names the session you have clashed with
+   * — none of which a constraint violation can do. It is the friendly half of
+   * a rule whose enforcing half lives in the database.
+   *
+   * It is also stricter than the database on purpose. Here a proposal blocks
+   * another proposal; there, only agreed sessions exclude each other, so that
+   * two partners may each offer you the same hour and you pick one. Stricter
+   * about what *you* offer, looser about what you may be offered. */
   function clashIn(list, startsAt, durationMin){
     var from = new Date(startsAt).getTime();
     var to   = from + (durationMin || 50) * 60000;
@@ -534,6 +569,14 @@ window.pf = (function(){
               return c;
             }));
           }
+          /* The clash check below runs before this insert, but it reads the
+             calendar the browser already has, and RLS means that calendar
+             only ever contains your own rows. So two things still reach here:
+             a partner who was already busy at that hour, which the browser
+             cannot see at all, and a second device booking the same minute in
+             the same instant. Both come back as a refusal from the database
+             rather than a broken booking. */
+          if (r.error && clashError(r.error)) return fail(r.error, clashMessage(r.error));
           if (r.error) return fail(r.error, 'Could not send that time. Please try again.');
           return { saved: true };
         });
@@ -579,6 +622,12 @@ window.pf = (function(){
         if (r.error.code === 'PGRST202' || /function .* does not exist/i.test(String(r.error.message || ''))) {
           return fail(r.error, 'This needs a database update that hasn\u2019t been applied yet.');
         }
+        /* Accepting is the moment an offer becomes a commitment, so it is the
+           moment the no-double-booking rule starts applying to it. Two people
+           may each offer you the same hour quite legitimately; this is where
+           the second yes is refused, and it has to say so specifically rather
+           than as "could not accept that time", which reads like a fault. */
+        if (clashError(r.error)) return fail(r.error, clashMessage(r.error));
         return fail(r.error, msg);
       }
       /* The function returns how many rows it changed. Zero means it matched

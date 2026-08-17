@@ -125,6 +125,21 @@ commands — **[docs/VIDEO.md](docs/VIDEO.md)** has the six steps. Until they
 are done, pressing Join says *"Calls are not set up on this site yet"*
 rather than failing strangely.
 
+**Nobody can be in two places at once.** An exclusion constraint
+(`supabase/migration-no-double-booking.sql`) stops two agreed sessions
+overlapping on one person's calendar. That rule used to live only in the
+browser, in `clashIn`, which could not see the other person's bookings — RLS
+hides them — and lost the race between two devices booking the same minute.
+Proposals are deliberately left out of it: two partners may each offer you
+Tuesday at three and you pick one, so only *agreed* sessions exclude each
+other, and the second acceptance is what gets refused. The same migration
+stops the standing weekly slot booking on top of sessions you had already
+agreed to, which it had been doing quietly on every page load.
+
+`dev/sql-tests.sh` runs the whole schema against a throwaway PostgreSQL 16 and
+asserts on it; `PF_WITHOUT_FIX=1 dev/sql-tests.sh` re-runs it against the
+schema as it was before that migration, so the cases can be seen to fail.
+
 Which partnership a session belongs to is `sessions.pair_id`
 (`supabase/migration-room-per-session.sql`), so streaks and per-partner
 history read a column instead of reading the room. Run that migration

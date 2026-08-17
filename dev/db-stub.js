@@ -17,6 +17,9 @@
      __standing    {minutes, agreed, mine} for a standing slot
      __sharedBy    shared hours by JS weekday, overriding the default
      __callRefuse  a reason string, to see call.html turn one down
+     __clash       a sentence, to see a booking refused because the hour has
+                   gone — what the database now says when two people reach the
+                   same minute at once, or when the partner is already busy
 
    Add a dial rather than editing a fixture in place: the fixtures are shared
    by every test, and quietly changing one moves the ground under the others. */
@@ -199,7 +202,13 @@ window.pf = (function(){
     confirmAttendance:function(){return P({saved:true})},
     setSessionGoal:function(){return P({saved:true})},
     finishSession:function(){return P({saved:true})},
-    proposeSession:function(){note('propose');return P({saved:true})},
+    /* __clash stands in for the exclusion constraint refusing the write. The
+       real one can fire even when the browser's own calendar looked clear,
+       because RLS hides the partner's other bookings from it, so the page has
+       to be able to show this without the form having spotted anything. */
+    proposeSession:function(){note('propose');
+      if(window.__clash) return P({error:window.__clash});
+      return P({saved:true})},
 
     /* The room. __callRefuse is any reason session_for_call can give —
        'too-early', 'not-partners', 'no-room' and the rest are listed in
@@ -220,7 +229,9 @@ window.pf = (function(){
         startsAt:s.toISOString(),
         endsAt:new Date(s.getTime()+70*60000).toISOString()});
     },
-    acceptSession:function(){note('acceptSession');return P({saved:true})},
+    acceptSession:function(){note('acceptSession');
+      if(window.__clash) return P({error:window.__clash});
+      return P({saved:true})},
     declineSession:function(){note('declineSession');return P({saved:true})},
     cancelBooked:function(){note('cancelBooked');return P({saved:true})},
     cancelSession:function(){return P({saved:true})},
