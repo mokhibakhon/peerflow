@@ -109,6 +109,7 @@ as $$
 declare
   s        public.sessions%rowtype;
   me       uuid := auth.uid();
+  room_id  text;
   opens    timestamptz;
   closes   timestamptz;
   my_name  text;
@@ -166,11 +167,41 @@ begin
     return;
   end if;
 
-  -- 4. There is a room to join. Sessions booked before this migration whose
-  --    room could not be named uniquely have none, and no room means no
-  --    call — the two of you still have the Jitsi link you were given when
-  --    you booked, and the next booking gets a real room.
-  if s.room_name is null then
+  -- 4. There is a room to join.
+  --
+  --    The backfill above is a one-shot, and there is a window where it is
+  --    not enough: run this migration, then book a session from a copy of
+  --    the site that has not been redeployed yet, and you get a row written
+  --    by the old code — a room_url ending in a uuid, and no room_name,
+  --    because the backfill had already been and gone. The booking is
+  --    perfectly good and the room is unreachable, which reads as "this one
+  --    was booked before PeerFlow had its own room" about a session made
+  --    five minutes ago.
+  --
+  --    So the name is derived here when the column is empty, on the same
+  --    terms the backfill uses: a uuid at the end of room_url, held by at
+  --    most the booking's own two rows. Both people derive the same name,
+  --    because both rows carry the same room_url.
+  --
+  --    And it is written back rather than only returned. The webhook finds
+  --    its rows by room_name, so a room that exists only in this function's
+  --    return value would let people into a call whose attendance could
+  --    never be recorded.
+  room_id := s.room_name;
+
+  if room_id is null and s.room_url ~ '[0-9a-fA-F-]{36}$'
+     and (select count(*) from public.sessions o where o.room_url = s.room_url) <= 2 then
+    room_id := 'pf-' || substring(s.room_url from '([0-9a-fA-F-]{36})$');
+    update public.sessions
+       set room_name = room_id
+     where room_url = s.room_url
+       and room_name is null;
+  end if;
+
+  --    Genuinely nothing to join: one of the very old rooms shared by every
+  --    session with the same person, where a derived name would drop several
+  --    bookings into one call.
+  if room_id is null then
     return query select false, 'no-room', null::text, null::uuid,
                         null::text, null::text, null::text, null::text,
                         s.starts_at, closes;
