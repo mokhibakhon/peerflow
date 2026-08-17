@@ -1,763 +1,397 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Draft — the session goal, and the rail — PeerFlow</title>
-<meta name="robots" content="noindex">
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Badge earned — three ways to celebrate it — PeerFlow</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/app.css">
 <style>
-/* DRAFT ONLY. Everything here is scoped to .dr-* and lives in this file
-   alone, so nothing on this page can reach the real dashboard. */
-.dr-wrap{max-width:1100px;margin:0 auto;padding:34px 22px 90px}
-.dr-h{margin:0 0 6px;font-size:30px;font-weight:800;letter-spacing:-.03em}
-.dr-lede{margin:0;font-size:15px;color:var(--soft);line-height:1.6;max-width:72ch}
-.dr-warn{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;
-  padding:8px 14px;border-radius:var(--r-pill);background:#FFF6E8;border:1px solid #F0DCC2;
-  color:#8A5A12;font-size:13px;font-weight:600}
-.dr-part{margin:54px 0 0;padding-top:22px;border-top:2px solid var(--ink)}
-.dr-part h2{margin:0;font-size:25px;font-weight:800;letter-spacing:-.03em}
-.dr-sec{margin:40px 0 0;padding-top:28px;border-top:1px solid var(--line)}
-.dr-tag{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;
-  text-transform:uppercase;color:var(--faint);margin:0 0 10px}
-.dr-sec h3{margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-.02em}
-.dr-note{margin:0 0 18px;font-size:14px;color:var(--soft);line-height:1.6;max-width:76ch}
-.dr-note b{color:var(--ink)}
-.dr-why{margin:16px 0 0;font-size:13.5px;color:var(--soft);line-height:1.65;max-width:76ch}
-.dr-why b{color:var(--ink)}
-.dr-cap{margin:0 0 8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--faint)}
-.dr-stage{background:var(--bg);border-radius:var(--r-card);padding:22px;margin-bottom:16px}
-/* The band is normally the top of a page, so its own top margin is not wanted. */
-.dr-stage .now{margin:0}
-/* A rail is 306px in the app; hold it to that here so the cards are the size
-   they will really be rather than stretched across the stage. */
-.dr-rail{display:grid;gap:16px;max-width:306px}
-.dr-rails{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
-.dr-rails > div{min-width:0}
-.dr-mini{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
-.dr-mini .rail{max-width:none}
-.dr-x{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
-  color:#B4471F}
-.dr-ok{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--p6)}
+/* Standalone draft. Not linked from the app, noindex, and overwritten by
+   whoever drafts next. The three options below are live — they run the real
+   popup markup against the real badge art, so what you press is what you
+   would ship, not a picture of it. */
+body{background:var(--bg)}
+.dw{max-width:1060px;margin:0 auto;padding:36px 28px 90px}
+.dw h1{margin:0 0 10px;font-size:30px;letter-spacing:-.03em}
+.dlede{max-width:66ch;margin:0 0 6px;font-size:15.5px;color:var(--soft);line-height:1.62}
+.dlede b{color:var(--ink)}
+.dsec{margin:38px 0 0}
+.dsec h2{margin:0 0 6px;font-size:19px;letter-spacing:-.02em}
 
-/* The twelve tally marks, kept alive here for the before-picture only. They
-   came out of app.css when the dashboard stopped drawing them. */
-.st-bars{display:flex;gap:4px;justify-content:center}
-.st-bars i{width:8px;height:22px;border-radius:var(--r-mark);background:#E6E8F0}
-.st-bars i.half{background:var(--p1)}
-.st-bars i.on{background:var(--p4)}
-.st-bars i.here{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--p2)}
+/* the before/after strip for the bug */
+.fix{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;margin-top:18px}
+.fixc{border:1px solid var(--line);border-radius:var(--r-card);background:var(--card);
+  padding:18px;text-align:center}
+.fixc img{width:88px;height:auto;display:block;margin:0 auto 10px}
+.fixc b{display:block;font-size:13.5px}
+.fixc span{display:block;font-size:12.5px;color:var(--faint);margin-top:3px}
+.was{background:#FDF2F2;border-color:#F3D4D4}
+.now{background:var(--p0);border-color:var(--p1)}
 
-/* ---- alternatives to the ring, draft only ---- */
-/* Twelve weeks as a column chart. Height is the number of sessions that
-   week — this is the thing the earlier drafts got wrong: every bar was the
-   same height and only the fill changed, which is not a chart, it is a row
-   of tally marks wearing one. Two sessions is a full column, one is half,
-   none is a stub you can still see. */
-.dw{display:flex;gap:5px;align-items:flex-end;justify-content:center;height:46px}
-.dw i{display:block;width:14px;border-radius:var(--r-mark);background:#E6E8F0;position:relative}
-.dw i.n0{height:5px}
-.dw i.n1{height:24px;background:var(--p1)}
-.dw i.n2{height:46px;background:var(--p4)}
-/* The week in progress, drawn open so it reads as still being filled rather
-   than finished.
-   Named .dw-now, not .now: .now is the band's class in app.css, and calling a
-   14px bar the same thing as the biggest component on the dashboard gave it
-   the band's 26px padding and a border — a 24px column rendered at 54px, and
-   the current week came out taller than a full one. The same collision as
-   .rel and .relbox, made by me a day after finding that one. */
-.dw i.dw-now{background:repeating-linear-gradient(-45deg,var(--p1) 0 3px,#EDF6F2 3px 6px)}
-.dw-l{display:flex;justify-content:space-between;margin:9px 2px 0;
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
-/* The streak as type, and this week as two pills that are not a chart. */
-.dn{font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.05;margin:0}
-.dn span{font-size:15px;font-weight:700;color:var(--soft);letter-spacing:-.01em}
-.dp{display:flex;gap:6px;justify-content:center;margin:14px 0 0}
-.dp i{display:block;width:38px;height:7px;border-radius:var(--r-pill);background:#E6E8F0}
-.dp i.on{background:var(--p4)}
-/* A ring that is only ever about this week. */
-.dr-ring .st-mid b{font-size:30px}
-.dr-ring .st-mid i{margin-top:5px}
+/* option cards */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;margin-top:22px}
+.opt{border:1px solid var(--line);border-radius:var(--r-card);background:var(--card);padding:22px}
+.opt .k{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  background:var(--ink);color:#fff;border-radius:5px;padding:3px 8px;display:inline-block}
+.opt h3{margin:11px 0 6px;font-size:17.5px;letter-spacing:-.02em}
+.opt p{margin:0 0 14px;font-size:13.5px;color:var(--soft);line-height:1.55}
+.opt .why{font-size:12.5px;color:var(--faint);line-height:1.5;margin:0 0 16px}
+.opt .row{display:flex;gap:8px;flex-wrap:wrap}
+.opt .btn{flex:1;min-width:120px}
+
+.pick{margin-top:14px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.pick label{font-size:12.5px;color:var(--faint)}
+.pick select{font:inherit;font-size:13px;padding:7px 10px;border-radius:var(--r-control);
+  border:1px solid var(--line);background:var(--card);color:var(--ink)}
+
+/* ---------------------------------------------------------------
+   The celebration layers. Everything is additive over the existing
+   .bpop markup — no change to the card, the copy or the button.
+   --------------------------------------------------------------- */
+
+/* The art box was 132x132 while the hero drawing is 72x118, so it fitted by
+   height and sat about 80px wide inside a 132px box — smaller than it was
+   drawn to be. Sized to the real ratio here. */
+.bpop-art{width:124px;height:203px;margin:0 auto 4px}
+
+/* The card's own children are lifted above the effect layers. This rule has
+   to come BEFORE the effect layers, not after: it is `.bpop-card > *`, which
+   is the same specificity as `.bfx` and `.rays`, so whichever is written last
+   wins. Written after, it forced the canvas to position:relative, and a
+   relative canvas takes up its natural 300x150 in the flow — which pushed the
+   badge 217px down the card and left the rays firing into empty space above
+   it. The layout looked deliberate, which is why it took a measurement rather
+   than a glance to see. */
+.bpop-card{position:relative;overflow:visible}
+.bpop-card > *{position:relative;z-index:3}
+
+/* the particle canvas sits over the card, never catching a click */
+.bfx{position:absolute;inset:-40px;pointer-events:none;z-index:2}
+
+/* A — rays behind the badge */
+.rays{position:absolute;left:50%;top:121px;width:340px;height:340px;margin:-170px 0 0 -170px;
+  z-index:1;pointer-events:none;opacity:0;
+  background:repeating-conic-gradient(from 0deg,
+    currentColor 0deg 3.2deg, transparent 3.2deg 15deg);
+  -webkit-mask-image:radial-gradient(closest-side,#000 18%,rgba(0,0,0,.55) 42%,transparent 72%);
+  mask-image:radial-gradient(closest-side,#000 18%,rgba(0,0,0,.55) 42%,transparent 72%)}
+.playing-a .rays{animation:rays-in 1100ms cubic-bezier(.16,.84,.34,1) both}
+@keyframes rays-in{
+  0%  {opacity:0;transform:scale(.35) rotate(0deg)}
+  22% {opacity:.30}
+  100%{opacity:0;transform:scale(1.18) rotate(26deg)}
+}
+
+/* B — halo rings blooming out in the badge's own colour */
+.halo{position:absolute;left:50%;top:121px;width:20px;height:20px;margin:-10px 0 0 -10px;
+  border-radius:50%;z-index:1;pointer-events:none;
+  border:2px solid currentColor;opacity:0}
+.playing-b .halo{animation:halo-out 1200ms cubic-bezier(.15,.7,.3,1) both}
+.playing-b .halo.h2{animation-delay:130ms}
+.playing-b .halo.h3{animation-delay:260ms}
+@keyframes halo-out{
+  0%  {opacity:.55;transform:scale(.4)}
+  70% {opacity:.14}
+  100%{opacity:0;transform:scale(11)}
+}
+/* the specular sweep across the badge face */
+.sweep{position:absolute;left:50%;top:59px;width:132px;height:126px;margin-left:-66px;
+  z-index:4;pointer-events:none;overflow:hidden;opacity:0;
+  -webkit-mask-image:linear-gradient(#000,#000);mask-image:linear-gradient(#000,#000)}
+.sweep i{position:absolute;top:-30%;left:-60%;width:46%;height:160%;display:block;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent);
+  transform:rotate(18deg)}
+.playing-b .sweep{opacity:1}
+.playing-b .sweep i{animation:sweep 780ms cubic-bezier(.4,0,.2,1) 240ms both}
+@keyframes sweep{ from{left:-60%} to{left:120%} }
+
+/* C — the badge lands with weight, and the card gives a little */
+.playing-c .bpop-art{animation:stamp 620ms cubic-bezier(.2,1.5,.35,1) both}
+@keyframes stamp{
+  0%  {transform:scale(1.9) translateY(-26px);opacity:0}
+  55% {opacity:1}
+  70% {transform:scale(.94) translateY(0)}
+  100%{transform:scale(1) translateY(0)}
+}
+.playing-c .bpop-card{animation:settle 420ms cubic-bezier(.3,.9,.3,1) 300ms both}
+@keyframes settle{
+  0%{transform:none} 35%{transform:translateY(4px) scale(.995)} 100%{transform:none}
+}
+
+/* Nobody gets thrown around who asked not to be. The badge still arrives —
+   it just arrives instead of performing. */
+@media (prefers-reduced-motion:reduce){
+  .rays,.halo,.sweep{display:none}
+  .playing-a .bpop-art,.playing-b .bpop-art,.playing-c .bpop-art,
+  .playing-c .bpop-card{animation:none}
+  .bfx{display:none}
+}
 </style>
 </head>
 <body>
 
 <main>
-  <div class="dr-wrap">
-    <p class="dr-tag">Draft</p>
-    <h1 class="dr-h">What to ask after a session, and what the rail is for</h1>
-    <p class="dr-lede">
-      Two decisions rather than clean-ups. First: you were right that asking
-      people whether they turned up is the wrong question — the room should
-      know, and we have not built a room. So the question that is actually
-      left is what you meant to get done, which the schema has columns for and
-      nobody is asked. Second: the rail is four cards deep and offers a power
-      feature to people who have not had a session yet. Nothing here is live.
-    </p>
-    <p class="dr-warn">
-      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <circle cx="10" cy="10" r="7.2" stroke="currentColor" stroke-width="1.6"/>
-        <path d="M10 6.4v4.4M10 13.4v.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-      Preview only — the buttons here do nothing
-    </p>
+<div class="dw">
 
+  <h1>Badge earned: the bug, and three ways to celebrate it</h1>
+  <p class="dlede">Two separate things here. The first is a fault and is already fixed on the
+     branch. The second is a judgement call and is why this page exists — press the buttons,
+     they are the real popup, not a picture of one.</p>
 
-    <!-- ================================================================
-         PART ONE — the question worth asking after a session
-         ================================================================ -->
-    <div class="dr-part"><h2>One — the question worth asking after a session</h2></div>
-
-    <section class="dr-sec" style="border-top:0;padding-top:22px">
-      <p class="dr-tag">Now</p>
-      <h3>We cannot see whether anybody turned up, and asking was the wrong fix</h3>
-      <p class="dr-note">
-        There was a version of this draft that offered three places to ask
-        <em>"did Friday happen?"</em>. That was wrong and it is gone. Attendance
-        is not something to ask a person — it is something the room knows. The
-        reason we do not know it is that <b>there is no room</b>: the call is a
-        link to a public Jitsi address opened in another tab, so PeerFlow sees
-        nothing at all — not who joined, not when, not for how long.
-      </p>
-      <p class="dr-note">
-        The schema already assumed the room would tell us.
-        <code>migration-reliability.sql</code> scores a session partly on how
-        late somebody joined:
-      </p>
-      <div class="dr-stage">
-        <pre style="margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--soft);overflow-x:auto"><code>when s.attended is true and s.joined_at is not null
-     and s.joined_at &gt; s.starts_at + interval '10 minutes' then 0.8</code></pre>
+  <!-- ============ the fix ============ -->
+  <section class="dsec">
+    <h2>1. The popup was showing the locked badge</h2>
+    <p class="dlede">Seven of the twelve badges shipped a <b>grey, padlocked</b> hero drawing, and the
+       popup always loads the hero. So the moment you earned “Five sessions”, you were shown the
+       version that means <em>you have not earned this</em>. The five one-shot badges were fine, which
+       is why it went unnoticed — it is exactly the seven counting badges that were wrong.</p>
+    <div class="fix">
+      <div class="fixc was">
+        <img src="assets/badges/five-sessions-off.svg" alt="">
+        <b>What you saw</b><span>grey, padlocked — the locked art</span>
       </div>
-      <p class="dr-note">
-        <code>joined_at</code> is written by nothing, and can only ever be
-        written by the call itself. So the reliability score stays a dash until
-        the call is ours — and a self-reported number in its place would be
-        worse than the dash, because it renders as a percentage on the People
-        page that strangers use to decide whether to partner with you.
-      </p>
-      <p class="dr-why">
-        <b>So: attendance waits for the video work.</b> Join and leave events
-        from the call fill <code>attended</code> and <code>joined_at</code>,
-        and nobody is ever asked. What follows is the question that is left —
-        the one no server can answer.
-      </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">The gap</p>
-      <h3>A session has a topic and nothing else</h3>
-      <p class="dr-note">
-        Today a session carries a free-text topic typed once when it was
-        booked — <em>"Linux privesc"</em> — and that is the whole record of
-        what the two of you did. <code>sessions.goal</code> and
-        <code>sessions.goal_done</code> exist in the schema and are empty.
-        Whether you did the thing you sat down to do is the one fact about a
-        session that a machine cannot observe, and it is the one nobody is
-        asked.
-      </p>
-      <p class="dr-note">
-        A goal only works as a pair: <b>declared before, answered after.</b>
-        Asked only afterwards it becomes a diary entry nobody writes. So the
-        three options below differ in <em>when it is declared</em> — the
-        answering half is the same short row in every one.
-      </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Option A</p>
-      <h3>Declared when you book it</h3>
-      <p class="dr-note">
-        One more line in the booking form, beside the note you can already
-        leave. Your partner sees it when they accept, so they turn up knowing
-        what the hour is for.
-      </p>
-      <div class="dr-stage">
-        <div class="b bookp" style="margin:0">
-          <div class="bh" style="margin-bottom:14px">
-            <div><span class="mono" style="color:var(--p6)">Propose</span><h2 style="margin:0;font-size:19px">Tuesday at 7:00 PM</h2></div>
-          </div>
-          <div class="bk-f">
-            <label class="bk-l" for="d-goal">What you want to have done by the end</label>
-            <input id="d-goal" type="text" value="Get a root shell on the SUID box" readonly>
-          </div>
-          <div class="bk-f" style="margin-top:10px">
-            <label class="bk-l" for="d-msg">Anything to add <span style="font-weight:400;color:var(--faint)">(optional)</span></label>
-            <input id="d-msg" type="text" placeholder="What you’d like to work on" readonly>
-          </div>
-          <div class="bk-go" style="margin-top:14px">
-            <button class="btn" type="button">Propose this time</button>
-            <span class="bk-hint">Nothing is booked until they accept.</span>
-          </div>
-        </div>
+      <div class="fixc now">
+        <img src="assets/badges/five-sessions-hero.svg" alt="">
+        <b>What you see now</b><span>the earned badge, in its own colour</span>
       </div>
-      <p class="dr-why">
-        <b>Trade-off.</b> It costs nothing to build — the form is already
-        there — and it makes the proposal more persuasive to accept, because
-        it says what the hour is <em>for</em> rather than just when it is. But
-        it is asked at the point furthest from the session, sometimes a week
-        out, when you genuinely may not know yet. Expect a lot of blanks and
-        a few that no longer match by the time Tuesday arrives.
-      </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Option B</p>
-      <h3>Declared when the room opens</h3>
-      <p class="dr-note">
-        The band already changes fifteen minutes before a session to
-        <em>"your room is open"</em>. It asks there, in the one moment you are
-        certainly thinking about this session, and the answer rides along into
-        the call.
-      </p>
-      <div class="dr-stage">
-        <section class="now" data-tone="live">
-          <div class="now-txt">
-            <span class="mono now-k">Your room is open</span>
-            <h1>Asalxon is waiting.</h1>
-            <p class="now-s">50 minutes · Linux privesc</p>
-            <div class="bk-f" style="margin:14px 0 0;max-width:520px">
-              <label class="bk-l" for="d-goal2" style="color:#BFE6D8">What do you want to have done by the end?</label>
-              <input id="d-goal2" type="text" placeholder="One line — you’ll be asked about it after" readonly>
-            </div>
-            <div class="now-a">
-              <a class="btn" href="#">Join the call</a>
-              <button class="ghost" type="button">Skip</button>
-            </div>
-          </div>
-        </section>
+      <div class="fixc">
+        <img src="assets/badges/ten-hours-hero.svg" alt="">
+        <b>Ten hours</b><span>violet, as the palette always intended</span>
       </div>
-      <p class="dr-why">
-        <b>Trade-off.</b> Asked at the moment it is easiest to answer and
-        hardest to forget, and it is the one point where both of you are
-        present, so the two goals could be shown to each other. The cost is
-        that it stands between somebody and a call that has already started —
-        which is exactly when nobody wants a form. It has to be skippable in
-        one tap, and if it is skippable it will often be skipped.
-      </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Option C</p>
-      <h3>No goal — just say what you got done</h3>
-      <p class="dr-note">
-        Drop the before-half entirely. After the session, one line, free text,
-        and it becomes the session's record on the partner page and on
-        Progress.
-      </p>
-      <div class="dr-stage">
-        <div class="b wide" style="padding:18px 20px;margin:0">
-          <p class="mono sub-h" style="margin-top:0">Friday with Asalxon</p>
-          <div class="bk-f">
-            <label class="bk-l" for="d-got">What did the two of you get done?</label>
-            <input id="d-got" type="text" placeholder="One line, for your own record" readonly>
-          </div>
-          <div class="bk-go" style="margin-top:12px">
-            <button class="btn" type="button">Save</button>
-            <button class="small" type="button">Nothing much</button>
-          </div>
-        </div>
+      <div class="fixc">
+        <img src="assets/badges/six-weeks-hero.svg" alt="">
+        <b>Six weeks</b><span>amber</span>
       </div>
-      <p class="dr-why">
-        <b>Trade-off.</b> Nothing stands between you and a call, and a written
-        record of twelve sessions is genuinely worth having — it is the thing
-        you would show somebody. But without a goal declared first there is
-        nothing to compare it against, so it can never answer "did you do what
-        you planned", only "what happened". That is a journal, not a loop, and
-        journals are the feature people stop filling in second.
-      </p>
-    </section>
+    </div>
+    <p class="dlede" style="margin-top:14px">The seven were rebuilt from each badge’s own earned
+       drawing by the same rule the five correct ones follow — proven by regenerating those five and
+       getting a byte-for-byte match before touching the broken ones.</p>
+  </section>
 
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Built</p>
-      <h3>A is live — B when the call is ours</h3>
-      <p class="dr-note">
-        <b>A is no longer a proposal.</b> The booking form asks for the goal,
-        it rides with the proposal so whoever accepts can see what the hour is
-        for, and after the session a row prints the goal back and asks whether
-        you got it done — only ever for a session that had one written, so
-        nobody who left the box empty is asked anything. The rest of this
-        section is the reasoning, kept because it is why B is not built yet.
-      </p>
-      <p class="dr-note">
-        A costs one input in a form that already exists and improves the thing
-        it sits in — a proposal that says what the hour is for is easier to
-        accept than one that only says when. Take it now.
-      </p>
-      <p class="dr-note">
-        B is the better moment and the wrong time to build it. Once the call is
-        in-app there is a room to put it in — a goal on the way in and the
-        check on the way out, both inside the session rather than bolted to the
-        dashboard around it. Building it into the band first means building it
-        twice.
-      </p>
-      <p class="dr-why">
-        C I would not do on its own. As the second half of A it is the same
-        row with the goal printed above the box, which is where it belongs.
-      </p>
-    </section>
+  <!-- ============ the celebration ============ -->
+  <section class="dsec">
+    <h2>2. Now make it feel like something</h2>
+    <p class="dlede">One rule shapes all three: <b>the words stay flat.</b> The house voice does not
+       congratulate, and “Badge earned” is the right register — so the light and the motion carry the
+       feeling instead of the copy. Every particle is tinted from the badge’s own colour rather than a
+       generic confetti rainbow, so earning <em>Ten sessions</em> feels different from earning
+       <em>Six weeks</em>. All three stop; none loop. All three collapse to a plain fade under
+       <code>prefers-reduced-motion</code>.</p>
 
+    <div class="pick">
+      <label for="which">Try it with</label>
+      <select id="which">
+        <option value="five">Five sessions — green</option>
+        <option value="ten">Ten sessions — pink</option>
+        <option value="tenhours">Ten hours — violet</option>
+        <option value="sixweeks">Six weeks — amber</option>
+        <option value="partner">First partner — teal</option>
+        <option value="early">Early member — purple</option>
+      </select>
+      <label style="margin-left:6px"><input type="checkbox" id="rm"> pretend reduced motion</label>
+    </div>
 
-    <!-- ================================================================
-         PART TWO — the rail
-         ================================================================ -->
-    <div class="dr-part"><h2>Two — the streak card, and what the rail is for</h2></div>
+    <div class="opts">
 
-    <section class="dr-sec" style="border-top:0;padding-top:22px">
-      <p class="dr-tag">Before</p>
-      <h3>The number and the ring are about different things</h3>
-      <p class="dr-note">
-        The circle is not messy because it is a circle. It is messy because
-        <b>the 42px number in the middle is your streak in weeks, and the arc
-        around it is this week against your goal</b> — two measures at two
-        speeds, sharing one shape. A big <b>3</b> inside a half-filled ring
-        reads as "three out of something", and the something is never named.
-        The comment in <code>app.css</code> says so outright and calls it the
-        point:
-      </p>
-      <div class="dr-stage">
-        <pre style="margin:0 0 18px;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--soft);overflow-x:auto"><code>The number is weeks; the ring is this week against the goal.
-Two clocks at two speeds in one object, which is the point.</code></pre>
-        <div class="dr-rail">
-          <section class="rail streak">
-            <div class="st-ring">
-              <svg viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
-                <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
-              </svg>
-              <span class="st-mid"><b>3</b><i>week streak</i></span>
-            </div>
-            <p class="st-h">Don’t leave Asalxon hanging</p>
-            <p class="st-w">1 session left, 2 days to book it.</p>
-            <div class="st-hist">
-              <p class="st-hl">Last 12 weeks</p>
-              <div class="st-bars">
-                <i class="on"></i><i class="on"></i><i class="half"></i><i class="on"></i><i></i><i class="on"></i>
-                <i class="half"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i><i class="on here"></i>
-              </div>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-        </div>
+      <div class="opt">
+        <span class="k">A</span>
+        <h3>Burst</h3>
+        <p>A ray burst opens behind the badge and turns as it fades, with a short confetti throw over
+           the top. The most literally celebratory of the three.</p>
+        <p class="why">Reads instantly as “achievement”. The risk is that it is the loudest thing in
+           an app that is otherwise quiet — the twelfth time you see it may be one too many.</p>
+        <div class="row"><button class="btn" type="button" data-play="a">Play A</button></div>
       </div>
-      <p class="dr-why">
-        There is a third telling of the same story underneath it — the twelve
-        bars — so the card says "how am I doing" three times in three shapes.
-        Every option below removes at least one of them.
-      </p>
-    </section>
 
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">And the thing I missed</p>
-      <h3>The streak is already in the top bar</h3>
-      <p class="dr-note">
-        <code>appshell.js</code> draws a flame and the number in the chrome of
-        every page in the app — same three states as the ring, so the bar and
-        the card were built to agree with each other. Which means
-        <b>the 42px number in the middle of the ring is the second time you
-        read your streak on the same screen</b>, and the first one never
-        scrolls away.
-      </p>
-      <p class="dr-note">
-        So the card does not need to say it at all. What the chrome cannot
-        show is the two things the card is actually for: <b>where this week
-        stands</b>, and <b>what the run looks like</b>. Both options below drop
-        the number and keep those.
-      </p>
-      <p class="dr-why">
-        The earlier drafts also drew the twelve weeks as twelve identical
-        bars with different fills, which is why they still looked odd — a
-        chart whose height means nothing is not a chart. Height is the number
-        of sessions now: full column, half column, or a stub.
-      </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Option A</p>
-      <h3>This week, and the run — no ring, no number</h3>
-      <p class="dr-note">
-        The headline is the week you are in, because that is the only part you
-        can still do something about. Underneath, twelve weeks as a real column
-        chart. The streak stays in the top bar where it already is.
-      </p>
-      <p class="dr-note">
-        <b>"1 of 2 this week" was the wrong headline</b> and you are right about
-        why: it asks you to read a fraction, and the 2 is a weekly target that
-        defaults to two and that almost nobody has ever set, so half of it
-        refers to something you do not know you have. Two ways to say it
-        instead — both across the three states the card has to hold.
-      </p>
-
-      <p class="dr-cap">Say what is left <span class="dr-x">not taken</span></p>
-      <div class="dr-stage">
-        <div class="dr-mini">
-          <section class="rail streak">
-            <p class="dn">2 <span>to go this week</span></p>
-            <p class="st-h" style="margin-top:10px">Nothing booked with Asalxon yet</p>
-            <p class="st-w">Five days left.</p>
-            <div class="st-hist" style="margin-top:16px">
-              <p class="st-hl">Last 12 weeks</p>
-              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n0 dw-now"></i></div>
-              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-          <section class="rail streak">
-            <p class="dn">1 <span>to go this week</span></p>
-            <p class="st-h" style="margin-top:10px">Don’t leave Asalxon hanging</p>
-            <p class="st-w">2 days left to book it.</p>
-            <div class="st-hist" style="margin-top:16px">
-              <p class="st-hl">Last 12 weeks</p>
-              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n1 dw-now"></i></div>
-              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-          <section class="rail streak">
-            <p class="dn">Done <span>this week</span></p>
-            <p class="st-h" style="margin-top:10px">You and Asalxon, going strong</p>
-            <p class="st-w">Back on Monday.</p>
-            <div class="st-hist" style="margin-top:16px">
-              <p class="st-hl">Last 12 weeks</p>
-              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2 dw-now"></i></div>
-              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-        </div>
+      <div class="opt">
+        <span class="k">B</span>
+        <h3>Bloom</h3>
+        <p>No particles. Three halo rings push out in the badge’s colour and a highlight sweeps
+           across the face, as if the light caught it. The badge is the whole event.</p>
+        <p class="why">The most grown-up, and the one that would still feel right on the fortieth
+           badge. It asks the artwork to do the work, which — now that the artwork is correct —
+           it can.</p>
+        <div class="row"><button class="btn" type="button" data-play="b">Play B</button></div>
       </div>
-      <p class="dr-why">
-        One word and one number, no fraction, and the number is the thing you
-        can still change. The count of what you have already done is not lost —
-        it is the last column of the chart, which is where a count of finished
-        things belongs. When the week is met the number goes away entirely,
-        because there is nothing left to say and "2 of 2" is a sum nobody needs.
-      </p>
 
-      <p class="dr-cap" style="margin-top:26px">Say what is done, with the unit named
-        <span class="dr-ok">built &mdash; this is what the dashboard does now</span></p>
-      <div class="dr-stage">
-        <div class="dr-mini">
-          <section class="rail streak">
-            <p class="dn">0 <span>sessions this week</span></p>
-            <p class="st-h" style="margin-top:10px">Nothing booked with Asalxon yet</p>
-            <p class="st-w">Five days left.</p>
-            <div class="st-hist" style="margin-top:16px">
-              <p class="st-hl">Last 12 weeks</p>
-              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n0 dw-now"></i></div>
-              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-          <section class="rail streak">
-            <p class="dn">1 <span>session this week</span></p>
-            <p class="st-h" style="margin-top:10px">Don’t leave Asalxon hanging</p>
-            <p class="st-w">One more by Sunday, 2 days left.</p>
-            <div class="st-hist" style="margin-top:16px">
-              <p class="st-hl">Last 12 weeks</p>
-              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n1 dw-now"></i></div>
-              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-          <section class="rail streak">
-            <p class="dn">2 <span>sessions this week</span></p>
-            <p class="st-h" style="margin-top:10px">You and Asalxon, going strong</p>
-            <p class="st-w">Back on Monday.</p>
-            <div class="st-hist" style="margin-top:16px">
-              <p class="st-hl">Last 12 weeks</p>
-              <div class="dw" aria-hidden="true"><i class="n2"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n0"></i><i class="n2"></i><i class="n1"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2"></i><i class="n2 dw-now"></i></div>
-              <div class="dw-l"><span>12 weeks ago</span><span>Now</span></div>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-        </div>
+      <div class="opt">
+        <span class="k">C</span>
+        <h3>Stamp</h3>
+        <p>The badge drops in with real weight, the card gives under it, and confetti falls from the
+           top edge the way something lands. Physical rather than pyrotechnic.</p>
+        <p class="why">Between the two. The weight is what sells it; the confetti is a garnish and
+           could be dropped entirely if you want it quieter still.</p>
+        <div class="row"><button class="btn" type="button" data-play="c">Play C</button></div>
       </div>
-      <p class="dr-why">
-        <b>This is the one that shipped.</b> It reads without arithmetic, and
-        it never has to know what your target is — which makes it the safer of
-        the two if the weekly goal ever stops being a number people set. The
-        push to book one more has not been lost: it moved to the sentence
-        underneath, which is where the deadline already lived
-        (<em>&ldquo;1 more, 2 days left to book it.&rdquo;</em>), so the
-        headline can just say plainly where you are.
-      </p>
 
-      <p class="dr-why">
-        <b>Trade-off for the option as a whole.</b> Nothing on the card repeats
-        the chrome, the one graphic left is a real chart, and the biggest type
-        is the number you can still act on. The streak is still on screen —
-        three inches up and to the right, on a flame, permanently. The cost is
-        that the card is quieter than it was, and if you think the streak
-        deserves to be the loudest thing on the dashboard then it argues the
-        other way.
-      </p>
-    </section>
+    </div>
 
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Option B</p>
-      <h3>No card — the chrome has the streak, Progress has the rest</h3>
-      <p class="dr-note">
-        The rail loses it entirely. The flame in the bar carries the streak,
-        the twelve weeks live on the Progress page the card was linking to
-        anyway, and the dashboard goes back to being only about what to do
-        next. The nudge — <em>don’t leave Asalxon hanging</em> — moves into the
-        band, which is the element that already exists to say exactly that.
-      </p>
-      <div class="dr-stage">
-        <section class="now" data-tone="idle">
-          <div class="now-txt">
-            <span class="mono now-k">Two days left</span>
-            <h1>Don’t leave Asalxon hanging.</h1>
-            <p class="now-s">One more session by Sunday keeps your run going — you’ve done one of two this week.</p>
-            <div class="now-a"><a class="btn" href="#">Propose a time</a></div>
-          </div>
-        </section>
-        <p class="dr-cap" style="margin:16px 0 8px">and the rail is two cards, not four</p>
-        <div class="dr-rail">
-          <section class="rail">
-            <h3>Standing slot</h3>
-            <p class="st-now">Nothing standing yet.</p>
-            <p class="st-sub">Agree one hour a week with Asalxon and it books itself from then on.</p>
-            <div class="st-acts"><button class="btn" type="button">Set one up</button></div>
-          </section>
-          <section class="rail">
-            <span class="mono">Week 2 of 12</span>
-            <p class="wk-t">Ports, protocols and packets</p>
-            <a class="rail-l" href="#">All 12 weeks &rarr;</a>
-          </section>
-        </div>
-      </div>
-      <p class="dr-why">
-        <b>Trade-off.</b> The shortest dashboard of anything drawn so far, and
-        the nudge lands in the loudest place on the page instead of the third
-        card down the rail. But the run of weeks stops being glanceable — you
-        have to go to Progress to see it — and a streak you never see is a
-        streak you stop minding, which is most of what it is for.
-      </p>
-    </section>
+    <p class="dlede" style="margin-top:24px"><b>My pick is B</b>, with C’s weighted entrance folded
+       into it — the halo and sweep for the light, the stamp for the arrival, and no confetti at all.
+       It celebrates without spending goodwill, and it is the only one of the three that does not get
+       tiring. Say a letter, or “B with C’s drop”, and I will put it on the real popup.</p>
+  </section>
 
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">If you want my opinion</p>
-      <h3>A</h3>
-      <p class="dr-note">
-        B is tempting and I think it goes one step too far: the twelve weeks
-        are the only place on the dashboard you can see a gap, and moving them
-        behind a click means nobody looks. A keeps them, drops everything that
-        was being said twice, and leaves the card with one number and one
-        chart that are about two different things and look it.
-      </p>
-      <p class="dr-why">
-        A is roughly forty lines out and fifteen in — the ring markup, its
-        SVG, the segment maths and about thirty lines of CSS go; the bars gain
-        a height class. <b>momentum()</b> already returns the count per week,
-        so nothing behind it changes.
-      </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Also</p>
-      <h3>Four cards, and one of them is offered too early</h3>
-      <p class="dr-note">
-        The rail runs about a thousand pixels — taller than the main column now
-        that the sessions list collapses, so the booked state has a short left
-        side and a long right one. More to the point, <b>"Standing slot" is a
-        power feature shown to somebody who has not completed a session yet</b>,
-        and <b>"Your partner" repeats a name the band above has already said</b>
-        when you only have one.
-      </p>
-      <div class="dr-stage">
-        <div class="dr-rail">
-          <section class="rail streak">
-            <div class="st-ring">
-              <svg viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
-                <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
-              </svg>
-              <span class="st-mid"><b>3</b><i>week streak</i></span>
-            </div>
-            <p class="st-h">Don’t leave Asalxon hanging</p>
-            <p class="st-w">1 session left, 2 days to book it.</p>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-          <section class="rail">
-            <h3>Your partner</h3>
-            <p style="margin:0;font-size:14.5px;font-weight:700">Asalxon Axmadxo’jayeva</p>
-            <p style="margin:2px 0 0;font-size:13px;color:var(--faint)">Linux privilege escalation</p>
-            <a class="rail-l" href="#">Partner page &rarr;</a>
-          </section>
-          <section class="rail">
-            <h3>Standing slot</h3>
-            <p class="st-now">Nothing standing yet.</p>
-            <p class="st-sub">Agree one hour a week with Asalxon and it books itself from then on.</p>
-            <div class="st-acts"><button class="btn" type="button">Set one up</button></div>
-          </section>
-          <section class="rail">
-            <span class="mono">Week 2 of 12</span>
-            <p class="wk-t">Ports, protocols and packets</p>
-            <a class="rail-l" href="#">All 12 weeks &rarr;</a>
-          </section>
-        </div>
-      </div>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Option A</p>
-      <h3>Each card earns its place</h3>
-      <p class="dr-note">
-        Nothing is deleted; things appear when they mean something. Standing
-        slot waits for your first completed session — until then it is
-        describing a habit you have not started. Your partner waits until you
-        have two, because with one the band has already named them.
-      </p>
-      <div class="dr-rails">
-        <div>
-          <p class="dr-cap">Before your first session <span class="dr-ok">two cards</span></p>
-          <div class="dr-stage">
-            <div class="dr-rail">
-              <section class="rail streak">
-                <div class="st-ring">
-                  <svg viewBox="0 0 120 120" aria-hidden="true">
-                    <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
-                    <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
-                  </svg>
-                  <span class="st-mid"><b>0</b><i>week streak</i></span>
-                </div>
-                <p class="st-h">Your first session starts it</p>
-                <p class="st-w">0 of 2 this week.</p>
-                <a class="rail-l" href="#">Your progress &rarr;</a>
-              </section>
-              <section class="rail">
-                <span class="mono">Week 1 of 12</span>
-                <p class="wk-t">What a network actually is</p>
-                <a class="rail-l" href="#">All 12 weeks &rarr;</a>
-              </section>
-            </div>
-          </div>
-        </div>
-        <div>
-          <p class="dr-cap">Once you are going <span class="dr-ok">three</span></p>
-          <div class="dr-stage">
-            <div class="dr-rail">
-              <section class="rail streak">
-                <div class="st-ring">
-                  <svg viewBox="0 0 120 120" aria-hidden="true">
-                    <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
-                    <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
-                  </svg>
-                  <span class="st-mid"><b>3</b><i>week streak</i></span>
-                </div>
-                <p class="st-h">Don’t leave Asalxon hanging</p>
-                <p class="st-w">1 session left, 2 days to book it.</p>
-                <a class="rail-l" href="#">Your progress &rarr;</a>
-              </section>
-              <section class="rail">
-                <h3>Standing slot</h3>
-                <p class="st-now">Nothing standing yet.</p>
-                <p class="st-sub">Agree one hour a week with Asalxon and it books itself from then on.</p>
-                <div class="st-acts"><button class="btn" type="button">Set one up</button></div>
-              </section>
-              <section class="rail">
-                <span class="mono">Week 2 of 12</span>
-                <p class="wk-t">Ports, protocols and packets</p>
-                <a class="rail-l" href="#">All 12 weeks &rarr;</a>
-              </section>
-            </div>
-          </div>
-        </div>
-      </div>
-      <p class="dr-why">
-        <b>Trade-off.</b> Cheapest of the three — two conditions, no new
-        components — and it fixes the thing that actually reads as wrong,
-        which is being sold a standing slot before you have had one session.
-        It does not shorten the rail for an established user, so the long-right
-        short-left imbalance stays in the booked state.
-      </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">Option B</p>
-      <h3>The streak and the plan are one card</h3>
-      <p class="dr-note">
-        They are both answers to "how am I doing" — one looks back, one looks
-        forward, and they sit in two boxes with a gap between them. One card,
-        one heading, the week you are on underneath the ring.
-      </p>
-      <div class="dr-stage">
-        <div class="dr-rail">
-          <section class="rail streak">
-            <div class="st-ring">
-              <svg viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="st-seg on" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-8.17"/>
-                <circle class="st-seg" cx="60" cy="60" r="52" stroke-dasharray="147.03 179.70" stroke-dashoffset="-171.53"/>
-              </svg>
-              <span class="st-mid"><b>3</b><i>week streak</i></span>
-            </div>
-            <p class="st-h">Don’t leave Asalxon hanging</p>
-            <p class="st-w">1 session left, 2 days to book it.</p>
-            <div class="st-hist">
-              <p class="st-hl">You’re on week 2 of 12</p>
-              <p class="wk-t" style="margin:2px 0 0">Ports, protocols and packets</p>
-            </div>
-            <a class="rail-l" href="#">Your progress &rarr;</a>
-          </section>
-          <section class="rail">
-            <h3>Standing slot</h3>
-            <p class="st-now">Nothing standing yet.</p>
-            <p class="st-sub">Agree one hour a week with Asalxon and it books itself from then on.</p>
-            <div class="st-acts"><button class="btn" type="button">Set one up</button></div>
-          </section>
-        </div>
-      </div>
-      <p class="dr-why">
-        <b>Trade-off.</b> Two cards instead of four, and the two halves of
-        "how am I doing" finally sit together. But the twelve-week plan is the
-        only forward-looking thing on the dashboard and folding it under a
-        streak ring makes it a footnote to a counter — and the counter is about
-        turning up, not about what you are learning.
-      </p>
-    </section>
-
-    <!-- ---------------------------------------------------------------- -->
-    <section class="dr-sec">
-      <p class="dr-tag">If you want my opinion</p>
-      <h3>A, and leave the length alone</h3>
-      <p class="dr-note">
-        A fixes a real thing — offering a standing slot to someone with no
-        sessions is selling a habit to a person who has not started — and it
-        costs two conditions. B is tidier and I do not think it is right: the
-        plan is the only part of this page about the subject rather than the
-        scheduling, and it should not become a line inside a streak card.
-        The short-left long-right imbalance is worth living with; it is the
-        honest shape of a page whose main column is empty because you have
-        nothing booked, and the fix for that is having something booked.
-      </p>
-      <p class="dr-why">
-        Say which way and I will build it. Both are small; A is about twenty
-        lines in <b>app.html</b> and no new CSS.
-      </p>
-    </section>
-
-  </div>
+</div>
 </main>
+
+<script>
+(function(){
+  /* Real badge ids and their real hues, lifted from assets/badges.js so the
+     tint on the particles is the badge's own colour and not an approximation. */
+  var ART = { five:'five-sessions', ten:'ten-sessions', tenhours:'ten-hours',
+              sixweeks:'six-weeks', partner:'first-partner', early:'early-member' };
+  var HUE = { five:'#15A05C', ten:'#DB2777', tenhours:'#7C3AED',
+              sixweeks:'#E4661F', partner:'#12977E', early:'#9333C9' };
+  var NAME = { five:'Five sessions', ten:'Ten sessions', tenhours:'Ten hours',
+               sixweeks:'Six weeks', partner:'First partner', early:'Early member' };
+  var DESC = { five:'Five sessions finished', ten:'Ten sessions with the same partner',
+               tenhours:'Ten hours sat with a partner', sixweeks:'Six weeks in a row',
+               partner:'Your first partner accepted', early:'Here before it was busy' };
+
+  function hexToRgb(h){
+    return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+  }
+  /* Three tints of the badge's colour, so confetti reads as belonging to this
+     badge rather than as generic party litter. */
+  function palette(hex){
+    var c = hexToRgb(hex), out = [];
+    [[1,1],[1.32,.92],[.72,1]].forEach(function(m){
+      out.push('rgba(' + Math.min(255,Math.round(c[0]*m[0])) + ',' +
+                          Math.min(255,Math.round(c[1]*m[0])) + ',' +
+                          Math.min(255,Math.round(c[2]*m[0])) + ',' + m[1] + ')');
+    });
+    out.push('rgba(255,255,255,.9)');
+    return out;
+  }
+
+  var reduced = function(){
+    return document.getElementById('rm').checked ||
+      window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  };
+
+  function confetti(canvas, hex, mode, origin){
+    var ctx = canvas.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    var cols = palette(hex), bits = [], N = mode === 'a' ? 70 : 44;
+    for (var i = 0; i < N; i++){
+      bits.push(mode === 'a'
+        /* A throws outward from behind the badge. */
+        ? { x:origin.x, y:origin.y, vx:(Math.random()-.5)*9, vy:-(2+Math.random()*7),
+            r:2+Math.random()*3.4, c:cols[i%cols.length], a:1,
+            sp:(Math.random()-.5)*.35, rot:Math.random()*6.3 }
+        /* C lets it fall from the top edge, no launch. */
+        : { x:Math.random()*w, y:-8-Math.random()*26, vx:(Math.random()-.5)*1.5,
+            vy:1.4+Math.random()*1.9, r:2+Math.random()*3, c:cols[i%cols.length], a:1,
+            sp:(Math.random()-.5)*.3, rot:Math.random()*6.3 });
+    }
+    var t0 = performance.now();
+    (function frame(now){
+      var age = now - t0;
+      ctx.clearRect(0,0,w,h);
+      var alive = 0;
+      for (var i = 0; i < bits.length; i++){
+        var b = bits[i];
+        b.vy += mode === 'a' ? .21 : .045;   /* A is thrown and falls back; C drifts */
+        b.vx *= .995; b.x += b.vx; b.y += b.vy; b.rot += b.sp;
+        b.a = Math.max(0, 1 - age/(mode === 'a' ? 1150 : 1600));
+        if (b.a <= 0 || b.y > h + 30) continue;
+        alive++;
+        ctx.save();
+        ctx.globalAlpha = b.a;
+        ctx.translate(b.x, b.y); ctx.rotate(b.rot);
+        ctx.fillStyle = b.c;
+        /* Little rectangles, not circles — they catch the rotation and read as
+           paper rather than as bubbles. */
+        ctx.fillRect(-b.r, -b.r*.6, b.r*2, b.r*1.2);
+        ctx.restore();
+      }
+      if (alive) requestAnimationFrame(frame);
+      else ctx.clearRect(0,0,w,h);
+    })(t0);
+  }
+
+  function play(mode){
+    var id = document.getElementById('which').value;
+    var hue = HUE[id];
+    var wrap = document.createElement('div');
+    wrap.className = 'bpop';
+    wrap.setAttribute('role','dialog');
+    wrap.setAttribute('aria-modal','true');
+    wrap.setAttribute('aria-label','Badge earned: ' + NAME[id]);
+
+    var layers = '';
+    if (mode === 'a') layers = '<span class="rays" style="color:' + hue + '"></span>';
+    if (mode === 'b') layers = '<span class="halo" style="color:' + hue + '"></span>' +
+                               '<span class="halo h2" style="color:' + hue + '"></span>' +
+                               '<span class="halo h3" style="color:' + hue + '"></span>' +
+                               '<span class="sweep"><i></i></span>';
+
+    wrap.innerHTML =
+      '<div class="bpop-card playing-' + mode + '">' +
+        layers +
+        '<canvas class="bfx"></canvas>' +
+        '<p class="bpop-k" style="color:' + hue + '">Badge earned</p>' +
+        '<img class="bpop-art" src="assets/badges/' + ART[id] + '-hero.svg" alt="">' +
+        '<h2>' + NAME[id] + '</h2>' +
+        '<p class="bpop-d">' + DESC[id] + '</p>' +
+        '<button class="btn" type="button" data-close>Nice</button>' +
+      '</div>';
+
+    function close(){
+      if (!wrap.parentNode) return;
+      wrap.classList.add('out');
+      setTimeout(function(){ if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, 180);
+    }
+    wrap.addEventListener('click', function(e){
+      if (e.target === wrap || e.target.closest('[data-close]')) close();
+    });
+    document.addEventListener('keydown', function k(e){
+      if (e.key === 'Escape'){ close(); document.removeEventListener('keydown', k); }
+    });
+
+    document.body.appendChild(wrap);
+    requestAnimationFrame(function(){
+      wrap.classList.add('in');
+      if (!reduced() && mode !== 'b') {
+        setTimeout(function(){
+          var c = wrap.querySelector('.bfx');
+          var art = wrap.querySelector('.bpop-art');
+          if (!c || !art) return;
+          /* Where the drawn badge actually is, in the canvas's own
+             coordinates. Read off the elements rather than written down,
+             because a number written down here is a number that goes stale
+             the next time the card's padding changes. */
+          var cr = c.getBoundingClientRect(), ar = art.getBoundingClientRect();
+          confetti(c, hue, mode, {
+            x: (ar.left - cr.left) + ar.width / 2,
+            y: (ar.top - cr.top) + ar.height * (72 / 118) / 2
+          });
+        }, mode === 'a' ? 60 : 220);
+      }
+    });
+    var btn = wrap.querySelector('[data-close]');
+    if (btn) btn.focus();
+  }
+
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-play]');
+    if (b) play(b.getAttribute('data-play'));
+  });
+})();
+</script>
 
 </body>
 </html>
