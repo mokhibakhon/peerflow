@@ -9,6 +9,29 @@ dashboards where it belongs.
 
 ---
 
+## The migrations, in one paste
+
+**Run `supabase/schema.sql`, then `supabase/migration-mvp.sql`, then
+`supabase/migrate-2026-08.sql`.** That is all three, in that order, and the
+third one now contains every migration written since: goal, plan, reliability,
+room-per-session, video, standing and chat.
+
+Each is additive and safe to run more than once, so re-running the whole set
+after any change is the reliable move rather than trying to remember which
+ones landed.
+
+The sections below describe the individual files and what each one switches
+on. They are still the source of truth for what a migration does — but you do
+not have to run them one at a time.
+
+**Skipping one does not fail loudly.** The data layer falls back to whatever
+columns exist, so the page keeps working and the only sign is a red request in
+the browser console. A missing `migration-standing.sql`, for instance, makes
+every page load 400 on `partner_requests` while the dashboard carries on
+working — which looks far more broken than it is.
+
+---
+
 ## Database migration — required for the Progress page
 
 `supabase/migration-mvp.sql` adds the columns and tables the Progress page
