@@ -2002,8 +2002,10 @@
               s: next.durationMin + ' minutes' + (next.topic ? ' · ' + next.topic : '') +
                  (live ? '' : '. Both of you have agreed to this one.'),
               a: live
-                   ? '<a class="btn" href="call.html?s=' + encodeURIComponent(next.id) + '">Join the call</a>' +
-                     '<button class="ghost" type="button" data-open-sess>All sessions</button>'
+                   /* One action while a call is open. Anything else here is a
+                      second thing to read at the one moment the page has
+                      exactly one thing to say. */
+                   ? '<a class="btn" href="call.html?s=' + encodeURIComponent(next.id) + '">Join the call</a>'
                    : '<a class="btn" data-open-book href="#book-card">Book another</a>' +
                      '<button class="ghost" type="button" data-relay="#upcoming [data-cancel-booked]"' +
                      ' data-arm="Sure? Cancel it">Cancel this one</button>',

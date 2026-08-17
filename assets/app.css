@@ -111,19 +111,30 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 .now-cl{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
   text-transform:uppercase;margin-top:5px;opacity:.72}
 
-/* Booked or live: dark, because it is the only state where the page is
-   telling you something is already true rather than asking you for something. */
-.now[data-tone="booked"],.now[data-tone="live"]{background:var(--p8);border-color:var(--p8);color:#fff}
-.now[data-tone="booked"] .now-k,.now[data-tone="live"] .now-k{color:var(--p2)}
-.now[data-tone="booked"] .now-s,.now[data-tone="live"] .now-s{color:#BFE6D8}
-.now[data-tone="booked"] .now-f,.now[data-tone="live"] .now-f{color:#7FC4AC}
-.now[data-tone="booked"] .now-cd,.now[data-tone="live"] .now-cd{color:#fff}
-.now[data-tone="booked"] .ghost,.now[data-tone="live"] .ghost{
+/* Booked: dark, because it is a state where the page is telling you
+   something is already true rather than asking you for something. */
+.now[data-tone="booked"]{background:var(--p8);border-color:var(--p8);color:#fff}
+.now[data-tone="booked"] .now-k{color:var(--p2)}
+.now[data-tone="booked"] .now-s{color:#BFE6D8}
+.now[data-tone="booked"] .now-f{color:#7FC4AC}
+.now[data-tone="booked"] .now-cd{color:#fff}
+.now[data-tone="booked"] .ghost{
   background:transparent;border-color:rgba(255,255,255,.28);color:#fff}
-.now[data-tone="booked"] .ghost:hover,.now[data-tone="live"] .ghost:hover{
+.now[data-tone="booked"] .ghost:hover{
   background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.45)}
-.now[data-tone="live"]{background:var(--p6);border-color:var(--p6)}
-.now[data-tone="live"] .now-cd{animation:nowpulse 2.4s ease-in-out infinite}
+
+/* Live: the pale ground the quiet states use, not the solid green it was.
+   A whole band of flat --p6 with white type on it is the loudest thing the
+   product ever draws, and it lands at the one moment you are about to leave
+   the page anyway — the tint carries "open" perfectly well, and the room is
+   the dark surface, not the doorway to it. The countdown still pulses, which
+   is what actually says live. */
+.now[data-tone="live"]{background:var(--p0);border-color:var(--p2)}
+.now[data-tone="live"] .now-k{color:var(--p6)}
+.now[data-tone="live"] .now-s{color:#3F6B5E}
+.now[data-tone="live"] .now-f{color:#3F6B5E}
+.now[data-tone="live"] .now-cd{color:var(--p8);animation:nowpulse 2.4s ease-in-out infinite}
+.now[data-tone="live"] .ghost{background:rgba(255,255,255,.72)}
 @keyframes nowpulse{50%{opacity:.55}}
 
 /* Somebody is waiting on you. Amber, and it is the only tone that gets one. */

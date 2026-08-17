@@ -457,9 +457,12 @@
     if (room) { try { room.disconnect(); } catch(e){} }
     [local.audio, local.video].forEach(function(t){ if (t) { try { t.stop(); } catch(e){} } });
     local = { audio:null, video:null };
+    /* Nothing underneath unless there is a goal to mention. Attendance is
+       recorded either way and saying so was telling somebody about the
+       plumbing at the one moment they have stopped caring about it. */
     done('You’ve left the call', pass && pass.goal
       ? 'Today will ask whether you got it done.'
-      : 'That is recorded — nobody has to say whether it happened.');
+      : '');
   }
 
   /* ---------- wiring ---------- */

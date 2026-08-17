@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-17e';
+window.PF_BUILD = '2026-08-17f';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -456,6 +456,32 @@ window.pf = (function(){
   /* Propose a time to your partner. Writes one row for each of you, sharing a
      start time and room, both 'proposed' — nothing lands on either calendar
      as a real session until the other person accepts. */
+  /* An hour you have already given away.
+   *
+   * Nothing stopped two sessions sitting on top of each other — not the
+   * page, not the insert policy, not a constraint. You could accept seven
+   * o'clock from one partner and propose seven o'clock to another, and both
+   * would land on your calendar as real bookings with two rooms opening at
+   * once. Every reader downstream believed it: the streak counted two, the
+   * calendar drew them stacked, and the band picked whichever sorted first.
+   *
+   * Two intervals overlap when each starts before the other ends. Cancelled
+   * and declined rows are not bookings and hold no time. A proposal does
+   * hold time, because the whole point of proposing is that it may become a
+   * session, and offering the same hour twice is how you end up standing
+   * somebody up. */
+  function clashIn(list, startsAt, durationMin){
+    var from = new Date(startsAt).getTime();
+    var to   = from + (durationMin || 50) * 60000;
+    return (list || []).filter(function(s){
+      return s.status === 'confirmed' || s.status === 'proposed' ||
+             s.status === 'completed';
+    }).filter(function(s){
+      var a = s.startsAt.getTime();
+      return a < to && from < a + (s.durationMin || 50) * 60000;
+    })[0] || null;
+  }
+
   function proposeSession(opts){
     if (!client) return Promise.resolve({ demo: true });
     return currentUser().then(function(me){
@@ -512,7 +538,24 @@ window.pf = (function(){
           return { saved: true };
         });
       }
-      return put(rows);
+      /* Checked here rather than in the page, so every way of booking gets
+         it \u2014 the form, a click on a free hour in the calendar, and the
+         standing slot when it materialises next month's occurrences.
+
+         A read that fails does not block a booking. Not knowing whether an
+         hour is free is a much smaller problem than refusing to book
+         anything the moment the network hiccups. */
+      return fetchSessions().then(function(mine){
+        var clash = mine && clashIn(mine, opts.startsAt, opts.durationMin);
+        if (clash) {
+          var when = clash.startsAt.toLocaleTimeString(undefined,
+                       { hour:'numeric', minute:'2-digit' });
+          return { error: 'You already have a session at ' + when +
+                          (clash.partnerName ? ' with ' + clash.partnerName : '') +
+                          '. Pick another time.' };
+        }
+        return put(rows);
+      });
     }).catch(function(e){
       return fail(e, 'Could not send that time \u2014 check your connection and try again.');
     });
