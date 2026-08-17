@@ -348,29 +348,48 @@ window.pf = (function(){
     if (!client) return Promise.resolve(null);
     return currentUid().then(function(uid){
       if (!uid) return null;
-      /* The attendance columns arrive with migration-mvp.sql. Asking for them
-         on a database that hasn't run it yet fails the whole select, so the
-         request falls back to the original column list — an un-migrated
-         project keeps working and simply has no attendance to show. */
-      var FULL = 'id,partner_name,topic,starts_at,duration_min,room_url,pair_id,status,' +
-                 'proposed_by,note,goal,goal_done,cancelled_by,attended,completed_at,cancelled_at';
-      var BASE = 'id,partner_name,topic,starts_at,duration_min,room_url,status,' +
-                 'proposed_by,note,cancelled_by';
+      /* Newer columns arrive with later migrations, and asking for one the
+         database has not got fails the whole select — so this is a ladder,
+         widest first, stepping down one migration at a time.
+
+         It used to be two rungs, FULL and BASE. Adding room_name to FULL
+         would have meant a project that had run migration-mvp but not
+         migration-video falling all the way to BASE and losing goals,
+         attendance and the partnership with it. Each rung now costs exactly
+         the migration it is missing, and the app keeps working at every one.
+
+         The narrowest rung is what sessions looked like before any of this,
+         so there is always something that reads. */
+      var COLS = [
+        { need:'supabase/migration-video.sql',
+          cols:'id,partner_name,topic,starts_at,duration_min,room_url,room_name,pair_id,' +
+               'status,proposed_by,note,goal,goal_done,cancelled_by,attended,' +
+               'completed_at,cancelled_at' },
+        { need:'supabase/migration-room-per-session.sql',
+          cols:'id,partner_name,topic,starts_at,duration_min,room_url,pair_id,status,' +
+               'proposed_by,note,goal,goal_done,cancelled_by,attended,completed_at,cancelled_at' },
+        { need:'supabase/migration-mvp.sql',
+          cols:'id,partner_name,topic,starts_at,duration_min,room_url,status,' +
+               'proposed_by,note,cancelled_by' }
+      ];
       function read(cols){
         return client.from('sessions').select(cols)
           .eq('user_id', uid).order('starts_at', { ascending: true });
       }
-      return read(FULL).then(function(r){
-        if (r.error && (r.error.code === '42703' || r.error.code === 'PGRST204' ||
-                        /column .* does not exist/i.test(String(r.error.message || '')))) {
+      function missingCol(err){
+        return err && (err.code === '42703' || err.code === 'PGRST204' ||
+                       /column .* does not exist/i.test(String(err.message || '')));
+      }
+      function climb(i){
+        return read(COLS[i].cols).then(function(r){
+          if (!missingCol(r.error) || i + 1 >= COLS.length) return r;
           try {
-            console.warn('PeerFlow: session attendance columns are missing. ' +
-                         'Run supabase/migration-mvp.sql to enable attendance.');
+            console.warn('PeerFlow: sessions is missing a column. Run ' + COLS[i].need + '.');
           } catch(e){}
-          return read(BASE);
-        }
-        return r;
-      })
+          return climb(i + 1);
+        });
+      }
+      return climb(0)
         .then(function(r){
           if (r.error) return null;
           return (r.data || []).map(function(s){
@@ -381,6 +400,10 @@ window.pf = (function(){
               startsAt: new Date(s.starts_at),
               durationMin: s.duration_min || 50,
               roomUrl: s.room_url,
+              /* Null on every session booked before the call was ours, which
+                 is how finished() below tells "nobody joined" from "there was
+                 nothing here that could have noticed". */
+              roomName: s.room_name || null,
               /* Which partnership this session belongs to. On a database that
                  has not run migration-room-per-session.sql the column is not
                  selected at all, so it is read back out of the room instead:
@@ -779,16 +802,64 @@ window.pf = (function(){
   }
   var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-  /* A session that actually happened: checked out, or confirmed and over.
-     Counting bookings rather than attendance is a known compromise — nothing
-     in the app records attendance yet — and it is the same compromise the
-     attendance figure refuses to make, so the two do not contradict each
-     other: one counts what was agreed, the other stays silent. */
+  /* A session that actually happened.
+   *
+   * This used to count bookings: confirmed, and its time has passed. That was
+   * a compromise with a reason — nothing recorded attendance, so the only
+   * alternative was asking people whether they turned up, and a self-reported
+   * number is worse than none. Now the room reports it. LiveKit's webhook
+   * writes attended on join, and close_room marks the people who never
+   * arrived when the room ends, so there is something real to count.
+   *
+   * Three answers, and the third is the one that matters:
+   *
+   *   attended true    you were there. It counts, whatever the status says.
+   *   attended false   you were not. It does not count, and no amount of
+   *                    having booked it changes that.
+   *   attended null    nothing observed — and that splits in two.
+   *
+   * A null on a session with no room_name is from before any of this existed.
+   * We could not have seen it, and an absent verdict is not a verdict of
+   * absent, so it falls back to the old rule and counts as a booking.
+   *
+   * A null on a session that HAD a room is different: something was watching
+   * and saw nobody. The usual cause is that neither of you opened the page at
+   * all, so LiveKit never created the room and no room_finished ever fired to
+   * write the false. Counting that would let a streak live entirely on
+   * sessions nobody attended, which is the exact thing this change exists to
+   * stop. It is only read that way once the session is properly over — until
+   * then there is still time to turn up.
+   *
+   * The reliability score is unaffected either way: it reads the column
+   * itself, and stays blank until the room has written enough of them. */
   function finished(list, now){
-    return (list || []).filter(function(s){
+    list = list || [];
+
+    /* Whether the room has ever reported anything at all.
+     *
+     * This is the guard that stops the rule above being dangerous. Attendance
+     * arrives from one place — LiveKit's webhook — and there are ordinary
+     * ways for that to be silent: deployed without --no-verify-jwt, the
+     * webhook URL never added, the keys rotated on one side only. In every
+     * one of them attended stays null on every row forever, and "a room
+     * existed and saw nobody" would then be true of every session ever
+     * booked. Somebody's streak would go to zero overnight with nothing on
+     * screen to explain it.
+     *
+     * Silence from something that has never spoken is not evidence. Until at
+     * least one verdict exists somewhere in this person's history, the old
+     * booking rule stands unchanged. The first real join switches it on. */
+    var heard = list.some(function(s){
+      return s.attended === true || s.attended === false;
+    });
+
+    return list.filter(function(s){
+      if (s.attended === true) return true;
+      if (s.attended === false) return false;
       if (s.status === 'completed') return true;
-      return s.status === 'confirmed' &&
-             s.startsAt.getTime() + s.durationMin * 60000 <= now;
+      if (s.status !== 'confirmed') return false;
+      if (s.startsAt.getTime() + s.durationMin * 60000 > now) return false;
+      return !heard || !s.roomName;
     });
   }
 

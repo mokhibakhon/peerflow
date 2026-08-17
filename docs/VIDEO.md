@@ -156,13 +156,39 @@ mid-sentence — not so a session can be planned around them.
 
 ---
 
-## What this does not do yet
+## What the streak counts
 
-**The streak still counts bookings, not attendance.** `finished()` in
-`assets/db.js` counts a session if it was confirmed and its time has passed.
-Now that `attended` is real, that rule could tighten — but it would make some
-people's streaks fall, so it is a decision rather than a clean-up and it has
-not been made.
+Attendance, now that there is any. `finished()` in `assets/db.js` reads three
+answers:
+
+| `attended` | |
+|---|---|
+| `true` | you were there. It counts, whatever the status says. |
+| `false` | you were not. Having booked it changes nothing. |
+| `null` | nothing was observed — and that splits in two. |
+
+A null on a session with **no `room_name`** is from before the call was ours.
+Nothing could have watched it, and an absent verdict is not a verdict of
+absent, so it counts as a booking under the old rule.
+
+A null on a session that **had a room** is a session something was watching
+and saw nobody at. The usual cause is that neither of you opened the page, so
+LiveKit never created the room and no `room_finished` ever fired to write the
+`false`. It does not count.
+
+**One guard makes this safe.** If no session in your history has any verdict
+at all, the old booking rule stands unchanged. Attendance arrives from exactly
+one place, and there are ordinary ways for that place to be silent — deployed
+without `--no-verify-jwt`, the webhook URL never added, keys rotated on one
+side only. Without the guard, every one of those would read as "a room existed
+and saw nobody" and take somebody's streak to zero overnight with nothing on
+screen to explain it. Silence from something that has never spoken is not
+evidence. The first real join switches the stricter rule on.
+
+So if you set the room up and your streak does not move, the webhook is the
+thing to check — not the streak.
+
+## What this does not do yet
 
 **There is no waiting room and no moderation.** Two people who agreed to meet
 are the only two people who can be in the room, so there is nobody to admit
