@@ -702,12 +702,26 @@ begin
      and status in ('confirmed', 'completed');
   get diagnostics n = row_count;
 
-  -- A call that somebody sat through is over, and 'completed' is what every
-  -- reader already treats as a session that happened.
+  -- A call that somebody sat through is over — but only once the hour it was
+  -- booked for is actually over.
+  --
+  -- LiveKit ends a room the moment the last person leaves it, which is not
+  -- the same thing as the session ending. Somebody steps out to find a
+  -- charger, a connection drops, one of you joins early and leaves again
+  -- before the other arrives: the room finishes, and this used to move the
+  -- booking to 'completed' three minutes into a fifty-minute session. The
+  -- dashboard lists sessions by status, so the Join button vanished from a
+  -- call that was still open, and the only way back in was a link nobody
+  -- had.
+  --
+  -- Attendance above is recorded either way, because that part really was
+  -- observed. This is only the question of whether the booking is finished,
+  -- and the booking is finished when its own clock says so.
   update public.sessions
      set status = 'completed'
    where room_name = p_room
      and status = 'confirmed'
+     and starts_at + (duration_min || ' minutes')::interval <= now()
      and exists (
        select 1 from public.sessions a
         where a.room_name = p_room and a.attended is true

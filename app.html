@@ -1894,7 +1894,22 @@
           /* A proposal is not a session. It doesn't go on the calendar, it
              isn't "coming up", and it doesn't tick the checklist — until
              somebody accepts it, nothing has been agreed. */
-          var sessions = all.filter(function(s){ return s.status === 'confirmed'; });
+          /* Confirmed, and also anything the room has already called finished
+             whose booked hour is still running.
+
+             LiveKit ends a room when the last person leaves it, and the
+             webhook takes that as the session being over — so stepping out
+             for a moment three minutes into a fifty-minute booking moved the
+             row to 'completed', this filter dropped it, and the band stopped
+             offering the door to a call that was still perfectly open. The
+             room itself never stopped admitting them: session_for_call takes
+             'completed' as readily as 'confirmed'. Only the way in
+             disappeared. */
+          var sessions = all.filter(function(s){
+            if (s.status === 'confirmed') return true;
+            return s.status === 'completed' &&
+                   s.startsAt.getTime() + s.durationMin * 60000 > now;
+          });
           var pending = all.filter(function(s){
             return s.status === 'proposed' && s.startsAt.getTime() > now;
           });
