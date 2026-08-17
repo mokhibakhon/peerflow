@@ -17,6 +17,9 @@
      __standing    {minutes, agreed, mine} for a standing slot
      __sharedBy    shared hours by JS weekday, overriding the default
      __callRefuse  a reason string, to see call.html turn one down
+     __clash       a sentence, to see a booking refused because the hour has
+                   gone — what the database now says when two people reach the
+                   same minute at once, or when the partner is already busy
 
    Add a dial rather than editing a fixture in place: the fixtures are shared
    by every test, and quietly changing one moves the ground under the others. */
@@ -41,17 +44,17 @@ window.pf = (function(){
   var prop=new Date(); prop.setDate(prop.getDate()+3); prop.setHours(19,0,0,0);
   function past(d,st,att){var x=new Date();x.setDate(x.getDate()-d);x.setHours(19,0,0,0);
     return {id:'p'+d,partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:x,durationMin:50,
-      roomUrl:'https://meet.jit.si/PeerFlow-demo',status:st,proposedBy:'me',note:null,mine:true,
+      roomUrl:'pf:demo',status:st,proposedBy:'me',note:null,mine:true,
       cancelledByMe:false,confirmedAt:x,goal:'Read a packet capture',goalDone:true,attended:att,
       completedAt:x,cancelledAt:null};}
 
   var SESSIONS=[
     {id:'s1',partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:soon,durationMin:50,
-     roomUrl:'https://meet.jit.si/PeerFlow-demo',status:'confirmed',proposedBy:'them',note:null,
+     roomUrl:'pf:demo',status:'confirmed',proposedBy:'them',note:null,
      mine:false,cancelledByMe:false,confirmedAt:null,goal:'Wireshark TCP practice',goalDone:null,
      attended:null,completedAt:null,cancelledAt:null},
     {id:'s2',partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:prop,durationMin:50,
-     roomUrl:'https://meet.jit.si/PeerFlow-demo2',status:'proposed',proposedBy:'them',note:null,
+     roomUrl:'pf:demo2',status:'proposed',proposedBy:'them',note:null,
      mine:false,cancelledByMe:false,confirmedAt:null,goal:null,goalDone:null,attended:null,
      completedAt:null,cancelledAt:null},
     past(7,'completed',true), past(14,'completed',true), past(21,'completed',true),
@@ -65,7 +68,7 @@ window.pf = (function(){
     return {anchor:a,minutes:s.minutes||50,agreed:!!s.agreed,mine:!!s.mine};
   }
 
-  var PARTNER={requestId:'r1',roomUrl:'https://meet.jit.si/PeerFlow-demo',
+  var PARTNER={requestId:'r1',roomUrl:'pf:demo',
     get standing(){return standingOf();},
     profile:{id:'u2',name:'Amir Karimov',track_id:'cybersecurity',topic:'Cybersecurity',
       level:'tutorials',timezone:'Asia/Tashkent',availability:THEIR_AVAIL}};
@@ -145,9 +148,7 @@ window.pf = (function(){
       if(window.__sharedBy) by=window.__sharedBy;
       return {byDay:by,slots:[]};
     },
-    primaryPartner:function(){return P(PARTNER)},
     acceptedPartners:function(){return P(window.__partners||(window.__noPartner?[]:[PARTNER]))},
-    reliability:function(){return P({attended:3,noShow:1,early:1,late:0,counted:4,pct:75})},
     /* The real momentum() is unit-tested against real session rows in Node;
        here it is a dial so the ring can be seen in every state. */
     momentum:function(room){
@@ -166,19 +167,6 @@ window.pf = (function(){
       return P(d);
     },
     saveGoal:function(n){note('saveGoal:'+n);return P(window.__goalFail?{error:'nope'}:{saved:true})},
-    weekStart:function(d){var x=new Date(d);x.setHours(0,0,0,0);
-      x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime();},
-    partnerState:function(){return P({confirmed:true,attended:false,hasGoal:true})},
-    rankedMatches:function(){return P([
-      {id:'m1',name:'Amir Karimov',trackId:'cybersecurity',trackName:'Cybersecurity',topic:'SOC analyst',
-       level:'tutorials',timezone:'Asia/Tashkent',shared:['tue-evening','thu-evening','sun-evening'],
-       why:['Same path','Same stage','Same timezone','3 shared study windows'],score:95,match:95},
-      {id:'m2',name:'Dilnoza Rahimova',trackId:'cybersecurity',trackName:'Cybersecurity',topic:'Pentesting',
-       level:'tutorials',timezone:'Asia/Tashkent',shared:['thu-evening'],
-       why:['Same path','Same stage','1 shared study window'],score:75,match:75},
-      {id:'m3',name:'Bekzod Yusupov',trackId:'cybersecurity',trackName:'Cybersecurity',topic:'CTFs',
-       level:'new',timezone:'Europe/London',shared:[],why:['Same path','Close stage'],score:50,match:50}
-    ])},
     badgeStats:function(){ if(window.__badgeStats) return P(window.__badgeStats);
       return P({pastSessions:4,partners:1,mostWithOnePartner:4,totalMinutes:200,
       longestWeekStreak:4,profileComplete:true,joinRank:2})},
@@ -196,10 +184,9 @@ window.pf = (function(){
     resetPlan:function(){note('resetPlan');
       if(window.__planFail) return P({error:window.__planFail});
       window.__planWeeks=null; return P({saved:true})},
-    confirmAttendance:function(){return P({saved:true})},
-    setSessionGoal:function(){return P({saved:true})},
-    finishSession:function(){return P({saved:true})},
-    proposeSession:function(){note('propose');return P({saved:true})},
+    proposeSession:function(){note('propose');
+      if(window.__clash) return P({error:window.__clash});
+      return P({saved:true})},
 
     /* The room. __callRefuse is any reason session_for_call can give —
        'too-early', 'not-partners', 'no-room' and the rest are listed in
@@ -220,16 +207,13 @@ window.pf = (function(){
         startsAt:s.toISOString(),
         endsAt:new Date(s.getTime()+70*60000).toISOString()});
     },
-    acceptSession:function(){note('acceptSession');return P({saved:true})},
+    acceptSession:function(){note('acceptSession');
+      if(window.__clash) return P({error:window.__clash});
+      return P({saved:true})},
     declineSession:function(){note('declineSession');return P({saved:true})},
     cancelBooked:function(){note('cancelBooked');return P({saved:true})},
     cancelSession:function(){return P({saved:true})},
     sendPartnerRequest:function(){note('sendPartnerRequest');return P({sent:true})},
-    notifyPartner:function(){return P({sent:true})},
-    notifyRequest:function(){return P({sent:true})},
-    endPartnership:function(){return P({saved:true})},
-    /* Consistent with acceptedPartners(): u2 is an accepted partner, so the
-       request row that made them one has to exist. */
     myRequests:function(){return P({incoming:(window.__incoming||[]),outgoing:[
       {id:'r1',from_user:'u1',to_user:'u2',status:'accepted',created_at:'2026-06-02T00:00:00Z',
        other:PARTNER.profile}
@@ -251,12 +235,8 @@ window.pf = (function(){
       if(p>=80) return 'Reliable';
       if(p>=65) return 'Usually turns up';
       return 'Often misses'},
-    fetchNotifications:function(){return P([])},
-    markNotificationsRead:function(){return P({saved:true})},
     markRequestsSeen:function(){return P({saved:true})},
     signOut:function(){return P()},
-    sharedSlots:sharedSlots,slotLabel:slotLabel,slotHours:slotHours,nextDateFor:nextDateFor,
-    dayOrder:DAY_ORDER,dayLabel:DAY_LABEL,bandHours:BAND_HOURS,
     trackNames:{frontend:'Frontend',backend:'Backend',cybersecurity:'Cybersecurity',
       data:'Data & Analytics',mobile:'Mobile',devops:'DevOps & Cloud',aiml:'AI & ML',design:'UX/UI Design'}
   };

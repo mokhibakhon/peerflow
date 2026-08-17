@@ -47,8 +47,14 @@ cdn.jsdelivr.net              supabase-js v2
 fonts.googleapis.com          Plus Jakarta Sans
 fonts.gstatic.com             font files
 ooolpkdqrfhnmcmdqhau.supabase.co   auth + data
-meet.jit.si                   video rooms (link only, not embedded)
+cdn.jsdelivr.net              livekit-client (call.html only)
+*.livekit.cloud               the call itself, over WebRTC (call.html only)
 ```
+
+The browser no longer contacts `meet.jit.si` at all. The call used to be a
+link to a public Jitsi address opened in another tab; it is a LiveKit room
+inside `call.html` now, entered with a token minted by the `call-token` edge
+function.
 
 ### Stylesheets, by surface
 

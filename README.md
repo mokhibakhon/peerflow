@@ -125,6 +125,35 @@ commands — **[docs/VIDEO.md](docs/VIDEO.md)** has the six steps. Until they
 are done, pressing Join says *"Calls are not set up on this site yet"*
 rather than failing strangely.
 
+**Nobody can be in two places at once.** An exclusion constraint
+(`supabase/migration-no-double-booking.sql`) stops two agreed sessions
+overlapping on one person's calendar. That rule used to live only in the
+browser, in `clashIn`, which could not see the other person's bookings — RLS
+hides them — and lost the race between two devices booking the same minute.
+Proposals are deliberately left out of it: two partners may each offer you
+Tuesday at three and you pick one, so only *agreed* sessions exclude each
+other, and the second acceptance is what gets refused. The same migration
+stops the standing weekly slot booking on top of sessions you had already
+agreed to, which it had been doing quietly on every page load.
+
+`dev/sql-tests.sh` runs the whole schema against a throwaway PostgreSQL 16 and
+asserts on it; `PF_WITHOUT_FIX=1 dev/sql-tests.sh` re-runs it against the
+schema as it was before that migration, so the cases can be seen to fail.
+`node dev/livekit-tests.js` checks the hand-written JWTs in
+`supabase/functions/_shared/livekit.ts` against Node's own crypto — a token
+signed wrongly there surfaces as "could not join" on somebody's call, which is
+a long way from the cause.
+
+**Standing weekly sessions are joinable.** They were not, ever:
+`materialise_standing` gave every occurrence of a weekly slot the same
+`room_url` — one per partnership, still in the old `meet.jit.si` shape — and
+`session_for_call` only derives a missing room name when at most two rows
+share a url, since a room belongs to one booking. Four weeks is eight rows, so
+nothing was derived and Join answered *"no room"* every time. It now mints a
+room per occurrence and writes `room_name` and `pair_id` at insert, like every
+other booking (`supabase/migration-no-jitsi.sql`, which also converts the
+existing rows). Nothing in PeerFlow touches Jitsi any more.
+
 Which partnership a session belongs to is `sessions.pair_id`
 (`supabase/migration-room-per-session.sql`), so streaks and per-partner
 history read a column instead of reading the room. Run that migration
