@@ -44,17 +44,17 @@ window.pf = (function(){
   var prop=new Date(); prop.setDate(prop.getDate()+3); prop.setHours(19,0,0,0);
   function past(d,st,att){var x=new Date();x.setDate(x.getDate()-d);x.setHours(19,0,0,0);
     return {id:'p'+d,partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:x,durationMin:50,
-      roomUrl:'https://meet.jit.si/PeerFlow-demo',status:st,proposedBy:'me',note:null,mine:true,
+      roomUrl:'pf:demo',status:st,proposedBy:'me',note:null,mine:true,
       cancelledByMe:false,confirmedAt:x,goal:'Read a packet capture',goalDone:true,attended:att,
       completedAt:x,cancelledAt:null};}
 
   var SESSIONS=[
     {id:'s1',partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:soon,durationMin:50,
-     roomUrl:'https://meet.jit.si/PeerFlow-demo',status:'confirmed',proposedBy:'them',note:null,
+     roomUrl:'pf:demo',status:'confirmed',proposedBy:'them',note:null,
      mine:false,cancelledByMe:false,confirmedAt:null,goal:'Wireshark TCP practice',goalDone:null,
      attended:null,completedAt:null,cancelledAt:null},
     {id:'s2',partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:prop,durationMin:50,
-     roomUrl:'https://meet.jit.si/PeerFlow-demo2',status:'proposed',proposedBy:'them',note:null,
+     roomUrl:'pf:demo2',status:'proposed',proposedBy:'them',note:null,
      mine:false,cancelledByMe:false,confirmedAt:null,goal:null,goalDone:null,attended:null,
      completedAt:null,cancelledAt:null},
     past(7,'completed',true), past(14,'completed',true), past(21,'completed',true),
@@ -68,7 +68,7 @@ window.pf = (function(){
     return {anchor:a,minutes:s.minutes||50,agreed:!!s.agreed,mine:!!s.mine};
   }
 
-  var PARTNER={requestId:'r1',roomUrl:'https://meet.jit.si/PeerFlow-demo',
+  var PARTNER={requestId:'r1',roomUrl:'pf:demo',
     get standing(){return standingOf();},
     profile:{id:'u2',name:'Amir Karimov',track_id:'cybersecurity',topic:'Cybersecurity',
       level:'tutorials',timezone:'Asia/Tashkent',availability:THEIR_AVAIL}};

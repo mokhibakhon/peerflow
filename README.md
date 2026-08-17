@@ -144,6 +144,16 @@ schema as it was before that migration, so the cases can be seen to fail.
 signed wrongly there surfaces as "could not join" on somebody's call, which is
 a long way from the cause.
 
+**Standing weekly sessions are joinable.** They were not, ever:
+`materialise_standing` gave every occurrence of a weekly slot the same
+`room_url` — one per partnership, still in the old `meet.jit.si` shape — and
+`session_for_call` only derives a missing room name when at most two rows
+share a url, since a room belongs to one booking. Four weeks is eight rows, so
+nothing was derived and Join answered *"no room"* every time. It now mints a
+room per occurrence and writes `room_name` and `pair_id` at insert, like every
+other booking (`supabase/migration-no-jitsi.sql`, which also converts the
+existing rows). Nothing in PeerFlow touches Jitsi any more.
+
 Which partnership a session belongs to is `sessions.pair_id`
 (`supabase/migration-room-per-session.sql`), so streaks and per-partner
 history read a column instead of reading the room. Run that migration

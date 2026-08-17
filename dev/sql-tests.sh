@@ -319,6 +319,60 @@ check "a week where one of you is busy is skipped whole, not half" ok "
   end \$\$;"
 
 echo
+echo "==> the standing slot books a room you can actually join"
+# Standing occurrences used to share one room_url for the whole partnership,
+# derived from the partner request id. session_for_call only derives a missing
+# room_name when at most two rows share the url — a room belongs to one
+# booking — so from the very first four-week fill onwards nothing could be
+# derived, room_name stayed null, and Join answered 'no-room' for every
+# occurrence. These four assert the shape that fixes it.
+STANDING="
+  update public.partner_requests
+     set standing_anchor = date_trunc('hour', now()) + interval '2 days',
+         standing_minutes = 50, standing_by = '$A', standing_ok_at = now()
+   where from_user='$A';
+  $AS_A
+  select public.materialise_standing(id, 4) from public.partner_requests where from_user='$A';
+  reset role;"
+
+check "every occurrence gets a room of its own" ok "$STANDING
+  do \$\$ declare bad int; begin
+    select count(*) into bad from (
+      select room_url from public.sessions group by room_url having count(*) > 2) x;
+    if bad > 0 then raise exception '% room url(s) shared by more than one booking', bad; end if;
+  end \$\$;"
+
+check "every occurrence gets a room name, so Join does not say no-room" ok "$STANDING
+  do \$\$ declare bad int; begin
+    select count(*) into bad from public.sessions where room_name is null;
+    if bad > 0 then raise exception '% standing row(s) have no room_name', bad; end if;
+  end \$\$;"
+
+check "every occurrence records which partnership it belongs to" ok "$STANDING
+  do \$\$ declare bad int; begin
+    select count(*) into bad from public.sessions where pair_id is null;
+    if bad > 0 then raise exception '% standing row(s) have no pair_id', bad; end if;
+  end \$\$;"
+
+check "no booking is written with a jitsi address" ok "$STANDING
+  do \$\$ declare bad int; begin
+    select count(*) into bad from public.sessions where room_url like '%jit.si%';
+    if bad > 0 then raise exception '% row(s) still carry a jitsi url', bad; end if;
+  end \$\$;"
+
+# Calling it twice must not book the same weeks again. This is the case that
+# breaks if the room scheme changes without the lookup changing with it: the
+# old code found an existing week by its partnership-wide url, and a
+# per-occurrence url cannot be recomputed, so the match is by pair_id now.
+check "a second call books nothing, having recognised the weeks already there" ok "$STANDING
+  $AS_A
+  do \$\$ declare again int; begin
+    select public.materialise_standing(id, 4) into again
+      from public.partner_requests where from_user='$A';
+    if again <> 0 then raise exception 'booked % more occurrence(s) on the second call', again; end if;
+  end \$\$;"
+
+echo
 echo "==================================================="
 printf 'passed %d, failed %d\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1

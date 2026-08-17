@@ -405,9 +405,10 @@ config).
   `pf_name`, `pf_email`, `pf_track`, `pf_topic`, `pf_pending` when the user id
   changes, so account switching cannot leak the previous person's data.
 - `acceptedPartners()` does not query directly — it derives from
-  `myRequests()` and synthesises `roomUrl` as
-  `https://meet.jit.si/PeerFlow-<requestId>`. **The room URL is not stored
-  anywhere**; it is computed from the request id every time.
+  `myRequests()`. It used to synthesise a `roomUrl` per partnership, which is
+  precisely what made a room a standing key to the partnership rather than to
+  the booking; it returns `requestId` and no room at all now, and a room is
+  minted when a session is booked.
 
 **Which functions should eventually be separated** (not refactored now):
 `auth.js` (7 functions), `profile.js` (2), `people.js` (4),
@@ -642,7 +643,7 @@ app-sessions.html  (Partner page, load)
             └─ SELECT profiles for the other side (name, topic, level,
                timezone, availability)
        └─ filter status === 'accepted'
-       └─ map → { requestId, profile, roomUrl: 'https://meet.jit.si/PeerFlow-'+id }
+       └─ map → { requestId, profile, standing }   (no room: one is minted per booking)
   └─ renderPartners(): a card per partner with facts built only from data
      actually present — Free together (overlap of availability), Stage, Timezone
 
