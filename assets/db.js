@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-17h';
+window.PF_BUILD = '2026-08-17i';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -341,40 +341,6 @@ window.pf = (function(){
     }).catch(function(e){
       return fail(e, 'Could not save your profile \u2014 check your connection and try again.');
     });
-  }
-
-  /* ---------- waitlist ---------- */
-
-  /* Someone left their email on the home page. Writes one row to the waitlist
-     table. Returns { saved:true } only when the write really happened, so the
-     UI never tells anyone they're on the list when they aren't. */
-  function joinWaitlist(email, interest){
-    if (!client) return Promise.resolve({ demo: true });
-    return client.from('waitlist').insert({
-      email: email,
-      interest: interest || null
-    }).then(function(r){
-      if (r.error) return fail(r.error, 'Could not add you to the list. Please try again.');
-      return { saved: true };
-    }).catch(function(e){
-      return fail(e, 'Could not add you to the list \u2014 check your connection and try again.');
-    });
-  }
-
-  /* ---------- match (set by hand for now) ---------- */
-
-  /* The signed-in user's partner, or null if not matched yet. A row is created
-     by hand in Supabase when two people are paired: each person gets one row
-     pointing at the other, and both rows share the same room_url. */
-  function getMatch(){
-    if (!client) return Promise.resolve(null);
-    return currentUid().then(function(uid){
-      if (!uid) return null;
-      return client.from('matches')
-        .select('partner_name,partner_topic,partner_times,room_url')
-        .eq('user_id', uid).maybeSingle()
-        .then(function(r){ return r.data || null; });
-    }).catch(function(){ return null; });
   }
 
   /* ---------- scheduled sessions ---------- */
@@ -1622,51 +1588,6 @@ window.pf = (function(){
      announced once rather than on every page load.
      ================================================================ */
 
-  /* Plain counts, not an opaque score. Early cancellations are recorded but
-     deliberately weigh far less than a no-show. */
-  var LATE_MS = 2 * 60 * 60 * 1000;
-
-  function reliability(){
-    return fetchSessions().then(function(list){
-      if (!list) return null;
-      var now = Date.now();
-      var out = { attended: 0, noShow: 0, early: 0, late: 0, counted: 0, pct: null };
-
-      /* An absent verdict is not a verdict of absent.
-
-         Nothing in the app records attendance: check-out went with the MVP
-         rebuild that was reverted, so `attended` is null on every row anybody
-         can currently create. Treating null as a no-show accused everyone of
-         missing every session they had ever booked — three sessions actually
-         sat through read as "0 of 3 attended", at 0%.
-
-         A session counts only once somebody has actually said yes or no,
-         which means the figure reads as a dash until check-out exists and
-         starts working on its own the day it does. */
-      function verdict(s){
-        if (s.attended === true)       { out.counted++; out.attended++; }
-        else if (s.attended === false) { out.counted++; out.noShow++; }
-      }
-
-      list.forEach(function(s){
-        var ended = s.startsAt.getTime() + s.durationMin * 60000;
-        if (s.status === 'completed') { verdict(s); return; }
-        if (s.status === 'cancelled') {
-          /* Cancelling is the one thing the app does record, so this half of
-             the picture is real either way. */
-          var when = s.cancelledAt ? s.cancelledAt.getTime() : null;
-          var late = when !== null && (s.startsAt.getTime() - when) < LATE_MS;
-          if (late) { out.late++; out.counted++; } else out.early++;
-          return;
-        }
-        if (s.status === 'confirmed' && ended <= now) verdict(s);
-      });
-
-      if (out.counted > 0) out.pct = Math.round((out.attended / out.counted) * 100);
-      return out;
-    }).catch(function(){ return null; });
-  }
-
   /* How often somebody turns up, for people who are not you.
 
      Their session rows are not readable — RLS stops there, and should: a
@@ -1841,8 +1762,6 @@ window.pf = (function(){
     changePassword: changePassword,
     sendPasswordReset: sendPasswordReset,
     saveProfile: saveProfile,
-    joinWaitlist: joinWaitlist,
-    getMatch: getMatch,
     fetchSessions: fetchSessions,
     /* Console check when something has moved on one side and not the other:
        pf.check().then(console.log) says which build is loaded and whether the
@@ -1870,7 +1789,6 @@ window.pf = (function(){
     acceptedPartners: acceptedPartners,
 
     /* Momentum */
-    weekStart: weekStart,
     momentum: momentum,
     saveGoal: saveGoal,
 
@@ -1897,7 +1815,6 @@ window.pf = (function(){
     trackNames: trackNames,
 
     /* Progress page */
-    reliability: reliability,
     reliabilityOf: reliabilityOf,
     reliabilityLabel: reliabilityLabel,
     saveStage: saveStage,

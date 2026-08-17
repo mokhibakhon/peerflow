@@ -49,7 +49,6 @@
 
   /* The one hue outside the green ramp: other people, wherever an
      avatar needs a colour that isn't yours. */
-  --indigo:#534AB7;
 
   /* ---------- state ----------
      Amber for "someone is waiting on you", red for "that didn't
@@ -70,7 +69,6 @@
      section heading and a card title a pixel and a half apart. The
      h2 ceiling went up rather than the card titles coming down,
      because the cards are what people actually read. */
-  --t-h1:clamp(34px,4.6vw,55px);
   --t-h2:clamp(28px,3.2vw,36px);
   --t-h3:19px;
   --t-lede:18.5px;
@@ -106,5 +104,4 @@
 
   /* ---------- lift ----------
      The hover shadow every card and button shares. */
-  --lift:0 10px 24px rgba(23,26,46,.09);
 }

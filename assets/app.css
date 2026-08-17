@@ -21,7 +21,7 @@
   /* Kept because the styles for usermenu.js and notify.js were written
      against these names, and neither component needs disturbing. */
   --border:var(--line); --muted:var(--faint); --text:var(--soft);
-  --green:var(--p4); --green-dark:var(--p6); --green-deep:var(--p8); --green-tint:var(--p0);
+  --green-dark:var(--p6); --green-tint:var(--p0);
 }
 
 *{box-sizing:border-box}
@@ -280,8 +280,6 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 
 /* ---------- hero (marketing-shaped cards elsewhere) ---------- */
 .pair{display:flex;align-items:center;margin-bottom:16px}
-.ava{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:15px;font-weight:600;border:3px solid var(--card);position:relative;flex:0 0 auto}
 .a1{background:#EEEDFE;color:#3C3489}
 .a2{background:var(--p0);color:var(--p6);margin-left:-14px}
 .a2.pending{background:#F1F1F5;color:var(--faint);border-style:dashed;border-color:#D6D5DE}
@@ -290,7 +288,6 @@ h1{font-size:29px;line-height:1.18;letter-spacing:-.025em;font-weight:800;margin
 h1 .g{color:var(--p4)}
 .sub{font-size:15.5px;color:var(--soft);margin:0 0 20px;max-width:46ch}
 .acts{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.agenda{margin:15px 0 0;font-size:13.5px;color:var(--faint);max-width:48ch}
 .change{background:none;border:0;font-size:13px;color:var(--faint);text-decoration:underline;padding:0}
 
 /* ---------- buttons ---------- */
@@ -379,7 +376,6 @@ h1 .g{color:var(--p4)}
 .bh .mono{display:block;margin-bottom:1px}
 .n{font-size:14px;color:var(--soft);margin:0;max-width:60ch}
 .n b{color:var(--ink);font-weight:600}
-.row-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 
 /* ---------- person rows ---------- */
 /* wrap so the ask box can take a full line of its own instead of
@@ -401,8 +397,6 @@ h1 .g{color:var(--p4)}
 .nextup{display:flex;align-items:center;gap:12px;border-top:1px dashed var(--line);
   margin-top:14px;padding-top:14px;flex-wrap:wrap}
 .nextup .no{font-family:var(--mono);font-size:11px;color:var(--faint)}
-.nextup .nt{flex:1;font-size:15px;min-width:150px}
-.nextup .nt small{display:block;font-size:13px;color:var(--faint)}
 .slot{display:flex;align-items:center;gap:14px;padding:12px 0;
   border-top:1px dashed var(--line);flex-wrap:wrap}
 .slot:first-child{border-top:0}
@@ -425,7 +419,6 @@ h1 .g{color:var(--p4)}
 .goalrow .gr-g{display:block;font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.4}
 .gr-a{display:flex;gap:8px;flex:0 0 auto}
 
-
 /* ---------- session calendar ---------- */
 .calhead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
   flex-wrap:wrap;margin-bottom:16px}
@@ -433,8 +426,6 @@ h1 .g{color:var(--p4)}
 .months{display:grid;grid-template-columns:repeat(52,1fr);margin-left:26px;height:15px}
 .months span{font-family:var(--mono);font-size:9.5px;color:var(--faint);grid-row:1}
 .cal{display:flex;gap:5px;align-items:flex-start}
-.dlabels{display:grid;grid-template-rows:repeat(7,11px);gap:3px;width:21px}
-.dlabels span{font-family:var(--mono);font-size:8.5px;color:var(--faint);line-height:11px}
 .cells{flex:1;display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;
   grid-template-columns:repeat(52,minmax(0,1fr));gap:3px}
 .cells i{border-radius:var(--r-mark);background:#EAE9EF;display:block}
@@ -443,8 +434,6 @@ h1 .g{color:var(--p4)}
    one session is the unit, so shading by minutes said nothing and needed a
    legend to explain itself. */
 .cells i.on{background:var(--p4)}
-.calfoot{display:flex;align-items:center;justify-content:space-between;gap:14px;
-  flex-wrap:wrap;margin-top:14px}
 .logs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 26px;
   border-top:1px dashed var(--line);margin-top:18px;padding-top:4px}
 .logs .l{display:flex;align-items:baseline;gap:12px;padding:10px 0;
@@ -456,8 +445,6 @@ h1 .g{color:var(--p4)}
 /* ---------- invite ---------- */
 .inv{border:1px dashed var(--line);background:#FAFAFB}
 .inv .row{display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
-.inv p{margin:0;font-size:14.5px;color:var(--soft);max-width:60ch}
-.inv b{color:var(--ink);font-weight:600}
 
 .signedout{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:var(--r-card);
   padding:16px 18px;font-size:14.5px;color:#7A4A12;margin-bottom:16px}
@@ -476,8 +463,6 @@ h1 .g{color:var(--p4)}
 /* Date, time and length belong on one line — they're one answer. */
 
 .yourline{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap}
-.yourline input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:var(--r-control);
-  padding:11px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
 .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px}
 .choice{display:flex;padding:13px 15px;border:1px solid var(--line);border-radius:var(--r-control);
   background:#fff;text-align:left;font-family:inherit;font-size:14.5px;color:var(--soft)}
@@ -707,7 +692,6 @@ html{scroll-behavior:smooth}
    unchanged inside this shell.
    ============================================================ */
 
-
 /* ============ account menu ============ */
 .um-wrap{position:relative;display:flex;align-items:center}
 .um-btn{border:2px solid transparent;cursor:pointer;font-family:inherit;padding:0;
@@ -764,7 +748,6 @@ html{scroll-behavior:smooth}
   .bell-panel{right:-70px;width:300px}
 }
 
-
 /* ============================================================
    Compatibility shims for the four pages that kept their existing
    markup (partner, people, profile, settings). These map the older
@@ -787,10 +770,6 @@ html{scroll-behavior:smooth}
 .card h3{font-size:15.5px;font-weight:600;letter-spacing:-.01em;margin:0 0 8px}
 .card p{font-size:14.5px;color:var(--soft);margin:0 0 4px}
 .card .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.list-h{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.07em;
-  color:var(--faint);font-weight:400;margin:26px 0 10px}
-.board{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:4px 22px}
-.board:empty{display:none}
 /* No .btn.primary / .btn.ghost rules here on purpose. These sat further
    down the file than the button block and quietly flattened it back to a
    plain fill on every page using class="btn primary". `.primary` needs no
@@ -800,10 +779,8 @@ html{scroll-behavior:smooth}
 .signedout-note{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:var(--r-card);
   padding:16px 18px;font-size:14.5px;color:#7A4A12;margin:0 0 16px}
 .signedout-note a{border-bottom:1px solid #D9B98B;font-weight:600}
-.form-note{font-size:13.5px;margin:10px 0 0}
 .form-note.ok{color:var(--p8)}
 .form-note.bad{color:#B4471F}
-.seats{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:14px 16px}
 .stat b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em}
 .stat span{display:block;font-family:var(--mono);font-size:10px;color:var(--faint);
@@ -885,9 +862,6 @@ html{scroll-behavior:smooth}
 .ph-t{font-family:var(--mono);font-size:12.5px;color:var(--soft)}
 .ph-l{margin-left:auto;font-size:12.5px;color:var(--faint)}
 .ph-more{font-size:13px;color:var(--faint);margin:13px 0 0}
-
-.lnk{color:var(--p6);font-weight:600}
-.lnk:hover{text-decoration:underline}
 
 @media (max-width:900px){
   .app-grid{grid-template-columns:1fr}
@@ -1502,13 +1476,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 
 /* ---------- the plan ---------- */
 .plan-rows{margin-top:4px}
-.plan-row{display:flex;align-items:center;gap:13px;padding:10px 0;
-  border-bottom:1px solid #F1F0F5}
-.plan-row:last-child{border-bottom:0}
-.plan-n{width:54px;flex:0 0 auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--faint);line-height:1.25}
 .plan-row.done .plan-n{color:var(--p4)}
-.plan-t{flex:1;min-width:0;font-size:14.5px}
 .plan-row.done .plan-t{color:var(--faint);text-decoration:line-through}
 /* The week you are on is lifted out of the list, not just bolded — it is the
    one row you should find without reading the others. */
@@ -1519,13 +1487,8 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 /* Where the material comes from. This column is the whole idea: PeerFlow
    holds the order, somebody else holds the lesson. */
 .plan-src{font-size:12px;color:var(--p6);font-weight:600;flex:0 0 auto}
-.plan-foot{margin:14px 0 0;padding-top:13px;border-top:1px solid var(--line);
-  font-size:12.5px;color:var(--soft)}
 
 @media (max-width:560px){
-  .plan-src{display:none}
-  .plan-n{width:46px}
-  .plan-t{font-size:14px}
   .cal-range{font-size:13.5px}
 }
 
@@ -1872,7 +1835,6 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 /* The thing you are usually messaging about. */
 .ch-next{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--p0);
   border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--p8)}
-.ch-next i{width:6px;height:6px;border-radius:50%;background:var(--p4);flex:0 0 auto}
 
 /* Plain ground. The bubbles carry the colour, so anything behind them fights
    them — and a tail is drawn by masking it against a known solid, which a

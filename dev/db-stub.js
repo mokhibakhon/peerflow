@@ -148,9 +148,7 @@ window.pf = (function(){
       if(window.__sharedBy) by=window.__sharedBy;
       return {byDay:by,slots:[]};
     },
-    primaryPartner:function(){return P(PARTNER)},
     acceptedPartners:function(){return P(window.__partners||(window.__noPartner?[]:[PARTNER]))},
-    reliability:function(){return P({attended:3,noShow:1,early:1,late:0,counted:4,pct:75})},
     /* The real momentum() is unit-tested against real session rows in Node;
        here it is a dial so the ring can be seen in every state. */
     momentum:function(room){
@@ -169,19 +167,6 @@ window.pf = (function(){
       return P(d);
     },
     saveGoal:function(n){note('saveGoal:'+n);return P(window.__goalFail?{error:'nope'}:{saved:true})},
-    weekStart:function(d){var x=new Date(d);x.setHours(0,0,0,0);
-      x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime();},
-    partnerState:function(){return P({confirmed:true,attended:false,hasGoal:true})},
-    rankedMatches:function(){return P([
-      {id:'m1',name:'Amir Karimov',trackId:'cybersecurity',trackName:'Cybersecurity',topic:'SOC analyst',
-       level:'tutorials',timezone:'Asia/Tashkent',shared:['tue-evening','thu-evening','sun-evening'],
-       why:['Same path','Same stage','Same timezone','3 shared study windows'],score:95,match:95},
-      {id:'m2',name:'Dilnoza Rahimova',trackId:'cybersecurity',trackName:'Cybersecurity',topic:'Pentesting',
-       level:'tutorials',timezone:'Asia/Tashkent',shared:['thu-evening'],
-       why:['Same path','Same stage','1 shared study window'],score:75,match:75},
-      {id:'m3',name:'Bekzod Yusupov',trackId:'cybersecurity',trackName:'Cybersecurity',topic:'CTFs',
-       level:'new',timezone:'Europe/London',shared:[],why:['Same path','Close stage'],score:50,match:50}
-    ])},
     badgeStats:function(){ if(window.__badgeStats) return P(window.__badgeStats);
       return P({pastSessions:4,partners:1,mostWithOnePartner:4,totalMinutes:200,
       longestWeekStreak:4,profileComplete:true,joinRank:2})},
@@ -199,13 +184,6 @@ window.pf = (function(){
     resetPlan:function(){note('resetPlan');
       if(window.__planFail) return P({error:window.__planFail});
       window.__planWeeks=null; return P({saved:true})},
-    confirmAttendance:function(){return P({saved:true})},
-    setSessionGoal:function(){return P({saved:true})},
-    finishSession:function(){return P({saved:true})},
-    /* __clash stands in for the exclusion constraint refusing the write. The
-       real one can fire even when the browser's own calendar looked clear,
-       because RLS hides the partner's other bookings from it, so the page has
-       to be able to show this without the form having spotted anything. */
     proposeSession:function(){note('propose');
       if(window.__clash) return P({error:window.__clash});
       return P({saved:true})},
@@ -236,11 +214,6 @@ window.pf = (function(){
     cancelBooked:function(){note('cancelBooked');return P({saved:true})},
     cancelSession:function(){return P({saved:true})},
     sendPartnerRequest:function(){note('sendPartnerRequest');return P({sent:true})},
-    notifyPartner:function(){return P({sent:true})},
-    notifyRequest:function(){return P({sent:true})},
-    endPartnership:function(){return P({saved:true})},
-    /* Consistent with acceptedPartners(): u2 is an accepted partner, so the
-       request row that made them one has to exist. */
     myRequests:function(){return P({incoming:(window.__incoming||[]),outgoing:[
       {id:'r1',from_user:'u1',to_user:'u2',status:'accepted',created_at:'2026-06-02T00:00:00Z',
        other:PARTNER.profile}
@@ -262,12 +235,8 @@ window.pf = (function(){
       if(p>=80) return 'Reliable';
       if(p>=65) return 'Usually turns up';
       return 'Often misses'},
-    fetchNotifications:function(){return P([])},
-    markNotificationsRead:function(){return P({saved:true})},
     markRequestsSeen:function(){return P({saved:true})},
     signOut:function(){return P()},
-    sharedSlots:sharedSlots,slotLabel:slotLabel,slotHours:slotHours,nextDateFor:nextDateFor,
-    dayOrder:DAY_ORDER,dayLabel:DAY_LABEL,bandHours:BAND_HOURS,
     trackNames:{frontend:'Frontend',backend:'Backend',cybersecurity:'Cybersecurity',
       data:'Data & Analytics',mobile:'Mobile',devops:'DevOps & Cloud',aiml:'AI & ML',design:'UX/UI Design'}
   };
