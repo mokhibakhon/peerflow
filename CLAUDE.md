@@ -83,6 +83,12 @@ congratulating the user.
   believing a policy test. The auth stub reads `request.jwt.claim.sub`.
 - **CSS source order decides ties.** A media-query override at equal
   specificity must come *after* the rule it overrides, not earlier in the file.
+- **Nothing in `assets/` is content-hashed**, so a browser can hold an old
+  `db.js` against a fresh `app.html` and behave like neither build. `vercel.json`
+  sends `must-revalidate` on everything to stop it. `window.PF_BUILD` in
+  `db.js` is logged on every load — **bump it when you change anything in
+  `assets/`**, and ask for it before believing a bug report about behaviour you
+  have already fixed.
 
 ## Migrations
 
