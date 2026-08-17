@@ -104,17 +104,33 @@ There is no automatic matching engine, and no hand-editing of tables.
    other accepts; they can also decline or suggest another time. Either side
    can cancel a booked session, and the other is told.
 
-Video calls are Jitsi rooms, **one per booked session**, and the link opens
-15 minutes before the session starts. The room used to be one per
-partnership — the same address for every session the two of you ever booked
-— which made the URL a standing key: block someone and they still held a
-working way into every future call. Which partnership a session belongs to
-is `sessions.pair_id` now (`supabase/migration-room-per-session.sql`), so
-streaks and per-partner history read a column instead of reading the room.
+**The call happens in PeerFlow.** `call.html` is a LiveKit room, one per
+booked session, that opens 15 minutes before the start and closes 20 minutes
+after the end. Nobody gets in without a signed token, and the only thing that
+mints one is the `call-token` edge function — which asks
+`session_for_call()` in the database whether the person in front of it is
+allowed in: your own booking, both of you agreed to it, it is time, the room
+exists, and you are still partners. The browser never says which room it
+wants; the room comes out of the booking.
 
-Run that migration alongside the others; without it the app still works —
-the insert drops the column and the partnership is read back out of the
-older room names — but new rooms are unindexed and the backfill hasn't run.
+That replaced a link to a public Jitsi address opened in another tab, which
+anybody holding the URL could walk into and which PeerFlow could see nothing
+about — not who joined, not when, not for how long. LiveKit's webhook now
+fills `sessions.attended`, `joined_at` and `left_at`, so attendance is
+observed rather than asked about, and `reliability_of()` finally has
+something to score.
+
+Setting it up takes a LiveKit project and two `supabase functions deploy`
+commands — **[docs/VIDEO.md](docs/VIDEO.md)** has the six steps. Until they
+are done, pressing Join says *"Calls are not set up on this site yet"*
+rather than failing strangely.
+
+Which partnership a session belongs to is `sessions.pair_id`
+(`supabase/migration-room-per-session.sql`), so streaks and per-partner
+history read a column instead of reading the room. Run that migration
+alongside the others; without it the app still works — the insert drops the
+column and the partnership is read back out of the older room names — but
+new rooms are unindexed and the backfill hasn't run.
 
 ## Status
 

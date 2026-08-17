@@ -88,6 +88,31 @@ be wide enough to rewrite what somebody said.
 Without it, the Chat tab says messaging isn't switched on and every other page
 is unaffected.
 
+---
+
+## Database migration — required for the call
+
+`supabase/migration-video.sql` adds `sessions.room_name` and
+`sessions.left_at`, and the three functions behind the room:
+`session_for_call` (who may join, and why not), `record_presence` (the
+webhook writing attendance) and `close_room`.
+
+1. Supabase → **SQL Editor** → paste the whole of `supabase/migration-video.sql`
+2. **Run**
+
+Additive and safe to run more than once. Run it after `migration-mvp.sql`,
+`migration-reliability.sql` and `migration-room-per-session.sql`.
+
+**The migration on its own is not enough** — the room also needs a LiveKit
+project and two edge functions deployed. That is four more steps, and they
+are written out in **[docs/VIDEO.md](docs/VIDEO.md)**.
+
+Until all of it is done, pressing **Join** says *"Calls are not set up on
+this site yet"*. Nothing else on any page is affected.
+
+Verified against PostgreSQL 16: applies cleanly twice on a fresh database,
+and the 27 checks covering every refusal pass.
+
 ## 1. GitHub repository (2 min) — the prerequisite for everything
 
 1. Go to **github.com/new**

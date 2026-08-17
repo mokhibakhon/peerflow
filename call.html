@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your session — PeerFlow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2281%22%20width%3D%2215%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%22158%22%20y%3D%2281%22%20width%3D%2214%22%20height%3D%2213%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%22156%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3Cpath%20d%3D%22M52%2024H116V39H99V56H83V70H67V39H52Z%22%2F%3E%3Cpath%20d%3D%22M24%2057H39V74H56V89H70V106H39V121H24Z%22%2F%3E%3Cpath%20d%3D%22M134%2053H149V118H134V101H117V85H103V69H134Z%22%2F%3E%3Cpath%20d%3D%22M119%20147H55V132H72V115H88V101H104V132H119Z%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/app.css">
+<link rel="stylesheet" href="assets/call.css">
+<script src="assets/authgate.js"></script>
+</head>
+<body class="callpage">
+
+<main class="room">
+
+  <!-- ONE. Asking whether you may be here. Deliberately quiet: this is
+       normally over in a few hundred milliseconds and a spinner that arrives
+       instantly reads as a problem. -->
+  <section class="rm-mid" id="st-load">
+    <p class="rm-load">Opening the room…</p>
+  </section>
+
+  <!-- TWO. No — and every refusal is a sentence with something to press.
+       The reasons come from session_for_call() in the database; the wording
+       is written in call.js, because how you say "you're early" depends on
+       how early. -->
+  <section class="rm-mid" id="st-no" hidden>
+    <div class="rm-card">
+      <p class="rm-k" id="no-k"></p>
+      <h1 id="no-h"></h1>
+      <p class="rm-s" id="no-s"></p>
+      <div class="rm-acts" id="no-a"></div>
+    </div>
+  </section>
+
+  <!-- THREE. The lobby. Nobody joins a call without seeing their own face
+       first — this is where you find out the camera is pointing at the
+       ceiling, not thirty seconds into a session with somebody waiting. -->
+  <section class="rm-lobby" id="st-lobby" hidden>
+    <div class="lb-prev">
+      <video id="lb-v" autoplay playsinline muted></video>
+      <p class="lb-off" id="lb-off" hidden>Camera off</p>
+      <div class="lb-meter" id="lb-meter" aria-hidden="true"><i id="lb-level"></i></div>
+    </div>
+
+    <div class="lb-side">
+      <p class="rm-k">Ready when you are</p>
+      <h1 id="lb-h">Your session</h1>
+      <p class="rm-s" id="lb-s"></p>
+      <p class="lb-goal" id="lb-goal" hidden></p>
+
+      <div class="lb-toggles">
+        <button class="lb-t on" type="button" id="lb-mic" aria-pressed="true">
+          <span class="lb-ic" id="lb-mic-ic"></span><span id="lb-mic-l">Mic on</span>
+        </button>
+        <button class="lb-t on" type="button" id="lb-cam" aria-pressed="true">
+          <span class="lb-ic" id="lb-cam-ic"></span><span id="lb-cam-l">Camera on</span>
+        </button>
+      </div>
+
+      <div class="lb-dev" id="lb-dev" hidden>
+        <label class="lb-l" for="lb-cams">Camera</label>
+        <select id="lb-cams"></select>
+        <label class="lb-l" for="lb-mics">Microphone</label>
+        <select id="lb-mics"></select>
+      </div>
+
+      <div class="rm-acts">
+        <button class="btn" type="button" id="lb-join">Join the call</button>
+        <a class="ghost" href="app.html">Not now</a>
+      </div>
+      <p class="lb-err" id="lb-err" hidden></p>
+    </div>
+  </section>
+
+  <!-- FOUR. The call. Two tiles and nothing else on screen: the partner
+       fills the room, you sit in the corner, and the bar carries the four
+       things you might actually want mid-session. -->
+  <section class="rm-live" id="st-live" hidden>
+    <div class="rm-stage" id="stage">
+      <div class="tile tile-far" id="far">
+        <video id="far-v" autoplay playsinline></video>
+        <p class="tile-wait" id="far-wait">Waiting for <b id="far-who">your partner</b>…</p>
+        <p class="tile-n" id="far-n" hidden></p>
+        <p class="tile-off" id="far-off" hidden>Camera off</p>
+      </div>
+      <div class="tile tile-me" id="me">
+        <video id="me-v" autoplay playsinline muted></video>
+        <p class="tile-n">You</p>
+        <p class="tile-off" id="me-off" hidden>Camera off</p>
+      </div>
+    </div>
+
+    <div class="rm-bar">
+      <p class="bar-goal" id="bar-goal" hidden></p>
+      <div class="bar-c">
+        <button class="c-b on" type="button" id="c-mic" aria-pressed="true" title="Microphone">
+          <span class="c-ic" id="c-mic-ic"></span><span class="c-l">Mic</span>
+        </button>
+        <button class="c-b on" type="button" id="c-cam" aria-pressed="true" title="Camera">
+          <span class="c-ic" id="c-cam-ic"></span><span class="c-l">Camera</span>
+        </button>
+        <button class="c-b" type="button" id="c-share" aria-pressed="false" title="Share your screen">
+          <span class="c-ic" id="c-share-ic"></span><span class="c-l">Share</span>
+        </button>
+        <button class="c-b c-leave" type="button" id="c-leave">Leave</button>
+      </div>
+      <p class="bar-clock" id="bar-clock"></p>
+    </div>
+
+    <p class="rm-flash" id="rm-flash" hidden></p>
+  </section>
+
+  <!-- FIVE. Over. -->
+  <section class="rm-mid" id="st-done" hidden>
+    <div class="rm-card">
+      <p class="rm-k">Session over</p>
+      <h1 id="done-h">You've left the call</h1>
+      <p class="rm-s" id="done-s"></p>
+      <div class="rm-acts">
+        <button class="btn" type="button" id="done-back">Back to today</button>
+        <button class="ghost" type="button" id="done-again" hidden>Rejoin</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Pinned to an exact version with the hash of that exact file, so the code
+     that gets handed your camera is the code we checked and not whatever the
+     CDN is serving under a moving tag today. -->
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.21.0/dist/livekit-client.umd.js"
+        integrity="sha384-gDU80RlmAnHKgj4uOWIhnTIb6vAUef/+NqGPuIEfbEQYGfqzyeJDwC2XElesqctC"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/call.js"></script>
+</body>
+</html>
