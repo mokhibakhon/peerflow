@@ -1258,11 +1258,26 @@
     }).then(function(res){
       btn.disabled = false; btn.textContent = 'Propose this time';
       if (res && res.saved) {
-        note.style.color = 'var(--green-dark)';
-        note.textContent = 'Sent \u2014 waiting on ' + shortName() + '.';
-        document.getElementById('bk-msg').value = '';
-        document.getElementById('bk-goal').value = '';
-        loadProposals();
+        /* Reload, the way accepting, declining and cancelling already do.
+         *
+         * This used to call loadProposals(), which redraws one list and
+         * nothing else \u2014 and the three things that tell you a proposal
+         * exists are all outside that list. The band is computed once, on
+         * load, so it went on saying "propose a time". calSessions is filled
+         * once, on load, so the calendar had never heard of it and pressing
+         * Today redrew the same empty week. And syncSessCard hides the
+         * sessions card while it holds one row, on the reasoning that the
+         * band is already saying it \u2014 which is true, except the band had not
+         * been told either.
+         *
+         * So proposing your first session changed nothing on screen except a
+         * green line inside the form, and it read exactly like a button that
+         * does not work. After a reload the band says "Waiting on them \u2014 you
+         * asked Asalxon for today at 4:39 PM" and the time is on the
+         * calendar, which is the confirmation the green line was standing in
+         * for. */
+        window.location.reload();
+        return;
       } else {
         note.textContent = (res && res.error) ||
           (res && res.demo ? 'You need to be signed in to propose a time.'
@@ -1667,6 +1682,26 @@
       }
     }
     grid.innerHTML = html;
+
+    /* Scroll the card to whatever is actually on this week.
+     *
+     * The grid scrolls inside its card, so a window that runs 06:00 to 21:00
+     * opens at six in the morning — and a session at half past four in the
+     * afternoon is nine rows below the fold. You propose a time, the band
+     * says it is waiting on them, and the calendar beside it looks empty,
+     * which is the same "did that work?" the proposal itself used to cause.
+     *
+     * Only when there is something to scroll to. An empty week stays at the
+     * top of the day, which is where an empty week belongs. */
+    var firstEv = grid.querySelector('.cal-ev');
+    if (firstEv) {
+      var scroller = grid.parentNode;
+      var cellTop = firstEv.getBoundingClientRect().top -
+                    grid.getBoundingClientRect().top;
+      /* A row and a half of context above it, so it does not sit jammed
+         against the top edge looking like the first hour of the day. */
+      scroller.scrollTop = Math.max(0, cellTop - 60);
+    }
 
     var none = !sharedAny();
     $('cal-empty').hidden = !none;
