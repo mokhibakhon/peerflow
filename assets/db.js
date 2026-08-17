@@ -1,3 +1,19 @@
+/* Which build of the site the browser is actually running.
+ *
+ * There is no bundler and no content hashing, so assets/db.js is requested by
+ * that exact name for ever and any layer in between — the browser, a CDN, a
+ * captive-portal proxy — is free to answer with the copy it had last week.
+ * The failure that costs the most time is not a wholly stale page: it is a
+ * fresh app.html against a week-old db.js, which behaves like neither
+ * version and matches no description of the bug.
+ *
+ * vercel.json now sends must-revalidate on everything, so this should not
+ * happen. This exists to prove it: one line in the console on every load,
+ * which turns "is it deployed?" into something you read rather than argue
+ * about. Bump it when you change anything in assets/. */
+window.PF_BUILD = '2026-08-17';
+try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
+
 /* PeerFlow data layer.
    Talks to Supabase when it's reachable; every function degrades gracefully
    so the site keeps working as an offline demo (file://, no network, or

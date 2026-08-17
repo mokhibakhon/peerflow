@@ -823,7 +823,13 @@
      a form. openBook is the only way in, so the entry points — the band, the
      + New session button, and clicking a free hour — cannot drift apart. */
   function openBook(focusKey){
-    if (!canBook) return;
+    /* Nobody to book with. This used to be a bare return, which is a button
+       that does nothing and says nothing — and "nothing happens when I press
+       it" is indistinguishable from a broken page. There is no state the band
+       leaves this reachable from today, so it is a guard rather than a
+       feature, but a guard that goes somewhere beats one that swallows the
+       press. */
+    if (!canBook) { location.href = 'app-people.html'; return; }
     var card = $('book-card');
     card.hidden = false;
     try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
