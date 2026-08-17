@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-17';
+window.PF_BUILD = '2026-08-17b';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -647,6 +647,19 @@ window.pf = (function(){
   var REQ_BASE = 'id,from_user,to_user,message,status,to_seen_at,from_seen_at,created_at';
   var REQ_FULL = REQ_BASE + ',standing_anchor,standing_minutes,standing_by,standing_set_at,standing_ok_at';
 
+  /* Which column set this database actually has, once we have found out.
+     The fallback works, but it costs a failed request to discover — and
+     myRequests runs at least twice on any page with the bell, so an
+     un-migrated project logged a red 400 on partner_requests two or three
+     times on every single load. The page was fine underneath; it did not
+     look fine, and a console full of red is where somebody reasonably
+     concludes the site is broken and stops reading.
+
+     Remembered for the life of the page rather than stored: run the
+     migration and the next load finds the wide set again, with no stale flag
+     to clear. */
+  var reqCols = null;
+
   function myRequests(){
     if (!client) return Promise.resolve(null);
     return currentUid().then(function(uid){
@@ -657,12 +670,15 @@ window.pf = (function(){
           .or('from_user.eq.' + uid + ',to_user.eq.' + uid)
           .order('created_at', { ascending: false });
       }
+      if (reqCols === REQ_BASE) return read(REQ_BASE);
       return read(REQ_FULL).then(function(r){
         if (missingColumn(r.error)) {
+          reqCols = REQ_BASE;
           console.warn('PeerFlow: standing-slot columns are missing. ' +
-                       'Run supabase/migration-standing.sql to turn on weekly slots.');
+                       'Run supabase/migrate-2026-08.sql to turn on weekly slots.');
           return read(REQ_BASE);
         }
+        if (!r.error) reqCols = REQ_FULL;
         return r;
       })
         .then(function(r){
