@@ -16,6 +16,7 @@
      __planWeeks   the twelve-week plan as stored on the profile
      __standing    {minutes, agreed, mine} for a standing slot
      __sharedBy    shared hours by JS weekday, overriding the default
+     __callRefuse  a reason string, to see call.html turn one down
 
    Add a dial rather than editing a fixture in place: the fixtures are shared
    by every test, and quietly changing one moves the ground under the others. */
@@ -199,6 +200,26 @@ window.pf = (function(){
     setSessionGoal:function(){return P({saved:true})},
     finishSession:function(){return P({saved:true})},
     proposeSession:function(){note('propose');return P({saved:true})},
+
+    /* The room. __callRefuse is any reason session_for_call can give —
+       'too-early', 'not-partners', 'no-room' and the rest are listed in
+       docs/VIDEO.md — so every refusal call.html has to write a sentence for
+       can be looked at without a booking in the right state. Anything else
+       gets a pass into a room that is not there, which is as far as the stub
+       can take you: the lobby renders, and joining fails the way a real
+       unreachable server does. */
+    callToken:function(id){
+      note('callToken:'+id);
+      if(window.__callRefuse) return P({ok:false,reason:window.__callRefuse,
+        startsAt:new Date(Date.now()+40*60000).toISOString()});
+      var s=new Date(); s.setMinutes(s.getMinutes()-4);
+      return P({ok:true,token:'stub.token',url:'wss://example.invalid',
+        room:'pf-stub',identity:'u1',display:PROFILE.name,
+        partner:PARTNER.profile.name,topic:'Cybersecurity',
+        goal:'Read a packet capture',
+        startsAt:s.toISOString(),
+        endsAt:new Date(s.getTime()+70*60000).toISOString()});
+    },
     acceptSession:function(){note('acceptSession');return P({saved:true})},
     declineSession:function(){note('declineSession');return P({saved:true})},
     cancelBooked:function(){note('cancelBooked');return P({saved:true})},
