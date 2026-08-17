@@ -853,6 +853,27 @@
     openBook(t.getAttribute('data-focus') || '');
   });
 
+  /* "All sessions" and "See the proposal", from the band.
+   *
+   * Both were <a href="#sess-card">, and the card they point at is hidden by
+   * syncSessCard whenever it holds a single row and no goal — which is
+   * exactly the state both of those bands describe: one session booked, or
+   * one proposal waiting. So in the two commonest states on the dashboard,
+   * the button under the main action did nothing at all. It set a hash and
+   * stopped, because you cannot scroll to something with hidden on it.
+   *
+   * The card is only collapsed to stop it repeating the band; being asked
+   * for it outright is the one case where that reasoning does not hold. */
+  document.addEventListener('click', function(e){
+    var t = e.target.closest && e.target.closest('[data-open-sess]');
+    if (!t) return;
+    e.preventDefault();
+    openSessCard();
+    var card = $('sess-card');
+    try { card.scrollIntoView({ behavior:'smooth', block:'center' }); }
+    catch (err) { card.scrollIntoView(); }
+  });
+
   /* Everything below moved here from the Partner page. Proposing a time, the
      times waiting on an answer and the sessions they turn into are one thing,
      and it was odd to start it on a page about who your partner is. */
@@ -1967,7 +1988,7 @@
                  (live ? '' : '. Both of you have agreed to this one.'),
               a: live
                    ? '<a class="btn" href="call.html?s=' + encodeURIComponent(next.id) + '">Join the call</a>' +
-                     '<a class="ghost" href="#sess-card">All sessions</a>'
+                     '<button class="ghost" type="button" data-open-sess>All sessions</button>'
                    : '<a class="btn" data-open-book href="#book-card">Book another</a>' +
                      '<button class="ghost" type="button" data-relay="#upcoming [data-cancel-booked]"' +
                      ' data-arm="Sure? Cancel it">Cancel this one</button>',
@@ -2017,7 +2038,7 @@
               h: 'You asked ' + esc(mineWho || 'your partner') + ' for ' +
                  friendlyMid(mine.startsAt) + '.',
               s: 'It lands on both your calendars the moment they accept. Nothing to do until then.',
-              a: '<a class="ghost" href="#sess-card">See the proposal</a>'
+              a: '<button class="ghost" type="button" data-open-sess>See the proposal</button>'
             });
           } else if (partner){
             idleBand(bookPartners, all);
