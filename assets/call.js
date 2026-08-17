@@ -348,12 +348,48 @@
   }
   function stopClock(){ if (clockT) clearInterval(clockT); clockT = null; }
 
+  /* The far tile says one of three things, and it used to work them out in
+     four places that could disagree.
+
+     "Waiting for X…"  nobody else is in the room
+     a picture          they are here and you can see them
+     "Camera off"       they are here and you cannot
+
+     Whether somebody is in the room and whether a picture is arriving are
+     two separate facts, and the old code only ever hid the waiting line
+     inside the video branch of attachFar. Join with your camera off and you
+     publish no video — so nothing hid it, and your partner sat reading
+     "Waiting for you…" while listening to you talk. Same for anyone already
+     in the room when you arrive with a camera off, and same again for
+     turning the camera off mid-call, which mutes a track rather than
+     unpublishing it.
+
+     Two booleans and one function that draws all four elements from them.
+     Every path sets a boolean and calls this; none of them reaches for an
+     element directly. */
+  var farPresent = false, farVideo = false;
+
+  function paintFar(){
+    $('far-wait').hidden = farPresent;
+    $('far-v').hidden    = !farVideo;
+    $('far-off').hidden  = !farPresent || farVideo;
+    $('far-n').hidden    = !farPresent;
+    if (!farPresent) $('stage').classList.remove('sharing');
+    $('far-who').textContent = pass && pass.partner
+      ? String(pass.partner).split(' ')[0] : 'your partner';
+    if (farPresent) $('far-n').textContent = farName;
+  }
+
+  function farSeen(participant){
+    farPresent = true;
+    if (participant) farName = participant.name || participant.identity || farName;
+  }
+
   function attachFar(track, participant){
+    farSeen(participant);
     if (track.kind === 'video') {
       track.attach($('far-v'));
-      $('far-wait').hidden = true;
-      $('far-off').hidden = true;
-      $('far-v').hidden = false;
+      farVideo = !track.isMuted;
       $('stage').classList.toggle('sharing', track.source === 'screen_share');
     } else if (track.kind === 'audio') {
       /* Audio has to be in the document to play at all; it is never seen. */
@@ -361,20 +397,13 @@
       el.style.display = 'none';
       document.body.appendChild(el);
     }
-    if (participant) {
-      farName = participant.name || participant.identity || farName;
-      $('far-n').textContent = farName;
-      $('far-n').hidden = false;
-    }
+    paintFar();
   }
 
   function farGone(msg){
-    $('far-v').hidden = true;
-    $('far-n').hidden = true;
-    $('far-off').hidden = true;
-    $('far-wait').hidden = false;
-    $('far-who').textContent = pass.partner ? String(pass.partner).split(' ')[0] : 'your partner';
-    $('stage').classList.remove('sharing');
+    farPresent = false;
+    farVideo = false;
+    paintFar();
     if (msg) flash(msg);
   }
 
@@ -396,13 +425,31 @@
           $('stage').classList.remove('sharing');
           flash(farName.split(' ')[0] + ' stopped sharing');
         } else {
-          $('far-v').hidden = true;
-          $('far-off').hidden = false;
+          farVideo = false;
+          paintFar();
         }
       }
     });
+    /* Turning a camera off mutes the track rather than unpublishing it, so
+       none of the subscribe events fire and the tile would keep showing the
+       last frame it got — a still photograph of somebody who has covered
+       their camera. */
+    room.on(LK.RoomEvent.TrackMuted, function(pub, p){
+      if (pub && pub.kind === 'video' && pub.source !== 'screen_share') {
+        farSeen(p); farVideo = false; paintFar();
+      }
+    });
+    room.on(LK.RoomEvent.TrackUnmuted, function(pub, p){
+      if (pub && pub.kind === 'video' && pub.source !== 'screen_share') {
+        farSeen(p); farVideo = true; paintFar();
+      }
+    });
     room.on(LK.RoomEvent.ParticipantConnected, function(p){
-      farName = p.name || farName;
+      /* Somebody arriving is enough to stop saying you are waiting for them.
+         Whether a picture follows is a separate question, and if their
+         camera is off the answer is never. */
+      farSeen(p);
+      paintFar();
       flash((farName.split(' ')[0] || 'Your partner') + ' joined');
     });
     room.on(LK.RoomEvent.ParticipantDisconnected, function(p){
@@ -424,7 +471,20 @@
       if (local.video && !want.cam) local.video.mute();
 
       stopMeter();
-      $('far-who').textContent = pass.partner ? String(pass.partner).split(' ')[0] : 'your partner';
+
+      /* Anyone already in the room when you arrive. ParticipantConnected
+         only fires for people who join after you, so the second person in
+         would otherwise learn nothing from it — and if the first person has
+         their camera off there is no track subscription either, leaving the
+         tile saying "Waiting for…" about somebody who has been sitting
+         there for ten minutes. */
+      try {
+        room.remoteParticipants.forEach(function(p){ farSeen(p); });
+      } catch (e) {
+        try { console.warn('PeerFlow: could not read who was already here', e); } catch(err){}
+      }
+      paintFar();
+
       if (pass.goal) {
         $('bar-goal').innerHTML = '<b>Goal:</b> ' + esc(pass.goal);
         $('bar-goal').hidden = false;
