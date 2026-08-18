@@ -212,11 +212,93 @@
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .bar-goal b{color:var(--rm-soft);font-weight:600}
+/* ---------- where the session is up to ----------
+   This replaced a bare "23 min in". The elapsed minutes were true and not
+   much use; what you want to know mid-session is which stretch you are in and
+   how long is left of it. Both come from assets/phases.js, which derives them
+   from the booking's own start time — so the two of you see the same thing
+   without anything being sent between you. */
+.bar-end{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .bar-clock{
-  margin:0;text-align:right;font-family:var(--mono);font-size:11px;
-  letter-spacing:.06em;color:var(--rm-faint);
+  margin:0;display:inline-flex;align-items:center;gap:9px;
+  padding:6px 12px 6px 10px;border-radius:var(--r-pill);
+  background:var(--rm-panel);border:1px solid var(--rm-line);white-space:nowrap;
 }
-.bar-clock.soon{color:#E8B860}
+.bar-clock .ph-dot{width:7px;height:7px;border-radius:50%;background:var(--p4);flex:0 0 auto}
+.bar-clock .ph-lab{font-size:11.5px;font-weight:600;color:var(--rm-soft)}
+.bar-clock .ph-left{
+  font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--rm-t);
+}
+/* A break is the one state worth reading from across a room, so it is the
+   only one that changes colour. Focus is the default and stays quiet — a
+   timer that shouts during the part you are meant to be concentrating in is
+   working against the thing it is for. */
+.bar-clock.brk{background:#20281F;border-color:#33452F}
+.bar-clock.brk .ph-dot{background:#7FBF5F}
+.bar-clock.brk .ph-lab{color:#A9D693}
+.bar-clock.done{opacity:.6}
+/* The last two minutes of a stretch, so the change does not arrive cold. */
+.bar-clock.soon .ph-left{color:#E8B860}
+
+/* The whole session as one line: a segment per stretch, filled up to now. */
+.ph-rail{display:flex;gap:2px;height:3px}
+.ph-rail i{display:block;height:3px;border-radius:2px;background:var(--rm-line)}
+.ph-rail i.on{background:var(--p4)}
+.ph-rail i.brk.on{background:#7FBF5F}
+
+/* ---------- background sound ----------
+   Deliberately not three big buttons in a row. This is a thing you set once
+   and then forget for an hour, so it hides behind one control in the bar and
+   opens as four tiles you can hit without reading — the drawing carries it,
+   the label confirms it. */
+.snd-pop{
+  position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);
+  width:268px;padding:14px;z-index:6;
+  background:var(--rm-panel);border:1px solid var(--rm-line);
+  border-radius:var(--r-card);
+  box-shadow:0 18px 44px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.35);
+}
+.snd-k{
+  margin:0 0 11px;font-size:11.5px;font-weight:700;color:var(--rm-t);
+  display:flex;flex-direction:column;gap:2px;
+}
+.snd-k span{font-weight:500;font-size:10.5px;color:var(--rm-faint);letter-spacing:.01em}
+.snd-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.snd-b{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  padding:12px 8px 10px;border-radius:var(--r-control);cursor:pointer;
+  background:var(--rm-tile);border:1px solid transparent;
+  color:var(--rm-soft);font-family:var(--body);font-size:11.5px;font-weight:600;
+  transition:background .12s ease,border-color .12s ease,color .12s ease;
+}
+.snd-b svg{width:22px;height:22px;display:block;opacity:.85}
+.snd-b:hover{background:#252A38;color:var(--rm-t)}
+.snd-b:focus-visible{outline:2px solid var(--p4);outline-offset:2px}
+/* Chosen is stated twice — the tint and the ring — because one of these is
+   invisible to anyone who cannot separate the two greys. */
+.snd-b[aria-pressed="true"]{
+  background:#12291F;border-color:var(--p4);color:#BFEBD5;
+}
+.snd-b[aria-pressed="true"] svg{opacity:1}
+
+.snd-vol{display:flex;align-items:center;gap:10px;margin:13px 2px 2px}
+.snd-vl{font-size:10.5px;color:var(--rm-faint);letter-spacing:.02em}
+.snd-vol input[type=range]{
+  flex:1;height:3px;-webkit-appearance:none;appearance:none;
+  background:var(--rm-line);border-radius:3px;
+}
+.snd-vol input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:13px;height:13px;border-radius:50%;
+  background:var(--p4);border:0;cursor:pointer;
+}
+.snd-vol input[type=range]::-moz-range-thumb{
+  width:13px;height:13px;border-radius:50%;background:var(--p4);border:0;cursor:pointer;
+}
+.snd-vol input[type=range]:focus-visible{outline:2px solid var(--p4);outline-offset:3px}
+
+/* The bar is the popover's positioning context, and the controls sit above
+   the tiles so a mistimed click lands on Mic rather than through it. */
+.bar-c{position:relative}
 
 /* Something happened that is worth one sentence and no decision — the
    partner left, the screen share stopped. */
