@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-17m';
+window.PF_BUILD = '2026-08-17n';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -316,28 +316,41 @@ window.pf = (function(){
       if ('goal' in profile)         row.goal = profile.goal || null;
       if ('timezone' in profile)     row.timezone = profile.timezone || null;
       if ('availability' in profile) row.availability = profile.availability || [];
+      /* Arrives with migration-notify.sql. Same treatment as the two below:
+         losing a whole profile save over a column this database has not got
+         yet would be absurd, and the retry drops it. */
+      if ('emailNotify' in profile)  row.email_notify = !!profile.emailNotify;
+      function save(){
       return client.from('profiles').upsert(row).then(function(r){
         /* PGRST204: the column isn't in this database yet, i.e. schema.sql
            hasn't been re-run since first_name/last_name were added. Losing
            somebody's whole profile over a column they never asked for would
            be absurd — drop the two new fields and save the rest. `name`
            still carries the full name, so nothing visible is lost. */
-        if (r.error && r.error.code === 'PGRST204' &&
-            /first_name|last_name/.test(r.error.message || '') &&
-            ('first_name' in row || 'last_name' in row)) {
-          delete row.first_name; delete row.last_name;
+        /* PGRST204: a column this database has not got yet. Drop whichever
+           one it named and save the rest — losing somebody's whole profile
+           over a column they never asked for would be absurd. It names one
+           at a time, and each retry re-enters here, so a database missing
+           several of them peels them off one by one.
+
+           first_name/last_name arrive with schema.sql, email_notify with
+           migration-notify.sql. `name` still carries the full name, and a
+           missing email_notify simply means email is on, which is the
+           default anyway. */
+        var gone = /first_name|last_name|email_notify/.exec(r.error && r.error.message || '');
+        if (r.error && r.error.code === 'PGRST204' && gone && (gone[0] in row)) {
+          delete row[gone[0]];
           try {
-            console.warn('PeerFlow: profiles.first_name/last_name are missing. ' +
-                         'Re-run supabase/schema.sql to store names split.');
+            console.warn('PeerFlow: profiles.' + gone[0] + ' is missing. ' +
+                         'Re-run supabase/schema.sql and supabase/migration-notify.sql.');
           } catch(e){}
-          return client.from('profiles').upsert(row).then(function(r2){
-            return r2.error ? fail(r2.error, 'Could not save your profile. Please try again.')
-                            : { saved: true };
-          });
+          return save();
         }
         if (r.error) return fail(r.error, 'Could not save your profile. Please try again.');
         return { saved: true };
       });
+      }
+      return save();
     }).catch(function(e){
       return fail(e, 'Could not save your profile \u2014 check your connection and try again.');
     });

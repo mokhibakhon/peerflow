@@ -82,6 +82,21 @@
           </div>
         </div>
 
+        <!-- Email is the only thing that reaches somebody who is not looking
+             at the site, and the notifications behind it are the ones a
+             session cannot happen without — so it is on, and turning it off
+             is a deliberate act rather than a default nobody found. -->
+        <div class="card">
+          <h3>Email</h3>
+          <p style="font-size:14.5px">We email you when a session needs an answer — a time
+            proposed, accepted, turned down or cancelled. Nothing else, and never anything
+            we have not been asked to send.</p>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px">
+            <button class="btn ghost" id="s-mail" aria-pressed="true">Email is on</button>
+            <span id="s-mail-note" style="font-size:13.5px;color:var(--muted)"></span>
+          </div>
+        </div>
+
         <div class="card">
           <h3>Your profile</h3>
           <p style="font-size:14.5px">Your name, path, topic, stage and free times live on your
@@ -141,6 +156,9 @@
     pf.getProfile().then(function(p){
       if (!p) return;
       document.getElementById('s-tz-saved').textContent = p.timezone || 'not set';
+      /* Undefined on a database without migration-notify.sql, which reads as
+         on — which it is, since nothing is switching it off. */
+      paintMail(p.email_notify !== false);
       if (p.created_at) {
         try {
           document.getElementById('s-joined').textContent =
@@ -169,6 +187,36 @@
         passNote.textContent = 'You’re not signed in.';
       } else {
         passNote.textContent = (res && res.error) || 'Could not change your password.';
+      }
+    });
+  });
+
+  /* ----- email ----- */
+  var mailBtn  = document.getElementById('s-mail');
+  var mailNote = document.getElementById('s-mail-note');
+  var mailOn   = true;
+
+  function paintMail(on){
+    mailOn = on;
+    mailBtn.textContent = on ? 'Email is on' : 'Email is off';
+    mailBtn.setAttribute('aria-pressed', String(on));
+  }
+
+  mailBtn.addEventListener('click', function(){
+    var next = !mailOn;
+    mailBtn.disabled = true;
+    mailNote.textContent = '';
+    pf.saveProfile({ emailNotify: next }).then(function(res){
+      mailBtn.disabled = false;
+      if (res && res.saved) {
+        paintMail(next);
+        mailNote.style.color = 'var(--green-dark)';
+        mailNote.textContent = next
+          ? 'We\u2019ll email you when a session needs an answer.'
+          : 'Nothing will be emailed. The bell still works.';
+      } else {
+        mailNote.style.color = '#c0392b';
+        mailNote.textContent = (res && res.error) || 'Could not save that.';
       }
     });
   });
