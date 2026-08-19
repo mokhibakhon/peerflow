@@ -312,6 +312,20 @@ header{background:var(--paper)}
 .prose h3:first-child{margin-top:0}
 .prose p{margin-bottom:14px;color:var(--ink-soft)}
 .prose p:last-child{margin-bottom:0}
+/* The privacy and terms pages arrived after the conduct page and need three
+   things it never did. The date a policy last changed is the first thing
+   somebody checking one is looking for and the last thing they should have to
+   read past, so it sits above the opening heading, small and quiet. Lists
+   carry the run of companies that touch your data, which reads as a list and
+   not as a paragraph. And links have to look like links: the reset at the top
+   of this file makes every `a` inherit its colour, which is fine in a nav
+   where position says "link" and useless in the middle of a sentence. */
+.prose .stamp{font-size:var(--t-xs);color:var(--ink-faint);margin-bottom:26px}
+.prose ul{margin:0 0 14px;padding-left:22px;color:var(--ink-soft)}
+.prose li{margin-bottom:7px}
+.prose li:last-child{margin-bottom:0}
+.prose b{color:var(--ink);font-weight:700}
+.prose a{color:var(--p6);font-weight:600;text-decoration:underline;text-underline-offset:2px}
 
 /* ---------- footer ----------
    The landing page's closing band, so the site ends the same way
