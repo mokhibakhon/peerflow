@@ -237,11 +237,11 @@
            trying to make a habit. Agree an hour once and the default becomes
            "Thursday at 19:00 unless one of you moves it". -->
       <section class="rail" id="rail-pair" hidden>
-        <div class="ch"><div class="grow"><h3>Your pair</h3></div></div>
+        <div class="ch"><div class="grow"><h3 id="pair-h">Your partner</h3></div></div>
 
         <div class="blk" id="rail-pt" hidden>
-          <span class="mono kick" id="pt-h">Your partner</span>
           <div id="ptm"></div>
+          <p class="ptm-more" id="ptm-more" hidden></p>
         </div>
 
         <div class="blk" id="rail-st" hidden>
@@ -759,16 +759,39 @@
       });
   });
 
+  /* How many faces the rail shows before it stops being a glance and starts
+     being a directory. Three is where a list still reads as "these are your
+     people" at a flick of the eye; the fourth turns it into something you
+     scan, and the partner page exists for that. */
+  var RAIL_FACES = 3;
+
   function renderPartnerRail(list){
     if (!list.length) return;
-    $('pt-h').textContent = list.length > 1 ? 'Your partners' : 'Your partner';
-    $('ptm').innerHTML = list.map(function(p){
+
+    /* The card is named from the count, not hard-coded. It read "Your pair"
+       over four people, because the fixture had one partner and one partner
+       cannot show you that. The block below has no label of its own any more:
+       with the card named for them, a "YOUR PARTNERS" kicker directly under a
+       "Your partners" heading was the same word twice, two lines apart. */
+    $('pair-h').textContent = list.length > 1 ? 'Your partners' : 'Your partner';
+
+    $('ptm').innerHTML = list.slice(0, RAIL_FACES).map(function(p){
       return '<div class="ptm">' +
         '<span class="av">' + esc(initial(p.name)) + '</span>' +
         '<span class="nm">' + esc(p.name || 'Someone') +
           '<span class="tp">' + esc(p.topic || 'Topic not set yet') + '</span>' +
         '</span></div>';
     }).join('');
+
+    /* Say what is not shown rather than silently truncating. A list that stops
+       at three with no sign of it is a lie about how many partners you have,
+       and the number is the reason to click. */
+    var rest = list.length - RAIL_FACES;
+    $('ptm-more').textContent = rest > 0
+      ? (rest === 1 ? 'and one more' : 'and ' + rest + ' more')
+      : '';
+    $('ptm-more').hidden = rest <= 0;
+
     $('rail-pt').hidden = false;
     syncRail();
   }
@@ -1400,8 +1423,8 @@
   /* The rail stops sitting beside an empty column. */
   function syncDash(){
     var main = document.querySelector('.dash-main');
-    var empty = !Array.prototype.some.call(main.children, function(el){ return !el.hidden; });
-    document.querySelector('.dash').classList.toggle('solo', empty);
+    var open = Array.prototype.filter.call(main.children, function(el){ return !el.hidden; });
+    document.querySelector('.dash').classList.toggle('solo', !open.length);
   }
 
   function syncSessCard(){

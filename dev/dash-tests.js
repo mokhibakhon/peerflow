@@ -97,10 +97,35 @@ async function open(b, dials){
      relay.length > 0 && relay.every(h => h === false), JSON.stringify(relay));
   await p.close();
 
+  console.log('\n==> the partner card, at one partner and at four');
+  /* The fixture has one partner, and one partner is exactly the case that
+     cannot show you either of these: a card headed "Your pair" reads fine over
+     one name and is simply wrong over four, and a rail sized for one face is a
+     directory at four. Both shipped, and both were found on a real account
+     rather than here — which is why the dial exists now. */
+  p = await open(b);
+  ok('one partner: the card is singular',
+     (await p.innerText('#pair-h')) === 'Your partner');
+  ok('  and nothing is truncated', await p.isHidden('#ptm-more'));
+  await p.close();
+
+  p = await open(b, 'window.__manyPartners = 4;');
+  ok('four partners: the card is plural',
+     (await p.innerText('#pair-h')) === 'Your partners');
+  const faces = await p.$$eval('#ptm .ptm', e => e.length);
+  ok('  the rail stays a glance rather than a directory (' + faces + ' faces)', faces === 3);
+  ok('  and it says what it is not showing: "' + (await p.innerText('#ptm-more')) + '"',
+     (await p.innerText('#ptm-more')) === 'and one more');
+  /* The count is the reason to click, so it has to be right rather than just
+     present — "and one more" over four partners with three shown. */
+  ok('  the card is not labelled twice',
+     (await p.$$eval('#rail-pt .kick', e => e.length)) === 0);
+  await p.close();
+
   console.log('\n==> a card hides when all of its blocks do');
   p = await open(b, 'window.__noPartner = true;');
   const after = await p.$$eval('.dash-rail > section', e => e.map(x => x.id + (x.hidden ? ':hidden' : ':shown')));
-  ok('with no partner, "Your pair" is gone and "Where you are" stays: ' + after.join(', '),
+  ok('with no partner, the partner card is gone and "Where you are" stays: ' + after.join(', '),
      after.includes('rail-pair:hidden') && after.includes('rail-where:shown'));
   ok('no empty card is drawn', (await p.$$eval('.dash-rail > section:not([hidden])',
       e => e.every(x => [...x.querySelectorAll('.blk')].some(k => !k.hidden)))));
