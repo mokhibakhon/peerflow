@@ -1,4 +1,21 @@
 /* ============================================================
+   THE TWELVE SIZES THAT ARE STILL NUMBERS, AND WHY
+
+   Everything typographic in this file is on a token. What is left
+   hard-coded is glyph sizing: a single letter or mark centred in a
+   box of a fixed size — .brand, .firechip b, the avatars (.pv-av,
+   .tp-av, .pcard-av span, .inreq-av), the calendar's chevrons and
+   day numbers and its free-hour "+", and .ch-back.
+
+   These are sized to their box, not to a rank in a document. Putting
+   a 40px avatar's letter on the prose ramp does not make it consistent
+   with anything, it just makes it the wrong size for its circle —
+   which is the same mistake as the 34 sizes, made in the other
+   direction. --r-mark exists in tokens.css for exactly this reason
+   and this is its typographic twin.
+   ============================================================ */
+
+/* ============================================================
    PeerFlow — the signed-in app.
 
    Used by app.html and its sibling app-*.html pages. The landing page
@@ -54,12 +71,12 @@ button{font-family:var(--body);cursor:pointer}
 .brand{display:flex;align-items:center;gap:9px;font-weight:500;font-size:16px;flex:0 0 auto}
 .brand svg{display:block;width:26px;height:26px;color:var(--p4)}
 .brand b{font-weight:700;color:var(--p6)}
-.pathchip{background:var(--p0);color:var(--p6);font-family:var(--mono);font-size:10px;
+.pathchip{background:var(--p0);color:var(--p6);font-family:var(--mono);font-size:var(--t-tiny);
   letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:var(--r-control);flex:0 0 auto}
 .tabs{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tabs a{display:flex;align-items:center;gap:8px;padding:8px 13px;border-radius:var(--r-control);
-  font-size:14.5px;color:var(--soft);white-space:nowrap}
+  font-size:var(--t-sm);color:var(--soft);white-space:nowrap}
 .tabs a:hover{background:var(--band);color:var(--ink)}
 .tabs a.on{background:var(--ink);color:#fff}
 .tabs a.on svg path,.tabs a.on svg circle,.tabs a.on svg rect{stroke:#fff}
@@ -88,7 +105,7 @@ button{font-family:var(--body);cursor:pointer}
 
 main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:0}
 .mfoot{max-width:var(--w);margin:0 auto;padding:0 var(--gutter) 44px;
-  display:flex;gap:18px;font-size:12.5px;color:var(--faint);flex-wrap:wrap}
+  display:flex;gap:18px;font-size:var(--t-xs);color:var(--faint);flex-wrap:wrap}
 
 /* ---------- the band: what to do now ----------
    One element, six states, set through data-tone on the section. Each tone
@@ -98,17 +115,17 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 .now{border-radius:var(--r-card);padding:26px 30px;display:grid;
   grid-template-columns:minmax(0,1fr) auto;gap:26px;align-items:center;
   background:var(--card);border:1px solid var(--line)}
-.now h1{font-size:27px;margin:0 0 8px}
+.now-h{font-size:var(--t-hero);font-weight:800;line-height:1.18;letter-spacing:-.03em;margin:0 0 8px;text-wrap:balance}
 .now .now-k{display:block;margin-bottom:9px}
-.now-s{margin:0;font-size:15.5px;color:var(--soft);max-width:52ch}
+.now-s{margin:0;font-size:var(--t-sm);color:var(--soft);max-width:52ch}
 .now-a{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:19px}
-.now-f{margin:14px 0 0;font-size:13px;color:var(--faint);max-width:52ch}
+.now-f{margin:14px 0 0;font-size:var(--t-xs);color:var(--faint);max-width:52ch}
 
 /* The countdown. Big enough to read from the doorway, which is the whole
    point of putting a time on a wall. */
 .now-side{text-align:right;flex:0 0 auto}
-.now-cd{display:block;font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
-.now-cl{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+.now-cd{display:block;font-size:var(--t-num);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.now-cl{display:block;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.08em;
   text-transform:uppercase;margin-top:5px;opacity:.72}
 
 /* Booked: dark, because it is a state where the page is telling you
@@ -151,7 +168,7 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 .now[data-tone="idle"] .now-cd,.now[data-tone="none"] .now-cd{color:var(--p8)}
 .now[data-tone="idle"] .ghost,.now[data-tone="none"] .ghost{background:rgba(255,255,255,.72)}
 .now[data-tone="load"]{background:var(--card)}
-.now[data-tone="load"] h1{color:var(--faint)}
+.now[data-tone="load"] .now-h{color:var(--faint)}
 
 /* ---------- the two columns ---------- */
 /* Nothing in the main column yet — no partner, so no calendar and no
@@ -166,10 +183,23 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 .dash-rail{display:grid;gap:16px;min-width:0;position:sticky;top:78px}
 
 .rail{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:17px 18px}
-.rail h3{margin:0 0 13px;font-size:14px;font-weight:700;letter-spacing:-.01em}
+.rail h3{margin:0}
+.rail .ch{margin-bottom:0}
 .rail .mono{display:block;margin-bottom:7px}
-.rail-l{display:inline-block;margin-top:13px;font-size:13px;font-weight:600;color:var(--p6)}
+.rail-l{display:inline-block;margin-top:13px;font-size:var(--t-xs);font-weight:600;color:var(--p6)}
 .rail-l:hover{text-decoration:underline}
+
+/* One block of a rail card. Every block is the same shape — a rule, a mono
+   label, the fact, at most one line under it — which is the thing the four
+   separate cards could not be: each of them had grown its own layout, and
+   four boxes that share nothing read as clutter however good each one is.
+
+   The first block keeps its rule as well, so it reads as a divider under the
+   card's title rather than as a seam that only turns up from the second block
+   onwards. That also means hiding a block never leaves a stray line behind,
+   which is what a :first-child exception would have caused the moment the
+   partner block was hidden and the standing block was not. */
+.blk{padding-top:15px;margin-top:15px;border-top:1px solid var(--line)}
 
 /* ---------- this week, and the run ----------
    Not the streak. appshell.js draws the streak in the top bar of every page in
@@ -186,8 +216,7 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
    The card gets a tinted ground rather than the plain white of its neighbours.
    It is the only thing in the rail that is about you rather than about a
    booking, and it should not look like another row of admin. */
-.streak{text-align:center;padding:20px 18px 18px;
-  background:
+.streak{background:
     radial-gradient(120% 90% at 50% -10%, #F2FBF7 0%, rgba(242,251,247,0) 62%),
     var(--card)}
 /* Late in the week with the goal unmet, the ground goes warm — the same amber
@@ -201,13 +230,13 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
    sessions_per_week — a target that defaults to two and that almost nobody
    opens their profile to set, so half of the headline referred to something
    the reader did not know they had. */
-.st-n{margin:0;font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.05}
+.st-n{margin:0;font-size:var(--t-num);font-weight:800;letter-spacing:-.04em;line-height:1.05}
 .st-n b{font-weight:inherit;font-variant-numeric:tabular-nums}
-.st-n span{font-size:15px;font-weight:700;color:var(--soft);letter-spacing:-.01em}
+.st-n span{font-size:var(--t-sm);font-weight:700;color:var(--soft);letter-spacing:-.01em}
 .streak.met .st-n b{color:var(--p8)}
 
-.st-h{margin:10px 0 0;font-size:15px;font-weight:700;letter-spacing:-.015em;line-height:1.35}
-.st-w{margin:6px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.st-h{margin:10px 0 0;font-size:var(--t-sm);font-weight:700;letter-spacing:-.015em;line-height:1.35}
+.st-w{margin:6px 0 0;font-size:var(--t-xs);color:var(--faint);line-height:1.45}
 .st-w.ok{color:var(--p6);font-weight:600}
 /* Late in the week with the goal unmet. Amber once, not a siren. */
 .st-w.warn{color:#93641A;font-weight:600}
@@ -222,10 +251,10 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
    thin one without stopping to read the colour. Ruled off from the sentence
    above, because it is evidence rather than more copy. */
 .st-hist{margin:16px 0 0;padding:14px 0 0;border-top:1px solid var(--line)}
-.st-hl{margin:0 0 9px;font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;
+.st-hl{margin:0 0 9px;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.11em;
   text-transform:uppercase;color:var(--faint)}
-.st-run{display:flex;gap:5px;align-items:flex-end;justify-content:center;height:46px}
-.st-run i{display:block;width:14px;border-radius:var(--r-mark);background:#E6E8F0;
+.st-run{display:flex;gap:5px;align-items:flex-end;height:46px}
+.st-run i{display:block;flex:1;min-width:0;border-radius:var(--r-mark);background:#E6E8F0;
   transition:height .4s cubic-bezier(.2,.9,.3,1)}
 .st-run i.n0{height:5px}
 .st-run i.n1{height:24px;background:var(--p1)}
@@ -236,7 +265,7 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
    border rendered taller than a completed week. */
 .st-run i.on-now{background:repeating-linear-gradient(-45deg,var(--p1) 0 3px,#EDF6F2 3px 6px)}
 .st-rl{display:flex;justify-content:space-between;margin:9px 2px 0;
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.08em;text-transform:uppercase;
   color:var(--faint)}
 
 .streak .rail-l{margin-top:14px}
@@ -248,34 +277,34 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 /* The partner, in the rail. */
 .ptm{display:flex;align-items:center;gap:11px}
 .ptm .av{width:40px;height:40px;border-radius:50%;background:var(--p0);color:var(--p6);
-  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:0 0 auto}
-.ptm .nm{font-size:14.5px;font-weight:600;line-height:1.3}
-.ptm .tp{display:block;font-size:12.5px;color:var(--faint);font-weight:400}
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:var(--t-sm);flex:0 0 auto}
+.ptm .nm{font-size:var(--t-sm);font-weight:600;line-height:1.3}
+.ptm .tp{display:block;font-size:var(--t-xs);color:var(--faint);font-weight:400}
 .ptm + .ptm{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 
 /* The standing slot. */
-.st-now{margin:0;font-size:15px;font-weight:700;line-height:1.35;letter-spacing:-.01em}
-.st-sub{margin:6px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.st-now{margin:0;font-size:var(--t-sm);font-weight:700;line-height:1.35;letter-spacing:-.01em}
+.st-sub{margin:6px 0 0;font-size:var(--t-xs);color:var(--faint);line-height:1.45}
 .st-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
 .st-form{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
-.st-l{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+.st-l{display:block;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.06em;
   text-transform:uppercase;color:var(--faint);margin:9px 0 4px}
 .st-l:first-child{margin-top:0}
-.st-form select{width:100%;font-family:var(--body);font-size:14px;color:var(--ink);
+.st-form select{width:100%;font-family:var(--body);font-size:var(--t-sm);color:var(--ink);
   padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-control);background:var(--card)}
 .st-form select:focus{outline:2px solid var(--p4);outline-offset:1px}
-.st-warn{margin:11px 0 0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.st-warn{margin:11px 0 0;font-size:var(--t-xs);color:var(--faint);line-height:1.45}
 .st-warn.ok{color:var(--p6)}
-.st-err{margin:11px 0 0;font-size:12.5px;color:#B4471F}
+.st-err{margin:11px 0 0;font-size:var(--t-xs);color:#B4471F}
 
 /* One week of the plan. */
-.wk-t{margin:0;font-size:15px;font-weight:600;line-height:1.35}
-.wk-src{display:block;margin-top:6px;font-size:12.5px;color:var(--p6);font-weight:600}
+.wk-t{margin:0;font-size:var(--t-sm);font-weight:600;line-height:1.35}
+.wk-src{display:block;margin-top:6px;font-size:var(--t-xs);color:var(--p6);font-weight:600}
 
 /* ---------- invite ---------- */
 .invstrip{margin-top:16px;border:1px dashed var(--line);background:#FAFAFB;border-radius:var(--r-card);
   padding:15px 18px;display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
-.invstrip p{margin:0;font-size:14px;color:var(--soft);max-width:66ch}
+.invstrip p{margin:0;font-size:var(--t-sm);color:var(--soft);max-width:66ch}
 .invstrip b{color:var(--ink);font-weight:600}
 
 /* ---------- hero (marketing-shaped cards elsewhere) ---------- */
@@ -284,11 +313,11 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 .a2{background:var(--p0);color:var(--p6);margin-left:-14px}
 .a2.pending{background:#F1F1F5;color:var(--faint);border-style:dashed;border-color:#D6D5DE}
 
-h1{font-size:29px;line-height:1.18;letter-spacing:-.025em;font-weight:800;margin:0 0 9px;text-wrap:balance}
+h1{font-size:var(--t-page);line-height:1.18;letter-spacing:-.025em;font-weight:800;margin:0 0 9px;text-wrap:balance}
 h1 .g{color:var(--p4)}
-.sub{font-size:15.5px;color:var(--soft);margin:0 0 20px;max-width:46ch}
+.sub{font-size:var(--t-sm);color:var(--soft);margin:0 0 20px;max-width:46ch}
 .acts{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.change{background:none;border:0;font-size:13px;color:var(--faint);text-decoration:underline;padding:0}
+.change{background:none;border:0;font-size:var(--t-xs);color:var(--faint);text-decoration:underline;padding:0}
 
 /* ---------- buttons ---------- */
 /* Three weights that behave like one family: solid for the single action
@@ -306,7 +335,7 @@ h1 .g{color:var(--p4)}
 /* Solid. The gradient is a two-step of the green ramp, not decoration: it
    gives the face a light top edge so it reads as raised rather than flat. */
 .btn{
-  display:inline-block;padding:11px 20px;font-size:14.5px;border:0;color:#fff;
+  display:inline-block;padding:11px 20px;font-size:var(--t-sm);border:0;color:#fff;
   border-radius:var(--r-control);background:linear-gradient(180deg,var(--p4),var(--p6));
   box-shadow:0 1px 2px rgba(8,80,65,.22), inset 0 1px 0 rgba(255,255,255,.18);
 }
@@ -328,7 +357,7 @@ h1 .g{color:var(--p4)}
 /* Outlined. White rather than transparent — a secondary button still has to
    look like a surface you can press, especially sitting on a grey page. */
 .ghost{
-  display:inline-block;padding:11px 18px;font-size:14.5px;border-radius:var(--r-control);
+  display:inline-block;padding:11px 18px;font-size:var(--t-sm);border-radius:var(--r-control);
   background:var(--card);border:1px solid var(--line);color:var(--ink);
   box-shadow:0 1px 2px rgba(23,26,46,.05);
 }
@@ -342,7 +371,7 @@ h1 .g{color:var(--p4)}
    rectangles for the main actions, capsules for the row-level ones. */
 .small{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  padding:8px 14px;font-size:13px;border-radius:var(--r-control);flex:0 0 auto;
+  padding:8px 14px;font-size:var(--t-xs);border-radius:var(--r-control);flex:0 0 auto;
   background:var(--card);border:1px solid var(--line);color:var(--soft);
   box-shadow:0 1px 2px rgba(23,26,46,.05);
 }
@@ -369,12 +398,42 @@ h1 .g{color:var(--p4)}
   gap:16px;margin-top:16px;align-items:start}
 .b{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:20px 22px}
 .wide{grid-column:1/-1}
-.bh{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.gl{width:34px;height:34px;border-radius:var(--r-control);display:flex;align-items:center;
-  justify-content:center;flex:0 0 auto}
-.bh h2{font-size:15.5px;font-weight:600;margin:0;letter-spacing:-.01em}
-.bh .mono{display:block;margin-bottom:1px}
-.n{font-size:14px;color:var(--soft);margin:0;max-width:60ch}
+
+/* ---------- ONE CARD HEADING ----------
+   There were five ways to title a card on the dashboard alone, at 14 / 15 /
+   15.5 / 19 / 21px, and three of the five were titling things of the same
+   rank: the calendar wrote its own size inline in app.html, the booking panel
+   had another, "Sessions" had a third plus an icon tile that no other card on
+   the page had, and the rail cards had a fourth. The plan card had no title at
+   all — its heading was the content, so the week's subject sat where every
+   other card's name sits.
+
+   A reader does not know any of that. What they see is that the page cannot
+   decide how important each box is, which is what "unorganized" was pointing
+   at.
+
+   So: one size, one weight, one tracking, listed once. The selector group
+   below is every card title in the app pointed at the same rule rather than
+   left to drift again; each of those rules keeps its own margins and colour
+   and now carries nothing else.
+
+   .ch is the structure that goes with it — an optional mono label above the
+   title, and any buttons or a link on the right of the same baseline.
+
+   The icon tile went with them. It appeared on exactly one card in the whole
+   app, which meant it could not be carrying meaning — a mark that only ever
+   marks one thing is decoration. .bh and .gl had no other user, so they are
+   gone rather than left available: keeping a heading class "in case" is how
+   this file got to eighteen of them. */
+.ch{display:flex;align-items:baseline;gap:12px;margin:0 0 14px;flex-wrap:wrap}
+.ch .grow{flex:1 1 auto;min-width:0}
+.ch .side{display:flex;align-items:center;gap:8px;flex:0 0 auto;margin-left:auto}
+.ch .kick{display:block;margin:0 0 3px}
+
+.ch h2,.ch h3,
+.rail h3,.card h2,.card h3,.bookp-h h2,.inbox-h b
+{font-size:var(--t-card);font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.n{font-size:var(--t-sm);color:var(--soft);margin:0;max-width:60ch}
 .n b{color:var(--ink);font-weight:600}
 
 /* ---------- person rows ---------- */
@@ -384,47 +443,47 @@ h1 .g{color:var(--p4)}
   border-top:1px dashed var(--line);align-items:flex-start}
 .room .r:first-of-type{border-top:0}
 .room .a{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:11.5px;font-weight:600;flex:0 0 auto}
+  justify-content:center;font-size:var(--t-xs);font-weight:600;flex:0 0 auto}
 .room .b2{flex:1 1 200px;min-width:0}
-.room .nm{font-size:14px;font-weight:600;margin:0;line-height:1.3}
-.room .mt{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin:2px 0 0;
+.room .nm{font-size:var(--t-sm);font-weight:600;margin:0;line-height:1.3}
+.room .mt{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint);margin:2px 0 0;
   letter-spacing:.04em;text-transform:uppercase}
-.room .s{font-size:14px;color:var(--soft);margin:3px 0 0}
-.same-tag{background:var(--p0);color:var(--p8);font-family:var(--mono);font-size:9.5px;
+.room .s{font-size:var(--t-sm);color:var(--soft);margin:3px 0 0}
+.same-tag{background:var(--p0);color:var(--p8);font-family:var(--mono);font-size:var(--t-tiny);
   letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:var(--r-mark);margin-left:6px}
 
 /* ---------- next session ---------- */
 .nextup{display:flex;align-items:center;gap:12px;border-top:1px dashed var(--line);
   margin-top:14px;padding-top:14px;flex-wrap:wrap}
-.nextup .no{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.nextup .no{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint)}
 .slot{display:flex;align-items:center;gap:14px;padding:12px 0;
   border-top:1px dashed var(--line);flex-wrap:wrap}
 .slot:first-child{border-top:0}
 /* Wide enough for "Mon, Aug 3, 06:40 PM" on one line — at 150px every
    booked row wrapped its own date. */
-.slot .when{font-family:var(--mono);font-size:12.5px;color:var(--ink);
+.slot .when{font-family:var(--mono);font-size:var(--t-xs);color:var(--ink);
   width:190px;flex:0 0 auto}
 @media (max-width:600px){ .slot .when{width:auto;flex:1 1 100%} }
-.slot .what{flex:1;min-width:140px;font-size:14.5px}
-.slot .what span{display:block;font-size:12.5px;color:var(--faint)}
+.slot .what{flex:1;min-width:140px;font-size:var(--t-sm)}
+.slot .what span{display:block;font-size:var(--t-xs);color:var(--faint)}
 /* The relative time in a session row. Plain text: it says when, it is not
    something you press. */
-.slot .when-rel{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.slot .when-rel{font-family:var(--mono);font-size:var(--t-kicker);color:var(--faint)}
 
 /* The goal, before and after. On a proposal it is what the hour is for, so
    somebody deciding whether to accept can see it; afterwards it is the
    question itself, printed back rather than paraphrased. */
-.prop-goal{margin:6px 0 0;font-size:13.5px;color:var(--soft);line-height:1.5}
+.prop-goal{margin:6px 0 0;font-size:var(--t-xs);color:var(--soft);line-height:1.5}
 .prop-goal b{color:var(--ink);font-weight:700}
-.goalrow .gr-g{display:block;font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.4}
+.goalrow .gr-g{display:block;font-size:var(--t-sm);font-weight:700;color:var(--ink);line-height:1.4}
 .gr-a{display:flex;gap:8px;flex:0 0 auto}
 
 /* ---------- session calendar ---------- */
 .calhead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
   flex-wrap:wrap;margin-bottom:16px}
-.calhead .big{font-size:21px;font-weight:700;letter-spacing:-.02em;margin:0}
+.calhead .big{font-size:var(--t-card);font-weight:700;letter-spacing:-.02em;margin:0}
 .months{display:grid;grid-template-columns:repeat(52,1fr);margin-left:26px;height:15px}
-.months span{font-family:var(--mono);font-size:9.5px;color:var(--faint);grid-row:1}
+.months span{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint);grid-row:1}
 .cal{display:flex;gap:5px;align-items:flex-start}
 .cells{flex:1;display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;
   grid-template-columns:repeat(52,minmax(0,1fr));gap:3px}
@@ -437,49 +496,49 @@ h1 .g{color:var(--p4)}
 .logs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 26px;
   border-top:1px dashed var(--line);margin-top:18px;padding-top:4px}
 .logs .l{display:flex;align-items:baseline;gap:12px;padding:10px 0;
-  border-top:1px dashed var(--line);font-size:14.5px}
-.logs .d{font-family:var(--mono);font-size:11px;color:var(--faint);width:52px;flex:0 0 auto}
+  border-top:1px dashed var(--line);font-size:var(--t-sm)}
+.logs .d{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint);width:52px;flex:0 0 auto}
 .logs .t{flex:1;min-width:0}
-.logs .m{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.logs .m{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint)}
 
 /* ---------- invite ---------- */
 .inv{border:1px dashed var(--line);background:#FAFAFB}
 .inv .row{display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
 
 .signedout{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:var(--r-card);
-  padding:16px 18px;font-size:14.5px;color:#7A4A12;margin-bottom:16px}
+  padding:16px 18px;font-size:var(--t-sm);color:#7A4A12;margin-bottom:16px}
 .signedout a{border-bottom:1px solid #D9B98B;font-weight:600}
-.note{font-size:13.5px;margin:12px 0 0}
+.note{font-size:var(--t-xs);margin:12px 0 0}
 .note.ok{color:var(--p8)}
 .note.bad{color:#B4471F}
 
 /* ---------- forms ---------- */
 .field{margin-bottom:16px;max-width:460px}
-.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)}
-.field .hint{display:block;font-size:12.5px;color:var(--faint);font-weight:400;margin-top:2px}
+.field label{display:block;font-size:var(--t-xs);font-weight:600;margin-bottom:6px;color:var(--ink)}
+.field .hint{display:block;font-size:var(--t-xs);color:var(--faint);font-weight:400;margin-top:2px}
 .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-control);
-  padding:11px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
+  padding:11px 13px;font-size:var(--t-sm);font-family:inherit;color:var(--ink);background:#fff}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--p4);outline:none}
 /* Date, time and length belong on one line — they're one answer. */
 
 .yourline{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap}
 .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px}
 .choice{display:flex;padding:13px 15px;border:1px solid var(--line);border-radius:var(--r-control);
-  background:#fff;text-align:left;font-family:inherit;font-size:14.5px;color:var(--soft)}
-.choice b{display:block;color:var(--ink);font-weight:600;font-size:14.5px}
-.choice span span{display:block;font-size:12.5px;color:var(--faint)}
+  background:#fff;text-align:left;font-family:inherit;font-size:var(--t-sm);color:var(--soft)}
+.choice b{display:block;color:var(--ink);font-weight:600;font-size:var(--t-sm)}
+.choice span span{display:block;font-size:var(--t-xs);color:var(--faint)}
 .choice.sel{border-color:var(--p4);background:var(--p0)}
 /* The grid was stretching the full width of the card, which turned each
    cell into a wide thin bar that read as an empty text input. Capped so a
    cell is roughly square, tinted so it reads as a button, and ticked when
    pressed. Same shape as the one in signup, so the two agree. */
 .avail-grid{display:grid;grid-template-columns:46px repeat(4,minmax(0,1fr));
-  gap:6px;max-width:470px;font-size:12px}
-.avail-grid .hd{text-align:center;font-size:12px;font-weight:600;color:var(--ink);
+  gap:6px;max-width:470px;font-size:var(--t-xs)}
+.avail-grid .hd{text-align:center;font-size:var(--t-xs);font-weight:600;color:var(--ink);
   padding-bottom:2px;line-height:1.25}
-.avail-grid .hd b{display:block;font-family:var(--mono);font-size:10px;
+.avail-grid .hd b{display:block;font-family:var(--mono);font-size:var(--t-tiny);
   font-weight:400;color:var(--faint);letter-spacing:.02em}
-.avail-grid .day{align-self:center;font-size:12.5px;font-weight:600;color:var(--ink)}
+.avail-grid .day{align-self:center;font-size:var(--t-xs);font-weight:600;color:var(--ink)}
 .avail-grid button{position:relative;height:38px;border:1px solid var(--line);
   background:var(--band);border-radius:var(--r-control);padding:0;
   transition:background .12s,border-color .12s}
@@ -493,7 +552,7 @@ h1 .g{color:var(--p4)}
    styling instead of being picked up by .avail-grid button */
 .avail-any{margin:0 0 12px}
 
-.avail-count{font-size:13.5px;color:var(--faint);margin:12px 0 0}
+.avail-count{font-size:var(--t-xs);color:var(--faint);margin:12px 0 0}
 .avail-count.warn{color:#9A6410}
 .avail-count.good{color:var(--p8);font-weight:600}
 
@@ -511,9 +570,9 @@ h1 .g{color:var(--p4)}
   transform:rotate(-90deg);overflow:visible}
 .goal svg circle{fill:none;stroke-width:12;stroke-linecap:butt;stroke:#E2E4EE;
   transition:stroke .15s}
-.goal b{display:block;font-size:15px;font-weight:700;color:var(--ink);line-height:1.15;
+.goal b{display:block;font-size:var(--t-sm);font-weight:700;color:var(--ink);line-height:1.15;
   letter-spacing:-.01em}
-.goal i{display:block;font-style:normal;font-family:var(--mono);font-size:9px;
+.goal i{display:block;font-style:normal;font-family:var(--mono);font-size:var(--t-tiny);
   letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:3px}
 .goal.sel{background:var(--p0);border-color:var(--p4);
   box-shadow:0 1px 3px rgba(11,127,98,.14)}
@@ -521,7 +580,7 @@ h1 .g{color:var(--p4)}
 .goal.sel b{color:var(--p8)}
 .goal.sel i{color:var(--p6)}
 
-.goal-note{font-size:13.5px;color:var(--faint);margin:12px 0 0}
+.goal-note{font-size:var(--t-xs);color:var(--faint);margin:12px 0 0}
 
 /* ---------- badges ----------
    The drawing on the left, everything you read on the right, in three
@@ -531,21 +590,23 @@ h1 .g{color:var(--p4)}
    one column each, the names line up and the eye runs down them — and the
    borders come off, because the badges are the only shapes on this page that
    need to be shapes. */
-.badge-empty{font-size:14px;color:var(--faint);margin:0}
+.badge-empty{font-size:var(--t-sm);color:var(--faint);margin:0}
 
 /* The head: one title and the sentence that explains the page, which used to
-   be the last thing on it. 29px over 15px, with the second in the soft grey —
-   two sizes and two weights apart, where the old pair were 29 and 19, both
-   bold, both ink, four pixels apart. */
+   be the last thing on it. The page step over the small step, with the second
+   in the soft grey — two sizes and two weights apart, where the old pair were
+   29 and 19, both bold, both ink, four pixels apart. */
 .bhead{margin:0 0 24px}
 .bhead h1{margin:0}
-.bhead-l{margin:10px 0 0;font-size:15px;color:var(--soft);line-height:1.6;
+.bhead-l{margin:10px 0 0;font-size:var(--t-sm);color:var(--soft);line-height:1.6;
   max-width:68ch}
 
 /* The count. It is the answer to the question somebody opened this page with,
-   so it is the biggest thing on it after the title — the figure at 46px, the
-   total beside it at a third of the weight, and a bar giving the fraction a
-   shape you can read without doing the arithmetic. */
+   so it is the biggest thing on it after the title — the page's one big
+   figure, the total beside it at a third of the weight, and a bar giving the
+   fraction a shape you can read without doing the arithmetic. It was written
+   here as a flat 46px; it is --t-num-lg now, which is what "the one figure a
+   whole page is about" is called. */
 .bstat{display:flex;align-items:center;gap:26px;flex-wrap:wrap;
   /* Capped. Stretched to the full 1320px the bar became a hairline of green
      over a metre of empty track, which reads as "almost nothing" whatever the
@@ -557,19 +618,19 @@ h1 .g{color:var(--p4)}
   border:1px solid var(--line)}
 .bstat-n{display:flex;align-items:baseline;gap:6px;margin:0;flex:0 0 auto;
   font-variant-numeric:tabular-nums}
-.bstat-n b{font-size:46px;font-weight:800;letter-spacing:-.045em;line-height:1;
+.bstat-n b{font-size:var(--t-num-lg);font-weight:800;letter-spacing:-.045em;line-height:1;
   color:var(--p8)}
-.bstat-n i{font-style:normal;font-size:22px;font-weight:600;color:var(--faint);
+.bstat-n i{font-style:normal;font-size:var(--t-num-sm);font-weight:600;color:var(--faint);
   letter-spacing:-.02em}
 .bstat-r{flex:1 1 260px;min-width:0}
-.bstat-k{margin:0;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+.bstat-k{margin:0;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.12em;
   text-transform:uppercase;color:var(--faint)}
 .bstat-bar{height:7px;margin:10px 0 0;border-radius:var(--r-pill);background:#E4E6EE;
   overflow:hidden}
 .bstat-bar i{display:block;height:100%;border-radius:var(--r-pill);
   background:linear-gradient(90deg,var(--p4),var(--p6));
   transition:width .6s cubic-bezier(.2,.9,.3,1)}
-.bstat-next{margin:11px 0 0;font-size:13.5px;color:var(--soft)}
+.bstat-next{margin:11px 0 0;font-size:var(--t-xs);color:var(--soft)}
 .bstat-next b{color:var(--ink);font-weight:700}
 
 /* And a rule before the wall, so the two halves of the page are two halves. */
@@ -577,7 +638,7 @@ h1 .g{color:var(--p4)}
 
 @media (max-width:560px){
   .bstat{gap:16px;padding:18px 20px}
-  .bstat-n b{font-size:38px}
+  .bstat-n b{font-size:var(--t-num)}
 }
 
 /* Three across, stated rather than fitted. auto-fill was making four on
@@ -601,21 +662,21 @@ h1 .g{color:var(--p4)}
 .badge-tile .medal.grey img{filter:grayscale(1) opacity(.72)}
 
 .bdg-b{min-width:0;padding-top:2px}
-.badge-tile b{display:block;font-size:14px;font-weight:700;letter-spacing:-.01em;
+.badge-tile b{display:block;font-size:var(--t-sm);font-weight:700;letter-spacing:-.01em;
   line-height:1.3;color:var(--ink)}
 .badge-tile:not(.earned) b{color:var(--soft)}
 /* Scoped past the chip, which is also a <span>: as `.badge-tile span` this
    rule outweighed `.bdg-chip` on specificity and forced the chip to display
    block — so it stretched the full width of the column and its tick lost the
    gap next to the word. */
-.badge-tile .bdg-b > span:not(.bdg-chip){display:block;font-size:12.5px;
+.badge-tile .bdg-b > span:not(.bdg-chip){display:block;font-size:var(--t-xs);
   color:var(--faint);line-height:1.5;margin-top:3px}
 
 /* One chip, carrying the state. Tinted with the badge's own colour rather
    than a house green — twelve drawings in nine colours under twelve identical
    green chips would read as one badge repeated. */
 .bdg-chip{display:inline-flex;align-items:center;gap:4px;margin-top:9px;
-  padding:3px 9px;border-radius:var(--r-pill);font-size:11.5px;font-weight:600;
+  padding:3px 9px;border-radius:var(--r-pill);font-size:var(--t-xs);font-weight:600;
   line-height:1.45;letter-spacing:-.005em}
 .bdg-chip.on{color:var(--p8);background:var(--p0)}
 .bdg-chip svg{flex:0 0 auto}
@@ -652,10 +713,8 @@ h1 .g{color:var(--p4)}
   /* The countdown goes above the sentence rather than beside it — at this
      width a second column leaves the headline four words wide. */
   .now{grid-template-columns:1fr;gap:0;padding:22px}
-  .now h1{font-size:23px}
   .now-side{text-align:left;order:-1;margin-bottom:14px;
     display:flex;align-items:baseline;gap:9px}
-  .now-cd{font-size:26px}
   .now-cl{margin-top:0}
 }
 @media (max-width:640px){
@@ -664,13 +723,13 @@ h1 .g{color:var(--p4)}
   /* The tabs have wrapped to their own row, so nothing is left growing on the
      first one — without this the chip and the menu bunch up against the brand. */
   .firechip{margin-left:auto}
-  .tabs a{padding:7px 11px;font-size:14px}
+  .tabs a{padding:7px 11px;font-size:var(--t-sm)}
   .tabs a svg{display:none}
   .slot .when{width:100%}
   .avail-grid{grid-template-columns:36px repeat(4,minmax(0,1fr));gap:4px}
   .avail-grid button{height:42px}
-  .avail-grid .hd{font-size:11px}
-  .avail-grid .hd b{font-size:9px}
+  .avail-grid .hd{font-size:var(--t-tiny)}
+  .avail-grid .hd b{font-size:var(--t-tiny)}
 }
 /* The band's buttons name things that sit further down this same page, so
    they are anchors rather than links to another page. Two things that needs:
@@ -702,12 +761,12 @@ html{scroll-behavior:smooth}
 .um-menu{position:absolute;top:46px;right:0;width:248px;background:#fff;border:1px solid var(--border);
   border-radius:var(--r-control);box-shadow:0 12px 34px rgba(23,26,46,.13);z-index:80;overflow:hidden;padding:6px}
 .um-head{padding:11px 12px 12px;border-bottom:1px solid var(--border);margin:-6px -6px 6px}
-.um-name{display:block;font-size:14.5px;font-weight:700;color:var(--ink);
+.um-name{display:block;font-size:var(--t-sm);font-weight:700;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.um-mail{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;
+.um-mail{display:block;font-size:var(--t-xs);color:var(--muted);margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .um-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:var(--r-control);
-  font-size:14.5px;color:var(--text);background:none;border:0;cursor:pointer;font-family:inherit;
+  font-size:var(--t-sm);color:var(--text);background:none;border:0;cursor:pointer;font-family:inherit;
   text-align:left;transition:background .12s,color .12s}
 .um-item svg{flex:none;color:var(--muted)}
 .um-item:hover{background:var(--band);color:var(--ink)}
@@ -725,24 +784,24 @@ html{scroll-behavior:smooth}
 .bell:hover{background:var(--band);border-color:var(--border);color:var(--ink)}
 .bell.has-unread{color:var(--green-dark)}
 .bell .badge{position:absolute;top:-3px;right:-4px;min-width:15px;height:15px;padding:0 3px;border-radius:var(--r-pill);
-  background:#c0392b;color:#fff;font-size:10.5px;font-weight:700;line-height:15px;text-align:center;
+  background:#c0392b;color:#fff;font-size:var(--t-tiny);font-weight:700;line-height:15px;text-align:center;
   border:2px solid #fff;box-sizing:content-box}
 
 .bell-panel{position:absolute;top:46px;right:0;width:340px;max-width:calc(100vw - 32px);background:#fff;
   border:1px solid var(--border);border-radius:var(--r-control);box-shadow:0 12px 34px rgba(23,26,46,.13);z-index:80;overflow:hidden}
-.bell-head{padding:13px 16px;font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+.bell-head{padding:13px 16px;font-size:var(--t-xs);font-weight:700;letter-spacing:.5px;text-transform:uppercase;
   color:var(--muted);border-bottom:1px solid var(--border)}
 .bell-list{max-height:min(420px,60vh);overflow-y:auto}
-.bell-empty{padding:22px 16px;font-size:13.5px;color:var(--muted);text-align:center;line-height:1.55}
-.bell-item{padding:14px 16px;border-bottom:1px solid var(--border);font-size:14px}
+.bell-empty{padding:22px 16px;font-size:var(--t-xs);color:var(--muted);text-align:center;line-height:1.55}
+.bell-item{padding:14px 16px;border-bottom:1px solid var(--border);font-size:var(--t-sm)}
 .bell-item:last-child{border-bottom:0}
 .bell-item.fresh{background:var(--green-tint)}
 .bell-item p{margin:0;color:var(--text)}
 .bell-item b{color:var(--ink)}
-.bell-msg{margin-top:5px!important;color:var(--muted);font-style:italic;font-size:13.5px}
-.bell-time{margin-top:5px!important;font-size:12px;color:var(--muted)}
+.bell-msg{margin-top:5px!important;color:var(--muted);font-style:italic;font-size:var(--t-xs)}
+.bell-time{margin-top:5px!important;font-size:var(--t-xs);color:var(--muted)}
 .bell-actions{display:flex;gap:8px;margin-top:11px}
-.bell-actions .btn{padding:7px 14px;font-size:13.5px}
+.bell-actions .btn{padding:7px 14px;font-size:var(--t-xs)}
 
 @media (max-width:560px){
   .bell-panel{right:-70px;width:300px}
@@ -762,13 +821,13 @@ html{scroll-behavior:smooth}
 /* A subtitle belongs under the heading it explains, not opposite it. The row
    layout above is for a heading and a date, which are peers; a lede is not. */
 .app-head .lede{flex:1 0 100%;margin:3px 0 0}
-.app-head .date{font-family:var(--mono);font-size:11px;color:var(--faint);
+.app-head .date{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint);
   text-transform:uppercase;letter-spacing:.06em}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   padding:20px 22px;margin-bottom:16px}
-.card h2{font-size:18px;font-weight:700;letter-spacing:-.015em;margin:0 0 8px}
-.card h3{font-size:15.5px;font-weight:600;letter-spacing:-.01em;margin:0 0 8px}
-.card p{font-size:14.5px;color:var(--soft);margin:0 0 4px}
+.card h2{margin:0 0 8px}
+.card h3{margin:0 0 8px}
+.card p{font-size:var(--t-sm);color:var(--soft);margin:0 0 4px}
 .card .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 /* No .btn.primary / .btn.ghost rules here on purpose. These sat further
    down the file than the button block and quietly flattened it back to a
@@ -777,15 +836,15 @@ html{scroll-behavior:smooth}
    resolves correctly on its own, because .ghost is declared after .btn and
    restates background, colour and shadow. */
 .signedout-note{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:var(--r-card);
-  padding:16px 18px;font-size:14.5px;color:#7A4A12;margin:0 0 16px}
+  padding:16px 18px;font-size:var(--t-sm);color:#7A4A12;margin:0 0 16px}
 .signedout-note a{border-bottom:1px solid #D9B98B;font-weight:600}
 .form-note.ok{color:var(--p8)}
 .form-note.bad{color:#B4471F}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:14px 16px}
-.stat b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em}
-.stat span{display:block;font-family:var(--mono);font-size:10px;color:var(--faint);
+.stat b{display:block;font-size:var(--t-num-sm);font-weight:700;letter-spacing:-.02em}
+.stat span{display:block;font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint);
   text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
-.step-err{color:#B4471F;font-size:13.5px}
+.step-err{color:#B4471F;font-size:var(--t-xs)}
 
 /* ------------------------------------------------------------
    The rest of the shim, which was never finished.
@@ -809,14 +868,14 @@ html{scroll-behavior:smooth}
 
 /* A section heading inside a card — smaller than the card's own title,
    and spaced so a long form reads as parts rather than one wall. */
-.mini-h{font-size:13px;font-weight:700;letter-spacing:-.005em;color:var(--ink);
+.mini-h{font-size:var(--t-xs);font-weight:700;letter-spacing:-.005em;color:var(--ink);
   margin:24px 0 10px}
 .mini-h:first-child{margin-top:0}
 
 /* Facts you can read but not edit: label left, value right, ruled between.
    A <dl> with no styling indents every value under its own term, which is
    how this page came to look like a directory listing. */
-.kv{display:grid;grid-template-columns:auto minmax(0,1fr);margin:0;font-size:14px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);margin:0;font-size:var(--t-sm)}
 .kv dt{padding:10px 14px 10px 0;color:var(--faint);border-top:1px solid var(--line)}
 .kv dd{padding:10px 0;margin:0;color:var(--ink);font-weight:600;text-align:right;
   border-top:1px solid var(--line);word-break:break-word}
@@ -827,7 +886,7 @@ html{scroll-behavior:smooth}
 .pw-wrap input{padding-right:72px}
 .pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);
   padding:6px 10px;border:0;border-radius:var(--r-control);background:var(--band);
-  font-family:inherit;font-size:12px;font-weight:700;color:var(--p6);
+  font-family:inherit;font-size:var(--t-xs);font-weight:700;color:var(--p6);
   cursor:pointer;transition:background .15s}
 .pw-toggle:hover{background:var(--p0)}
 
@@ -838,9 +897,9 @@ html{scroll-behavior:smooth}
    stretched over 1300px reads as a page that failed to load its other half. */
 .next-card,#queue-card{max-width:640px}
 .next-card{text-align:left}
-.when-big{font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+.when-big{font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.08em;
   text-transform:uppercase;color:var(--faint);margin-bottom:8px}
-.queue-note{font-size:13.5px;color:var(--faint);margin:14px 0 0;line-height:1.55}
+.queue-note{font-size:var(--t-xs);color:var(--faint);margin:14px 0 0;line-height:1.55}
 
 /* The pair's record, in the side column. Stacked rather than in a row: this
    column is a third of the page, and three figures side by side in it were
@@ -850,18 +909,18 @@ html{scroll-behavior:smooth}
   gap:14px;padding:11px 0;margin:0;text-align:left;
   border-left:0;border-top:1px solid var(--line)}
 .figs.stack > div:first-child{border-top:0;padding-top:2px}
-.figs.stack dd{margin:0;font-size:17px}
-.ph-note{font-size:13px;color:var(--faint);margin:14px 0 0;line-height:1.5}
+.figs.stack dd{margin:0;font-size:var(--t-card)}
+.ph-note{font-size:var(--t-xs);color:var(--faint);margin:14px 0 0;line-height:1.5}
 
 /* Sessions together: the date is the point. */
 .ph{list-style:none;margin:0;padding:0}
 .ph li{display:flex;align-items:baseline;gap:14px;padding:11px 0;
-  border-top:1px solid var(--line);font-size:14px}
+  border-top:1px solid var(--line);font-size:var(--t-sm)}
 .ph li:first-child{border-top:0;padding-top:2px}
 .ph-d{font-weight:600;color:var(--ink);min-width:112px}
-.ph-t{font-family:var(--mono);font-size:12.5px;color:var(--soft)}
-.ph-l{margin-left:auto;font-size:12.5px;color:var(--faint)}
-.ph-more{font-size:13px;color:var(--faint);margin:13px 0 0}
+.ph-t{font-family:var(--mono);font-size:var(--t-xs);color:var(--soft)}
+.ph-l{margin-left:auto;font-size:var(--t-xs);color:var(--faint)}
+.ph-more{font-size:var(--t-xs);color:var(--faint);margin:13px 0 0}
 
 @media (max-width:900px){
   .app-grid{grid-template-columns:1fr}
@@ -882,11 +941,11 @@ html{scroll-behavior:smooth}
 
 .um-face,.um-bigface{display:flex;align-items:center;justify-content:center;
   border-radius:50%;overflow:hidden;flex:0 0 auto;font-weight:700}
-.um-face{width:30px;height:30px;font-size:12.5px}
-.um-bigface{width:38px;height:38px;font-size:15px}
+.um-face{width:30px;height:30px;font-size:var(--t-xs)}
+.um-bigface{width:38px;height:38px;font-size:var(--t-sm)}
 .um-face img,.um-bigface img{width:100%;height:100%;object-fit:cover;display:block}
 
-.um-label{font-size:13.5px;font-weight:600;color:var(--ink);max-width:130px;
+.um-label{font-size:var(--t-xs);font-weight:600;color:var(--ink);max-width:130px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .um-chev{color:var(--faint);flex:0 0 auto;transition:transform .15s}
 
@@ -906,11 +965,11 @@ html{scroll-behavior:smooth}
 /* ---------- people page ---------- */
 .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
   gap:12px;max-width:440px;margin:0 0 18px}
-.empty-hint{font-size:14.5px;color:var(--soft);margin:0 0 20px;max-width:66ch;
+.empty-hint{font-size:var(--t-sm);color:var(--soft);margin:0 0 20px;max-width:66ch;
   line-height:1.6}
 /* Figures ranged alongside a page title: smaller than the ones heading the
    record on Progress, because here they are context rather than the subject. */
-.app-head .figs dd{font-size:19px}
+.app-head .figs dd{font-size:var(--t-num-sm)}
 .app-head .figs > div{padding-top:0;padding-bottom:0}
 
 /* The row's right-hand slot. The action and the four states are built to one
@@ -919,7 +978,7 @@ html{scroll-behavior:smooth}
 .askbtn,.pstate{
   align-self:center;flex:0 0 auto;height:36px;border-radius:var(--r-control);
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
-  padding:0 16px;font-family:var(--body);font-size:13px;font-weight:600;
+  padding:0 16px;font-family:var(--body);font-size:var(--t-xs);font-weight:600;
   letter-spacing:-.005em;white-space:nowrap;
 }
 .askbtn svg,.pstate svg{width:14px;height:14px;flex:0 0 auto}
@@ -943,7 +1002,7 @@ html{scroll-behavior:smooth}
 .pstate.wait{background:#FFF6E8;border-color:#F0DCC2;color:#8A5A12}
 .pstate.no{color:var(--faint)}
 
-.slot-err{flex:1 0 100%;margin:8px 0 0;font-size:13px;color:#B4471F}
+.slot-err{flex:1 0 100%;margin:8px 0 0;font-size:var(--t-xs);color:#B4471F}
 
 /* ---------- proposing a time ----------
    The form is a sentence. Every green word opens a menu, so the card says
@@ -961,15 +1020,15 @@ html{scroll-behavior:smooth}
 .bookp{margin-top:16px;border-color:var(--p2);
   box-shadow:0 8px 24px -18px rgba(8,80,65,.5)}
 .bookp-h{display:flex;align-items:baseline;gap:11px;margin-bottom:14px;flex-wrap:wrap}
-.bookp-h h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.02em;flex:1}
+.bookp-h h2{margin:0;flex:1}
 .bookp-h .mono{color:var(--p6)}
 .bookp-h .small{flex:0 0 auto;align-self:center}
 
-#bk-sent{margin:0;font-size:19px;line-height:1.95;font-weight:500;
+#bk-sent{margin:0;font-size:var(--t-card);line-height:1.95;font-weight:500;
   color:var(--soft);letter-spacing:-.012em}
 #bk-sent .pick{position:relative;display:inline-block}
 #bk-sent .trig{position:relative;display:inline-block;border:0;background:none;cursor:pointer;
-  font-family:var(--body);font-size:19px;font-weight:800;color:var(--p6);
+  font-family:var(--body);font-size:var(--t-card);font-weight:800;color:var(--p6);
   letter-spacing:-.018em;border-radius:0;padding:0 16px 2px 0;
   border-bottom:2px solid var(--p1);transition:color .13s,border-color .13s}
 #bk-sent .trig::after{content:"";position:absolute;top:50%;right:3px;width:7px;height:7px;
@@ -981,10 +1040,10 @@ html{scroll-behavior:smooth}
 /* One partner isn't a choice, so their name is a word rather than a control. */
 #bk-sent .v.flat{font-weight:800;color:var(--ink);letter-spacing:-.018em}
 
-.bk-line{margin:8px 0 0;font-size:13.5px;color:var(--faint)}
+.bk-line{margin:8px 0 0;font-size:var(--t-xs);color:var(--faint)}
 .bk-line.warn{color:#8A5A12}
-.bk-hint{font-size:13px;color:var(--faint)}
-.bk-status{margin:10px 0 0;font-size:13.5px;color:var(--muted)}
+.bk-hint{font-size:var(--t-xs);color:var(--faint)}
+.bk-status{margin:10px 0 0;font-size:var(--t-xs);color:var(--muted)}
 .bk-status:empty{margin:0}
 
 /* The menu. The app's own, not the operating system's grey list. */
@@ -997,25 +1056,25 @@ html{scroll-behavior:smooth}
 #bk-sent .pop.times{min-width:274px}
 @keyframes popin{from{opacity:0;transform:translateY(-5px) scale(.985)}}
 
-#bk-sent .pop-h{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;
+#bk-sent .pop-h{font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.09em;text-transform:uppercase;
   color:var(--faint);padding:8px 11px 5px}
 #bk-sent .pop-sep{height:1px;background:var(--line);margin:5px}
 #bk-sent .opt{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;
-  padding:8px 11px;border-radius:var(--r-control);font-family:var(--body);font-size:14px;font-weight:600;
+  padding:8px 11px;border-radius:var(--r-control);font-family:var(--body);font-size:var(--t-sm);font-weight:600;
   color:var(--ink);text-align:left;cursor:pointer;line-height:1.25}
 #bk-sent .opt:hover{background:var(--band)}
 #bk-sent .opt.on{background:var(--p0);color:var(--p8)}
-#bk-sent .opt .r{margin-left:auto;font-weight:400;font-size:12.5px;color:var(--faint);white-space:nowrap}
+#bk-sent .opt .r{margin-left:auto;font-weight:400;font-size:var(--t-xs);color:var(--faint);white-space:nowrap}
 #bk-sent .opt.on .r{color:var(--p6)}
-#bk-sent .opt em{display:block;font-style:normal;font-weight:400;font-size:12px;
+#bk-sent .opt em{display:block;font-style:normal;font-weight:400;font-size:var(--t-xs);
   color:var(--faint);margin-top:1px}
 #bk-sent .opt.on em{color:var(--p6)}
 #bk-sent .opt .av{width:22px;height:22px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
-  background:var(--p1);color:var(--p8);font-size:10.5px;font-weight:800}
+  background:var(--p1);color:var(--p8);font-size:var(--t-tiny);font-weight:800}
 
 #bk-sent .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:1px 5px 5px}
 #bk-sent .tgrid button{border:0;background:var(--band);border-radius:var(--r-control);padding:8px 3px;white-space:nowrap;
-  font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
+  font-family:var(--body);font-size:var(--t-xs);font-weight:600;color:var(--ink);cursor:pointer}
 #bk-sent .tgrid button:hover{background:#E9E9EF}
 #bk-sent .tgrid button.on{background:var(--p8);color:#fff}
 /* "Now" takes the whole row. It is one option rather than one of a set of
@@ -1037,13 +1096,14 @@ html{scroll-behavior:smooth}
 /* A day nobody listed. Reachable, but past the days that were. */
 #bk-sent .pop-any{display:flex;gap:6px;padding:4px 6px 5px}
 #bk-sent .pop-any input{flex:1 1 auto;min-width:0;border:1px solid var(--line);border-radius:var(--r-control);
-  padding:7px 9px;font-family:var(--body);font-size:12.5px;color:var(--ink);background:var(--card)}
+  padding:7px 9px;font-family:var(--body);font-size:var(--t-xs);color:var(--ink);background:var(--card)}
 #bk-sent .pop-any input:focus{border-color:var(--p4);outline:none}
 
-/* A phone can't hold the sentence on one line, and at 19px it wrapped into
-   four. Menus stop trying to hit a minimum width they haven't got. */
+/* A phone can't hold the sentence on one line. This block used to shrink it
+   from 19px to 17px here as well; the sentence is on the card step now, which
+   is 17px everywhere, so there is nothing left to shrink and only the menus
+   remain — they stop trying to hit a minimum width they haven't got. */
 @media (max-width:560px){
-  #bk-sent,#bk-sent .trig{font-size:17px}
   #bk-sent .pop,#bk-sent .pop.times{min-width:0;width:max-content;max-width:min(320px,78vw)}
 }
 
@@ -1068,15 +1128,15 @@ html{scroll-behavior:smooth}
   font-size:23px;font-weight:700;background:var(--p0);color:var(--p8)}
 
 .pcard-main{flex:1 1 260px;min-width:0}
-.pcard-nm{margin:0;font-size:18px;font-weight:800;letter-spacing:-.02em}
-.pcard-tp{margin:3px 0 0;font-size:14.5px;color:var(--soft)}
+.pcard-nm{margin:0;font-size:var(--t-card);font-weight:800;letter-spacing:-.02em}
+.pcard-tp{margin:3px 0 0;font-size:var(--t-sm);color:var(--soft)}
 
 /* Facts as chips rather than a labelled table. Three of them fit on one line,
    they wrap by themselves on a phone, and none of them needs a heading to say
    what it is — "Tashkent, UTC+5" is already the label. */
 .pcard-chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
 .pchip{display:inline-flex;align-items:center;gap:6px;
-  padding:6px 12px;border-radius:var(--r-pill);font-size:13px;font-weight:600;
+  padding:6px 12px;border-radius:var(--r-pill);font-size:var(--t-xs);font-weight:600;
   background:var(--band);color:var(--soft)}
 .pchip svg{flex:0 0 auto;opacity:.75}
 /* The one chip that is a fact about the two of you, rather than about them. */
@@ -1099,7 +1159,7 @@ html{scroll-behavior:smooth}
   border:1px solid var(--line);border-radius:var(--r-control);
   box-shadow:0 10px 28px rgba(23,26,46,.14)}
 .pmenu-pop a{display:block;padding:9px 12px;border-radius:var(--r-control);
-  font-size:14px;color:var(--ink)}
+  font-size:var(--t-sm);color:var(--ink)}
 .pmenu-pop a:hover{background:var(--band)}
 
 @media (max-width:760px){
@@ -1128,18 +1188,18 @@ html{scroll-behavior:smooth}
 .how-steps li:first-child{border-top:0;padding-top:0}
 .how-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-size:12px;font-weight:700;
+  font-family:var(--mono);font-size:var(--t-xs);font-weight:700;
   background:var(--p0);color:var(--p8)}
-.how-steps b{display:block;font-size:14.5px;font-weight:700}
-.how-steps p{margin:2px 0 0;font-size:13.5px;color:var(--soft);line-height:1.5}
+.how-steps b{display:block;font-size:var(--t-sm);font-weight:700}
+.how-steps p{margin:2px 0 0;font-size:var(--t-xs);color:var(--soft);line-height:1.5}
 
 /* The one card on the page that is an invitation rather than a record, so it
    is the one card that is not white. */
 .find-card{border-radius:var(--r-card);padding:26px 28px;color:#fff;
   background:linear-gradient(160deg,var(--p6),var(--p8));
   display:flex;flex-direction:column;align-items:flex-start}
-.find-card h3{margin:0;color:#fff;font-size:19px}
-.find-card p{margin:8px 0 0;color:rgba(255,255,255,.82);font-size:14.5px;line-height:1.55}
+.find-card h3{margin:0;color:#fff;font-size:var(--t-card)}
+.find-card p{margin:8px 0 0;color:rgba(255,255,255,.82);font-size:var(--t-sm);line-height:1.55}
 .btn.on-dark{display:inline-flex;align-items:center;gap:8px;margin-top:20px;
   background:#fff;color:var(--p8);font-weight:700;
   box-shadow:0 1px 2px rgba(0,0,0,.16)}
@@ -1156,15 +1216,15 @@ html{scroll-behavior:smooth}
    confirmed session does — it sits quietly until somebody answers it. */
 .prop{border-top:1px dashed var(--line);padding:15px 0}
 .prop:first-child{border-top:0;padding-top:2px}
-.prop-h{margin:0;font-size:14.5px;color:var(--soft)}
+.prop-h{margin:0;font-size:var(--t-sm);color:var(--soft)}
 .prop-h b{color:var(--ink);font-weight:700}
-.prop-m{margin:3px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+.prop-m{margin:3px 0 0;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.04em;
   text-transform:uppercase;color:var(--faint)}
-.prop-note{margin:8px 0 0;font-size:14px;color:var(--soft);
+.prop-note{margin:8px 0 0;font-size:var(--t-sm);color:var(--soft);
   border-left:2px solid var(--line);padding-left:11px}
 .prop-acts{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:13px}
-.prop-wait{font-size:13px;color:var(--faint)}
-.prop-err{margin:9px 0 0;font-size:13px;color:#B4471F}
+.prop-wait{font-size:var(--t-xs);color:var(--faint)}
+.prop-err{margin:9px 0 0;font-size:var(--t-xs);color:#B4471F}
 
 /* A turned-down time isn't an error, it's an answer — warm rather than red,
    and it keeps a button because the useful next move is another time. */
@@ -1175,13 +1235,13 @@ html{scroll-behavior:smooth}
 
 /* Choosing a time your partner never said they were free in is allowed, so
    this is a warning colour, not an error one. */
-.bk-warn{margin:14px 0 0;font-size:13.5px;color:#8A5A12;
+.bk-warn{margin:14px 0 0;font-size:var(--t-xs);color:#8A5A12;
   background:#FFF6E8;border:1px solid #F0DCC2;border-radius:var(--r-control);padding:9px 12px}
 
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 /* Same rounded rectangle as every other button in the app, not a capsule. */
 .chip{border:1px solid var(--line);background:var(--card);border-radius:var(--r-control);
-  padding:8px 14px;font-family:var(--body);font-size:13px;font-weight:600;
+  padding:8px 14px;font-family:var(--body);font-size:var(--t-xs);font-weight:600;
   color:var(--soft);cursor:pointer;
   transition:border-color .15s,background .15s,color .15s}
 .chip:hover{border-color:var(--p2);color:var(--ink)}
@@ -1193,17 +1253,17 @@ html{scroll-behavior:smooth}
    comparing; this page does the comparing and shows its working. */
 .top-pick{background:var(--card);border:1px solid var(--p2);border-radius:var(--r-card);
   padding:24px 26px;margin:0 0 16px;box-shadow:0 2px 10px rgba(8,80,65,.07)}
-.tp-tag{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;
+.tp-tag{font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.07em;text-transform:uppercase;
   color:var(--p6);margin:0 0 12px}
 .tp-top{display:flex;gap:16px;align-items:center}
 .tp-av{width:58px;height:58px;border-radius:var(--r-card);display:flex;align-items:center;
   justify-content:center;font-weight:700;font-size:20px;flex:0 0 auto}
-.tp-nm{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em}
-.tp-sub{margin:2px 0 0;font-size:15px;color:var(--soft)}
+.tp-nm{margin:0;font-size:var(--t-card);font-weight:800;letter-spacing:-.02em}
+.tp-sub{margin:2px 0 0;font-size:var(--t-sm);color:var(--soft)}
 .tp-facts{display:flex;gap:22px;flex-wrap:wrap;margin:18px 0 0;padding-top:16px;
   border-top:1px solid var(--line)}
-.tp-fact b{display:block;font-size:14.5px;font-weight:700}
-.tp-fact span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+.tp-fact b{display:block;font-size:var(--t-sm);font-weight:700}
+.tp-fact span{display:block;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.06em;
   text-transform:uppercase;color:var(--faint);margin-top:2px}
 /* A row with a gap, rather than two inline-blocks relying on whatever
    whitespace sits between them — and the markup concatenates them with none,
@@ -1220,7 +1280,7 @@ html{scroll-behavior:smooth}
 .ptable.no-times .pt-hd,.ptable.no-times .pt-row{
   grid-template-columns:minmax(0,1.5fr) minmax(0,1.2fr) 152px}
 .pt-hd{background:#FBFBFC;border-bottom:1px solid var(--line);font-family:var(--mono);
-  font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  font-size:var(--t-tiny);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
 .pt-row{border-top:1px solid var(--line)}
 /* the header already draws a bottom border; :first-of-type would match the
    header itself, not the first row, and leave the two stacked */
@@ -1237,16 +1297,16 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .pt-nm-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   color:var(--ink)}
 .pt-av{width:34px;height:34px;border-radius:var(--r-control);display:flex;align-items:center;
-  justify-content:center;font-weight:700;font-size:13px;flex:0 0 auto}
+  justify-content:center;font-weight:700;font-size:var(--t-xs);flex:0 0 auto}
 /* The tag is a separate flex item so a long name eats its own ellipsis
    instead of chopping "same topic" down to "s…". */
 .pt-nm{display:flex;align-items:center;gap:6px;min-width:0;
-  font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+  font-size:var(--t-sm);font-weight:700;letter-spacing:-.01em}
 .pt-nm .who{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pt-nm .same-tag{margin-left:0;flex:0 0 auto}
-.pt-sub{font-size:12px;color:var(--faint);
+.pt-sub{font-size:var(--t-xs);color:var(--faint);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pt-tp{font-size:14px;color:var(--soft);
+.pt-tp{font-size:var(--t-sm);color:var(--soft);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pt-row .overlap{margin-top:0;white-space:nowrap}
 /* the ask box drops onto a line of its own rather than becoming a column */
@@ -1270,7 +1330,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .same-tag.alt{background:#EEEDFE;color:#3C3489}
 
 /* The one fact that decides whether a partnership can physically happen. */
-.overlap{display:inline-block;margin-top:5px;font-family:var(--mono);font-size:10.5px;
+.overlap{display:inline-block;margin-top:5px;font-family:var(--mono);font-size:var(--t-tiny);
   letter-spacing:.04em;text-transform:uppercase}
 .overlap.ok{color:var(--p8)}
 .overlap.none{color:#9A6410}
@@ -1278,10 +1338,10 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .askbox{flex:1 0 100%;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
   margin-top:10px;padding-top:12px;border-top:1px dashed var(--line)}
 .askbox input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:var(--r-control);
-  padding:9px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
+  padding:9px 12px;font-size:var(--t-sm);font-family:inherit;color:var(--ink);background:#fff}
 .askbox input:focus{border-color:var(--p4);outline:none}
-.askbox .btn{padding:9px 16px;font-size:13.5px}
-.ask-err{flex:1 0 100%;margin:2px 0 0;font-size:13px;color:#B4471F}
+.askbox .btn{padding:9px 16px;font-size:var(--t-xs)}
+.ask-err{flex:1 0 100%;margin:2px 0 0;font-size:var(--t-xs);color:#B4471F}
 
 /* ============================================================
    CALENDAR AND PLAN
@@ -1313,7 +1373,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   color:var(--soft);display:flex;align-items:center;justify-content:center;
   font-size:20px;line-height:1;padding:0}
 .cal-step:hover{background:var(--band);color:var(--ink)}
-.cal-range{font-size:16px;font-weight:500;letter-spacing:-.01em;padding:0 12px;white-space:nowrap}
+.cal-range{font-size:var(--t-body);font-weight:500;letter-spacing:-.01em;padding:0 12px;white-space:nowrap}
 
 /* Scrolls in both directions. Horizontally because seven columns do not fit a
    phone, and vertically because the hour window runs from your earliest free
@@ -1353,7 +1413,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .cal-corner{background:#FAFAFB;border-bottom:1px solid var(--line)}
 .cal-day{padding:10px 6px 11px;text-align:center;background:#FAFAFB;
   border-bottom:1px solid var(--line);border-left:1px solid #EFEFF3}
-.cal-day span{display:block;font-family:var(--body);font-size:13.5px;font-weight:400;
+.cal-day span{display:block;font-family:var(--body);font-size:var(--t-xs);font-weight:400;
   letter-spacing:0;text-transform:none;color:var(--faint)}
 .cal-day b{display:block;margin:3px auto 0;font-size:18px;font-weight:700;
   letter-spacing:-.02em;color:var(--ink);line-height:27px;
@@ -1368,7 +1428,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 /* ---------- the body ---------- */
 /* The hour sits at the top of its row, in the margin rather than in a tinted
    gutter — the number labels the line it is next to. */
-.cal-h{padding:9px 10px 0;text-align:right;font-family:var(--body);font-size:13px;
+.cal-h{padding:9px 10px 0;text-align:right;font-family:var(--body);font-size:var(--t-xs);
   line-height:1;color:var(--faint);white-space:nowrap;background:#FAFAFB;
   border-top:1px solid #F2F2F5}
 
@@ -1420,9 +1480,9 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    week grid; the full title is on the session row above the calendar. */
 /* 600, not 700. At bold the block titles were the loudest type on the page,
    competing with the date row above them. */
-.cal-ev b{display:block;font-size:13px;font-weight:600;letter-spacing:-.01em;
+.cal-ev b{display:block;font-size:var(--t-xs);font-weight:600;letter-spacing:-.01em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal-ev i{display:block;font-style:normal;font-size:12px;font-weight:400;margin-top:2px;
+.cal-ev i{display:block;font-style:normal;font-size:var(--t-xs);font-weight:400;margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Two hues that mean something rather than just telling blocks apart: green
    is agreed, indigo is still a question. The indigo is the purple the avatars
@@ -1436,20 +1496,20 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .cal-ev.done i{color:var(--faint)}
 
 .cal-key{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:13px;
-  font-size:12.5px;color:var(--soft)}
+  font-size:var(--t-xs);color:var(--soft)}
 .cal-key i{display:inline-block;width:13px;height:13px;border-radius:0 4px 4px 0;
   margin-right:7px;vertical-align:-2px}
 .cal-key .k1 i{background:#EAF7F0;box-shadow:inset 4px 0 0 var(--p6)}
 .cal-key .k2 i{background:#EEEDFB;box-shadow:inset 4px 0 0 #6A61C9}
 .cal-key .k3 i{background:#F5FBF8;border:1px solid #DBEDE5;border-radius:var(--r-mark)}
-.cal-empty{margin:12px 0 0;font-size:13px;color:var(--soft)}
+.cal-empty{margin:12px 0 0;font-size:var(--t-xs);color:var(--soft)}
 
 /* At 320 the week nav wanted 252px in a 212px card and pushed the page five
    pixels wide. Below 420 it drops to its own line and spreads across it. */
 @media (max-width:420px){
   .cal-head{gap:10px}
   .cal-nav{margin-left:0;width:100%;justify-content:space-between}
-  .cal-range{font-size:15px;padding:0 2px;flex:1;text-align:center}
+  .cal-range{font-size:var(--t-sm);padding:0 2px;flex:1;text-align:center}
   /* A seven-day grid cannot fit a phone, so the goal is to show as much of it
      as possible and make the rest obviously reachable. Tighter columns get
      four days on screen instead of two and a half; the fade on the right edge
@@ -1459,13 +1519,13 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   .cal-grid{grid-template-columns:40px repeat(7,minmax(84px,1fr));min-width:628px}
   .cal-day{padding:10px 4px 11px}
   .cal-day b{font-size:17px}
-  .cal-day span{font-size:12px}
-  .cal-h{font-size:11.5px;padding:7px 7px 0}
+  .cal-day span{font-size:var(--t-xs)}
+  .cal-h{font-size:var(--t-xs);padding:7px 7px 0}
   .cal-cell{min-height:56px}
   .cal-scroll{max-height:calc(56px * 6 + 56px)}
   .cal-ev{left:3px;right:3px;top:3px;height:46px;padding:6px 9px;border-radius:var(--r-control)}
-  .cal-ev b{font-size:13px}
-  .cal-ev i{font-size:12.5px;margin-top:2px}
+  .cal-ev b{font-size:var(--t-xs)}
+  .cal-ev i{font-size:var(--t-xs);margin-top:2px}
   /* A gradient overlay was the obvious way to hint at the rest of the week,
      but the cells paint their own backgrounds over the container, and a
      sticky pseudo-element inside a scroller resolves to zero height. Show the
@@ -1486,10 +1546,10 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .plan-row.now .plan-t{font-weight:700}
 /* Where the material comes from. This column is the whole idea: PeerFlow
    holds the order, somebody else holds the lesson. */
-.plan-src{font-size:12px;color:var(--p6);font-weight:600;flex:0 0 auto}
+.plan-src{font-size:var(--t-xs);color:var(--p6);font-weight:600;flex:0 0 auto}
 
 @media (max-width:560px){
-  .cal-range{font-size:13.5px}
+  .cal-range{font-size:var(--t-xs)}
 }
 
 /* ============================================================
@@ -1501,8 +1561,8 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    ============================================================ */
 .pt-sec{margin-top:22px;padding:22px 24px;background:var(--card);
   border:1px solid var(--line);border-radius:var(--r-card)}
-.pt-sec h3{font-size:15px;margin:0 0 4px}
-.pt-sec .lede{color:var(--soft);font-size:13.5px;margin:0 0 16px}
+.pt-sec h3{font-size:var(--t-sm);margin:0 0 4px}
+.pt-sec .lede{color:var(--soft);font-size:var(--t-xs);margin:0 0 16px}
 /* ---------- the record, at the top of Progress ----------
    It used to be five figures on one line, all the same size, one of them a
    permanent em-dash and one of them "0.8". A row of numbers with no hierarchy
@@ -1530,9 +1590,9 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   background:radial-gradient(circle,rgba(29,158,117,.16) 0%,rgba(29,158,117,0) 68%)}
 
 .st-mid{position:absolute;inset:0;display:grid;place-content:center;gap:0;line-height:1}
-.st-mid b{display:block;font-size:42px;font-weight:800;letter-spacing:-.045em;
+.st-mid b{display:block;font-size:var(--t-num-lg);font-weight:800;letter-spacing:-.045em;
   color:var(--ink);font-variant-numeric:tabular-nums}
-.st-mid i{display:block;font-style:normal;font-family:var(--mono);font-size:8.5px;
+.st-mid i{display:block;font-style:normal;font-family:var(--mono);font-size:var(--t-tiny);
   letter-spacing:.11em;text-transform:uppercase;color:var(--faint);margin-top:7px}
 .st-ring.met .st-mid b{color:var(--p8)}
 
@@ -1558,8 +1618,8 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    rather than leaving half the card empty. */
 .rec-side{min-width:0;flex:1 1 240px}
 
-.rec-h{margin:0;font-size:23px;font-weight:800;letter-spacing:-.03em;line-height:1.15}
-.rec-s{margin:8px 0 0;font-size:13.5px;color:var(--soft);line-height:1.5}
+.rec-h{margin:0;font-size:var(--t-card);font-weight:800;letter-spacing:-.03em;line-height:1.15}
+.rec-s{margin:8px 0 0;font-size:var(--t-xs);color:var(--soft);line-height:1.5}
 
 /* Label above figure: the label is what you scan for, the figure is what you
    stop on, and stacking them that way lets the figures be big without three
@@ -1569,9 +1629,9 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .figs > div{padding:2px 0 2px 26px;margin-left:26px;text-align:right;
   border-left:1px solid var(--line)}
 .figs > div:first-child{border-left:0;margin-left:0;padding-left:0}
-.figs dt{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;
+.figs dt{font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.09em;
   text-transform:uppercase;color:var(--faint);margin:0;white-space:nowrap}
-.figs dd{margin:7px 0 0;font-size:22px;font-weight:700;letter-spacing:-.025em;
+.figs dd{margin:7px 0 0;font-size:var(--t-num-sm);font-weight:700;letter-spacing:-.025em;
   color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* Twelve weeks across the full width, on a band that separates the record
@@ -1579,7 +1639,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .rec-run{border-top:1px solid var(--line);background:rgba(239,238,243,.34);
   padding:16px 28px 18px}
 .run-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;
+  font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.09em;
   text-transform:uppercase;color:var(--faint)}
 .run-h b{font-weight:400;color:var(--p6)}
 .run{display:flex;gap:5px;margin:10px 0 0;align-items:flex-end}
@@ -1590,7 +1650,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .run i.on span{background:var(--p4)}
 .run i.here{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--p2)}
 .run-x{display:flex;justify-content:space-between;margin:8px 0 0;
-  font-size:11px;color:var(--faint)}
+  font-size:var(--t-tiny);color:var(--faint)}
 
 /* Wrapped onto their own row, ranging the figures right leaves the first one
    reading against the grain of everything above it. Share the width instead. */
@@ -1602,11 +1662,9 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 @media (max-width:560px){
   .rec-top{gap:20px;padding:22px 20px 20px}
   .rec .st-ring{width:112px;height:112px}
-  .rec-h{font-size:20px}
   .rec-run{padding:14px 20px 16px}
   .run i{height:32px}
   .figs > div{padding-left:13px;margin-left:13px}
-  .figs dd{font-size:18px}
 }
 
 /* A timeline, not a course. Each week is a button because moving the marker is
@@ -1638,10 +1696,10 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   box-shadow:inset 0 0 0 2px #D8DBE6;transition:box-shadow .2s,background .2s}
 
 .pg-b{flex:1;min-width:0;display:flex;align-items:baseline;gap:14px}
-.pg-week .wk{flex:0 0 62px;font-family:var(--mono);font-size:10px;
+.pg-week .wk{flex:0 0 62px;font-family:var(--mono);font-size:var(--t-tiny);
   letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
-.pg-week .ttl{flex:1;min-width:0;font-size:14.5px}
-.pg-week .st{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;
+.pg-week .ttl{flex:1;min-width:0;font-size:var(--t-sm)}
+.pg-week .st{flex:0 0 auto;font-family:var(--mono);font-size:var(--t-tiny);
   letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
 
 /* Finished. A tick, not a strikethrough: struck-out text reads as cancelled,
@@ -1677,7 +1735,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    are — so the mark moves onto the field's own border. */
 .pg-week.edit.now{background:transparent}
 .pg-week.edit.now .pg-in{border-color:var(--p4)}
-.pg-in{flex:1;min-width:0;font-family:inherit;font-size:14.5px;color:var(--ink);
+.pg-in{flex:1;min-width:0;font-family:inherit;font-size:var(--t-sm);color:var(--ink);
   padding:7px 10px;border:1px solid var(--line);border-radius:var(--r-control);background:var(--card)}
 .pg-in:focus{outline:none;border-color:var(--p4);box-shadow:0 0 0 3px rgba(29,158,117,.13)}
 
@@ -1698,7 +1756,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .pg-editbar #pg-reset:hover{color:#B4471F;border-color:#E8C4B8}
 /* Armed. Says what it will do in the colour of doing it. */
 .pg-editbar #pg-reset[data-armed]{color:#B4471F;border-color:#E8C4B8;background:#FDF4F1}
-.pg-note{font-size:13px;color:var(--faint);flex:0 0 auto}
+.pg-note{font-size:var(--t-xs);color:var(--faint);flex:0 0 auto}
 .pg-note.bad{color:#B4471F}
 
 /* Said to a screen reader, since the state is otherwise only a colour. */
@@ -1713,10 +1771,10 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 /* ============================================================
    Somebody else's profile (app-person.html)
    ============================================================ */
-.backlink{display:inline-block;margin-bottom:16px;font-size:13.5px;color:var(--soft)}
+.backlink{display:inline-block;margin-bottom:16px;font-size:var(--t-xs);color:var(--soft)}
 .backlink:hover{color:var(--ink);text-decoration:underline}
 .pv-miss{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
-  padding:22px 24px;font-size:15px;color:var(--soft)}
+  padding:22px 24px;font-size:var(--t-sm);color:var(--soft)}
 .pv-miss a{color:var(--p6);font-weight:600;text-decoration:underline}
 
 .pv{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:26px 28px}
@@ -1724,31 +1782,31 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .pv-av{width:58px;height:58px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
   background:var(--p0);color:var(--p6);font-size:22px;font-weight:800}
 .pv-id{flex:1;min-width:180px}
-.pv-id h1{font-size:25px;margin:2px 0 4px}
-.pv-sub{margin:0;font-size:14.5px;color:var(--soft)}
+.pv-id h1{font-size:var(--t-page);margin:2px 0 4px}
+.pv-sub{margin:0;font-size:var(--t-sm);color:var(--soft)}
 .pv-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:0 0 auto}
 
 .pv-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:12px;
   margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
-.pv-fact b{display:block;font-size:15px;font-weight:700;letter-spacing:-.01em}
-.pv-fact span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+.pv-fact b{display:block;font-size:var(--t-sm);font-weight:700;letter-spacing:-.01em}
+.pv-fact span{display:block;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.06em;
   text-transform:uppercase;color:var(--faint);margin-top:3px}
 .pv-facts:empty{display:none}
 
 .pv-sec{margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
-.pv-sec h2{font-size:15px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
-.pv-note{margin:0 0 14px;font-size:13.5px;color:var(--soft)}
+.pv-sec h2{font-size:var(--t-sm);font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+.pv-note{margin:0 0 14px;font-size:var(--t-xs);color:var(--soft)}
 
 /* Their week, read-only. Same four bands the profile editor uses, so the two
    pictures of "when am I free" are the same picture. */
 .pv-week{display:grid;grid-template-columns:70px repeat(7,minmax(0,1fr));gap:4px}
-.pw-hd{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+.pw-hd{font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.06em;text-transform:uppercase;
   color:var(--faint);text-align:center;padding-bottom:2px}
-.pw-lb{font-size:12px;color:var(--soft);display:flex;align-items:center}
+.pw-lb{font-size:var(--t-xs);color:var(--soft);display:flex;align-items:center}
 .pw-c{height:34px;border-radius:var(--r-control);background:var(--bg);border:1px solid var(--line)}
 .pw-c.them{background:var(--p1);border-color:var(--p1)}
 .pw-c.both{background:var(--p4);border-color:var(--p4)}
-.pv-key{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0 0;font-size:12.5px;color:var(--soft)}
+.pv-key{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0 0;font-size:var(--t-xs);color:var(--soft)}
 .pv-key i{display:inline-block;width:11px;height:11px;border-radius:var(--r-mark);margin-right:6px;
   vertical-align:-1px}
 .pv-key .k-both i{background:var(--p4)}
@@ -1758,7 +1816,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   .pv{padding:20px 18px}
   .pv-week{grid-template-columns:52px repeat(7,minmax(0,1fr));gap:3px}
   .pw-c{height:28px}
-  .pw-lb{font-size:10.5px}
+  .pw-lb{font-size:var(--t-tiny)}
 }
 
 /* ============================================================
@@ -1767,7 +1825,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
   clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .ch-miss{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
-  padding:22px 24px;font-size:15px;color:var(--soft)}
+  padding:22px 24px;font-size:var(--t-sm);color:var(--soft)}
 
 /* Fills the page, the way every messenger does. Sizing the card to the
    conversation did stop a short thread floating in a tall white box, but it
@@ -1782,7 +1840,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .ch-list{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   padding:8px;min-width:0;display:flex;flex-direction:column;min-height:0}
 .ch-people{overflow-y:auto;min-height:0}
-.ch-none{margin:12px 10px;font-size:13.5px;color:var(--faint);line-height:1.5}
+.ch-none{margin:12px 10px;font-size:var(--t-xs);color:var(--faint);line-height:1.5}
 .ch-none a{color:var(--p6);font-weight:600;text-decoration:underline}
 
 .ch-row{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;
@@ -1790,29 +1848,29 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .ch-row:hover{background:var(--band)}
 .ch-row.on{background:var(--p0)}
 .ch-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
-  background:var(--p1);color:var(--p8);font-size:13px;font-weight:800}
+  background:var(--p1);color:var(--p8);font-size:var(--t-xs);font-weight:800}
 .ch-meta{flex:1;min-width:0}
-.ch-meta b{display:flex;align-items:baseline;min-width:0;font-size:14px;font-weight:600;color:var(--ink)}
+.ch-meta b{display:flex;align-items:baseline;min-width:0;font-size:var(--t-sm);font-weight:600;color:var(--ink)}
 .ch-nm{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Short, and it never eats the name: at 300px a full word next to
    "Amir Karimov" left the name as "Amir Kar…", which is the one thing in the
    row that has to be readable. */
-.ch-tag{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:8px;
+.ch-tag{flex:0 0 auto;font-style:normal;font-family:var(--mono);font-size:var(--t-tiny);
   letter-spacing:.05em;text-transform:uppercase;background:var(--p0);color:var(--p6);
   padding:2px 4px;border-radius:var(--r-mark);margin-left:5px}
 .ch-row.on .ch-tag{background:var(--card)}
-.ch-last{display:block;font-size:12.5px;color:var(--faint);
+.ch-last{display:block;font-size:var(--t-xs);color:var(--faint);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ch-right{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
-.ch-when{font-size:10.5px;color:var(--faint)}
+.ch-when{font-size:var(--t-tiny);color:var(--faint)}
 .ch-dot{min-width:19px;height:19px;padding:0 5px;border-radius:var(--r-control);
-  background:var(--p4);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+  background:var(--p4);color:#fff;font-size:var(--t-tiny);font-weight:700;display:grid;place-items:center}
 
 /* Everybody you may write to but never have. Behind a control rather than
    filling the list with rows that say "No messages yet". */
 .ch-more{margin-top:auto;border-top:1px solid var(--line);padding:8px 4px 2px}
 .ch-more > button{width:100%;border:0;background:none;text-align:left;padding:6px;
-  border-radius:var(--r-control);font-family:var(--body);font-size:12.5px;font-weight:600;
+  border-radius:var(--r-control);font-family:var(--body);font-size:var(--t-xs);font-weight:600;
   color:var(--p6);cursor:pointer}
 .ch-more > button:hover{background:var(--p0)}
 
@@ -1820,21 +1878,21 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .ch-pane{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   display:flex;flex-direction:column;min-width:0;overflow:hidden;min-height:0}
 .ch-empty{flex:1;display:grid;place-items:center;padding:24px}
-.ch-empty p{margin:0;font-size:14px;color:var(--faint);text-align:center;max-width:32ch}
+.ch-empty p{margin:0;font-size:var(--t-sm);color:var(--faint);text-align:center;max-width:32ch}
 .ch-open{flex:1;display:flex;flex-direction:column;min-height:0}
 
 .ch-top{display:flex;align-items:center;gap:12px;padding:13px 17px;border-bottom:1px solid var(--line)}
 .ch-back{display:none;border:0;background:none;font-size:24px;line-height:1;color:var(--soft);
   padding:0 4px;cursor:pointer}
-.ch-top .ch-av{width:36px;height:36px;background:var(--p0);color:var(--p6);font-size:14px}
+.ch-top .ch-av{width:36px;height:36px;background:var(--p0);color:var(--p6);font-size:var(--t-sm)}
 .ch-who{flex:1;min-width:0}
-.ch-who b{display:block;font-size:15px;font-weight:700;letter-spacing:-.01em;
+.ch-who b{display:block;font-size:var(--t-sm);font-weight:700;letter-spacing:-.01em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ch-who span{display:block;font-size:12.5px;color:var(--faint);
+.ch-who span{display:block;font-size:var(--t-xs);color:var(--faint);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* The thing you are usually messaging about. */
 .ch-next{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--p0);
-  border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--p8)}
+  border-radius:var(--r-pill);padding:6px 13px;font-size:var(--t-xs);font-weight:600;color:var(--p8)}
 
 /* Plain ground. The bubbles carry the colour, so anything behind them fights
    them — and a tail is drawn by masking it against a known solid, which a
@@ -1848,14 +1906,14 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .ch-log > *:first-child{margin-top:auto}
 /* Beats the auto-margin above it: an empty thread centres its line rather
    than pinning it to the composer. */
-.ch-log > .ch-first{margin:auto;font-size:13.5px;color:var(--faint);
+.ch-log > .ch-first{margin:auto;font-size:var(--t-xs);color:var(--faint);
   text-align:center;max-width:34ch}
-.ch-day{align-self:center;margin:10px 0 6px;font-size:11px;font-weight:600;color:var(--faint)}
+.ch-day{align-self:center;margin:10px 0 6px;font-size:var(--t-tiny);font-weight:600;color:var(--faint)}
 
 .ch-msg{position:relative;max-width:min(70%,520px);align-self:flex-start;
   background:#EBEAEF;border-radius:var(--r-card);padding:9px 15px}
 .ch-msg.mine{align-self:flex-end;background:var(--p6)}
-.ch-msg p{position:relative;z-index:2;margin:0;font-size:14.5px;line-height:1.42;
+.ch-msg p{position:relative;z-index:2;margin:0;font-size:var(--t-sm);line-height:1.42;
   white-space:pre-wrap;word-wrap:break-word}
 .ch-msg.mine p{color:#fff}
 
@@ -1877,7 +1935,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 /* One tick sent, two once they have opened the thread. Only ever on your own
    messages: read_at on one of theirs is the moment you read it, which you
    already know. */
-.ch-tick{margin-left:7px;font-size:11px;letter-spacing:-2px;white-space:nowrap;
+.ch-tick{margin-left:7px;font-size:var(--t-tiny);letter-spacing:-2px;white-space:nowrap;
   color:#79B9A0}
 .ch-tick.read{color:#C4F3DF}
 
@@ -1886,10 +1944,10 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   border:1px solid transparent;border-radius:var(--r-card);padding:2px 4px 2px 16px}
 .ch-box:focus-within{background:var(--card);border-color:var(--p4)}
 .ch-form textarea{flex:1;min-width:0;resize:none;border:0;background:none;outline:none;
-  font-family:var(--body);font-size:14.5px;line-height:1.45;color:var(--ink);
+  font-family:var(--body);font-size:var(--t-sm);line-height:1.45;color:var(--ink);
   padding:9px 0;max-height:150px}
 .ch-form .btn{border-radius:var(--r-pill);flex:0 0 auto}
-.ch-err{margin:0;padding:0 17px 12px;font-size:13px;color:#B4471F}
+.ch-err{margin:0;padding:0 17px 12px;font-size:var(--t-xs);color:#B4471F}
 
 /* One pane at a time on a phone. Side by side at this width gives you two
    things too cramped to use instead of one that works. */
@@ -1904,7 +1962,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 /* The unread count on the Chat tab. */
 .tabs a{position:relative}
 .tabdot{margin-left:6px;min-width:17px;height:17px;padding:0 4px;border-radius:var(--r-control);
-  background:var(--p4);color:#fff;font-size:10.5px;font-weight:700;
+  background:var(--p4);color:#fff;font-size:var(--t-tiny);font-weight:700;
   display:inline-grid;place-items:center;vertical-align:1px}
 .tabs a.on .tabdot{background:#fff;color:var(--ink)}
 
@@ -1946,7 +2004,7 @@ a.who:hover{text-decoration:underline}
 /* Tinted with the badge's own colour, set inline from the HUE map, so the
    label belongs to the badge rather than to the house green. Falls back to
    the green if nothing sets it. */
-.bpop-k{margin:0 0 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+.bpop-k{margin:0 0 14px;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.13em;
   text-transform:uppercase;color:var(--p6)}
 /* The hero drawing, which is what the -hero files in the set are for.
    Sized to the drawing's own ratio: the hero viewBox is 72x118, and in the
@@ -1954,9 +2012,9 @@ a.who:hover{text-decoration:underline}
    noticeably smaller than it was drawn to be, with the spare width doing
    nothing. */
 .bpop-art{display:block;width:124px;height:203px;margin:0 auto 4px}
-.bpop-card h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.025em;
+.bpop-card h2{margin:0;font-size:var(--t-card);font-weight:800;letter-spacing:-.025em;
   line-height:1.2}
-.bpop-d{margin:8px 0 22px;font-size:14px;color:var(--soft);line-height:1.5}
+.bpop-d{margin:8px 0 22px;font-size:var(--t-sm);color:var(--soft);line-height:1.5}
 .bpop-card .btn{width:100%}
 
 /* The drawing arrives with a little weight behind it. Held to one short
@@ -2036,12 +2094,12 @@ a.who:hover{text-decoration:underline}
 .relbox{border:1px solid var(--line);border-radius:var(--r-card);padding:16px 18px;margin:0 0 18px;
   background:var(--card)}
 .relbox-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.relbox-lab{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
-.relbox-pct{font-size:22px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.relbox-lab{font-size:var(--t-sm);font-weight:700;letter-spacing:-.01em}
+.relbox-pct{font-size:var(--t-num-sm);font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
 .relbox-bar{height:7px;border-radius:var(--r-pill);background:var(--band);overflow:hidden;margin:12px 0 0}
 .relbox-bar i{display:block;height:100%;border-radius:var(--r-pill);background:var(--p4);
   transition:width .5s ease}
-.relbox-sub{margin:10px 0 0;font-size:13px;color:var(--faint);line-height:1.5}
+.relbox-sub{margin:10px 0 0;font-size:var(--t-xs);color:var(--faint);line-height:1.5}
 
 /* Three bands. Green is not the default — an unproven score is grey, because
    colouring it green would be the page vouching for somebody it cannot. */
@@ -2053,7 +2111,7 @@ a.who:hover{text-decoration:underline}
 .relbox.low .relbox-bar i{background:#C9603A}
 
 /* The same score, compressed to fit a directory row. */
-.relchip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;
+.relchip{display:inline-flex;align-items:center;gap:5px;font-size:var(--t-xs);font-weight:700;
   color:var(--p6);font-variant-numeric:tabular-nums}
 .relchip.mid{color:#8A6410}
 .relchip.low{color:#B4471F}
@@ -2082,11 +2140,11 @@ a.who:hover{text-decoration:underline}
 .inbox-h{display:flex;align-items:center;gap:9px;margin:0;
   background:var(--p0);border-bottom:1px solid var(--p1);
   padding:13px 20px;color:var(--p8)}
-.inbox-h b{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.inbox-h b{letter-spacing:-.01em}
 /* Green as a mark, not a field. */
 .inbox-n{display:inline-flex;align-items:center;justify-content:center;
   min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);
-  background:var(--p4);color:#fff;font-size:11.5px;font-weight:800;
+  background:var(--p4);color:#fff;font-size:var(--t-xs);font-weight:800;
   font-variant-numeric:tabular-nums}
 /* Bottom trimmed with the standing line gone, so the last request sits the
    same distance from the edge as the first one does from the band. */
@@ -2100,8 +2158,8 @@ a.who:hover{text-decoration:underline}
 .inreq-av{flex:0 0 auto;width:42px;height:42px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
 .inreq-b{flex:1 1 200px;min-width:0}
-.inreq-nm{margin:0;font-size:15px;font-weight:700}
-.inreq-msg{margin:3px 0 0;font-size:13.5px;color:var(--soft);line-height:1.5}
+.inreq-nm{margin:0;font-size:var(--t-sm);font-weight:700}
+.inreq-msg{margin:3px 0 0;font-size:var(--t-xs);color:var(--soft);line-height:1.5}
 /* Both answers in the same box, so yes and no are a pair rather than a
    button and an afterthought. */
 .inreq-acts{flex:0 0 auto;display:flex;gap:10px;margin-left:auto}

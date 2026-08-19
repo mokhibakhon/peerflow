@@ -243,6 +243,11 @@ a:hover{text-decoration:underline}
 <div class="dw">
 
   <p class="t-mono" style="color:var(--faint);margin:0 0 10px">Draft &middot; /draft &middot; not indexed</p>
+  <p class="dlede" style="background:var(--p0);border:1px solid #C7E9DC;border-radius:var(--r-card);
+     padding:13px 16px;margin:0 0 18px;max-width:none"><b>Decided:</b> Option B, and it is
+     on the real dashboard now &mdash; the type scale, the one card heading and the page
+     title went with it. This page stays as the record of what was compared; the calendar
+     stand-in below is not the real component and never was.</p>
   <h1 class="dtitle">Tidying the dashboard</h1>
   <p class="dlede">Three things you picked out: the page <b>repeats itself</b>, the right-hand
     column is <b>too many small cards</b>, and the <b>visual system</b> underneath it all is loose.
@@ -404,7 +409,7 @@ a:hover{text-decoration:underline}
     <!-- ---------------- OPTION A ---------------- -->
     <div class="opt" style="margin-top:22px">
       <div class="opth"><h3>Option A &mdash; a context strip</h3>
-        <span class="verdict">Recommended</span>
+        <span class="verdict alt">Not taken</span>
         <span style="font-size:var(--t-xs);color:var(--soft)">The rail becomes one card, four cells. The work below it goes full width.</span></div>
 
       <div class="stack">
@@ -497,7 +502,7 @@ a:hover{text-decoration:underline}
     <!-- ---------------- OPTION B ---------------- -->
     <div class="opt" style="margin-top:26px">
       <div class="opth"><h3>Option B &mdash; keep the rail, two cards in it</h3>
-        <span class="verdict alt">Alternative</span>
+        <span class="verdict">Shipped</span>
         <span style="font-size:var(--t-xs);color:var(--soft)">Four cards become two, grouped by what they are about.</span></div>
 
       <div class="stack">
@@ -596,13 +601,17 @@ a:hover{text-decoration:underline}
       </div>
     </div>
 
-    <p class="dnote" style="margin-top:30px"><b>Why A.</b> The rail's four cards were never
-      four things you do &mdash; they were four facts you glance at, and facts read better in a
-      row than in a stack. Putting them in a strip also gives the calendar and the
-      &ldquo;needs you&rdquo; card the full width, which is where the actual work happens, and
-      it removes the 306px column that was breaking at 1000px. <b>B</b> is the smaller change:
-      the grid stays exactly as it is and only the rail's contents are regrouped, so if the
-      two-column shape is something you want to keep, B is the one.</p>
+    <p class="dnote" style="margin-top:30px"><b>B was chosen, and B is what shipped.</b>
+      The two-column shape stays; only the rail's contents are regrouped, into
+      <i>where you are</i> (this week and the week of the plan &mdash; both progress) and
+      <i>your pair</i> (the person and the hour you have standing with them &mdash; both about
+      them). Each block is the same shape and each card carries one link at its foot rather
+      than one per block. At 1000px the two cards sit side by side above the calendar instead
+      of four columns squeezing &ldquo;All 12 weeks&rdquo; onto three lines.</p>
+    <p class="dnote">A is left here for the record. Its argument was that four facts read
+      better in a row than in a stack and that the work below would get the full width; the
+      cost was losing the two-column shape entirely, which is the part that was worth
+      keeping.</p>
   </section>
 
 </div>
