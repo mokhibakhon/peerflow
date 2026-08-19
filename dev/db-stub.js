@@ -7,6 +7,9 @@
    before this file loads:
 
      __partners    array of {requestId, roomUrl, standing, profile}
+     __manyPartners  a count, for the rail with more than one person in it —
+                   the fixture has one partner, and one partner hides
+                   everything that only goes wrong at four
      __sessions    array of session rows (startsAt must be a real Date)
      __noPartner   true for the no-partner-yet state
      __empty       true for no sessions at all
@@ -75,6 +78,28 @@ window.pf = (function(){
     get standing(){return standingOf();},
     profile:{id:'u2',name:'Amir Karimov',track_id:'cybersecurity',topic:'Cybersecurity',
       level:'tutorials',timezone:'Asia/Tashkent',availability:THEIR_AVAIL}};
+
+  /* More than one partner. The single-partner fixture is the state the app
+     was designed around and it hides a whole class of problem: a card headed
+     "Your pair" reads fine over one name and is simply wrong over four, and a
+     rail sized for one face is a directory at four. Real names of real
+     lengths, including one long enough to test the row. */
+  var MORE=[
+    {name:'Asalxon Axmadxo’jayeva', topic:null,            track:'cybersecurity'},
+    {name:'Chatgpt',                     topic:'flutter',       track:'mobile'},
+    {name:'wer',                         topic:'Blue team',     track:'cybersecurity'},
+    {name:'test',                        topic:'Python basics', track:'backend'}
+  ];
+  function manyPartners(n){
+    var out=[PARTNER];
+    for(var i=0;i<Math.min(n-1,MORE.length);i++){
+      var m=MORE[i];
+      out.push({requestId:'r'+(i+2), roomUrl:'pf:demo'+(i+2), standing:null,
+        profile:{id:'u'+(i+3), name:m.name, track_id:m.track, topic:m.topic,
+          level:'tutorials', timezone:'Asia/Tashkent', availability:THEIR_AVAIL}});
+    }
+    return out;
+  }
 
   var PROFILE={id:'u1',name:'Mohibaxon Omonhonova',track_id:'cybersecurity',topic:'Cybersecurity',
     level:'tutorials',timezone:'Asia/Tashkent',availability:MY_AVAIL,stage_index:3,pref_minutes:50,
@@ -151,7 +176,9 @@ window.pf = (function(){
       if(window.__sharedBy) by=window.__sharedBy;
       return {byDay:by,slots:[]};
     },
-    acceptedPartners:function(){return P(window.__partners||(window.__noPartner?[]:[PARTNER]))},
+    acceptedPartners:function(){return P(window.__partners ||
+      (window.__noPartner ? [] :
+       window.__manyPartners ? manyPartners(window.__manyPartners) : [PARTNER]))},
     /* The real momentum() is unit-tested against real session rows in Node;
        here it is a dial so the ring can be seen in every state. */
     momentum:function(room){
