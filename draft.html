@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The session has a shape, and a sound — PeerFlow</title>
+<title>Tidying the dashboard — PeerFlow</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,309 +12,599 @@
       onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
 <link rel="stylesheet" href="assets/tokens.css">
-<link rel="stylesheet" href="assets/app.css">
 <style>
 /* Standalone draft, noindex, overwritten by whoever drafts next.
-   The bar below is the real .rm-bar shape and the real call.css tokens, and
-   the phase it shows comes from assets/phases.js — the actual module, not a
-   copy of it. The scrubber is the only thing here that would not ship:
-   without it you would wait twenty-five minutes to see a break. */
-body{background:var(--bg)}
-.dw{max-width:1040px;margin:0 auto;padding:36px 26px 90px}
-.dw h1{margin:0 0 10px;font-size:29px;letter-spacing:-.03em}
-.dlede{max-width:66ch;margin:0 0 8px;font-size:15.5px;color:var(--soft);line-height:1.62}
-.dlede b{color:var(--ink)}
-.dsec{margin:40px 0 0}
-.dsec h2{margin:0 0 8px;font-size:19px;letter-spacing:-.02em}
+ *
+ * This one deliberately does NOT load assets/app.css. The subject is the
+ * stylesheet itself — thirty-four font sizes and five different card
+ * headings — so pulling app.css in would mean the proposal inherits the very
+ * thing it is proposing to replace, and neither half of a before/after could
+ * be trusted. Both halves below are written out here in full instead, so what
+ * you see is what each system actually produces.
+ *
+ * The panels marked "today" are traced from the live rules: the sizes and
+ * weights in them are copied out of app.css line by line, not approximated.
+ */
 
-/* ---- the room, as it really looks ---- */
-.room{
-  --rm-bg:#0E1018; --rm-panel:#171A24; --rm-tile:#1E2230; --rm-line:#2A2F3E;
-  --rm-t:#F4F5F8; --rm-soft:#A2A7B8; --rm-faint:#767C90;
-  background:var(--rm-bg);color:var(--rm-t);border-radius:var(--r-card);
-  overflow:hidden;margin-top:18px;border:1px solid var(--rm-line)
+/* ============================================================
+   THE PROPOSED SYSTEM
+   Seven type steps and one card heading. Everything below the
+   "after" line uses only these.
+   ============================================================ */
+:root{
+  --t-page:29px;    /* the page's own name, once per page          */
+  --t-hero:27px;    /* the sentence in the green band              */
+  --t-card:17px;    /* EVERY card title, on every page             */
+  /* --t-body, --t-sm, --t-xs, --t-kicker come from tokens.css     */
+  --soft:var(--ink-soft);
+  --faint:var(--ink-faint);
+  --border:var(--line);
 }
-.stage{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 0}
-.tile{background:var(--rm-tile);border-radius:12px;aspect-ratio:16/10;
-  display:grid;place-items:center;color:var(--rm-faint);font-size:13px}
-.tile p{margin:0}
-.rm-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;
-  padding:14px 20px 18px}
-.bar-goal{margin:0;font-size:12.5px;color:var(--rm-faint);line-height:1.4;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bar-goal b{color:var(--rm-soft);font-weight:600}
-.bar-c{display:flex;gap:8px;justify-content:center}
-.c-b{display:inline-flex;flex-direction:column;align-items:center;gap:4px;
-  font-family:var(--body);font-size:10.5px;font-weight:600;min-width:66px;
-  padding:9px 12px 7px;border-radius:var(--r-control);background:var(--rm-panel);
-  border:1px solid var(--rm-line);color:var(--rm-soft);cursor:pointer}
-.c-b:hover{background:var(--rm-tile);color:var(--rm-t)}
-.c-b.on{color:var(--rm-t)}
-.c-b.c-leave{background:#B4331F;border-color:#B4331F;color:#fff}
-.c-ic{width:20px;height:20px;display:grid;place-items:center;font-size:15px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:var(--t-body);line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--p6);text-decoration:none}
+a:hover{text-decoration:underline}
 
-/* ---- the phase pill: what this draft is asking about ---- */
-.bar-right{display:flex;justify-content:flex-end;align-items:center}
-.phase{
-  display:inline-flex;align-items:center;gap:9px;padding:6px 12px 6px 10px;
-  border-radius:var(--r-pill);background:var(--rm-panel);
-  border:1px solid var(--rm-line);white-space:nowrap
-}
-.phase .dot{width:7px;height:7px;border-radius:50%;background:var(--p4);flex:0 0 auto}
-.phase .lab{font-size:11.5px;font-weight:600;color:var(--rm-soft)}
-.phase .left{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--rm-t)}
-/* A break is the one state worth reading from across a room, so it is the
-   only one that changes colour. Focus is the default and stays quiet. */
-.phase.brk{background:#20281F;border-color:#33452F}
-.phase.brk .dot{background:#7FBF5F}
-.phase.brk .lab{color:#A9D693}
-.phase.done{opacity:.6}
-/* The last two minutes of a block, so the change does not arrive cold. */
-.phase.soon .left{color:#E8B860}
+.dw{max-width:1320px;margin:0 auto;padding:34px 26px 110px}
+.dtitle{margin:0 0 10px;font-size:var(--t-page);font-weight:800;letter-spacing:-.025em;line-height:1.18}
+.dlede{max-width:70ch;margin:0 0 6px;font-size:var(--t-sm);color:var(--soft);line-height:1.65}
+.dlede b{color:var(--ink);font-weight:700}
 
-/* the rail under the pill: the whole session at a glance */
-.ph-rail{display:flex;gap:2px;height:3px;margin-top:6px;justify-content:flex-end}
-.ph-rail i{display:block;height:3px;border-radius:2px;background:#2A2F3E}
-.ph-rail i.on{background:var(--p4)}
-.ph-rail i.brk.on{background:#7FBF5F}
+/* section rule, so the three parts of this page are obviously three parts */
+.dsec{margin:54px 0 0;padding-top:26px;border-top:2px solid var(--line-strong)}
+.dsec > h2{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:-.025em}
+.dnote{max-width:70ch;margin:0 0 20px;font-size:var(--t-sm);color:var(--soft);line-height:1.65}
+.dnote b{color:var(--ink)}
+.k{font-family:var(--mono);font-size:.92em;background:#E9E8EF;border-radius:4px;padding:1px 5px}
 
-/* ---- the scrubber (draft only) ---- */
-.scrub{margin-top:16px;padding:16px 18px;border:1px dashed var(--line);
-  border-radius:var(--r-card);background:var(--card)}
-.scrub label{display:block;font-size:12.5px;color:var(--faint);margin-bottom:8px}
-.scrub input[type=range]{width:100%}
-.scrub .now{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
-.lenpick{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.lenpick button{font:inherit;font-size:13px;padding:7px 13px;border-radius:var(--r-control);
-  border:1px solid var(--line);background:var(--card);cursor:pointer}
-.lenpick button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* the two-up before/after frame */
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0 0;align-items:start}
+@media (max-width:940px){.ba{grid-template-columns:1fr}}
+.pane{border:1px solid var(--line);border-radius:var(--r-card);background:var(--card);overflow:hidden}
+.pane > header{padding:10px 16px;font-family:var(--mono);font-size:var(--t-kicker);
+  letter-spacing:.09em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+.pane.bad > header{background:#FDECEE;color:#7A1B25;border-bottom-color:#F6CFD4}
+.pane.good > header{background:var(--p0);color:var(--p6);border-bottom-color:#C7E9DC}
+.pane > .body{padding:18px 18px 20px}
+.tag{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.06em;color:var(--faint);text-transform:none}
 
-/* ---- ambience ---- */
-.mixes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:18px}
-.mix{border:1px solid var(--line);border-radius:var(--r-card);background:var(--card);padding:18px}
-.mix h3{margin:0 0 4px;font-size:16px;letter-spacing:-.02em}
-.mix p{margin:0 0 14px;font-size:13px;color:var(--soft);line-height:1.5}
-.mix .btn{width:100%}
-.mix.playing{border-color:var(--p4);background:var(--p0)}
-.vol{margin-top:22px;display:flex;align-items:center;gap:12px;max-width:460px}
-.vol label{font-size:12.5px;color:var(--faint);white-space:nowrap}
-.vol input{flex:1}
-.vol .btn{flex:0 0 auto}
+/* ---------- the ruler, for the type-scale section ---------- */
+.ruler{display:grid;gap:0}
+.ruler div{display:flex;align-items:baseline;gap:14px;padding:9px 0;border-top:1px dashed var(--line)}
+.ruler div:first-child{border-top:0}
+.ruler .px{flex:0 0 74px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.04em}
+.swarm{display:flex;flex-wrap:wrap;gap:5px}
+.swarm b{font-family:var(--mono);font-size:11.5px;font-weight:500;background:#F6F5F9;
+  border:1px solid var(--line);border-radius:4px;padding:3px 6px;color:var(--soft)}
+.swarm b.dup{background:#FDECEE;border-color:#F6CFD4;color:#7A1B25}
+
+/* ============================================================
+   TODAY'S CARD HEADINGS, traced from app.css
+   ============================================================ */
+.t-bh{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.t-gl{width:34px;height:34px;border-radius:var(--r-control);display:flex;align-items:center;
+  justify-content:center;flex:0 0 auto;background:var(--p0)}
+.t-bh h2{font-size:15.5px;font-weight:600;margin:0;letter-spacing:-.01em}
+.t-mono{font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.07em;
+  text-transform:uppercase;color:var(--p6);display:block}
+.t-calh h2{margin:0;font-size:21px;font-weight:700;letter-spacing:-.025em}
+.t-railh{margin:0 0 13px;font-size:14px;font-weight:700;letter-spacing:-.01em}
+.t-bookh h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.02em}
+.t-sth{margin:10px 0 0;font-size:15px;font-weight:700;letter-spacing:-.015em}
+.t-sub{margin:18px 0 8px;padding-top:14px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.07em;
+  text-transform:uppercase;color:var(--p6)}
+.demo{border:1px dashed var(--line-strong);border-radius:10px;padding:14px 16px;margin:0 0 10px;background:#FCFCFE}
+.demo:last-child{margin-bottom:0}
+.demo .why{margin:8px 0 0;font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:.03em}
+
+/* ============================================================
+   THE PROPOSED CARD — one shape, one heading, three sizes of it
+   ============================================================ */
+.c{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:20px 22px}
+.ch{display:flex;align-items:baseline;gap:12px;margin:0 0 14px;flex-wrap:wrap}
+.ch h2,.ch h3{margin:0;font-size:var(--t-card);font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.ch .grow{flex:1 1 auto;min-width:0}
+.ch .kick{display:block;font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--p6);margin:0 0 3px;font-weight:400}
+.ch .side{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid transparent;
+  border-radius:var(--r-control);padding:10px 17px;font:inherit;font-size:var(--t-sm);font-weight:700;
+  cursor:pointer;background:var(--p6);color:#fff;letter-spacing:-.005em}
+.btn:hover{background:var(--p8)}
+.btn.ghost{background:var(--card);color:var(--ink);border-color:var(--line-strong)}
+.btn.ghost:hover{background:#F6F5F9}
+.small{border:1px solid var(--line-strong);background:var(--card);border-radius:var(--r-control);
+  padding:7px 13px;font:inherit;font-size:var(--t-xs);font-weight:600;cursor:pointer;color:var(--ink)}
+.small:hover{background:#F6F5F9}
+.lnk{display:inline-block;font-size:var(--t-xs);font-weight:700;color:var(--p6)}
+
+/* the green band, unchanged in kind — it is the one thing that works */
+.now{border-radius:var(--r-card);padding:26px 30px;display:grid;grid-template-columns:minmax(0,1fr) auto;
+  gap:24px;align-items:center;background:var(--p8);color:#fff}
+.now .kick{display:block;font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--p2);margin-bottom:9px}
+.now h1{margin:0 0 8px;font-size:var(--t-hero);font-weight:800;letter-spacing:-.03em;line-height:1.18}
+.now p{margin:0;font-size:var(--t-sm);color:#BFE6D8;max-width:52ch}
+.now .acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:19px}
+.now .acts .btn{background:var(--p4)}
+.now .acts .btn:hover{background:var(--p2);color:var(--p8)}
+.now .acts .btn.ghost{background:rgba(255,255,255,.10);color:#fff;border-color:rgba(255,255,255,.28)}
+.now .acts .btn.ghost:hover{background:rgba(255,255,255,.19)}
+.now .foot{margin:14px 0 0;font-size:var(--t-xs);color:#7FC4AC}
+.now .side{text-align:right}
+.now .cd{display:block;font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.now .cl{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:#7FC4AC;margin-top:4px}
+
+/* ---------- the stand-in calendar ----------
+   Not the real component. It is here at the right proportions so the two
+   layouts can be judged at the right density; its own design is untouched. */
+.calbox{padding:20px 22px}
+.calgrid{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.calrow{display:grid;grid-template-columns:56px repeat(7,minmax(0,1fr))}
+.calrow.head{background:#FAFAFC;border-bottom:1px solid var(--line)}
+.calrow.head div{padding:9px 4px;text-align:center;border-left:1px solid var(--line)}
+.calrow.head div:first-child{border-left:0}
+.calrow.head span{display:block;font-size:var(--t-xs);color:var(--faint)}
+.calrow.head b{display:block;font-size:16px;font-weight:700;letter-spacing:-.02em}
+.calrow.head .today b{background:var(--p4);color:#fff;border-radius:999px;width:26px;height:26px;
+  line-height:26px;margin:2px auto 0;padding:0;display:block;font-size:14px}
+.calcell{height:46px;border-left:1px solid var(--line);border-top:1px solid var(--line);position:relative}
+.calcell:first-child{border-left:0;font-family:var(--mono);font-size:11px;color:var(--faint);
+  text-align:right;padding:5px 8px 0}
+.calcell.free{background:#F2FBF7}
+.ev{position:absolute;inset:2px 3px;border-radius:6px;background:var(--p1);border-left:3px solid var(--p6);
+  padding:4px 6px;overflow:hidden}
+.ev b{display:block;font-size:11.5px;font-weight:700;letter-spacing:-.01em;color:var(--p8);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev span{display:block;font-size:10.5px;color:var(--p6)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0 0;font-size:var(--t-xs);color:var(--soft)}
+.legend i{display:inline-block;width:4px;height:12px;border-radius:2px;margin-right:6px;
+  vertical-align:-1px;background:var(--p4)}
+
+/* ---------- "needs you" rows ---------- */
+.ask{padding:15px 0;border-top:1px solid var(--line)}
+.ask p{margin:0 0 3px;font-size:var(--t-sm)}
+.ask p b{font-weight:700}
+.ask .meta{font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--faint)}
+.ask .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.empty{margin:0;font-size:var(--t-sm);color:var(--faint)}
+
+/* ---------- OPTION A: the context strip ----------
+   The four rail cards become four cells of one card. They already held the
+   same kind of thing — a label, one fact, one link — and giving them one
+   shape is most of what "unorganized" was pointing at. */
+.strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0}
+.cell{padding:17px 20px;border-left:1px solid var(--line);min-width:0}
+.cell:first-child{border-left:0}
+.cell .kick{display:block;font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.cell .fact{margin:0;font-size:var(--t-card);font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.cell .fact small{font-size:var(--t-sm);font-weight:600;color:var(--soft);letter-spacing:0}
+.cell .sub{margin:4px 0 0;font-size:var(--t-xs);color:var(--soft);line-height:1.45}
+.cell .lnk{margin-top:10px}
+.cell .warn{color:var(--warn-ink)}
+@media (max-width:1000px){.strip{grid-template-columns:1fr 1fr}
+  .cell:nth-child(3){border-left:0}
+  .cell:nth-child(n+3){border-top:1px solid var(--line)}}
+@media (max-width:560px){.strip{grid-template-columns:1fr}
+  .cell{border-left:0}.cell+.cell{border-top:1px solid var(--line)}}
+
+/* the 12-week run, small enough to live in a cell */
+.run{display:flex;align-items:flex-end;gap:3px;height:26px;margin:9px 0 0}
+.run i{flex:1;background:var(--p1);border-radius:var(--r-mark);min-height:3px}
+.run i.on{background:var(--p4)}
+.run i.cur{background:repeating-linear-gradient(135deg,var(--p1) 0 3px,transparent 3px 6px);
+  border:1px solid var(--p2)}
+
+/* ---------- OPTION B: two rail cards ---------- */
+.dash{display:grid;grid-template-columns:minmax(0,1fr) 306px;gap:16px;align-items:start}
+.dash-main{display:grid;gap:16px;min-width:0}
+.dash-rail{display:grid;gap:16px;min-width:0}
+@media (max-width:1000px){.dash{grid-template-columns:1fr}}
+.pair{display:flex;align-items:center;gap:11px;margin:0 0 4px}
+.av{width:34px;height:34px;border-radius:999px;background:var(--p0);color:var(--p6);
+  display:grid;place-items:center;font-weight:700;font-size:var(--t-sm);flex:0 0 auto}
+.pair .who{min-width:0}
+.pair .who b{display:block;font-size:var(--t-sm);font-weight:700;letter-spacing:-.01em}
+.pair .who i{display:block;font-style:normal;font-size:var(--t-xs);color:var(--soft)}
+/* the one internal rhythm every block in the rail keeps: rule, label, fact.
+   The first block keeps its rule too, so it reads as a divider under the
+   card title rather than as a seam that only appears from the second item. */
+.blk{padding-top:15px;margin-top:15px;border-top:1px solid var(--line)}
+.blk .kick{display:block;font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.blk .fact{margin:0;font-size:var(--t-sm);font-weight:700;letter-spacing:-.01em;line-height:1.35}
+.blk .sub{margin:4px 0 0;font-size:var(--t-xs);color:var(--soft);line-height:1.5}
+.blk .num{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1;margin-right:5px}
+
+/* the page title app.html has never had */
+.phead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  flex-wrap:wrap;margin:0 0 18px}
+.phead h1{margin:0;font-size:var(--t-page);font-weight:800;letter-spacing:-.025em;line-height:1.18}
+.phead p{margin:3px 0 0;font-size:var(--t-sm);color:var(--soft)}
+
+.stack{display:grid;gap:16px}
+.opt{background:#EAE9F0;border:1px solid var(--line-strong);border-radius:calc(var(--r-card) + 6px);
+  padding:16px}
+.opth{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:0 6px}
+.opth h3{margin:0;font-size:19px;font-weight:800;letter-spacing:-.025em}
+.opth .verdict{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  background:var(--p6);color:#fff;border-radius:999px;padding:4px 10px}
+.opth .verdict.alt{background:transparent;color:var(--faint);border:1px solid var(--line-strong)}
 </style>
 </head>
 <body>
-
-<main>
 <div class="dw">
 
-  <h1>The session has a shape, and a sound</h1>
-  <p class="dlede">Two things to look at. The pill in the bar is the pomodoro, and the three
-     cards below are ambience. Both are live: the pill is driven by
-     <code>assets/phases.js</code>, the real module, and the sounds are generated in the
-     browser rather than downloaded.</p>
+  <p class="t-mono" style="color:var(--faint);margin:0 0 10px">Draft &middot; /draft &middot; not indexed</p>
+  <h1 class="dtitle">Tidying the dashboard</h1>
+  <p class="dlede">Three things you picked out: the page <b>repeats itself</b>, the right-hand
+    column is <b>too many small cards</b>, and the <b>visual system</b> underneath it all is loose.
+    This page fixes the third one outright — that is not a matter of taste — and then puts
+    two real layouts next to each other for the first two. The calendar keeps the size and the
+    place it has now.</p>
 
-  <!-- ============ 1. the phase pill ============ -->
+  <!-- ==================================================================
+       PART ONE — the system. Not an option; a measurement and its fix.
+       ================================================================== -->
   <section class="dsec">
-    <h2>1. The pomodoro, derived rather than synchronised</h2>
-    <p class="dlede">Nothing here is broadcast between the two of you. <b>call-token already
-       hands both browsers the same <code>starts_at</code></b>, so the phase is a function
-       of the clock and cannot disagree between screens — no host, no messages, and
-       somebody who joins twenty minutes late sees the right phase with the right time
-       left, immediately. The cost is real and worth saying out loud: it cannot be paused,
-       because there would be nowhere to put the fact that it was.</p>
-    <p class="dlede">Your three session lengths turn out to already be pomodoro shapes,
-       which is why this needs no new setting: <b>25</b> is one sitting, <b>50</b> is
-       25·5·20, <b>80</b> is 25·5·25·5·20.</p>
+    <h2>1. The visual system</h2>
+    <p class="dnote">Counted, not guessed. <span class="k">assets/app.css</span> today declares
+      <b>34 distinct font sizes</b>, <b>18 heading classes</b> and <b>29</b> separate
+      <span class="k">text-transform:uppercase</span> rules. A type scale normally has six or
+      seven steps. <span class="k">assets/tokens.css</span> already defines one — app.css just
+      never uses it.</p>
 
-    <div class="scrub">
-      <div class="lenpick" id="lenpick">
-        <button type="button" data-len="25">25 minutes</button>
-        <button type="button" data-len="50" class="on">50 minutes</button>
-        <button type="button" data-len="80">80 minutes</button>
-      </div>
-      <label for="t">Drag through the session — <span class="now" id="tnow">0:00</span></label>
-      <input type="range" id="t" min="-120" max="3300" step="10" value="0">
-    </div>
-
-    <div class="room">
-      <div class="stage">
-        <div class="tile"><p>Amir Karimov</p></div>
-        <div class="tile"><p>You</p></div>
-      </div>
-      <div class="rm-bar">
-        <p class="bar-goal"><b>Goal</b> — read a packet capture together</p>
-        <div class="bar-c">
-          <button class="c-b on" type="button"><span class="c-ic">🎙</span>Mic</button>
-          <button class="c-b on" type="button"><span class="c-ic">🎥</span>Camera</button>
-          <button class="c-b" type="button"><span class="c-ic">🖥</span>Share</button>
-          <button class="c-b" type="button" id="sound-b"><span class="c-ic">🔊</span>Sound</button>
-          <button class="c-b c-leave" type="button">Leave</button>
-        </div>
-        <div>
-          <div class="bar-right">
-            <span class="phase" id="phase">
-              <span class="dot"></span>
-              <span class="lab" id="ph-lab">Focus 1 of 2</span>
-              <span class="left" id="ph-left">25:00</span>
-            </span>
+    <div class="ba">
+      <div class="pane bad">
+        <header>Today <span class="tag">34 sizes</span></header>
+        <div class="body">
+          <div class="ruler">
+            <div><span class="px">8&ndash;11px</span><div class="swarm">
+              <b>8</b><b class="dup">8.5</b><b class="dup">9</b><b class="dup">9.5</b><b class="dup">10</b><b class="dup">10.5</b><b class="dup">11</b></div></div>
+            <div><span class="px">11.5&ndash;15.5px</span><div class="swarm">
+              <b class="dup">11.5</b><b class="dup">12</b><b class="dup">12.5</b><b class="dup">13</b><b class="dup">13.5</b><b class="dup">14</b><b class="dup">14.5</b><b class="dup">15</b><b class="dup">15.5</b></div></div>
+            <div><span class="px">16&ndash;23px</span><div class="swarm">
+              <b>16</b><b class="dup">17</b><b class="dup">18</b><b class="dup">19</b><b class="dup">20</b><b class="dup">21</b><b class="dup">22</b><b class="dup">23</b></div></div>
+            <div><span class="px">24px+</span><div class="swarm">
+              <b>24</b><b class="dup">25</b><b class="dup">26</b><b class="dup">27</b><b class="dup">29</b><b>32</b><b class="dup">34</b><b>38</b><b>42</b><b>46</b></div></div>
           </div>
-          <div class="ph-rail" id="rail"></div>
+          <p class="demo why" style="border:0;background:none;padding:14px 0 0;margin:0">
+            Nine sizes between 11.5 and 15.5. Six of them are within half a pixel of
+            a neighbour, which no one can see and every component has to choose between.</p>
+        </div>
+      </div>
+
+      <div class="pane good">
+        <header>Proposed <span class="tag">7 steps</span></header>
+        <div class="body">
+          <div class="ruler">
+            <div><span class="px">29px</span><span style="font-size:29px;font-weight:800;letter-spacing:-.025em">Today</span></div>
+            <div><span class="px">27px</span><span style="font-size:27px;font-weight:800;letter-spacing:-.03em">Today at 8:00 AM</span></div>
+            <div><span class="px">17px</span><span style="font-size:17px;font-weight:700;letter-spacing:-.02em">Every card title</span></div>
+            <div><span class="px">16px</span><span style="font-size:16px">Body copy, read at length</span></div>
+            <div><span class="px">14.5px</span><span style="font-size:14.5px;color:var(--soft)">Secondary text and buttons</span></div>
+            <div><span class="px">13px</span><span style="font-size:13px;color:var(--soft)">Captions, meta, links in cards</span></div>
+            <div><span class="px">11.5px</span><span class="t-mono" style="color:var(--faint)">Mono label</span></div>
+          </div>
+          <p class="demo why" style="border:0;background:none;padding:14px 0 0;margin:0">
+            Every gap is visible. Six of the seven already exist as tokens
+            (<span class="k">--t-body</span>, <span class="k">--t-sm</span>&hellip;) and are simply not used.</p>
         </div>
       </div>
     </div>
 
-    <p class="dlede" style="margin-top:14px">The pill takes the corner the raw “23 min in”
-       clock has now — same place, more use. The rail under it is the whole session at a
-       glance. Note that <b>a break never touches your mic or camera</b>: doing something
-       surprising to somebody’s hardware because a timer elapsed is not a trade worth
-       making.</p>
+    <p class="dnote" style="margin-top:26px">The headings are the part you can actually see.
+      On the dashboard alone there are <b>five different ways to title a card</b>, at
+      14 / 15 / 15.5 / 19 / 21px &mdash; and three of those cards are the same rank of thing.</p>
+
+    <div class="ba">
+      <div class="pane bad">
+        <header>Today <span class="tag">five treatments, one page</span></header>
+        <div class="body">
+          <div class="demo">
+            <div class="t-calh"><h2>Calendar</h2></div>
+            <p class="why">21px / 700 &middot; no label, no icon &middot; written inline in app.html</p>
+          </div>
+          <div class="demo">
+            <div class="t-bookh"><span class="t-mono">Book</span><h2>Propose a time</h2></div>
+            <p class="why">19px / 700 &middot; label, no icon</p>
+          </div>
+          <div class="demo">
+            <div class="t-bh">
+              <span class="t-gl"><svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><rect x="6" y="11" width="4" height="4" rx="1" fill="#0F6E56"/><path d="M7 2v3M15 2v3" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg></span>
+              <div><span class="t-mono">Your time</span><h2>Sessions</h2></div>
+            </div>
+            <p class="why">15.5px / 600 &middot; label AND icon &middot; the only icon on the page</p>
+          </div>
+          <div class="demo">
+            <h3 class="t-railh">Your partner</h3>
+            <p class="why">14px / 700 &middot; no label, no icon</p>
+          </div>
+          <div class="demo">
+            <span class="t-mono" style="color:var(--faint)">Week 5 of 12</span>
+            <p class="t-sth" style="margin-top:2px">Reading a packet capture</p>
+            <p class="why">label only &mdash; the heading is the content, so this card has no title at all</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pane good">
+        <header>Proposed <span class="tag">one treatment</span></header>
+        <div class="body">
+          <div class="demo">
+            <div class="ch"><div class="grow"><h2>Calendar</h2></div>
+              <div class="side"><button class="small">Today</button></div></div>
+            <p class="why">17px / 700 &middot; actions sit on the right of the same line</p>
+          </div>
+          <div class="demo">
+            <div class="ch"><div class="grow"><span class="kick">Book</span><h2>Propose a time</h2></div></div>
+            <p class="why">17px / 700 &middot; the label is optional and sits above</p>
+          </div>
+          <div class="demo">
+            <div class="ch"><div class="grow"><span class="kick">Your time</span><h2>Needs you</h2></div></div>
+            <p class="why">same again &mdash; no icon tile, because only one card ever had one</p>
+          </div>
+          <div class="demo">
+            <div class="ch"><div class="grow"><h3>Your partner</h3></div>
+              <div class="side"><a class="lnk" href="#">Partner page &rarr;</a></div></div>
+            <p class="why">rail cards are the same heading, not a smaller different one</p>
+          </div>
+          <div class="demo">
+            <div class="ch"><div class="grow"><span class="kick">Week 5 of 12</span><h3>Reading a packet capture</h3></div></div>
+            <p class="why">now it has a title, and the label is a label</p>
+          </div>
+          <p class="dnote" style="margin:16px 0 0;font-size:var(--t-xs)">One rule
+            (<span class="k">.ch</span>) replaces <span class="k">.cal-head</span>,
+            <span class="k">.bookp-h</span>, <span class="k">.bh</span>,
+            <span class="k">.rail h3</span> and <span class="k">.pg-head</span>.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="dnote" style="margin-top:26px">One more, and it is the reason the page feels
+      like it starts mid-sentence: <b>every app page names itself except this one</b>.
+      Progress says &ldquo;Progress&rdquo;, People says &ldquo;People on PeerFlow&rdquo;. The
+      dashboard's only <span class="k">&lt;h1&gt;</span> is the green band, which currently
+      reads &ldquo;Loading your sessions&hellip;&rdquo;. Both layouts below give it a title.</p>
   </section>
 
-  <!-- ============ 2. ambience ============ -->
+  <!-- ==================================================================
+       PART TWO — the repetition
+       ================================================================== -->
   <section class="dsec">
-    <h2>2. Ambience, local to you and generated on the spot</h2>
-    <p class="dlede"><b>None of this is mixed into the call.</b> Rain is broadband noise,
-       which is exactly what the other side’s echo cancellation and noise suppression exist
-       to destroy — routed into the microphone it would sound clean to you and mangled to
-       them, which is a horrible fault to chase. So each of you picks your own, or none,
-       and it never leaves your machine.</p>
-    <p class="dlede">These are synthesised from filtered noise rather than downloaded: no
-       megabytes on a site where nothing is content-hashed, and no loop seam to hear.
-       Honest limit — this does rain, wind and deep noise well, and it will never do a café
-       or a fireplace. Those need recordings, and are worth adding only if you want them.</p>
+    <h2>2. The page repeats itself</h2>
+    <p class="dnote">Tuesday's 8:00 session with Amir is on screen <b>three times</b>: as a
+      sentence in the green band, as a block in the calendar, and as a row in
+      &ldquo;Sessions&rdquo; under <span class="k">BOOKED</span>. His name appears
+      <b>six</b> times. The band and the calendar both earn their copy &mdash; one is the
+      answer to &ldquo;what now&rdquo;, the other is the shape of the week. The list is the
+      third telling, and it is the one that adds nothing.</p>
+    <p class="dnote">So the card below the calendar stops being a list of everything and
+      becomes <b>only what is waiting on you</b>: proposals to answer, and goals to close
+      out. When nothing is waiting, it isn't there. Both layouts do this.</p>
+  </section>
 
-    <div class="mixes">
-      <div class="mix" id="mix-rain">
-        <h3>Rain</h3>
-        <p>Filtered noise with slow gusts moving through it. The most textured of the three,
-           and the one that most sounds like a place.</p>
-        <button class="btn" type="button" data-mix="rain">Play rain</button>
-      </div>
-      <div class="mix" id="mix-noise">
-        <h3>Deep noise</h3>
-        <p>Brown noise — the low, even one. No features to notice, which is the point: it
-           covers a room without giving you anything to listen to.</p>
-        <button class="btn" type="button" data-mix="noise">Play deep noise</button>
-      </div>
-      <div class="mix" id="mix-ocean">
-        <h3>Ocean</h3>
-        <p>A long swell in both loudness and brightness, because a wave coming in is louder
-           and brighter and going out is quieter and duller. Two drifts at rates that do not
-           divide into each other, so it never audibly repeats.</p>
-        <button class="btn" type="button" data-mix="ocean">Play ocean</button>
+  <!-- ==================================================================
+       PART THREE — the two layouts
+       ================================================================== -->
+  <section class="dsec">
+    <h2>3. Two ways to fix the rail</h2>
+    <p class="dnote">Four cards &mdash; this week, your partner, standing slot, week 5 of 12 &mdash;
+      each with its own internal structure. Below 1000px they collapse into four columns and the
+      last one wraps &ldquo;All 12 weeks&rdquo; onto three lines. Both options cut them to one
+      shape; they differ in where that shape goes.</p>
+
+    <!-- ---------------- OPTION A ---------------- -->
+    <div class="opt" style="margin-top:22px">
+      <div class="opth"><h3>Option A &mdash; a context strip</h3>
+        <span class="verdict">Recommended</span>
+        <span style="font-size:var(--t-xs);color:var(--soft)">The rail becomes one card, four cells. The work below it goes full width.</span></div>
+
+      <div class="stack">
+        <div class="phead">
+          <div><h1>Today</h1><p>Tuesday, 18 August</p></div>
+          <button class="btn">+ New session</button>
+        </div>
+
+        <section class="now">
+          <div>
+            <span class="kick">Next session</span>
+            <h1>Today at 8:00 AM with Amir Karimov</h1>
+            <p>50 minutes &middot; Cybersecurity. Both of you have agreed to this one.</p>
+            <div class="acts"><button class="btn">Book another</button><button class="btn ghost">Cancel this one</button></div>
+            <p class="foot">Your room opens fifteen minutes before you start.</p>
+          </div>
+          <div class="side"><span class="cd">2h</span><span class="cl">from now</span></div>
+        </section>
+
+        <section class="c strip">
+          <div class="cell">
+            <span class="kick">This week</span>
+            <p class="fact">1 <small>of 2 sessions</small></p>
+            <p class="sub warn">1 more, 3 days left to book it.</p>
+            <div class="run" aria-hidden="true">
+              <i style="height:30%"></i><i class="on" style="height:100%"></i><i class="on" style="height:100%"></i>
+              <i style="height:14%"></i><i style="height:52%"></i><i class="on" style="height:82%"></i>
+              <i class="on" style="height:100%"></i><i class="on" style="height:100%"></i><i style="height:20%"></i>
+              <i class="on" style="height:96%"></i><i class="on" style="height:96%"></i><i class="cur" style="height:48%"></i>
+            </div>
+            <a class="lnk" href="#">Your progress &rarr;</a>
+          </div>
+          <div class="cell">
+            <span class="kick">Your partner</span>
+            <div class="pair" style="margin-top:2px"><span class="av">A</span>
+              <span class="who"><b>Amir Karimov</b><i>Cybersecurity</i></span></div>
+            <a class="lnk" href="#">Partner page &rarr;</a>
+          </div>
+          <div class="cell">
+            <span class="kick">Standing slot</span>
+            <p class="fact">Not set yet</p>
+            <p class="sub">Agree one hour a week and it books itself from then on.</p>
+            <a class="lnk" href="#">Set one up &rarr;</a>
+          </div>
+          <div class="cell">
+            <span class="kick">Week 5 of 12</span>
+            <p class="fact">Reading a packet capture</p>
+            <p class="sub">Wireshark docs</p>
+            <a class="lnk" href="#">All 12 weeks &rarr;</a>
+          </div>
+        </section>
+
+        <section class="c calbox">
+          <div class="ch"><div class="grow"><h2>Calendar</h2></div>
+            <div class="side"><button class="small">&lsaquo;</button>
+              <span style="font-size:var(--t-sm);font-weight:600">Aug 17 &ndash; Aug 23</span>
+              <button class="small">&rsaquo;</button><button class="small">Today</button></div></div>
+          <div class="calgrid">
+            <div class="calrow head">
+              <div></div>
+              <div><span>Mon</span><b>17</b></div><div class="today"><span>Tue</span><b>18</b></div>
+              <div><span>Wed</span><b>19</b></div><div><span>Thu</span><b>20</b></div>
+              <div><span>Fri</span><b>21</b></div><div><span>Sat</span><b>22</b></div><div><span>Sun</span><b>23</b></div>
+            </div>
+            <div class="calrow"><div class="calcell">07:00</div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+            <div class="calrow"><div class="calcell">08:00</div><div class="calcell"></div>
+              <div class="calcell"><span class="ev"><b>Cybersecurity</b><span>08:00 &middot; Amir</span></span></div>
+              <div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+            <div class="calrow"><div class="calcell">09:00</div><div class="calcell"></div><div class="calcell"></div><div class="calcell free"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+            <div class="calrow"><div class="calcell">10:00</div><div class="calcell"></div><div class="calcell"></div><div class="calcell free"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+            <div class="calrow"><div class="calcell">11:00</div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+          </div>
+          <p class="legend"><span><i></i>Booked</span>
+            <span><i style="background:#8E8BD8"></i>Waiting on an answer</span>
+            <span><i style="background:#CBEEDF"></i>You&rsquo;re both free &mdash; click to propose</span></p>
+        </section>
+
+        <section class="c">
+          <div class="ch"><div class="grow"><span class="kick">Your time</span><h2>Needs you</h2></div></div>
+          <div class="ask">
+            <p><b>Amir Karimov</b> proposed Fri, Aug 21, 07:00 PM</p>
+            <p class="meta">50 minutes &middot; Cybersecurity</p>
+            <div class="acts"><button class="btn">Accept</button><button class="btn ghost">Decline</button>
+              <button class="btn ghost">Suggest another time</button></div>
+          </div>
+        </section>
       </div>
     </div>
 
-    <div class="vol">
-      <label for="vol">Volume</label>
-      <input type="range" id="vol" min="0" max="100" value="35">
-      <button class="btn btn-ghost" type="button" id="stop">Stop</button>
+    <!-- ---------------- OPTION B ---------------- -->
+    <div class="opt" style="margin-top:26px">
+      <div class="opth"><h3>Option B &mdash; keep the rail, two cards in it</h3>
+        <span class="verdict alt">Alternative</span>
+        <span style="font-size:var(--t-xs);color:var(--soft)">Four cards become two, grouped by what they are about.</span></div>
+
+      <div class="stack">
+        <div class="phead">
+          <div><h1>Today</h1><p>Tuesday, 18 August</p></div>
+          <button class="btn">+ New session</button>
+        </div>
+
+        <section class="now">
+          <div>
+            <span class="kick">Next session</span>
+            <h1>Today at 8:00 AM with Amir Karimov</h1>
+            <p>50 minutes &middot; Cybersecurity. Both of you have agreed to this one.</p>
+            <div class="acts"><button class="btn">Book another</button><button class="btn ghost">Cancel this one</button></div>
+            <p class="foot">Your room opens fifteen minutes before you start.</p>
+          </div>
+          <div class="side"><span class="cd">2h</span><span class="cl">from now</span></div>
+        </section>
+
+        <div class="dash">
+          <div class="dash-main">
+            <section class="c calbox">
+              <div class="ch"><div class="grow"><h2>Calendar</h2></div>
+                <div class="side"><button class="small">&lsaquo;</button>
+                  <span style="font-size:var(--t-sm);font-weight:600">Aug 17 &ndash; Aug 23</span>
+                  <button class="small">&rsaquo;</button><button class="small">Today</button></div></div>
+              <div class="calgrid">
+                <div class="calrow head">
+                  <div></div>
+                  <div><span>Mon</span><b>17</b></div><div class="today"><span>Tue</span><b>18</b></div>
+                  <div><span>Wed</span><b>19</b></div><div><span>Thu</span><b>20</b></div>
+                  <div><span>Fri</span><b>21</b></div><div><span>Sat</span><b>22</b></div><div><span>Sun</span><b>23</b></div>
+                </div>
+                <div class="calrow"><div class="calcell">07:00</div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+                <div class="calrow"><div class="calcell">08:00</div><div class="calcell"></div>
+                  <div class="calcell"><span class="ev"><b>Cybersecurity</b><span>08:00 &middot; Amir</span></span></div>
+                  <div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+                <div class="calrow"><div class="calcell">09:00</div><div class="calcell"></div><div class="calcell"></div><div class="calcell free"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+                <div class="calrow"><div class="calcell">10:00</div><div class="calcell"></div><div class="calcell"></div><div class="calcell free"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+                <div class="calrow"><div class="calcell">11:00</div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div><div class="calcell"></div></div>
+              </div>
+              <p class="legend"><span><i></i>Booked</span>
+                <span><i style="background:#8E8BD8"></i>Waiting on an answer</span>
+                <span><i style="background:#CBEEDF"></i>You&rsquo;re both free &mdash; click to propose</span></p>
+            </section>
+
+            <section class="c">
+              <div class="ch"><div class="grow"><span class="kick">Your time</span><h2>Needs you</h2></div></div>
+              <div class="ask">
+                <p><b>Amir Karimov</b> proposed Fri, Aug 21, 07:00 PM</p>
+                <p class="meta">50 minutes &middot; Cybersecurity</p>
+                <div class="acts"><button class="btn">Accept</button><button class="btn ghost">Decline</button>
+                  <button class="btn ghost">Suggest another time</button></div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="dash-rail">
+            <section class="c">
+              <div class="ch"><div class="grow"><h3>Where you are</h3></div></div>
+              <div class="blk">
+                <span class="kick">This week</span>
+                <p class="fact"><span class="num">1</span>of 2 sessions</p>
+                <p class="sub" style="color:var(--warn-ink)">1 more, 3 days left to book it.</p>
+                <div class="run" aria-hidden="true">
+                  <i style="height:30%"></i><i class="on" style="height:100%"></i><i class="on" style="height:100%"></i>
+                  <i style="height:14%"></i><i style="height:52%"></i><i class="on" style="height:82%"></i>
+                  <i class="on" style="height:100%"></i><i class="on" style="height:100%"></i><i style="height:20%"></i>
+                  <i class="on" style="height:96%"></i><i class="on" style="height:96%"></i><i class="cur" style="height:48%"></i>
+                </div>
+              </div>
+              <div class="blk">
+                <span class="kick">Week 5 of 12</span>
+                <p class="fact">Reading a packet capture</p>
+                <p class="sub">Wireshark docs</p>
+              </div>
+              <a class="lnk" style="margin-top:14px" href="#">Your progress &rarr;</a>
+            </section>
+
+            <section class="c">
+              <div class="ch"><div class="grow"><h3>Your pair</h3></div></div>
+              <div class="blk">
+                <div class="pair"><span class="av">A</span>
+                  <span class="who"><b>Amir Karimov</b><i>Cybersecurity</i></span></div>
+              </div>
+              <div class="blk">
+                <span class="kick">Standing slot</span>
+                <p class="fact">Not set yet</p>
+                <p class="sub">Agree one hour a week with Amir and it books itself from then on.</p>
+                <button class="small" style="margin-top:11px">Set one up</button>
+              </div>
+              <a class="lnk" style="margin-top:14px" href="#">Partner page &rarr;</a>
+            </section>
+          </aside>
+        </div>
+      </div>
     </div>
 
-    <p class="dlede" style="margin-top:22px"><b>What I would ship:</b> the pill exactly as
-       above, and these three behind the Sound button in the bar, with the choice remembered
-       in <code>localStorage</code> per person rather than per session so it never asks
-       twice. Say if you want a fourth texture, a different split than 25·5·20, or the break
-       to be louder about itself.</p>
+    <p class="dnote" style="margin-top:30px"><b>Why A.</b> The rail's four cards were never
+      four things you do &mdash; they were four facts you glance at, and facts read better in a
+      row than in a stack. Putting them in a strip also gives the calendar and the
+      &ldquo;needs you&rdquo; card the full width, which is where the actual work happens, and
+      it removes the 306px column that was breaking at 1000px. <b>B</b> is the smaller change:
+      the grid stays exactly as it is and only the rail's contents are regrouped, so if the
+      two-column shape is something you want to keep, B is the one.</p>
   </section>
 
 </div>
-</main>
-
-<script src="assets/phases.js"></script>
-<script src="assets/ambience.js"></script>
-<script>
-(function(){
-  var P = window.pfPhases;
-  var START = Date.parse('2026-09-01T15:00:00Z');
-  var ISO = new Date(START).toISOString();
-  var len = 50;
-
-  function mmss(ms){
-    var s = Math.max(0, Math.round(ms / 1000));
-    return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
-  }
-
-  function paint(){
-    var secs = parseInt(document.getElementById('t').value, 10);
-    var r    = P.at(START + secs * 1000, ISO, len);
-    var pill = document.getElementById('phase');
-    var lab  = document.getElementById('ph-lab');
-    var left = document.getElementById('ph-left');
-
-    document.getElementById('tnow').textContent =
-      (secs < 0 ? 'starts in ' + mmss(-secs * 1000) : mmss(secs * 1000) + ' in');
-
-    var cls = 'phase';
-    if (r.state === 'before') {
-      lab.textContent = 'Starts in'; left.textContent = mmss(r.leftMs);
-    } else if (r.state === 'after') {
-      cls += ' done'; lab.textContent = 'Session over'; left.textContent = '';
-    } else if (r.kind === 'break') {
-      cls += ' brk'; lab.textContent = 'Break'; left.textContent = mmss(r.leftMs);
-    } else {
-      var f = P.focusNumber(r.blocks, r.index);
-      /* "Focus 1 of 1" is a fact nobody needs; a single sitting is just focus. */
-      lab.textContent = f.of > 1 ? ('Focus ' + f.n + ' of ' + f.of) : 'Focus';
-      left.textContent = mmss(r.leftMs);
-    }
-    if (r.state === 'running' && r.leftMs < 2 * 60000) cls += ' soon';
-    pill.className = cls;
-
-    var html = '';
-    r.blocks.forEach(function(b, i){
-      var on = r.state === 'after' || (r.state === 'running' && i <= r.index);
-      html += '<i class="' + (b.kind === 'break' ? 'brk ' : '') + (on ? 'on' : '') +
-              '" style="width:' + (b.min * 2.4) + 'px"></i>';
-    });
-    document.getElementById('rail').innerHTML = html;
-  }
-
-  document.getElementById('t').addEventListener('input', paint);
-  document.getElementById('lenpick').addEventListener('click', function(e){
-    var b = e.target.closest('[data-len]'); if (!b) return;
-    len = parseInt(b.getAttribute('data-len'), 10);
-    Array.prototype.forEach.call(this.querySelectorAll('button'),
-      function(x){ x.classList.toggle('on', x === b); });
-    var t = document.getElementById('t');
-    t.max = len * 60 + 300;
-    if (+t.value > +t.max) t.value = t.max;
-    paint();
-  });
-  paint();
-
-  /* ---------- ambience ----------
-     The real assets/ambience.js, loaded above — not a copy of it. A draft that
-     reimplements the thing it is demonstrating stops being evidence about the
-     thing the moment either one is edited. */
-  var LABEL = { rain:'Play rain', noise:'Play deep noise', ocean:'Play ocean' };
-
-  function paintMixes(){
-    var on = window.pfAmbience.playing();
-    Array.prototype.forEach.call(document.querySelectorAll('.mix'), function(m){
-      m.classList.toggle('playing', m.id === 'mix-' + on);
-    });
-    Object.keys(LABEL).forEach(function(k){
-      var b = document.querySelector('[data-mix="' + k + '"]');
-      if (b) b.textContent = (k === on) ? 'Playing' : LABEL[k];
-    });
-  }
-
-  function play(kind){ window.pfAmbience.play(kind); paintMixes(); }
-  function stop(){ window.pfAmbience.stop(); paintMixes(); }
-
-  document.addEventListener('click', function(e){
-    var m = e.target.closest('[data-mix]');
-    if (m) { play(m.getAttribute('data-mix')); return; }
-    if (e.target.closest('#stop')) stop();
-    if (e.target.closest('#sound-b'))
-      document.getElementById('mix-rain').scrollIntoView({ behavior:'smooth', block:'center' });
-  });
-  var vol = document.getElementById('vol');
-  vol.value = window.pfAmbience.volume();
-  vol.addEventListener('input', function(){ window.pfAmbience.volume(+vol.value); });
-})();
-</script>
-
 </body>
 </html>
