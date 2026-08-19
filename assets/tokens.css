@@ -68,14 +68,51 @@
      55 / 33 / 18 / 18 / 17.5 — four sizes doing three jobs, with a
      section heading and a card title a pixel and a half apart. The
      h2 ceiling went up rather than the card titles coming down,
-     because the cards are what people actually read. */
+     because the cards are what people actually read.
+
+     app.css did not follow. It went on declaring its own sizes and
+     ended up with THIRTY-FOUR of them: nine between 11.5px and
+     15.5px, six of those within half a pixel of a neighbour — a
+     difference nobody can see and every component still had to pick
+     between. The steps below are the whole app surface now.
+
+     Two ramps, because they are two jobs. The first is prose, and
+     each step is a rank: page, card, body, secondary, caption,
+     label. The second is figures — a streak count is not a heading
+     that happens to be a numeral, and sizing it off the prose ramp
+     is what produced 34px and 38px and 42px and 46px all meaning
+     "the big number on this card".
+
+     --t-h2 / --t-h3 / --t-lede stay where they are and stay out of
+     app.css: they belong to the landing and auth pages, which are
+     allowed to be louder than a tool somebody uses every day. */
   --t-h2:clamp(28px,3.2vw,36px);
   --t-h3:19px;
   --t-lede:18.5px;
+
+  /* ---- prose, largest to smallest ---- */
+  --t-page:29px;      /* the page's own name, once per page          */
+  --t-hero:27px;      /* the sentence in the dashboard's green band  */
+  --t-card:17px;      /* EVERY card title, on every app page         */
   --t-body:16px;
-  --t-sm:14.5px;
-  --t-xs:13px;
-  --t-kicker:11.5px;
+  --t-sm:14.5px;      /* secondary text, buttons, dense rows         */
+  --t-xs:13px;        /* captions, meta, links inside a card         */
+  --t-kicker:11.5px;  /* the mono uppercase label above a heading    */
+  /* The one step below the kicker, and it exists for the same reason
+     --r-mark does further down: labels at glyph scale — a column
+     head in a 7-across availability grid, the ends of a sparkline's
+     axis, a two-character tag inside a row. Setting those to 11.5px
+     does not make them clearer, it makes them collide. It replaces
+     8 / 8.5 / 9 / 9.5 / 10 / 10.5 / 11, which were seven sizes doing
+     this one job. */
+  --t-tiny:10px;
+
+  /* ---- figures ----
+     Three, because a figure has three jobs and app.css was using
+     seven sizes for them: 18 / 19 / 22 / 32 / 34 / 38 / 42 / 46. */
+  --t-num-sm:22px;    /* one figure in a row of figures              */
+  --t-num:32px;       /* the number a card is about                  */
+  --t-num-lg:42px;    /* the one figure a whole page is about        */
 
   /* ---------- radii ----------
      Three of them, and the pill. Anything you press is a control;

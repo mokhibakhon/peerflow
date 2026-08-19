@@ -27,6 +27,14 @@
     <a href="signup.html">finish signing up</a> if you're new.
   </p>
 
+  <!-- The page's own name. .app-head is the same heading row every other app
+       page uses, so Today now sits in the run with Progress and Chat rather
+       than being the one page that starts mid-sentence. -->
+  <header class="app-head">
+    <h1>Today</h1>
+    <span class="date" id="page-date"></span>
+  </header>
+
   <!-- ============ the one thing ============
        A dashboard has one job: answer "what do I do now?" above the fold.
        The three things that used to open this page — a hero, a sessions
@@ -39,7 +47,7 @@
   <section class="now" id="now" data-tone="load">
     <div class="now-txt">
       <span class="mono now-k" id="now-k">&nbsp;</span>
-      <h1 id="now-h">Loading your sessions…</h1>
+      <p class="now-h" id="now-h">Loading your sessions…</p>
       <p class="now-s" id="now-s"></p>
       <div class="now-a" id="now-a"></div>
       <p class="now-f" id="now-f" hidden></p>
@@ -58,10 +66,9 @@
        middle of the page made the dashboard look like a form. Opens from
        the band, from + New session, and from any free hour in the grid. -->
   <section class="b bookp" id="book-card" hidden>
-    <div class="bookp-h">
-      <span class="mono" style="color:var(--p6)">Book</span>
-      <h2>Propose a time</h2>
-      <button class="small" type="button" id="bk-close" aria-label="Close">Close</button>
+    <div class="ch">
+      <div class="grow"><span class="mono kick">Book</span><h2>Propose a time</h2></div>
+      <div class="side"><button class="small" type="button" id="bk-close" aria-label="Close">Close</button></div>
     </div>
     <!-- The whole form is one sentence. Every green word opens a menu, and
          the line underneath says whether your partner has told us they're
@@ -110,9 +117,9 @@
 
            Hidden until we know enough to draw it. -->
       <section class="b wide" id="cal-card" hidden>
-        <div class="cal-head">
-          <h2 style="margin:0;font-size:21px;font-weight:700;letter-spacing:-.025em">Calendar</h2>
-          <div class="cal-nav">
+        <div class="ch">
+          <div class="grow"><h2>Calendar</h2></div>
+          <div class="side cal-nav">
             <button class="cal-step" type="button" id="cal-prev" aria-label="Previous week">&lsaquo;</button>
             <span class="cal-range" id="cal-range"></span>
             <button class="cal-step" type="button" id="cal-next" aria-label="Next week">&rsaquo;</button>
@@ -140,11 +147,8 @@
            nothing under it is a label for an absence, and the band above has
            already said nothing is booked. -->
       <section class="b wide" id="sess-card" hidden>
-        <div class="bh">
-          <span class="gl" style="background:var(--p0)">
-            <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true"><rect x="2" y="4" width="18" height="16" rx="3" fill="#5DCAA5"/><path d="M2 8h18" stroke="#0F6E56" stroke-width="2"/><rect x="6" y="11" width="4" height="4" rx="1" fill="#0F6E56"/><path d="M7 2v3M15 2v3" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
-          </span>
-          <div><span class="mono" style="color:var(--p6)">Your time</span><h2 id="sess-h">Sessions</h2></div>
+        <div class="ch">
+          <div class="grow"><span class="mono kick">Your time</span><h2 id="sess-h">Needs you</h2></div>
         </div>
 
         <p class="mono sub-h" id="prop-h" hidden>Waiting on an answer</p>
@@ -161,92 +165,113 @@
 
     </div>
 
-    <!-- ============ the rail ============ -->
+    <!-- ============ the rail: two cards, not four ============
+         It was four — this week, your partner, the standing slot, week 5 of
+         12 — and each had a different internal structure: one led with a
+         number, one with a face, one with a sentence and a button, one with a
+         label and no title at all. Four boxes that share nothing read as
+         clutter however good each one is on its own, and below 1000px they
+         collapsed into four columns where "All 12 weeks →" wrapped onto three
+         lines in a 100px-wide card.
+
+         They are two now, grouped by what they are about rather than by which
+         query produced them: where you are (this week, and where the plan has
+         got to — both progress) and your pair (the person, and the hour you
+         have standing with them — both about them). Inside each, every block
+         is the same shape: a rule, a mono label, the fact, and at most one
+         line under it. One link at the foot of each card, not one per block.
+
+         The blocks keep the ids the painters already use, so nothing in the
+         JS below had to learn a new name; what changed is that a card now
+         hides itself when all of its blocks are hidden. -->
     <aside class="dash-rail">
 
-      <!-- ============ the streak ============
-           A ring, not a row of digits. The number is weeks, because a session
-           needs another person at an agreed time and nobody can do that daily
-           — a streak that breaks when you did nothing wrong is one people
-           learn to ignore. But a week is far too slow a loop to feel, so the
-           ring fills as the week goes and you can see where you stand on a
-           Wednesday instead of finding out on Monday.
+      <!-- ============ where you are ============
+           The streak is not here. appshell.js draws it in the top bar of
+           every page, with the same at-risk states, so a copy of it in the
+           rail was the second time you read the same number on one screen.
+           What the chrome cannot show is where this week stands, what the run
+           behind it looks like, and what the plan says you are on — which is
+           what these two blocks are. -->
+      <section class="rail" id="rail-where">
+        <div class="ch"><div class="grow"><h3>Where you are</h3></div></div>
 
-           Named as a pair wherever we know the pair. Breaking your own
-           counter disappoints you; breaking one with somebody's name on it
-           lets a specific person down, and that is the whole product. -->
-      <section class="rail streak" id="rail-mo">
-        <!-- The streak is not here any more. appshell.js already draws it in
-             the top bar of every page, with the same at-risk states, so a
-             42px copy of it in the rail was the second time you read the same
-             number on one screen — inside a ring that was measuring something
-             else entirely. What the chrome cannot show is where this week
-             stands and what the run looks like, and that is all this is. -->
-        <p class="st-n" id="mo-n"><b>0</b> <span id="mo-nu">sessions this week</span></p>
-        <p class="st-h" id="mo-h">&nbsp;</p>
-        <p class="st-w" id="mo-w"></p>
-        <!-- Twelve weeks, and height is the number of sessions: a full column,
-             a half column, or a stub. It was twelve identical bars with
-             different fills, which is a row of tally marks rather than a
-             chart — you could not see a good week from a thin one without
-             reading the colour. -->
-        <div class="st-hist" id="mo-hist" hidden>
-          <p class="st-hl">Last 12 weeks</p>
-          <div class="st-run" id="mo-bars" aria-hidden="true"></div>
-          <div class="st-rl"><span>12 weeks ago</span><span>Now</span></div>
-        </div>
-        <a class="rail-l" href="app-progress.html">Your progress &rarr;</a>
-      </section>
-
-      <!-- The person. The whole product is that somebody notices whether you
-           turn up, so their face belongs on the page you open, not one click
-           away on a tab you never visit twice. -->
-      <section class="rail" id="rail-pt" hidden>
-        <h3 id="pt-h">Your partner</h3>
-        <div id="ptm"></div>
-        <a class="rail-l" href="app-sessions.html">Partner page &rarr;</a>
-      </section>
-
-      <!-- ============ standing weekly slot ============
-           Every session used to be a fresh negotiation — propose, wait,
-           accept — and that cost is paid once per session, which is exactly
-           the wrong shape for something you are trying to make a habit. Agree
-           to an hour once and the default becomes "Thursday at 19:00 unless
-           one of you moves it". -->
-      <section class="rail" id="rail-st" hidden>
-        <h3>Standing slot</h3>
-        <p class="st-now" id="st-now"></p>
-        <p class="st-sub" id="st-sub"></p>
-        <div class="st-acts" id="st-acts"></div>
-
-        <!-- Closed until you ask for it, like the booking panel. -->
-        <div class="st-form" id="st-form" hidden>
-          <label class="st-l" for="st-day">Every</label>
-          <select id="st-day"></select>
-          <label class="st-l" for="st-hour">at</label>
-          <select id="st-hour"></select>
-          <label class="st-l" for="st-len">for</label>
-          <select id="st-len">
-            <option value="25">25 minutes</option>
-            <option value="50" selected>50 minutes</option>
-            <option value="80">80 minutes</option>
-          </select>
-          <p class="st-warn" id="st-warn"></p>
-          <div class="st-acts">
-            <button class="btn" type="button" id="st-save">Suggest it</button>
-            <button class="small" type="button" id="st-cancel">Cancel</button>
+        <div class="blk" id="rail-mo">
+          <span class="mono kick">This week</span>
+          <p class="st-n" id="mo-n"><b>0</b> <span id="mo-nu">sessions this week</span></p>
+          <p class="st-h" id="mo-h">&nbsp;</p>
+          <p class="st-w" id="mo-w"></p>
+          <!-- Twelve weeks, and height is the number of sessions: a full
+               column, a half column, or a stub. It was twelve identical bars
+               with different fills, which is a row of tally marks rather than
+               a chart — you could not see a good week from a thin one without
+               reading the colour. -->
+          <div class="st-hist" id="mo-hist" hidden>
+            <p class="st-hl">Last 12 weeks</p>
+            <div class="st-run" id="mo-bars" aria-hidden="true"></div>
+            <div class="st-rl"><span>12 weeks ago</span><span>Now</span></div>
           </div>
         </div>
-        <p class="st-err" id="st-err" hidden></p>
+
+        <!-- One week of the plan, not twelve. Eleven of those rows were
+             reference material parked in an operational view; they still
+             exist in full on Progress, which is where you go to read them. -->
+        <div class="blk" id="rail-wk" hidden>
+          <span class="mono kick" id="wk-k">This week</span>
+          <p class="wk-t" id="wk-t"></p>
+        </div>
+
+        <!-- One link, at the foot of the card. Both blocks pointed at
+             app-progress.html, so the card was carrying two links to the same
+             page; its wording sharpens to name the plan once the plan is
+             known. -->
+        <a class="rail-l" href="app-progress.html" id="wk-l">Your progress &rarr;</a>
       </section>
 
-      <!-- One week of the plan, not twelve. Eleven of those rows were
-           reference material parked in an operational view; they still exist
-           in full on Progress, which is where you go to read them. -->
-      <section class="rail" id="rail-wk" hidden>
-        <span class="mono" id="wk-k">This week</span>
-        <p class="wk-t" id="wk-t"></p>
-        <a class="rail-l" href="app-progress.html" id="wk-l">All twelve weeks &rarr;</a>
+      <!-- ============ your pair ============
+           The whole product is that somebody notices whether you turn up, so
+           their face belongs on the page you open. The standing slot sits with
+           them because it is the same subject: every session used to be a
+           fresh negotiation — propose, wait, accept — and that cost is paid
+           once per session, which is the wrong shape for something you are
+           trying to make a habit. Agree an hour once and the default becomes
+           "Thursday at 19:00 unless one of you moves it". -->
+      <section class="rail" id="rail-pair" hidden>
+        <div class="ch"><div class="grow"><h3>Your pair</h3></div></div>
+
+        <div class="blk" id="rail-pt" hidden>
+          <span class="mono kick" id="pt-h">Your partner</span>
+          <div id="ptm"></div>
+        </div>
+
+        <div class="blk" id="rail-st" hidden>
+          <span class="mono kick">Standing slot</span>
+          <p class="st-now" id="st-now"></p>
+          <p class="st-sub" id="st-sub"></p>
+          <div class="st-acts" id="st-acts"></div>
+
+          <!-- Closed until you ask for it, like the booking panel. -->
+          <div class="st-form" id="st-form" hidden>
+            <label class="st-l" for="st-day">Every</label>
+            <select id="st-day"></select>
+            <label class="st-l" for="st-hour">at</label>
+            <select id="st-hour"></select>
+            <label class="st-l" for="st-len">for</label>
+            <select id="st-len">
+              <option value="25">25 minutes</option>
+              <option value="50" selected>50 minutes</option>
+              <option value="80">80 minutes</option>
+            </select>
+            <p class="st-warn" id="st-warn"></p>
+            <div class="st-acts">
+              <button class="btn" type="button" id="st-save">Suggest it</button>
+              <button class="small" type="button" id="st-cancel">Cancel</button>
+            </div>
+          </div>
+          <p class="st-err" id="st-err" hidden></p>
+        </div>
+
+        <a class="rail-l" href="app-sessions.html">Partner page &rarr;</a>
       </section>
 
     </aside>
@@ -367,6 +392,22 @@
      in priority order, and calls this once — so there is exactly one place
      that decides what the top of this page says. Tone is a data attribute:
      what colour a state is stays CSS's problem, not this function's. */
+  /* Today's date, beside the page title. The band says "Today at 8:00 AM"
+     without ever saying which day today is, which is fine while you are
+     looking at the clock in your own chrome and less fine on a laptop at
+     23:50. */
+  (function(){
+    var el = $('page-date');
+    if (!el) return;
+    var d = new Date();
+    try {
+      el.textContent = d.toLocaleDateString(undefined,
+        { weekday:'long', day:'numeric', month:'long' });
+    } catch (e) {
+      el.textContent = d.toDateString();
+    }
+  })();
+
   function band(o){
     $('now').setAttribute('data-tone', o.tone || 'idle');
     $('now-k').textContent = o.k || '';
@@ -510,7 +551,7 @@
     $('mo-bars').innerHTML = m.done ? runStrip(m.history, m.goal) : '';
 
     var atRisk = m.streak && !m.metThisWeek && m.daysLeft <= 3;
-    $('rail-mo').className = 'rail streak' +
+    $('rail-where').className = 'rail streak' +
       (m.metThisWeek ? ' met' : '') + (atRisk ? ' warn' : '');
 
     var pair = who ? 'You and ' + esc(who) : 'You';
@@ -625,8 +666,9 @@
 
   function renderStanding(){
     var card = $('rail-st');
-    if (!standingFor){ card.hidden = true; return; }
+    if (!standingFor){ card.hidden = true; syncRail(); return; }
     card.hidden = false;
+    syncRail();
     closeStandingForm();
     $('st-err').hidden = true;
 
@@ -728,6 +770,7 @@
         '</span></div>';
     }).join('');
     $('rail-pt').hidden = false;
+    syncRail();
   }
 
   /* ---------- sessions list ---------- */
@@ -1335,6 +1378,25 @@
      smaller type — the same fact three times counting the calendar. It stays
      shut until it has more to say than that, and any relay from the band
      opens it so an error is never reported into a hidden card. */
+  /* A rail card is nothing but its blocks, so it is only worth drawing while
+     at least one of them has something in it. The four painters below each
+     know about their own block and nothing else — which is what let them be
+     four separate cards in the first place — so the card-level question is
+     asked here, after any of them runs, rather than in four places that would
+     each have to know what else shares their card. */
+  var RAIL = [['rail-where', ['rail-mo', 'rail-wk']],
+              ['rail-pair',  ['rail-pt', 'rail-st']]];
+  function syncRail(){
+    RAIL.forEach(function(pair){
+      var card = $(pair[0]);
+      if (!card) return;
+      card.hidden = pair[1].every(function(id){
+        var el = $(id);
+        return !el || el.hidden;
+      });
+    });
+  }
+
   /* The rail stops sitting beside an empty column. */
   function syncDash(){
     var main = document.querySelector('.dash-main');
@@ -1343,13 +1405,26 @@
   }
 
   function syncSessCard(){
+    /* One booking is the band's, and the calendar's. A second one is neither,
+       so that is where the list starts earning its space. */
+    var showBooked = sessRows.up > 1;
     document.getElementById('prop-h').hidden = !sessRows.prop;
-    document.getElementById('up-h').hidden   = !sessRows.up;
+    document.getElementById('up-h').hidden   = !showBooked;
+    document.getElementById('upcoming').hidden = !showBooked;
     document.getElementById('goal-h').hidden = !sessRows.goal;
-    document.getElementById('sess-card').hidden = !sessRows.goal && sessRows.prop + sessRows.up <= 1;
+    document.getElementById('sess-card').hidden =
+      !sessRows.goal && !sessRows.prop && !showBooked;
     syncDash();
   }
-  function openSessCard(){ document.getElementById('sess-card').hidden = false; }
+  /* Called by a relay from the band before it clicks the row's real button,
+     so whatever that button has to say lands somewhere visible. It has to
+     open the booked section too, not just the card: the relay that needs it
+     most is "Cancel this one", whose button is inside #upcoming. */
+  function openSessCard(){
+    document.getElementById('sess-card').hidden = false;
+    document.getElementById('upcoming').hidden = false;
+    document.getElementById('up-h').hidden = !sessRows.up;
+  }
 
   /* ---------- the goal, answered ----------
      A finished session that had a goal written and no answer yet. The
@@ -1723,11 +1798,27 @@
     var firstEv = grid.querySelector('.cal-ev');
     if (firstEv) {
       var scroller = grid.parentNode;
-      var cellTop = firstEv.getBoundingClientRect().top -
-                    grid.getBoundingClientRect().top;
-      /* A row and a half of context above it, so it does not sit jammed
-         against the top edge looking like the first hour of the day. */
-      scroller.scrollTop = Math.max(0, cellTop - 60);
+      /* Put one whole row of clear space above the booking, measured against
+         where the row actually lands rather than against a guess.
+         
+         This used to be `cellTop - 60`, offset from the top of the grid, and
+         it was wrong twice over. A row is 62px, so 60 stopped two pixels into
+         the row above and sliced it. And the day header is position:sticky and
+         73px tall, so the first 73px of the scroller are covered by it — the
+         booking was being scrolled to a place the header was already sitting
+         on, which is why the week's only session opened cut in half through
+         its own label.
+         
+         Working in viewport coordinates and adjusting scrollTop by the
+         difference avoids having to know either number in advance: ask where
+         the cell is, say where it should be, move by the gap. */
+      var head = grid.querySelector('.cal-day');
+      var cell = firstEv.parentNode;
+      var headH = head ? head.getBoundingClientRect().height : 0;
+      var rowH  = cell.getBoundingClientRect().height;
+      var want  = scroller.getBoundingClientRect().top + headH + rowH;
+      scroller.scrollTop = Math.max(0,
+        Math.round(scroller.scrollTop + (cell.getBoundingClientRect().top - want)));
     }
 
     var none = !sharedAny();
@@ -1804,6 +1895,7 @@
     $('wk-l').textContent = finished ? 'Look back over them →' : 'All ' + n + ' weeks →';
 
     $('rail-wk').hidden = false;
+    syncRail();
   }
 
   /* Answers from signup that never reached the database (no session at the
@@ -1842,6 +1934,7 @@
              a:'<a class="btn" href="login.html">Log in</a><a class="ghost" href="signup.html">Sign up</a>' });
       $('sess-card').hidden = true;
       $('rail-mo').hidden = true;
+      syncRail();
       return;
     }
     /* Awaited, not fired and forgotten. The profile is read straight after
