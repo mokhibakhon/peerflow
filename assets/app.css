@@ -236,9 +236,34 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 .st-n span{font-size:var(--t-sm);font-weight:700;color:var(--soft);letter-spacing:-.01em}
 .streak.met .st-n b{color:var(--p8)}
 
-.st-h{margin:10px 0 0;font-size:var(--t-sm);font-weight:700;letter-spacing:-.015em;line-height:1.35}
+/* The one line in this card that talks to you. Everything around it is a
+   label, a figure or a chart, and it used to be set exactly like every other
+   bold thing on the page — same size, same weight, same ink — so the one
+   sentence read as another heading in a stack of headings.
+
+   Bigger and lighter than a label, so it reads as somebody talking, and
+   coloured by the state so the colour carries the meaning: green when the week
+   is going well, amber when it is slipping, ink when there is nothing to say
+   yet. The card's own background already goes amber when it is worried, so
+   this is that signal said once more rather than a new one to learn.
+
+   Not green at --t-sm and 700, which was the first thing tried: green, bold
+   and small is what a link looks like in this rail — .rail-l is green, 700,
+   13px, and there is one at the foot of every card — so the sentence read as
+   something you could click. The extra size is what stops that, which is only
+   visible on the card and not in the rule. */
+.st-h{margin:11px 0 0;font-size:var(--t-card);font-weight:600;letter-spacing:-.015em;
+  line-height:1.3}
+.streak.met .st-h{color:var(--p6)}
+.streak.warn .st-h{color:var(--warn-ink)}
+
+/* Underneath it, and only when the week is actually slipping. This line had
+   four versions and three of them were filler under a sentence that had
+   already said it — "Back on Monday", "3 days left in the week", "1 more to
+   keep the week". The fourth, "1 more, 3 days left to book it", is the only
+   one that tells you something the sentence above does not: how many and by
+   when. So it is written in that state and blank in the others. */
 .st-w{margin:6px 0 0;font-size:var(--t-xs);color:var(--faint);line-height:1.45}
-.st-w.ok{color:var(--p6);font-weight:600}
 /* Late in the week with the goal unmet. Amber once, not a siren. */
 .st-w.warn{color:#93641A;font-weight:600}
 
@@ -303,7 +328,10 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 
 /* One week of the plan. */
 .wk-t{margin:0;font-size:var(--t-sm);font-weight:600;line-height:1.35}
-.wk-src{display:block;margin-top:6px;font-size:var(--t-xs);color:var(--p6);font-weight:600}
+/* .wk-src is gone with the line it styled. Where the week's material comes
+   from — "roadmap.sh" — is a thing you read on Progress, which is where it
+   still is in full, not a thing you glance at in a rail beside the title it
+   belongs to. The card's own link at the foot goes straight there. */
 
 /* ---------- invite ---------- */
 .invstrip{margin-top:16px;border:1px dashed var(--line);background:#FAFAFB;border-radius:var(--r-card);

@@ -198,9 +198,11 @@
 
         <div class="blk" id="rail-mo">
           <span class="mono kick">This week</span>
-          <p class="st-n" id="mo-n"><b>0</b> <span id="mo-nu">sessions this week</span></p>
+          <p class="st-n" id="mo-n"><b>0</b> <span id="mo-nu">sessions</span></p>
           <p class="st-h" id="mo-h">&nbsp;</p>
-          <p class="st-w" id="mo-w"></p>
+          <!-- Hidden until there is something to put in it, which is only the
+               state where the week is slipping. See renderMomentum. -->
+          <p class="st-w" id="mo-w" hidden></p>
           <!-- Twelve weeks, and height is the number of sessions: a full
                column, a half column, or a stub. It was twelve identical bars
                with different fills, which is a row of tally marks rather than
@@ -541,9 +543,13 @@
        asks for a fraction to be divided before it means anything — and the 2
        is sessions_per_week, a target that defaults to two and that almost
        nobody has opened their profile to set, so half of it referred to
-       something the reader did not know they had. */
+       something the reader did not know they had.
+
+       "this week" then came off as well: the mono label immediately above the
+       figure already says THIS WEEK, so it was the same two words twice, nine
+       pixels apart. */
     $('mo-n').innerHTML = '<b>' + m.thisWeek + '</b> <span>' +
-      (m.thisWeek === 1 ? 'session this week' : 'sessions this week') + '</span>';
+      (m.thisWeek === 1 ? 'session' : 'sessions') + '</span>';
 
     /* Twelve empty marks under a zero would read as a loading skeleton, and
        there is no run to show yet. It appears with the first session. */
@@ -561,28 +567,29 @@
       m.metThisWeek  ? pair + ', going strong' :
                        pair + ', week ' + (m.streak + 1);
 
-    /* Late in the week with the goal unmet, say what is at stake rather than
-       what has been achieved: a streak about to end moves people, a streak
-       already banked does not. */
+    /* One more line, and only when the week is actually slipping.
+     *
+     * This had four versions and wrote one of them every time. Three were
+     * filler underneath a sentence that had already said it: "Back on Monday"
+     * under "You, going strong"; "3 days left in the week" under "Your first
+     * session starts it"; "1 more to keep the week" under "You and Amir, week
+     * 4". Each was a second line saying the first line again in smaller type,
+     * and three lines of copy in a rail card is what "too much" meant.
+     *
+     * The fourth is the only one that adds anything — how many more and by
+     * when, at the moment that is the difference between keeping the run and
+     * losing it. Late in the week with the goal unmet, say what is at stake
+     * rather than what has been achieved: a streak about to end moves people,
+     * a streak already banked does not. */
     var left = m.goal - m.thisWeek;
-    if (m.metThisWeek) {
-      $('mo-w').textContent = 'Back on Monday.';
-      $('mo-w').className = 'st-w ok';
-    } else if (atRisk) {
+    if (atRisk) {
       $('mo-w').textContent = left + ' more, ' +
         (m.daysLeft === 1 ? 'and the week ends today.' : m.daysLeft + ' days left to book it.');
       $('mo-w').className = 'st-w warn';
-    } else if (!m.streak) {
-      /* Nothing running yet, so there is no week to keep. Say how much of this
-         one is left instead — "2 more to keep the week" to somebody who has
-         never had a session is a threat about a thing they do not have. */
-      $('mo-w').textContent = m.daysLeft === 1 ? 'The week ends today.'
-                                               : m.daysLeft + ' days left in the week.';
-      $('mo-w').className = 'st-w';
+      $('mo-w').hidden = false;
     } else {
-      $('mo-w').textContent = left + ' more to keep the week.' +
-        (m.rested ? ' (A week off is forgiven once.)' : '');
-      $('mo-w').className = 'st-w';
+      $('mo-w').textContent = '';
+      $('mo-w').hidden = true;
     }
   }
 
@@ -1912,9 +1919,14 @@
     $('wk-k').textContent = finished
       ? 'Plan finished'
       : 'Week ' + (here + 1) + ' of ' + n;
-    $('wk-t').innerHTML = finished
+    /* The week's subject, and not where it came from. w.src — "roadmap.sh",
+       "Wireshark docs" — used to hang under the title as a second line. It is
+       reference you follow when you sit down to the week, not something you
+       take in at a glance, and it is still on Progress in full, one click away
+       through this card's own link. Dropping it is a third of this block. */
+    $('wk-t').textContent = finished
       ? 'You’ve been through all ' + n + ' — pick what’s next together.'
-      : esc(w.t) + (w.src ? '<span class="wk-src">' + esc(w.src) + '</span>' : '');
+      : w.t;
     $('wk-l').textContent = finished ? 'Look back over them →' : 'All ' + n + ' weeks →';
 
     $('rail-wk').hidden = false;
