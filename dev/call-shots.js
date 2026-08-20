@@ -17,7 +17,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const fs = require('fs');
 const path = require('path');
 
-const OUT = process.argv[2] || '.';
+const OUT = process.argv[2] || require('os').tmpdir() + '/peerflow-shots';
 const PORT = process.env.PORT || 9013;
 const BASE = 'http://127.0.0.1:' + PORT;
 const FAKE = fs.readFileSync(path.join(__dirname, 'livekit-fake.js'), 'utf8');

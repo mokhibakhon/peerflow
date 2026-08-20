@@ -1630,6 +1630,7 @@
     var accept = btn.hasAttribute('data-accept');
     var swap   = btn.hasAttribute('data-swap');
     var no     = btn.hasAttribute('data-no');
+    var drop   = btn.hasAttribute('data-drop');
     var turned = box.classList.contains('turned');
 
     /* Suggesting another time is a decline that hands you the pen: their
@@ -1666,9 +1667,46 @@
 
     act.then(function(res){
       if (res && res.saved) {
-        if (accept) { window.location.href = 'app.html'; return; }
+        /* Every answer that ends the proposal reloads: accepting, declining,
+         * and dropping — which is one button doing two jobs, cancelling a
+         * proposal of your own and dismissing a decline they gave you. All
+         * three change what the band should say, and the band cannot work
+         * that out for itself.
+         *
+         * The comment on the propose path already claimed declining did, and it did not: it called
+         * loadProposals(), which redraws one list and nothing else \u2014 and the
+         * three things that tell you a proposal exists are all outside that
+         * list. The band is computed once, on load, so after a decline it went
+         * on saying "Needs your answer" over buttons that relay into a row
+         * that no longer exists; pressing them hit `if (!target) return` and
+         * did nothing at all, silently. The calendar had not been told either.
+         *
+         * Declining through the band is the ordinary way to decline \u2014 it is
+         * the first thing on the page \u2014 so this was most of the decline
+         * journeys, not an edge case. */
+        if (accept || no || drop) { window.location.href = 'app.html'; return; }
+
         loadProposals().then(function(){
           if (!swap) return;
+          /* Suggesting another time is the one answer that cannot reload: it
+           * has just pre-filled the booking form with their day and hour and
+           * is about to open it, and a reload would throw that away and leave
+           * you at a blank form having lost their time.
+           *
+           * So the band is repainted here instead. It cannot be recomputed \u2014
+           * the six-state decision lives inside start() with the whole
+           * session list in scope \u2014 but it does not need to be: what is true
+           * at this moment is known exactly. Their proposal is declined, the
+           * form is open on it, and there is nothing left to answer, so the
+           * buttons go with the sentence. Leaving them was the actual bug. */
+          band({
+            tone: 'idle',
+            k: 'Their time is off the table',
+            h: 'Pick another and send it back.',
+            s: 'Theirs is declined either way, so they know it is being moved ' +
+               'rather than ignored. Nothing is booked until they accept.',
+            a: ''
+          });
           var note = document.getElementById('bk-note');
           note.style.color = 'var(--muted)';
           note.textContent = 'Their time is off the table \u2014 pick another and send it back.';
