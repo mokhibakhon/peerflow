@@ -15,7 +15,7 @@
  * that; you only see it on the card, or by measuring both. */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const PORT = process.argv[2] || 9070;
-const OUT  = process.argv[3] || '.';
+const OUT  = process.argv[3] || require('os').tmpdir() + '/peerflow-shots';
 require('fs').mkdirSync(OUT, { recursive: true });
 let fails = 0;
 const ok = (n, c, x) => { if (c) console.log('  PASS ' + n); else { fails++; console.log('  FAIL ' + n + (x ? '  ' + x : '')); } };

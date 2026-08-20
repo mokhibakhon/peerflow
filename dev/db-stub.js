@@ -107,6 +107,38 @@ window.pf = (function(){
     get sessions_per_week(){ return window.__goalCol===null?undefined:(window.__goalCol||3); },
     get plan_weeks(){ return window.__planWeeks||null; }};
 
+  /* Answers to sessions, kept where a reload cannot lose them. Keyed on the
+     pair the real acceptSession/declineSession are called with, so the stub
+     is answering the same question the database is. */
+  var ANS='pf_stub_answers';
+  function answersMap(){
+    try{ return JSON.parse(sessionStorage.getItem(ANS)||'{}'); }catch(e){ return {}; }
+  }
+  function answerKey(at,room){
+    var d = at instanceof Date ? at : new Date(at);
+    return String(room)+'@'+(isNaN(d.getTime())?String(at):d.toISOString());
+  }
+  function answer(at,room,status){
+    var m=answersMap(); m[answerKey(at,room)]=status;
+    try{ sessionStorage.setItem(ANS,JSON.stringify(m)); }catch(e){}
+  }
+  /* Copies rather than editing the fixture: SESSIONS is shared by every test
+     and a status written into it would outlive the page that wrote it. */
+  function applyAnswers(list){
+    var m=answersMap();
+    for(var k in m){ if(Object.prototype.hasOwnProperty.call(m,k)){
+      return (list||[]).map(function(s){
+        var status=m[answerKey(s.startsAt,s.roomUrl)];
+        if(!status) return s;
+        var c={}; for(var p in s){ if(Object.prototype.hasOwnProperty.call(s,p)) c[p]=s[p]; }
+        c.status=status;
+        if(status==='cancelled') c.cancelledByMe=true;
+        return c;
+      });
+    }}
+    return list;
+  }
+
   var P=function(v){return Promise.resolve(v)};
   function note(k){ try{ var a=JSON.parse(sessionStorage.getItem('__calls')||'[]');
     a.push(k); sessionStorage.setItem('__calls',JSON.stringify(a)); }catch(e){} }
@@ -167,7 +199,7 @@ window.pf = (function(){
     clearStanding:function(){note('clear');return P({saved:true})},
     materialiseStanding:function(){note('materialise');
       return P({saved:true,count:window.__materialiseCount||0})},
-    fetchSessions:function(){return P(window.__sessions||(window.__empty?[]:SESSIONS))},
+    fetchSessions:function(){return P(applyAnswers(window.__sessions||(window.__empty?[]:SESSIONS)))},
     /* The real one crosses two timezones; here it is a fixed set of shared
        hours so the booking sentence has days to offer. Tue/Thu/Sun evenings,
        keyed by JS weekday like the real byDay. */
@@ -240,12 +272,27 @@ window.pf = (function(){
         startsAt:s.toISOString(),
         endsAt:new Date(s.getTime()+70*60000).toISOString()});
     },
-    acceptSession:function(){note('acceptSession');
+    /* Answering a session used to report {saved:true} and change nothing, so
+       every page that answers one looked identical before and after — and a
+       reload put the proposal straight back. That is not a small
+       infidelity: three of these paths end in window.location.href, and a
+       fixture that cannot tell you what the page looks like AFTER the reload
+       cannot test the half of the journey that matters. A decline that left
+       the band still offering Accept survived to production behind exactly
+       this gap.
+
+       So an answer is recorded and fetchSessions applies it. Status changes
+       rather than the row vanishing, which is what the database does: a
+       declined session stays so the proposer finds out. sessionStorage,
+       not a variable, because the point is surviving the reload. */
+    acceptSession:function(at,room){note('acceptSession');
       if(window.__clash) return P({error:window.__clash});
-      return P({saved:true})},
-    declineSession:function(){note('declineSession');return P({saved:true})},
-    cancelBooked:function(){note('cancelBooked');return P({saved:true})},
-    cancelSession:function(){return P({saved:true})},
+      answer(at,room,'confirmed'); return P({saved:true})},
+    declineSession:function(at,room){note('declineSession');
+      answer(at,room,'declined'); return P({saved:true})},
+    cancelBooked:function(at,room){note('cancelBooked');
+      answer(at,room,'cancelled'); return P({saved:true})},
+    cancelSession:function(at,room){answer(at,room,'cancelled');return P({saved:true})},
     sendPartnerRequest:function(){note('sendPartnerRequest');return P({sent:true})},
     myRequests:function(){return P({incoming:(window.__incoming||[]),outgoing:[
       {id:'r1',from_user:'u1',to_user:'u2',status:'accepted',created_at:'2026-06-02T00:00:00Z',
