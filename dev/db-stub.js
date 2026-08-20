@@ -23,6 +23,9 @@
      __callMinsIn  how far into the booked session the room thinks it is, so
                    the phase pill can be caught mid-break
      __pfNoPartner true to keep the far tile empty (read by dev/livekit-fake.js)
+     __notes       rows for the notifications table, or [] for none — what
+                   raise_note() and notifySelf() write. null acts as though
+                   migration-notify.sql has not been run
      __clash       a sentence, to see a booking refused because the hour has
                    gone — what the database now says when two people reach the
                    same minute at once, or when the partner is already busy
@@ -236,6 +239,28 @@ window.pf = (function(){
     unlockAchievement:function(code){note('unlock:'+code);
       return P({fresh:window.__freshUnlock===undefined?true:window.__freshUnlock})},
     notifySelf:function(){note('notifySelf');return P({sent:true})},
+    /* The notifications table. Default is one of each kind the app actually
+       writes: a session event from the triggers, and an achievement from
+       notifySelf. __notes replaces them; null stands for the migration not
+       having been run, which db.js answers with an empty list. */
+    notifications:function(){
+      if(window.__notes===null) return P([]);
+      if(window.__notes) return P(window.__notes);
+      var h=function(m){return new Date(Date.now()-m*60000).toISOString()};
+      return P([
+        {id:'n1',kind:'session',title:'Amir Karimov accepted your time',
+         body:'Friday 21 August at 19:00 · Cybersecurity. It is now on both your calendars.',
+         href:'app.html',readAt:null,createdAt:h(41)},
+        {id:'n2',kind:'achievement',title:'Achievement unlocked: Steady pair',
+         body:'Three sessions with the same partner.',
+         href:'app-badges.html',readAt:null,createdAt:h(190)},
+        {id:'n3',kind:'session',title:'Dilnoza Rahimova declined that time',
+         body:'Wednesday 19 August at 08:00. Propose another time whenever you are ready.',
+         href:'app.html',readAt:h(1500),createdAt:h(2880)}
+      ]);
+    },
+    markNotificationsRead:function(ids){note('markNotificationsRead:'+(ids||[]).length);
+      return P({saved:true})},
     saveStage:function(i){note('saveStage:'+i);return P({saved:true})},
     savePlan:function(w){note('savePlan:'+JSON.stringify(w));
       if(window.__planFail) return P({error:window.__planFail});

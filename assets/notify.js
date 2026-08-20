@@ -2,7 +2,35 @@
    Injects the bell into the app header on every signed-in page, shows an
    unread count, and lets people answer partner requests from the panel.
    Everything here reads real rows — an empty panel means nothing has
-   happened yet. */
+   happened yet.
+
+   TWO SECTIONS, AND ONLY ONE OF THEM IS THE BADGE
+
+   The panel used to be one list holding two unlike things: requests waiting
+   on you, which cleared when you opened the panel, and a session proposal,
+   which deliberately did not — it cleared when you answered it, being "the one
+   notification you can't afford to lose". Both looked identical, so the count
+   went down for reasons you could not see and stayed up for reasons you could
+   not see either.
+
+   They are separated now. NEEDS YOU is what is still true and still yours to
+   act on, and it is the only thing the badge counts, so the number always
+   means "things on your plate" and it only ever goes down because you did
+   something. RECENT is what has happened, read when you open the panel,
+   because that is exactly what reading it is.
+
+   WHERE EACH HALF COMES FROM
+
+   Needs-you is derived live from myRequests() and fetchSessions() — it has to
+   be, because "still outstanding" is a fact about the session, not about a
+   row that was written once when it was proposed.
+
+   Recent is public.notifications, which until now nothing read at all. The
+   triggers in migration-notify.sql have been writing session events into it
+   and notifySelf() has been writing achievements, and the bell was built
+   entirely from the two derived sources — so the table filled up and was
+   never shown, and docs/EMAIL.md's "the bell works immediately after step
+   one" was describing a bell that read somewhere else. */
 (function(){
   var nav = document.querySelector('.nav-right');
   if (!nav || !window.pf) return;
@@ -31,7 +59,7 @@
   var panel = document.getElementById('pf-panel');
   var list  = document.getElementById('pf-list');
 
-  var state = { incoming: [], outgoing: [], proposals: [], loaded: false };
+  var state = { incoming: [], outgoing: [], proposals: [], notes: [], loaded: false };
 
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -49,14 +77,19 @@
     return days + 'd ago';
   }
 
-  /* Unread = requests waiting on you, answers you haven't seen yet, and any
-     time your partner has proposed that you haven't answered. Sessions carry
-     no seen-at column, so a proposal counts until it's accepted or declined —
-     it's the one notification you can't afford to lose. */
-  function unread(){
-    var a = state.incoming.filter(function(x){ return x.status === 'pending' && !x.to_seen_at; });
-    var b = state.outgoing.filter(function(x){ return x.status !== 'pending' && !x.from_seen_at; });
-    return a.concat(b).concat(theirProposals());
+  /* NEEDS YOU: what is still true and still yours to answer. A partner
+     request nobody has replied to, and a session time waiting on you.
+     Nothing here clears by being looked at — each one clears when the thing
+     it is about is dealt with, which is the difference the two sections
+     exist to make visible.
+
+     Answers to your own requests are NOT here. "Amir accepted your request"
+     needs nothing from you, so it belongs in the log below with everything
+     else that has already happened. It used to be counted, which is part of
+     why the number moved for reasons nobody could see. */
+  function needsYou(){
+    var pending = state.incoming.filter(function(x){ return x.status === 'pending'; });
+    return theirProposals().concat(pending);
   }
 
   /* Two kinds of session news: a time waiting on you to answer, and a time of
@@ -71,8 +104,42 @@
     });
   }
 
+  /* RECENT: the log, from public.notifications.
+   *
+   * The session triggers write a row for the same events needsYou() derives
+   * live, so a proposal you have not answered yet would otherwise appear
+   * twice — once as something to do, once as something that happened. The
+   * duplicate is suppressed by matching the name the trigger puts at the
+   * front of the title against the partners who currently have something
+   * outstanding above.
+   *
+   * That is a string match, and it is a string match because the row carries
+   * no reference to the session it is about: raise_note() writes user, kind,
+   * title, body and href, and href is a bare 'app.html'. Giving the trigger
+   * the session id and putting it in the href is the proper fix and would
+   * make this exact; it needs a migration, so it is deliberately not in this
+   * change. The cost of the approximation is small and one-directional — an
+   * older note about a partner who happens to have something outstanding now
+   * can be hidden a while longer than it should be. Nothing is ever shown
+   * that should not be. */
+  function recent(){
+    var busy = {};
+    needsYou().forEach(function(x){
+      var who = x.partnerName || (x.other && x.other.name);
+      if (who) busy[who] = true;
+    });
+    return state.notes.filter(function(n){
+      if (n.kind !== 'session') return true;
+      for (var who in busy) {
+        if (Object.prototype.hasOwnProperty.call(busy, who) &&
+            String(n.title).indexOf(who) === 0) return false;
+      }
+      return true;
+    });
+  }
+
   function paintBadge(){
-    var n = unread().length;
+    var n = needsYou().length;
     if (n > 0) { badge.hidden = false; badge.textContent = n > 9 ? '9+' : String(n); bell.classList.add('has-unread'); }
     else { badge.hidden = true; bell.classList.remove('has-unread'); }
   }
@@ -134,19 +201,47 @@
       '</div>';
   }
 
+  /* A row of the log, from public.notifications. The title links wherever the
+     row points and there is nothing else to press: it has already happened,
+     and answering things is what the section above is for. (An accepted
+     partner request, which comes from partner_requests rather than this
+     table, still carries its "See my partner" link — that is a shortcut to a
+     page, not an answer to give.) */
+  function itemNote(n){
+    var body = n.body ? '<p class="bell-msg">' + esc(n.body) + '</p>' : '';
+    var head = '<p><b>' + esc(n.title) + '</b></p>';
+    if (n.href) head = '<a class="bell-go" href="' + esc(n.href) + '">' + head + '</a>';
+    return '<div class="bell-item' + (n.readAt ? '' : ' fresh') + '">' +
+      head + body +
+      '<p class="bell-time">' + ago(n.createdAt) + '</p></div>';
+  }
+
   function paintList(){
-    var items = theirProposals().map(itemProposal)
-      .concat(state.incoming.map(itemIncoming))
-      .concat(state.outgoing.map(itemOutgoing));
-    list.innerHTML = items.length
-      ? items.join('')
-      : '<p class="bell-empty">Nothing yet. When someone asks to be your partner, it shows up here.</p>';
+    var todo = theirProposals().map(itemProposal)
+      .concat(state.incoming.filter(function(x){ return x.status === 'pending'; }).map(itemIncoming));
+    /* Answers to your own requests are history now, so they join the log —
+       but they come from partner_requests rather than the notifications
+       table, which does not know about them. Both feed Recent. */
+    var log = state.outgoing.filter(function(x){ return x.status !== 'pending'; }).map(itemOutgoing)
+      .concat(recent().map(itemNote));
+
+    var html = '';
+    if (todo.length) html += '<p class="bell-sec">Needs you</p>' + todo.join('');
+    if (log.length)  html += '<p class="bell-sec">Recent</p>' + log.join('');
+    list.innerHTML = html ||
+      '<p class="bell-empty">Nothing yet. When someone asks to be your partner, it shows up here.</p>';
   }
 
   function load(){
-    return Promise.all([pf.myRequests(), pf.fetchSessions()]).then(function(res){
+    /* notifications() answers with an empty list rather than rejecting when
+       the table is unreadable — migration-notify.sql is run by hand and may
+       simply not have been — so the panel degrades to the derived half
+       instead of failing whole. */
+    var notes = pf.notifications ? pf.notifications() : Promise.resolve([]);
+    return Promise.all([pf.myRequests(), pf.fetchSessions(), notes]).then(function(res){
       var r = res[0];
       state.proposals = res[1] || [];
+      state.notes = res[2] || [];
       if (!r) { state.loaded = true; list.innerHTML = '<p class="bell-empty">Could not load notifications.</p>'; return; }
       state.incoming = r.incoming;
       state.outgoing = r.outgoing;
@@ -164,9 +259,15 @@
     bell.setAttribute('aria-expanded', String(!open));
     if (!open) {
       if (!state.loaded) load();
-      /* Opening the panel counts as reading. */
-      /* Proposals stay unread on purpose: they clear when you answer them,
-         not when you glance at the panel. */
+
+      /* Opening the panel reads the log, and only the log. Nothing in
+         Needs-you is touched, so the badge cannot move because you looked at
+         it — it moves when you answer something. That is the whole point of
+         the split, and it is why paintBadge is not called from here any more:
+         there is nothing for it to say that has changed.
+
+         The rows still stop being 'fresh' underneath, so a second visit shows
+         you what is new since the first. paintList, not paintBadge. */
       var inc = state.incoming.filter(function(x){ return x.status === 'pending' && !x.to_seen_at; });
       var out = state.outgoing.filter(function(x){ return x.status !== 'pending' && !x.from_seen_at; });
       if (inc.length || out.length) {
@@ -175,7 +276,16 @@
           var now = new Date().toISOString();
           inc.forEach(function(x){ x.to_seen_at = now; });
           out.forEach(function(x){ x.from_seen_at = now; });
-          paintBadge();
+          paintList();
+        });
+      }
+
+      var fresh = state.notes.filter(function(n){ return !n.readAt; });
+      if (fresh.length && pf.markNotificationsRead) {
+        pf.markNotificationsRead(fresh.map(function(n){ return n.id; })).then(function(){
+          var now = new Date().toISOString();
+          fresh.forEach(function(n){ n.readAt = now; });
+          paintList();
         });
       }
     }

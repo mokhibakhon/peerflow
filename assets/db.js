@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-19e';
+window.PF_BUILD = '2026-08-20a';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -1737,6 +1737,57 @@ window.pf = (function(){
     }).catch(function(){ return { saved: false }; });
   }
 
+  /* ---------- the notifications table ----------
+   *
+   * Rows land here from two places: raise_note(), called by the triggers on
+   * public.sessions when somebody proposes or answers a time, and notifySelf()
+   * below when you unlock something. Until now nothing read them back — the
+   * bell was built entirely from myRequests() and fetchSessions(), so the
+   * table filled up and was never shown, and docs/EMAIL.md's claim that "the
+   * bell works immediately after step one" was describing a bell that was
+   * reading somewhere else.
+   *
+   * Capped rather than paged. This is a log you glance at, not one you audit;
+   * thirty is more than a panel can show and further back is not a thing
+   * anybody asks the bell for.
+   *
+   * A missing table is not an error worth shouting about — the migration is
+   * run by hand and may simply not have been — so this answers with an empty
+   * list and says so once in the console, the way reliabilityOf does. */
+  function notifications(limit){
+    if (!client) return Promise.resolve([]);
+    return client.from('notifications')
+      .select('id,kind,title,body,href,read_at,created_at')
+      .order('created_at', { ascending: false })
+      .limit(limit || 30)
+      .then(function(r){
+        if (r.error) {
+          try {
+            console.warn('PeerFlow: notifications unreadable. ' +
+                         'Run supabase/migration-notify.sql if the bell looks empty.',
+                         r.error.message);
+          } catch (e) {}
+          return [];
+        }
+        return (r.data || []).map(function(x){
+          return { id: x.id, kind: x.kind, title: x.title, body: x.body,
+                   href: x.href, readAt: x.read_at, createdAt: x.created_at };
+        });
+      })
+      .catch(function(){ return []; });
+  }
+
+  /* Read-state lives on the row, so it follows you between devices — which is
+     the whole reason it is a column and not something in localStorage. */
+  function markNotificationsRead(ids){
+    if (!client || !ids || !ids.length) return Promise.resolve({ saved: true });
+    return client.from('notifications')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', ids)
+      .then(function(r){ return r.error ? { error: r.error.message } : { saved: true }; })
+      .catch(function(){ return { error: 'Could not update.' }; });
+  }
+
   /* A note to yourself — an unlocked achievement. Writing to your own list is
      not a privilege escalation, so the insert-own policy covers it. */
   function notifySelf(kind, title, body, href){
@@ -1835,6 +1886,8 @@ window.pf = (function(){
     resetPlan: resetPlan,
     unlockedAchievements: unlockedAchievements,
     unlockAchievement: unlockAchievement,
+    notifications: notifications,
+    markNotificationsRead: markNotificationsRead,
     notifySelf: notifySelf
   };
 })();

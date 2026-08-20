@@ -212,7 +212,17 @@ security definer
 set search_path = public, extensions
 as $$
 begin
-  if new.kind = 'badge' then return null; end if;
+  -- Nothing you did to yourself gets emailed back to you. This read
+  -- `new.kind = 'badge'` and nothing has ever written 'badge': notifySelf()
+  -- is called once in the whole app, from app-progress.html, with
+  -- 'achievement'. So the guard never fired, and the edge function does not
+  -- filter by kind either — unlocking a badge would have emailed you about
+  -- your own achievement, which docs/EMAIL.md says never happens. Harmless
+  -- only because the email half is not switched on yet.
+  --
+  -- Named as a set rather than a single string so the next self-note does not
+  -- have to remember this.
+  if new.kind in ('achievement', 'badge') then return null; end if;
   begin
     perform net.http_post(
       url     := 'https://ooolpkdqrfhnmcmdqhau.supabase.co/functions/v1/notify-email',
