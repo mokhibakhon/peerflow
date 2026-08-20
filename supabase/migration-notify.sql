@@ -155,13 +155,16 @@ begin
 
   -- These are the subject line as well as the bell headline — the same string
   -- goes to notify-email, on purpose, so the two surfaces can never say
-  -- different things about one event. That makes them worth writing as a
-  -- subject: specific enough to act on from the inbox list without opening
-  -- anything, and composed enough to sit next to the rest of somebody's mail.
-  -- 'said yes' and 'turned that time down' read fine under a bell and read
-  -- like a text message in an inbox.
+  -- different things about one event.
+  --
+  -- 'said yes' was briefly rewritten to 'accepted your session time', on the
+  -- reasoning that a subject line sitting among somebody's real mail should
+  -- be composed rather than chatty. Reverted on the owner's call, and the
+  -- call is right: PeerFlow is two people agreeing an hour with each other,
+  -- and 'Sarah said yes' is what actually happened. The formal version
+  -- describes a workflow. This one describes a person.
   headline := case new.status
-    when 'confirmed' then who || ' accepted your session time'
+    when 'confirmed' then who || ' said yes'
     when 'declined'  then who || ' declined that time'
     when 'cancelled' then who || ' cancelled your session'
     else null end;

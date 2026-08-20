@@ -46,7 +46,7 @@ const CASES = [
   },
   {
     label: 'Accepted',
-    title: 'Sarah Ahmed accepted your session time',
+    title: 'Sarah Ahmed said yes',
     note: 'Friday 22 Aug, 07:00 PM. It is now on both your calendars.',
     href: 'app.html',
     firstName: 'Munisa',

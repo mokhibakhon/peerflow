@@ -60,10 +60,10 @@ nothing.
 
 Two things changed after the first version, and both need a step from you:
 
-* **Re-run `supabase/migration-notify.sql`.** The four headlines were rewritten
-  to work as email subject lines as well as bell headlines — "Sarah accepted
-  your session time" rather than "Sarah said yes". Everything in there is
-  `create or replace`, so re-running is safe and changes nothing else.
+* **Re-run `supabase/migration-notify.sql`.** Two of the four headlines were
+  reworded — "Sarah proposed a session time" and "Sarah declined that time".
+  Everything in there is `create or replace`, so re-running is safe and
+  changes nothing else.
 * **Re-deploy the function.** `supabase functions deploy notify-email
   --no-verify-jwt`. The template is new: a proper branded layout instead of a
   bare `<div>`.
