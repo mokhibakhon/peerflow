@@ -83,8 +83,15 @@ do $$ begin
   if not exists (select 1 from pg_roles where rolname='anon') then
     create role anon nologin;
   end if;
+  -- The role the edge functions arrive as. It bypasses RLS in production, so
+  -- nothing here tests through it; it exists because the real SQL grants to it
+  -- by name, and a GRANT to a role that does not exist is a hard error that
+  -- stops the whole file loading.
+  if not exists (select 1 from pg_roles where rolname='service_role') then
+    create role service_role nologin bypassrls;
+  end if;
 end $$;
-grant usage on schema public, auth to authenticated, anon;
+grant usage on schema public, auth to authenticated, anon, service_role;
 SQL
 
 # migrate-2026-08.sql is the paste the user actually runs, and it now ends
@@ -125,6 +132,11 @@ for f in $FILES; do
 done
 
 $PSQL -c "grant select, insert, update, delete on all tables in schema public to authenticated;" >/dev/null 2>&1
+# Supabase gives anon table grants too, and one case below depends on a
+# signed-out read reaching the policy rather than stopping at a missing GRANT.
+# Without this the "signed-out reads still work" case fails for a reason that
+# does not exist in production, which is worse than not testing it.
+$PSQL -c "grant select on all tables in schema public to anon;" >/dev/null 2>&1
 
 # Two people who are partners, which is what the insert policy wants to see.
 A=11111111-1111-1111-1111-111111111111
@@ -370,6 +382,238 @@ check "a second call books nothing, having recognised the weeks already there" o
     select public.materialise_standing(id, 4) into again
       from public.partner_requests where from_user='$A';
     if again <> 0 then raise exception 'booked % more occurrence(s) on the second call', again; end if;
+  end \$\$;"
+
+
+# ============================================================
+# migration-safety.sql — blocking, and reports
+# ============================================================
+# A block is only worth anything if it is enforced by the database. Every
+# case below runs as a real role with a real auth.uid(), because the whole
+# mechanism is RLS policies plus one SECURITY DEFINER function, and neither
+# of those does anything at all as superuser.
+
+AS_B="set local role authenticated; set local request.jwt.claim.sub = '$B';
+      do \$\$ begin if auth.uid() is null then
+        raise exception 'auth.uid() is NULL — the test would have passed vacuously'; end if; end \$\$;"
+
+# Names, so the report snapshot has something to snapshot.
+$PSQL >/dev/null 2>&1 <<SQL
+update public.profiles set name = 'Ada A' where id = '$A';
+update public.profiles set name = 'Bo B'  where id = '$B';
+SQL
+
+echo
+echo "==> a block hides both people from each other"
+check "before any block, A can see B's profile" ok "
+  $AS_A
+  do \$\$ begin
+    if not exists (select 1 from public.profiles where id='$B') then
+      raise exception 'B was invisible before anybody blocked anybody'; end if;
+  end \$\$;"
+
+check "after A blocks B, B's profile is gone from A's view" ok "
+  $AS_A
+  select public.block_person('$B');
+  do \$\$ begin
+    if exists (select 1 from public.profiles where id='$B') then
+      raise exception 'blocked profile still visible to the blocker'; end if;
+  end \$\$;"
+
+# The direction that a naive policy gets wrong. B never wrote a row and
+# cannot read one, so a policy using a plain subquery against blocks would
+# see nothing and let B carry on as though nothing had happened.
+check "and A's profile is gone from B's view, who never wrote the row" ok "
+  $AS_A
+  select public.block_person('$B');
+  reset role;
+  $AS_B
+  do \$\$ begin
+    if exists (select 1 from public.profiles where id='$A') then
+      raise exception 'the blocked party can still see the blocker'; end if;
+  end \$\$;"
+
+check "your own profile is never hidden from you" ok "
+  $AS_A
+  select public.block_person('$B');
+  do \$\$ begin
+    if not exists (select 1 from public.profiles where id='$A') then
+      raise exception 'A cannot see A'; end if;
+  end \$\$;"
+
+# This is the case that found the real rule. The policy was first written as
+# a CASE whose first arm was `auth.uid() is null then true`, on the theory
+# that ordering would keep a signed-out reader away from a function anon
+# cannot execute. It did not: this failed with "permission denied for function
+# blocked_with" while sitting on that arm, because EXECUTE is checked when the
+# expression is prepared rather than when an arm is taken. The fix was the
+# grant, not the ordering. Take the grant back out of migration-safety.sql and
+# this is the case that goes red.
+check "signed-out reads of profiles still work" ok "
+  set local role anon;
+  do \$\$ declare n int; begin
+    select count(*) into n from public.profiles;
+    if n < 2 then raise exception 'anon saw % profiles', n; end if;
+  end \$\$;"
+
+check "the blocked party cannot read the row that names them" ok "
+  $AS_A
+  select public.block_person('$B');
+  reset role;
+  $AS_B
+  do \$\$ begin
+    if exists (select 1 from public.blocks where blocked='$B') then
+      raise exception 'a block is visible to the person it was made against'; end if;
+  end \$\$;"
+
+echo
+echo "==> a block ends what was already agreed"
+check "blocking ends the partnership" ok "
+  $AS_A
+  select public.block_person('$B');
+  do \$\$ begin
+    if exists (select 1 from public.partner_requests
+                where status='accepted' and from_user='$A' and to_user='$B') then
+      raise exception 'still partners after a block'; end if;
+  end \$\$;"
+
+check "a future session with them is called off" ok "
+  insert into public.sessions (user_id, starts_at, duration_min, room_url, status, pair_id)
+    select '$A', now() + interval '2 days', 50, 'pf:soon', 'confirmed', id
+      from public.partner_requests where from_user='$A';
+  insert into public.sessions (user_id, starts_at, duration_min, room_url, status, pair_id)
+    select '$B', now() + interval '2 days', 50, 'pf:soon', 'confirmed', id
+      from public.partner_requests where from_user='$A';
+  $AS_A
+  select public.block_person('$B');
+  reset role;
+  do \$\$ declare n int; begin
+    select count(*) into n from public.sessions
+      where room_url='pf:soon' and status <> 'cancelled';
+    if n > 0 then raise exception '% future row(s) survived the block', n; end if;
+  end \$\$;"
+
+# Deleting the past would take somebody's streak away for having been
+# harassed, which is the wrong direction of consequence.
+check "a session already sat is left alone" ok "
+  insert into public.sessions (user_id, starts_at, duration_min, room_url, status, pair_id)
+    select '$A', now() - interval '2 days', 50, 'pf:past', 'confirmed', id
+      from public.partner_requests where from_user='$A';
+  $AS_A
+  select public.block_person('$B');
+  reset role;
+  do \$\$ begin
+    if not exists (select 1 from public.sessions
+                    where room_url='pf:past' and status='confirmed') then
+      raise exception 'a session that already happened was cancelled'; end if;
+  end \$\$;"
+
+echo
+echo "==> a block stops what comes next"
+check "the blocked party cannot send a message" "42501" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.block_person('$B');
+  reset role;
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  insert into public.messages (from_user, to_user, body) values ('$B','$A','hello');")"
+
+check "a message between two people who have not blocked each other still sends" ok "
+  $AS_B
+  insert into public.messages (from_user, to_user, body) values ('$B','$A','hello');"
+
+# unique (from_user, to_user) means a repeat request is an UPDATE, so a policy
+# that guarded only INSERT would let a blocked account revive a dead row.
+check "the blocked party cannot revive the request by updating it" "42501" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.block_person('$B');
+  reset role;
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  update public.partner_requests set status='pending' where to_user='$B';
+  if not found then raise exception 'no row was updated' using errcode='42501'; end if;")"
+
+check "you cannot block yourself" "PF011" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.block_person('$A');")"
+
+check "block_person refuses a caller with no identity" "PF010" "$(wrap "
+  set local role authenticated;
+  perform public.block_person('$B');")"
+
+echo
+echo "==> reports"
+check "a report cannot be inserted directly, only through the function" "42501" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  insert into public.reports (reporter, reported, reason)
+    values ('$A','$B','harassment');")"
+
+check "report_person writes both names down at the time" ok "
+  $AS_A
+  select public.report_person('$B','harassment','they would not stop', null, false);
+  reset role;
+  do \$\$ declare r record; begin
+    select * into r from public.reports where reported='$B';
+    if r.reporter_name <> 'Ada A' or r.reported_name <> 'Bo B' then
+      raise exception 'names not snapshotted: % / %', r.reporter_name, r.reported_name; end if;
+    if r.detail <> 'they would not stop' then raise exception 'detail lost'; end if;
+  end \$\$;"
+
+check "reporting blocks by default" ok "
+  $AS_A
+  select public.report_person('$B','harassment');
+  do \$\$ begin
+    if not exists (select 1 from public.blocks where blocker='$A' and blocked='$B') then
+      raise exception 'report did not block'; end if;
+  end \$\$;"
+
+check "and does not block when told not to" ok "
+  $AS_A
+  select public.report_person('$B','no_show', null, null, false);
+  do \$\$ begin
+    if exists (select 1 from public.blocks where blocker='$A' and blocked='$B') then
+      raise exception 'report blocked despite p_block false'; end if;
+  end \$\$;"
+
+check "pressing report twice within the hour writes one row" ok "
+  $AS_A
+  do \$\$ declare a uuid; b uuid; n int; begin
+    a := public.report_person('$B','harassment', null, null, false);
+    b := public.report_person('$B','harassment', null, null, false);
+    if a <> b then raise exception 'two ids: % and %', a, b; end if;
+    select count(*) into n from public.reports where reporter='$A' and reported='$B';
+    if n <> 1 then raise exception '% rows in the queue', n; end if;
+  end \$\$;"
+
+check "an unknown reason is refused" "PF013" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.report_person('$B','because');")"
+
+check "you cannot report yourself" "PF011" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.report_person('$A','harassment');")"
+
+# The session argument is a free pointer otherwise: a report could be filed
+# against a booking the reporter was never part of.
+check "a session that is not yours is not attached to the report" ok "
+  insert into public.sessions (id, user_id, starts_at, duration_min, room_url, status)
+    values ('33333333-3333-3333-3333-333333333333','$B', now() + interval '3 days',
+            50,'pf:theirs','confirmed');
+  $AS_A
+  select public.report_person('$B','harassment', null,
+                              '33333333-3333-3333-3333-333333333333', false);
+  reset role;
+  do \$\$ begin
+    if (select session_id from public.reports where reported='$B') is not null then
+      raise exception 'a report was attached to somebody else''s session'; end if;
+  end \$\$;"
+
+check "you can read the reports you wrote and nobody else's" ok "
+  $AS_A
+  select public.report_person('$B','spam', null, null, false);
+  reset role;
+  $AS_B
+  do \$\$ declare n int; begin
+    select count(*) into n from public.reports;
+    if n <> 0 then raise exception 'the reported party can read % report(s)', n; end if;
   end \$\$;"
 
 echo

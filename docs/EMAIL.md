@@ -56,6 +56,21 @@ nothing.
 
 ---
 
+## Already set this up?
+
+Two things changed after the first version, and both need a step from you:
+
+* **Re-run `supabase/migration-notify.sql`.** Two of the four headlines were
+  reworded — "Sarah proposed a session time" and "Sarah declined that time".
+  Everything in there is `create or replace`, so re-running is safe and
+  changes nothing else.
+* **Re-deploy the function.** `supabase functions deploy notify-email
+  --no-verify-jwt`. The template is new: a proper branded layout instead of a
+  bare `<div>`.
+
+Nothing else moves. The Resend key, the domain and the pg_net trigger are all
+unchanged.
+
 ## Setting it up
 
 ### 1. Run the migration
@@ -125,8 +140,79 @@ select title, created_at, emailed_at from public.notifications
 
 Settings → **Email**. One button. The bell keeps working either way.
 
+Every message also carries a `List-Unsubscribe` header, so Gmail and Apple Mail
+show their own Unsubscribe control next to the sender and it lands on Settings.
+Deliberately *without* `List-Unsubscribe-Post: One-Click`: that header promises
+a POST endpoint that unsubscribes with no further interaction, and
+`app-settings.html` is a static page that would accept the POST and do nothing.
+Claiming a control that does not work is worse than not claiming it.
+
 Badges never send email — a note to yourself about something you have just been
 shown on screen is not worth one.
+
+## What the email looks like
+
+`dev/email-preview.js` renders it without sending one:
+
+    node dev/email-preview.js        # writes dev/email-preview.html — open it
+
+It lifts the template straight out of `supabase/functions/notify-email/index.ts`
+rather than keeping a copy, and renders all four notifications the triggers
+actually raise, HTML and plain text side by side. Open it before changing any
+wording; the frame has to hold a long topic line and a bare headline without
+either looking wrong.
+
+The layout is nested tables rather than divs, because Outlook on Windows
+renders through Word and has no flexbox. Colours are stated on every element,
+because Gmail and Outlook dark mode invert what they are not told. There is a
+hidden preheader line at the top of the body, which is what Gmail shows next
+to the subject in the inbox list — without one it shows whatever text comes
+first, which would be the logo's alt text.
+
+### The logo
+
+`assets/email-logo.png` — the dark-band lockup, 630×630/3 px, served from
+`https://peerflow.dev/assets/email-logo.png` and displayed at 158×42.
+
+It has to be a hosted PNG. Inline SVG is stripped by Gmail and Outlook, and
+base64 `data:` URIs are stripped by Gmail, so a file on the site is the only
+thing that arrives. It sits on a green band whose colour is set with both
+`bgcolor` and CSS, so a client that blocks images still shows a branded header
+with the word PeerFlow in it via the alt text.
+
+Rebuild it after a logo change with the script in the commit that added it —
+Chromium screenshotting the same SVG the site uses, at 3× so it stays sharp on
+a phone.
+
+### The logo *beside the sender*, in the inbox list
+
+This is a different thing, and it is not free. The round avatar Gmail shows
+next to a sender's name comes from **BIMI**, and Gmail will only display one
+when all of the following are true:
+
+1. SPF and DKIM pass and are aligned — Resend's domain verification does this,
+   so this part is already done.
+2. **DMARC is at `p=quarantine` or `p=reject`**, not `p=none`. A DNS TXT record
+   at `_dmarc.peerflow.dev`. Free, and worth doing on its own merits: it stops
+   anyone spoofing the domain and it helps deliverability.
+3. A square logo in **SVG Tiny Portable/Secure** — a restricted SVG profile,
+   not any SVG — hosted over HTTPS, named in a TXT record at
+   `default._bimi.peerflow.dev`. Free.
+4. A **Verified Mark Certificate** from DigiCert or Entrust, named in the same
+   record. This is the wall: a VMC requires a *registered trademark* for the
+   PeerFlow name and costs roughly $1,000–1,500 a year. Apple Mail wants one
+   too.
+
+So: steps 1–3 are worth doing whenever, and step 4 is not worth doing at this
+stage. Without the VMC most clients simply show the default coloured initial,
+which is what happens today.
+
+One free approximation, Gmail only: Gmail shows the Google profile photo of a
+sender that has a Google account on that address. If `hello@peerflow.dev` is
+ever set up as a Google Workspace user, setting its profile picture gets the
+logo in front of Gmail recipients without any of the above. It is not
+guaranteed and it does nothing for other clients, but it costs nothing beyond
+the mailbox.
 
 ## What this does not do yet
 

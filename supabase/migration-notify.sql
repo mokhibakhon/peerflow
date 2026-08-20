@@ -116,7 +116,7 @@ begin
      and new.user_id <> new.proposed_by then
     perform public.raise_note(
       new.user_id, 'session',
-      coalesce(nullif(new.partner_name, ''), 'Your partner') || ' proposed a time',
+      coalesce(nullif(new.partner_name, ''), 'Your partner') || ' proposed a session time',
       public.when_for(new.user_id, new.starts_at) ||
         coalesce(' · ' || nullif(new.topic, ''), '') ||
         '. Nothing is booked until you accept.',
@@ -153,9 +153,19 @@ begin
   if new.status is not distinct from old.status then return null; end if;
   if new.user_id = auth.uid() then return null; end if;
 
+  -- These are the subject line as well as the bell headline — the same string
+  -- goes to notify-email, on purpose, so the two surfaces can never say
+  -- different things about one event.
+  --
+  -- 'said yes' was briefly rewritten to 'accepted your session time', on the
+  -- reasoning that a subject line sitting among somebody's real mail should
+  -- be composed rather than chatty. Reverted on the owner's call, and the
+  -- call is right: PeerFlow is two people agreeing an hour with each other,
+  -- and 'Sarah said yes' is what actually happened. The formal version
+  -- describes a workflow. This one describes a person.
   headline := case new.status
     when 'confirmed' then who || ' said yes'
-    when 'declined'  then who || ' turned that time down'
+    when 'declined'  then who || ' declined that time'
     when 'cancelled' then who || ' cancelled your session'
     else null end;
 
@@ -165,9 +175,10 @@ begin
     new.user_id, 'session', headline,
     public.when_for(new.user_id, new.starts_at) ||
       case new.status
-        when 'confirmed' then '. It is on both your calendars.'
-        when 'declined'  then '. Pick another time and send it over.'
-        else '. Pick another time and send it over.' end,
+        when 'confirmed' then '. It is now on both your calendars.'
+        when 'declined'  then '. Propose another time whenever you are ready.'
+        else '. It has come off both calendars. Propose another time whenever '
+             || 'you are ready.' end,
     'app.html');
   return null;
 end $$;
