@@ -27,6 +27,25 @@
       <a href="app-people.html">Back to everyone</a>.
     </p>
 
+    <!-- Where this page ends up after you block somebody, and it has to be a
+         state of its own. Blocking hides their profile from you at the
+         database level, so simply reloading would land on pv-miss above —
+         "they may have deleted their account" — which is both untrue and the
+         opposite of reassuring when what you want to know is whether the
+         thing you just did worked. -->
+    <section class="card" id="pv-blocked" hidden style="max-width:560px;margin-top:20px">
+      <h3 id="pv-bl-h">Blocked</h3>
+      <p style="font-size:14.5px">They can’t message you, ask to partner with you, or
+        put time in your calendar, and neither of you appears in the other’s list of
+        people. They were not told.</p>
+      <p style="font-size:13.5px;color:var(--muted);margin-top:10px">Sessions you had
+        booked together have come off both calendars, and the partnership has ended.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <a class="btn" href="app-people.html">Back to everyone</a>
+        <a class="ghost" href="app-settings.html">Undo this in Settings</a>
+      </div>
+    </section>
+
     <!-- Written only once we know who this is: a profile card with a blank
          name on it looks like somebody with no name. -->
     <section class="pv" id="pv" hidden>
@@ -188,7 +207,29 @@
         /* No session id from here: this is the profile, not a call, and
            report_person() treats a missing one as "there was no session",
            which is often the truth. */
-        pfReport.open({ userId: person.id, name: nm });
+        pfReport.open({
+          userId: person.id,
+          name: nm,
+          onDone: function(o){
+            /* The page has to change, or nothing on screen says the thing
+               happened. It used to sit exactly as it was — still showing
+               "Partners", still offering Message — for somebody the database
+               had already stopped showing you, until a reload.
+
+               Blocked: swap to the state above rather than reloading, which
+               would fetch a profile that is now hidden and land on "we
+               couldn't find that person". Not blocked — undone, or unblocked
+               from the card — reload, because the report is gone and whatever
+               is true now is what the server says. */
+            if (o && o.blocked) {
+              $('pv').hidden = true;
+              $('pv-bl-h').textContent = 'You blocked ' + nm.split(' ')[0];
+              $('pv-blocked').hidden = false;
+              return;
+            }
+            if (o && o.reported) location.reload();
+          }
+        });
       });
     }
 

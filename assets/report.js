@@ -1,6 +1,12 @@
 /* PeerFlow — reporting somebody, as one component used from two places.
  *
- *     pfReport.open({ userId: '…', name: 'Sarah', sessionId: '…' });
+ *     pfReport.open({
+ *       userId:     '…',
+ *       name:       'Sarah',
+ *       sessionId:  '…',          // optional; a call has one, a profile does not
+ *       afterBlock: 'You will…',  // optional; a line the host page wants shown
+ *       onDone:     function(o){} // { reported, blocked, userId, name }
+ *     });
  *
  * Opened from app-person.html, where there is a whole page, and from
  * call.html, where there is live video underneath and navigating anywhere at
@@ -53,6 +59,7 @@ window.pfReport = (function(){
   var wrap = null;      /* the overlay, while it is open */
   var opts = null;      /* what open() was called with */
   var reportId = null;  /* set once a report exists */
+  var blocked = false;  /* whether they are blocked as things stand */
   var lastFocus = null;
 
   function esc(v){
@@ -99,7 +106,12 @@ window.pfReport = (function(){
       '<p class="rp-done"><b>Report sent, and ' + who + ' is blocked.</b> ' +
         'Somebody will read it. Nothing else is needed — the rest is optional.</p>' +
       '<p class="rp-caveat">Blocking ended your partnership and took any sessions you ' +
-        'had booked off both calendars. Undoing puts the block back but not those.</p>' +
+        'had booked off both calendars. Undoing puts the block back but not those.' +
+        /* Whatever the page that opened this is about to do when the card
+           closes. The component cannot know it — leaving a call is call.html's
+           business — but somebody about to press Close should not find out
+           afterwards. */
+        (opts.afterBlock ? ' ' + esc(opts.afterBlock) : '') + '</p>' +
       '<textarea class="rp-t" data-detail maxlength="2000" ' +
         'placeholder="Add what happened, if you want to (optional)"></textarea>' +
       '<label class="rp-keep"><input type="checkbox" data-keep checked>' +
@@ -149,6 +161,7 @@ window.pfReport = (function(){
       .then(function(res){
         if (res && res.saved) {
           reportId = res.data || null;
+          blocked = true;
           paint(screenDone());
           return;
         }
@@ -160,7 +173,13 @@ window.pfReport = (function(){
 
   /* Save is two things at once on purpose: the sentence and the block are one
      decision from where the person is standing, and making them press twice
-     to change both would be a form again. */
+     to change both would be a form again.
+     
+     On success it closes. It used to write "Saved." into the card and stay
+     open, which read as nothing having happened — the card sat there, the
+     page behind it still showed the person as a partner, and the only way to
+     find out what had actually occurred was to reload. Closing is what says
+     it worked, because closing is what lets the page redraw. */
   function save(btn){
     var detail = (card().querySelector('[data-detail]') || {}).value || '';
     var keep   = (card().querySelector('[data-keep]') || {}).checked;
@@ -174,10 +193,14 @@ window.pfReport = (function(){
     if (!jobs.length) { close(); return; }
 
     Promise.all(jobs).then(function(rs){
-      btn.disabled = false;
       var bad = rs.filter(function(r){ return !r || !r.saved; })[0];
-      if (bad) { note(bad && bad.error ? bad.error : 'Could not save that.', 'bad'); return; }
-      note(keep ? 'Saved.' : 'Saved, and they are no longer blocked.', 'ok');
+      if (bad) {
+        btn.disabled = false;
+        note(bad && bad.error ? bad.error : 'Could not save that.', 'bad');
+        return;
+      }
+      if (!keep) blocked = false;
+      close();
     });
   }
 
@@ -185,7 +208,11 @@ window.pfReport = (function(){
     btn.disabled = true;
     note('');
     pf.withdrawReport(reportId, true).then(function(res){
-      if (res && res.saved && res.data !== false) { paint(screenUndone()); return; }
+      if (res && res.saved && res.data !== false) {
+        blocked = false;
+        paint(screenUndone());
+        return;
+      }
       btn.disabled = false;
       /* tooLate is its own answer rather than an error: the report was read
          while this card was open, which is not a fault of anybody's. */
@@ -208,21 +235,34 @@ window.pfReport = (function(){
     else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
   }
 
+  /* Closing is the only moment the page that opened this learns anything.
+     Without it every host page shows whatever it drew before — a profile
+     saying "Partners" for somebody you have just blocked and who the database
+     will no longer even show you — until a reload. That was the bug: the work
+     was done and nothing on screen said so. */
   function close(){
     if (!wrap) return;
     document.removeEventListener('keydown', onKey, true);
     wrap.classList.remove('in');
-    var w = wrap;
-    wrap = null; opts = null; reportId = null;
+
+    var w = wrap, done = opts && opts.onDone;
+    var outcome = { reported: !!reportId, blocked: blocked, userId: opts && opts.userId,
+                    name: opts && opts.name };
+
+    wrap = null; opts = null; reportId = null; blocked = false;
     setTimeout(function(){ if (w.parentNode) w.parentNode.removeChild(w); }, 180);
     if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch(e){} }
     lastFocus = null;
+
+    /* After the focus restore, so a page that navigates away is not fighting
+       a focus() call on an element it is about to discard. */
+    if (done) { try { done(outcome); } catch(e){ try { console.error('PeerFlow: onDone', e); } catch(e2){} } }
   }
 
   function open(o){
     if (!o || !o.userId) return;
     if (wrap) close();
-    opts = o; reportId = null;
+    opts = o; reportId = null; blocked = false;
     lastFocus = document.activeElement;
 
     wrap = el('<div class="rp-wrap" role="dialog" aria-modal="true" ' +
