@@ -104,10 +104,51 @@
           <a class="btn ghost" href="app-profile.html" style="margin-top:14px">Edit profile</a>
         </div>
 
+        <!-- Who you have blocked, and the way back. A block has to be
+             reversible from somewhere or it is a decision made once in a bad
+             moment and never revisited — and this is the only page that can
+             show it, because blocking hides the person's profile from you, so
+             their own page is no longer reachable. -->
+        <div class="card" id="s-blocked-card" hidden>
+          <h3>Blocked</h3>
+          <p style="font-size:14.5px">They cannot message you, ask to partner with
+            you, or put time in your calendar, and neither of you appears in the
+            other's list of people. They were not told.</p>
+          <div id="s-blocked-list" style="margin-top:16px"></div>
+          <span id="s-blocked-note" style="font-size:13.5px;color:var(--muted)"></span>
+        </div>
+
+        <!-- privacy.html promises this exactly: it happens immediately, there
+             is nothing to approve and nobody to email first. The confirmation
+             step is a typed word rather than an "are you sure" — this is the
+             one irreversible thing on the site, and a second button next to
+             the first is not a decision, it is a reflex. -->
         <div class="card">
           <h3>Delete your account</h3>
-          <p style="font-size:14.5px">Email <a href="mailto:hello@peerflow.dev" style="color:var(--green-dark);font-weight:600">hello@peerflow.dev</a>
-            from the address you signed up with and your account and profile are removed. No forms, no delay.</p>
+          <p style="font-size:14.5px">This removes your account, your profile, your
+            sessions, your messages and your notifications. It happens straight away
+            and it cannot be undone.</p>
+          <p style="font-size:13.5px;color:var(--muted);margin-top:10px">Two things stay,
+            and both are somebody else's record rather than yours: a former partner keeps
+            the times you booked together, with your name off them, and any report made
+            about you remains. <a href="privacy.html" style="color:var(--green-dark);font-weight:600">Privacy</a>.</p>
+
+          <div style="margin-top:16px">
+            <button class="small danger" id="s-del-start">Delete my account</button>
+          </div>
+
+          <div id="s-del-confirm" hidden style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
+            <div class="field">
+              <label for="s-del-word">Type <b>DELETE</b> to confirm</label>
+              <input id="s-del-word" type="text" autocomplete="off" autocapitalize="characters"
+                     spellcheck="false" placeholder="DELETE">
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <button class="small danger" id="s-del-go" disabled>Delete everything</button>
+              <button class="small" id="s-del-cancel">Keep my account</button>
+              <span id="s-del-note" style="font-size:13.5px;color:var(--muted)"></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -139,9 +180,12 @@
       document.getElementById('signedout').hidden = false;
       document.getElementById('s-save-pass').disabled = true;
       document.getElementById('s-tz-update').disabled = true;
+      document.getElementById('s-del-start').disabled = true;
+      document.getElementById('s-mail').disabled = true;
       return;
     }
     document.getElementById('s-email').textContent = user.email || '—';
+    paintBlocked();
 
     /* Google accounts have no PeerFlow password to change. */
     var provider = (user.app_metadata && user.app_metadata.provider) || 'email';
@@ -218,6 +262,109 @@
         mailNote.style.color = '#c0392b';
         mailNote.textContent = (res && res.error) || 'Could not save that.';
       }
+    });
+  });
+
+  /* ----- blocked ----- */
+  /* The card stays hidden until there is something in it. An empty "Blocked"
+     heading on everybody's settings page is a permanent reminder of an
+     unpleasant feature nobody has needed. */
+  function paintBlocked(){
+    pf.myBlocks().then(function(list){
+      if (!list || !list.length) {
+        document.getElementById('s-blocked-card').hidden = true;
+        return;
+      }
+      document.getElementById('s-blocked-card').hidden = false;
+      document.getElementById('s-blocked-list').innerHTML = list.map(function(b){
+        var when = '';
+        try {
+          when = new Date(b.at).toLocaleDateString(undefined,
+            { day:'numeric', month:'long', year:'numeric' });
+        } catch(e){}
+        /* No name is the normal case, not an error: blocking hides their
+           profile from you, which is the whole point, so there is usually
+           nothing left to read a name out of. Say the date instead of
+           inventing a placeholder person. */
+        return '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;' +
+               'padding:10px 0;border-top:1px solid var(--line)">' +
+               '<span style="flex:1;min-width:140px;font-size:14.5px">' +
+                 (b.name ? esc(b.name) : 'Someone') +
+                 '<span style="display:block;font-size:13px;color:var(--muted)">' +
+                 'Blocked ' + esc(when) + '</span></span>' +
+               '<button class="small" data-unblock="' + esc(b.id) + '">Unblock</button>' +
+               '</div>';
+      }).join('');
+    });
+  }
+
+  function esc(v){
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+
+  document.getElementById('s-blocked-list').addEventListener('click', function(ev){
+    var btn = ev.target.closest && ev.target.closest('[data-unblock]');
+    if (!btn) return;
+    var note = document.getElementById('s-blocked-note');
+    btn.disabled = true; btn.textContent = 'Unblocking…';
+    note.textContent = '';
+    pf.unblockPerson(btn.getAttribute('data-unblock')).then(function(res){
+      if (res && res.saved) {
+        note.style.color = 'var(--green-dark)';
+        note.textContent = 'Unblocked. They can reach you again, and neither of you was told.';
+        paintBlocked();
+      } else {
+        btn.disabled = false; btn.textContent = 'Unblock';
+        note.style.color = '#B4471F';
+        note.textContent = (res && res.error) || 'Could not unblock them.';
+      }
+    });
+  });
+
+  /* ----- delete ----- */
+  var delWord   = document.getElementById('s-del-word');
+  var delGo     = document.getElementById('s-del-go');
+  var delNote   = document.getElementById('s-del-note');
+
+  document.getElementById('s-del-start').addEventListener('click', function(){
+    document.getElementById('s-del-confirm').hidden = false;
+    this.hidden = true;
+    delWord.focus();
+  });
+
+  document.getElementById('s-del-cancel').addEventListener('click', function(){
+    document.getElementById('s-del-confirm').hidden = true;
+    document.getElementById('s-del-start').hidden = false;
+    delWord.value = ''; delGo.disabled = true; delNote.textContent = '';
+  });
+
+  /* The button unlocks only on the exact word. Trimmed and upper-cased
+     because a phone will capitalise the D and add a space after it, and
+     refusing somebody's deletion over their keyboard's autocorrect is a
+     dead end rather than a safeguard. */
+  delWord.addEventListener('input', function(){
+    delGo.disabled = this.value.trim().toUpperCase() !== 'DELETE';
+  });
+
+  delGo.addEventListener('click', function(){
+    if (delWord.value.trim().toUpperCase() !== 'DELETE') return;
+    delGo.disabled = true; delGo.textContent = 'Deleting…';
+    document.getElementById('s-del-cancel').disabled = true;
+    delNote.textContent = '';
+    pf.deleteAccount().then(function(res){
+      if (res && res.saved) {
+        /* Signed out by deleteAccount() already. Straight to the home page
+           rather than a confirmation screen for an account that no longer
+           exists to show one to. */
+        location.href = 'index.html';
+        return;
+      }
+      delGo.disabled = false; delGo.textContent = 'Delete everything';
+      document.getElementById('s-del-cancel').disabled = false;
+      delNote.style.color = '#B4471F';
+      delNote.textContent = (res && res.error) || 'Could not delete your account.';
     });
   });
 

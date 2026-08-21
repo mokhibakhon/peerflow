@@ -29,6 +29,16 @@
      __clash       a sentence, to see a booking refused because the hour has
                    gone — what the database now says when two people reach the
                    same minute at once, or when the partner is already busy
+     __provider    'google' to see the Settings page treat this as an OAuth
+                   account, which has no PeerFlow password to change
+     __blocks      rows for the blocked list in Settings, as
+                   [{id, at, name}] — name is usually null in real life,
+                   because blocking hides their profile from you
+     __blockFail   an error sentence, so the unblock button's failure path can
+                   be seen
+     __deleteFail  an error sentence, to see delete-your-account refused
+     __safetyMissing  true to act as though migration-safety.sql has not been
+                   run: every safety call answers needsMigration
 
    Add a dial rather than editing a fixture in place: the fixtures are shared
    by every test, and quietly changing one moves the ground under the others. */
@@ -147,7 +157,11 @@ window.pf = (function(){
     a.push(k); sessionStorage.setItem('__calls',JSON.stringify(a)); }catch(e){} }
   return {
     ready:function(){return true},
-    currentUser:function(){return P({id:'u1'})},
+    /* A real Supabase user always carries an address and a provider, and the
+       Settings page reads both. Without them the Account card sat on two em
+       dashes, which is a state no signed-in account is ever actually in. */
+    currentUser:function(){return P({id:'u1',email:'you@example.edu',
+      app_metadata:{provider:window.__provider||'email'}})},
     getProfile:function(){return P(PROFILE)},
     saveProfile:function(){note('saveProfile');return P({saved:true})},
     fetchPeers:function(){return P([
@@ -341,6 +355,33 @@ window.pf = (function(){
       if(p>=65) return 'Usually turns up';
       return 'Often misses'},
     markRequestsSeen:function(){return P({saved:true})},
+
+    /* ---- safety: block, report, delete ---- */
+    blockPerson:function(id){note('block:'+id);
+      if(window.__safetyMissing) return P({needsMigration:true,
+        error:'That isn\u2019t switched on for this site yet.'});
+      return P(window.__blockFail?{error:window.__blockFail}:{saved:true})},
+    unblockPerson:function(id){note('unblock:'+id);
+      if(window.__blockFail) return P({error:window.__blockFail});
+      /* Really removes it from the dial, so the list can be watched emptying
+         and the card watched hiding itself — a stub that always answers
+         {saved:true} would show neither. */
+      if(window.__blocks) window.__blocks=window.__blocks.filter(function(b){return b.id!==id});
+      return P({saved:true})},
+    myBlocks:function(){return P(window.__blocks||[])},
+    reportPerson:function(id,reason,detail,session,block){
+      note('report:'+id+':'+reason+':'+(block!==false?'blocked':'not blocked'));
+      if(window.__safetyMissing) return P({needsMigration:true,
+        error:'That isn\u2019t switched on for this site yet.'});
+      if(window.__reportFail) return P({error:window.__reportFail});
+      if(block!==false && window.__blocks)
+        window.__blocks=window.__blocks.concat([{id:id,at:new Date().toISOString(),name:null}]);
+      return P({saved:true,data:'r1'})},
+    reportReasons:['harassment','no_show','spam','safety','other'],
+    deleteAccount:function(){note('deleteAccount');
+      if(window.__deleteFail) return P({error:window.__deleteFail});
+      return P({saved:true})},
+
     signOut:function(){return P()},
     trackNames:{frontend:'Frontend',backend:'Backend',cybersecurity:'Cybersecurity',
       data:'Data & Analytics',mobile:'Mobile',devops:'DevOps & Cloud',aiml:'AI & ML',design:'UX/UI Design'}

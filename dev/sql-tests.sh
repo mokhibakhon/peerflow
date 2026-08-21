@@ -616,6 +616,119 @@ check "you can read the reports you wrote and nobody else's" ok "
     if n <> 0 then raise exception 'the reported party can read % report(s)', n; end if;
   end \$\$;"
 
+
+echo
+echo "==> deleting your account"
+# The one function here that destroys data. Everything it does beyond the
+# single DELETE is about rows belonging to somebody else, so that is what
+# these cases are about — what survives, not what goes.
+
+check "your own rows go" ok "
+  insert into public.sessions (user_id, starts_at, duration_min, room_url, status)
+    values ('$A', now() + interval '2 days', 50, 'pf:mine', 'confirmed');
+  $AS_A
+  select public.delete_own_account();
+  reset role;
+  do \$\$ declare n int; begin
+    select count(*) into n from public.sessions where user_id='$A';
+    if n > 0 then raise exception '% of your own session rows survived', n; end if;
+    if exists (select 1 from public.profiles where id='$A') then
+      raise exception 'the profile survived'; end if;
+    if exists (select 1 from auth.users where id='$A') then
+      raise exception 'the account survived'; end if;
+  end \$\$;"
+
+check "the partner is told, before the row saying you were partners goes" ok "
+  $AS_A
+  select public.delete_own_account();
+  reset role;
+  do \$\$ begin
+    if not exists (select 1 from public.notifications
+                    where user_id='$B' and title like '%closed their account%') then
+      raise exception 'the partner was not told'; end if;
+  end \$\$;"
+
+check "their future session with you is called off" ok "
+  insert into public.sessions (user_id, starts_at, duration_min, room_url, status, partner_name)
+    select '$A', now() + interval '2 days', 50, 'pf:both', 'confirmed', 'Bo B'
+      from public.partner_requests where from_user='$A';
+  insert into public.sessions (user_id, starts_at, duration_min, room_url, status, partner_name)
+    select '$B', now() + interval '2 days', 50, 'pf:both', 'confirmed', 'Ada A'
+      from public.partner_requests where from_user='$A';
+  $AS_A
+  select public.delete_own_account();
+  reset role;
+  do \$\$ declare st text; begin
+    select status into st from public.sessions where user_id='$B' and room_url='pf:both';
+    if st is distinct from 'cancelled' then
+      raise exception 'their row is still %', coalesce(st,'gone'); end if;
+  end \$\$;"
+
+# privacy.html promises exactly this: a former partner keeps the times the two
+# of you booked, with your name off them.
+check "their row keeps the booking and loses your name" ok "
+  insert into public.sessions (user_id, starts_at, duration_min, room_url, status, partner_name)
+    values ('$A', now() - interval '2 days', 50, 'pf:past', 'confirmed', 'Bo B'),
+           ('$B', now() - interval '2 days', 50, 'pf:past', 'confirmed', 'Ada A');
+  $AS_A
+  select public.delete_own_account();
+  reset role;
+  do \$\$ declare r record; begin
+    select * into r from public.sessions where user_id='$B' and room_url='pf:past';
+    if r is null then raise exception 'their history row was deleted with your account'; end if;
+    if r.partner_name is not null then
+      raise exception 'your name is still on their row: %', r.partner_name; end if;
+    if r.status <> 'confirmed' then
+      raise exception 'a session that already happened was cancelled'; end if;
+  end \$\$;"
+
+# The reason reporter/reported are `on delete set null` and the names are
+# snapshotted. Closing your account must not delete the record of what you did.
+check "a report about you survives you, names and all" ok "
+  $AS_B
+  select public.report_person('$A','harassment','it kept happening', null, false);
+  reset role;
+  $AS_A
+  select public.delete_own_account();
+  reset role;
+  do \$\$ declare r record; begin
+    select * into r from public.reports where reported_name = 'Ada A';
+    if r is null then raise exception 'the report went with the account'; end if;
+    if r.reported is not null then raise exception 'reported should be null now'; end if;
+    if r.detail <> 'it kept happening' then raise exception 'the detail was lost'; end if;
+  end \$\$;"
+
+check "a report you wrote survives you too" ok "
+  $AS_A
+  select public.report_person('$B','spam', null, null, false);
+  select public.delete_own_account();
+  reset role;
+  do \$\$ declare n int; begin
+    select count(*) into n from public.reports where reporter_name='Ada A';
+    if n <> 1 then raise exception '% rows, expected the report to survive', n; end if;
+  end \$\$;"
+
+check "delete_own_account refuses a caller with no identity" "PF010" "$(wrap "
+  set local role authenticated;
+  perform public.delete_own_account();")"
+
+# A session of theirs that has nothing to do with you must not be touched by
+# the matching in steps 2 and 3 — the three-way OR is wide, and NULL on either
+# side has to fail to match rather than match everything.
+check "a stranger's session at the same moment is left alone" ok "
+  insert into public.sessions (user_id, starts_at, duration_min, room_url, status, partner_name)
+    values ('$A', now() + interval '2 days', 50, 'pf:mine',   'confirmed', 'Bo B'),
+           ('$B', now() + interval '2 days', 50, 'pf:theirs', 'confirmed', 'Someone Else');
+  $AS_A
+  select public.delete_own_account();
+  reset role;
+  do \$\$ declare r record; begin
+    select * into r from public.sessions where user_id='$B' and room_url='pf:theirs';
+    if r.status <> 'confirmed' then raise exception 'an unrelated session was cancelled'; end if;
+    if r.partner_name is distinct from 'Someone Else' then
+      raise exception 'an unrelated partner name was wiped: %', r.partner_name; end if;
+  end \$\$;"
+
 echo
 echo "==================================================="
 printf 'passed %d, failed %d\n' "$PASS" "$FAIL"

@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-20a';
+window.PF_BUILD = '2026-08-20b';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -1803,6 +1803,147 @@ window.pf = (function(){
     }).catch(function(){ return { saved: false }; });
   }
 
+  /* ================================================================
+     Safety — blocking, reporting, and closing your account.
+
+     All four go through SECURITY DEFINER functions in
+     supabase/migration-safety.sql rather than table writes, for the same
+     reason in each case: every one of them has to touch a row that is not
+     yours. Blocking ends the partnership and clears the other person's
+     calendar; reporting writes down both names so the record survives either
+     account; deleting warns your partner and takes your name off their
+     history. A browser cannot be trusted with any of that, and doing it as
+     three round trips means the second one can fail and leave somebody
+     blocked but still bookable.
+     ================================================================ */
+
+  /* Every one of these can be called on a database where the migration has
+     not been run, and the honest answer then is not "something went wrong" —
+     it is that this feature is not switched on here yet, which is a different
+     thing and points at a different fix. */
+  function safetyRpc(name, args, msg){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.rpc(name, args).then(function(r){
+      if (!r.error) return { saved: true, data: r.data };
+      if (missingFunction(r.error)) {
+        console.warn('PeerFlow: ' + name + ' is missing. Run supabase/migration-safety.sql.');
+        return { needsMigration: true,
+                 error: 'That isn’t switched on for this site yet.' };
+      }
+      return fail(r.error, msg);
+    }).catch(function(e){ return fail(e, msg); });
+  }
+
+  function blockPerson(userId){
+    if (!userId) return Promise.resolve({ error: 'No one to block.' });
+    return safetyRpc('block_person', { p_other: userId },
+      'Could not block them. Please try again.');
+  }
+
+  /* The one operation here that is an ordinary table write: unblocking
+     removes a row you own, the policy already says only the blocker may
+     delete it, and nothing else has to happen at the same time. */
+  function unblockPerson(userId){
+    if (!client) return Promise.resolve({ demo: true });
+    if (!userId) return Promise.resolve({ error: 'No one to unblock.' });
+    return currentUid().then(function(uid){
+      if (!uid) return { demo: true };
+      return client.from('blocks').delete()
+        .eq('blocker', uid).eq('blocked', userId)
+        .then(function(r){
+          if (r.error) return fail(r.error, 'Could not unblock them.');
+          return { saved: true };
+        });
+    }).catch(function(e){ return fail(e, 'Could not unblock them.'); });
+  }
+
+  /* Who you have blocked, with enough to show a row — which means reading
+     profiles, and profiles is exactly what the block policy now hides from
+     you. So the names come out of the sessions and messages you already
+     shared with them, and failing that the list still renders with the date
+     and an Unblock button. Somebody who cannot remember who they blocked is
+     still better served by an honest "someone, on 3 August" than by a row
+     that will not draw at all. */
+  function myBlocks(){
+    if (!client) return Promise.resolve([]);
+    return currentUid().then(function(uid){
+      if (!uid) return [];
+      return client.from('blocks')
+        .select('blocked, created_at')
+        .eq('blocker', uid)
+        .order('created_at', { ascending: false })
+        .then(function(r){
+          if (r.error) {
+            /* 42P01: no blocks table, i.e. the migration has not been run.
+               An empty list is the truthful answer — nobody is blocked. */
+            if (r.error.code !== '42P01') { try { console.warn('PeerFlow: myBlocks', r.error); } catch(e){} }
+            return [];
+          }
+          var rows = r.data || [];
+          if (!rows.length) return [];
+
+          var ids = rows.map(function(b){ return b.blocked; });
+          return client.from('sessions')
+            .select('partner_name, starts_at')
+            .eq('user_id', uid)
+            .not('partner_name', 'is', null)
+            .order('starts_at', { ascending: false })
+            .limit(200)
+            .then(function(sr){
+              /* Sessions do not carry the partner's id, only their name, so
+                 this cannot map a name to an id on its own. It is used only
+                 to answer "have I ever sat with anybody?" — when the answer
+                 is one name and one block, that name is who it is. Beyond
+                 that the list stays honest and says nothing. */
+              var names = (sr.data || []).map(function(x){ return x.partner_name; });
+              var only = (rows.length === 1 && names.length &&
+                          names.every(function(n){ return n === names[0]; }))
+                         ? names[0] : null;
+              return rows.map(function(b){
+                return { id: b.blocked, at: b.created_at, name: only };
+              });
+            }, function(){
+              return rows.map(function(b){
+                return { id: b.blocked, at: b.created_at, name: null };
+              });
+            });
+        });
+    }).catch(function(){ return []; });
+  }
+
+  var REPORT_REASONS = ['harassment', 'no_show', 'spam', 'safety', 'other'];
+
+  /* sessionId is optional and is checked server-side against your own rows,
+     so passing one from a call is safe and passing a wrong one simply stores
+     nothing rather than pointing the report at a stranger's booking. */
+  function reportPerson(userId, reason, detail, sessionId, alsoBlock){
+    if (!userId) return Promise.resolve({ error: 'No one to report.' });
+    if (REPORT_REASONS.indexOf(reason) < 0) {
+      return Promise.resolve({ error: 'Pick a reason.' });
+    }
+    return safetyRpc('report_person', {
+      p_about:   userId,
+      p_reason:  reason,
+      p_detail:  (detail && String(detail).slice(0, 2000)) || null,
+      p_session: sessionId || null,
+      p_block:   alsoBlock !== false
+    }, 'Could not send that report. Please try again.');
+  }
+
+  /* Irreversible, and the only thing in the data layer that is. The sign-out
+     afterwards is not tidiness: the access token stays valid until it expires
+     and every page it touches would 404 its way through a database where the
+     account no longer exists. */
+  function deleteAccount(){
+    return safetyRpc('delete_own_account', {},
+      'Could not delete your account. Please try again, or email hello@peerflow.dev.')
+      .then(function(res){
+        if (!res || !res.saved) return res;
+        return signOut().then(function(){ return { saved: true }; },
+                             function(){ return { saved: true }; });
+      });
+  }
+
   /* ---------- track labels (for display in the app) ---------- */
 
   var trackNames = {
@@ -1827,6 +1968,12 @@ window.pf = (function(){
     sendPasswordReset: sendPasswordReset,
     saveProfile: saveProfile,
     fetchSessions: fetchSessions,
+    blockPerson: blockPerson,
+    unblockPerson: unblockPerson,
+    myBlocks: myBlocks,
+    reportPerson: reportPerson,
+    reportReasons: REPORT_REASONS,
+    deleteAccount: deleteAccount,
     /* Console check when something has moved on one side and not the other:
        pf.check().then(console.log) says which build is loaded and whether the
        database functions it needs are actually there. */

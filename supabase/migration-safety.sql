@@ -359,3 +359,117 @@ create policy "message people you know"
 -- happens next; it is not a right to edit somebody else's inbox, and a thread
 -- that emptied itself would destroy the evidence for the report that usually
 -- accompanies it.
+
+
+-- ============================================================
+-- Deleting your account
+-- ============================================================
+-- Settings used to say: email hello@peerflow.dev and your account is removed.
+-- That is a promise made by a person who might be asleep, and it is not what
+-- privacy.html now says — it says there is a button, it happens immediately,
+-- and nobody has to approve it. This is that button.
+--
+-- Everything hangs off auth.users with `on delete cascade`, so deleting the
+-- one row takes the profile, the sessions, the messages, the notifications,
+-- the achievements, the partner requests and the blocks with it. The work
+-- below is entirely about the rows that are NOT yours and would otherwise be
+-- left holding a reference to somebody who no longer exists.
+
+create or replace function public.delete_own_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me   uuid := auth.uid();
+  mine text;
+begin
+  if me is null then
+    raise exception 'not signed in' using errcode = 'PF010';
+  end if;
+
+  select coalesce(nullif(btrim(name), ''), 'Your partner')
+    into mine from public.profiles where id = me;
+
+  -- 1. Tell them, while there is still a row saying you were partners.
+  --    After the cascade there is nothing left to work out who to tell, and
+  --    somebody whose partner silently evaporates learns about it by turning
+  --    up to a call that will not open.
+  insert into public.notifications (user_id, kind, title, body, href)
+  select case when r.from_user = me then r.to_user else r.from_user end,
+         'partner',
+         mine || ' closed their account',
+         'Any sessions the two of you had booked have been called off. '
+           || 'You can ask somebody else on Everyone.',
+         'app-people.html'
+    from public.partner_requests r
+   where r.status = 'accepted'
+     and (r.from_user = me or r.to_user = me);
+
+  -- 2. Take the future off their calendar. Their row survives the cascade —
+  --    it belongs to them — and would otherwise sit there as a confirmed
+  --    session that can never be joined, because session_for_call() refuses
+  --    anybody who is no longer partnered.
+  --
+  --    The two rows of one booking are matched on any of the three things
+  --    they share. pair_id is the modern answer and the only one that is
+  --    always right, but rows written before migration-room-per-session.sql
+  --    have none, so room_name and room_url are checked too. A NULL on either
+  --    side compares as NULL and simply does not match, which is the wanted
+  --    behaviour: no match is better than a wrong one.
+  update public.sessions o
+     set status       = 'cancelled',
+         cancelled_at = coalesce(o.cancelled_at, now())
+    from public.sessions m
+   where m.user_id = me
+     and o.user_id <> me
+     and o.status in ('proposed', 'confirmed')
+     and o.starts_at > now()
+     and o.starts_at = m.starts_at
+     and (o.pair_id = m.pair_id
+       or o.room_name = m.room_name
+       or o.room_url  = m.room_url);
+
+  -- 3. Take your name off the rows that outlive you. privacy.html promises
+  --    exactly this: a former partner keeps the times the two of you booked,
+  --    with your name off them. Deleting their rows outright would rewrite
+  --    their own history and take their streak with it; leaving the name on
+  --    would mean deleting your account did not delete your name.
+  update public.sessions o
+     set partner_name = null
+    from public.sessions m
+   where m.user_id = me
+     and o.user_id <> me
+     and o.starts_at = m.starts_at
+     and (o.pair_id = m.pair_id
+       or o.room_name = m.room_name
+       or o.room_url  = m.room_url);
+
+  -- 4. Reports need no work and that is the point. reporter and reported are
+  --    `on delete set null` and the names were written down at report time,
+  --    so harassing somebody and then closing the account does not delete the
+  --    record of it. This comment exists so nobody later "tidies up" those
+  --    columns into a cascade.
+
+  delete from auth.users where id = me;
+end;
+$$;
+
+revoke all on function public.delete_own_account() from public, anon;
+grant execute on function public.delete_own_account() to authenticated;
+
+-- The function runs as its owner, which is whoever pasted this into the SQL
+-- editor — the `postgres` role — and `postgres` can normally delete from
+-- auth.users. Normally. If delete_own_account() ever fails with "permission
+-- denied for table users", this is the missing grant, and it has to be run by
+-- something that owns the auth schema. Wrapped so that a database where it is
+-- neither needed nor permitted still loads this file.
+do $$
+begin
+  execute 'grant delete on table auth.users to postgres';
+exception when others then
+  raise notice 'delete_own_account: could not grant delete on auth.users (%). '
+               'Harmless unless deleting an account fails with a permission '
+               'error, in which case this grant is what is missing.', sqlerrm;
+end $$;
