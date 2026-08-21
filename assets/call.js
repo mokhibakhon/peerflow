@@ -699,6 +699,38 @@
       paintControls();
     });
   });
+  /* Report, from inside the call. The partner's account id is not in what
+     session_for_call() hands back — only their name — so it is fetched once
+     when the pass arrives rather than on the click: somebody reaching for
+     this button should not be waiting on a round trip. If it never resolves
+     the button hides itself, which is better than a control that opens onto
+     an error. */
+  var farId = null;
+
+  function armReport(){
+    var btn = $('c-report');
+    if (!btn) return;
+    btn.hidden = true;
+    if (!window.pf || !pf.partnerForSession || !window.pfReport) return;
+    pf.partnerForSession(sessionId()).then(function(id){
+      if (!id) return;
+      farId = id;
+      btn.hidden = false;
+    });
+  }
+
+  $('c-report').addEventListener('click', function(){
+    if (!farId) return;
+    pfReport.open({
+      userId: farId,
+      name: (pass && pass.partner) || farName,
+      /* Which session it happened on. report_person() checks it against your
+         own rows, so a wrong one stores nothing rather than pointing at
+         somebody else's booking. */
+      sessionId: sessionId()
+    });
+  });
+
   $('c-leave').addEventListener('click', leave);
 
   $('done-back').addEventListener('click', function(){ location.href = 'app.html'; });
@@ -728,6 +760,7 @@
     pf.callToken(id).then(function(res){
       if (!res || !res.ok) { refuse(res || {}); return; }
       pass = res;
+      armReport();
       lobby();
     });
   }

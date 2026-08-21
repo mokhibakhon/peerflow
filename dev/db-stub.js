@@ -19,6 +19,8 @@
      __planWeeks   the twelve-week plan as stored on the profile
      __standing    {minutes, agreed, mine} for a standing slot
      __sharedBy    shared hours by JS weekday, overriding the default
+     __theirBy     the other person's own hours by JS weekday, for the read-only
+                   week on their profile
      __callRefuse  a reason string, to see call.html turn one down
      __callMinsIn  how far into the booked session the room thinks it is, so
                    the phase pill can be caught mid-break
@@ -37,6 +39,14 @@
      __blockFail   an error sentence, so the unblock button's failure path can
                    be seen
      __deleteFail  an error sentence, to see delete-your-account refused
+     __reportFail  an error sentence, so the reporting card's failure path can
+                   be seen with the five reasons still live
+     __undoFail    an error sentence for the undo button
+     __undoTooLate true to answer as the database does when the fifteen-minute
+                   window has closed or somebody has already read the report
+     __amendFail   an error sentence for saving the added detail
+     __farId       the partner's account id on a call, or null for a session
+                   with nobody on the other side — which hides Report
      __safetyMissing  true to act as though migration-safety.sql has not been
                    run: every safety call answers needsMigration
 
@@ -223,7 +233,19 @@ window.pf = (function(){
     sharedAvailability:function(){
       var ev=[17,18,19,20,21], by={0:ev,2:ev,4:ev};
       if(window.__sharedBy) by=window.__sharedBy;
-      return {byDay:by,slots:[]};
+      return {byDay:by,slots:[],hours:15};
+    },
+    /* Missing until now, which meant app-person.html threw inside render()
+       and every stubbed visit to somebody's profile showed "We couldn't find
+       that person" instead. The page catches its own load errors and calls
+       missing(), so the gap looked like a person who was not there rather
+       than like a bug — the page rendered its markup and then quietly hid it.
+       Their week is drawn wider than the shared one so the two shadings can
+       be told apart on screen. */
+    availabilityHours:function(){
+      var th=[16,17,18,19,20,21,22], by={0:th,1:th,2:th,4:th,5:th};
+      if(window.__theirBy) by=window.__theirBy;
+      return {byDay:by,hours:35,minutes:0};
     },
     acceptedPartners:function(){return P(window.__partners ||
       (window.__noPartner ? [] :
@@ -374,10 +396,22 @@ window.pf = (function(){
       if(window.__safetyMissing) return P({needsMigration:true,
         error:'That isn\u2019t switched on for this site yet.'});
       if(window.__reportFail) return P({error:window.__reportFail});
+      window.__lastReported=id;
       if(block!==false && window.__blocks)
         window.__blocks=window.__blocks.concat([{id:id,at:new Date().toISOString(),name:null}]);
       return P({saved:true,data:'r1'})},
     reportReasons:['harassment','no_show','spam','safety','other'],
+    partnerForSession:function(){return P(window.__farId===undefined?'u2':window.__farId)},
+    withdrawReport:function(id,unblock){note('withdraw:'+id+':'+(unblock!==false));
+      if(window.__undoTooLate) return P({tooLate:true,
+        error:'That report has already been read, so it can\u2019t be taken back.'});
+      if(window.__undoFail) return P({error:window.__undoFail});
+      if(unblock!==false && window.__blocks)
+        window.__blocks=window.__blocks.filter(function(b){return b.id!==window.__lastReported});
+      return P({saved:true,data:true})},
+    amendReport:function(id,detail){note('amend:'+id+':'+(detail||'').slice(0,40));
+      if(window.__amendFail) return P({error:window.__amendFail});
+      return P({saved:true,data:true})},
     deleteAccount:function(){note('deleteAccount');
       if(window.__deleteFail) return P({error:window.__deleteFail});
       return P({saved:true})},

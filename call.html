@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/app.css">
 <link rel="stylesheet" href="assets/call.css">
+<link rel="stylesheet" href="assets/report.css">
 <script src="assets/authgate.js"></script>
 </head>
 <body class="callpage">
@@ -120,6 +121,15 @@
                 aria-controls="sound-pop" title="Background sound, only for you">
           <span class="c-ic" id="c-sound-ic"></span><span class="c-l">Sound</span>
         </button>
+        <!-- The code of conduct promises report and block "whether or not
+             you're still on the call", so it has to be reachable from inside
+             one. Left of Leave rather than right of it: the two are next to
+             each other and only one of them is the one you press by accident
+             when you meant the other. -->
+        <button class="c-b c-report" type="button" id="c-report" hidden
+                title="Report or block this person">
+          <span class="c-l">Report</span>
+        </button>
         <button class="c-b c-leave" type="button" id="c-leave">Leave</button>
 
         <!-- Only ever heard by the person who chose it; nothing here is
@@ -168,6 +178,7 @@
 <script src="assets/db.js"></script>
 <script src="assets/phases.js"></script>
 <script src="assets/ambience.js"></script>
+<script src="assets/report.js"></script>
 <script src="assets/call.js"></script>
 </body>
 </html>

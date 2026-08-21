@@ -2498,4 +2498,168 @@ exception when others then
                'error, in which case this grant is what is missing.', sqlerrm;
 end $$;
 
+
+-- ============================================================
+-- Taking it back, and adding to it
+-- ============================================================
+-- The reporting flow asks for one press: pick a reason and the report is
+-- filed and the person is blocked, with no form in between. That is the right
+-- shape — somebody reaching for this button has just been made uncomfortable,
+-- and that is not the moment to ask them four questions — but it is only safe
+-- if the press is reversible. These two functions are what make it so.
+
+-- Undo. Deletes a report you have just made and, by default, unblocks them
+-- with it.
+--
+-- Three conditions, and each one is doing work. `reporter = me` because this
+-- is your report and nobody else's to withdraw. `handled_at is null` because
+-- once somebody has read and acted on it, it is a record of a decision rather
+-- than a draft. And the fifteen minutes because this is an undo button, not a
+-- way to un-say something a week later — a report that could be withdrawn
+-- indefinitely could be withdrawn under pressure.
+--
+-- What it deliberately does NOT restore is the partnership and the sessions
+-- block_person() called off. Sessions do not record the status they had
+-- before, so 'confirmed' and 'proposed' cannot be told apart afterwards, and
+-- guessing would put a session somebody never agreed to back on their
+-- calendar. The UI says this in as many words rather than implying a clean
+-- reversal.
+create or replace function public.withdraw_report(
+  p_id      uuid,
+  p_unblock boolean default true
+) returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me  uuid := auth.uid();
+  who uuid;
+begin
+  if me is null then
+    raise exception 'not signed in' using errcode = 'PF010';
+  end if;
+
+  delete from public.reports
+   where id = p_id
+     and reporter = me
+     and handled_at is null
+     and created_at > now() - interval '15 minutes'
+  returning reported into who;
+
+  -- No row means the id was wrong, the report was somebody else's, it has
+  -- been read already, or the window has closed. All four are "there is
+  -- nothing to undo", which is a false rather than an error: the caller is a
+  -- button that should say so quietly.
+  if who is null then
+    return false;
+  end if;
+
+  if p_unblock then
+    delete from public.blocks where blocker = me and blocked = who;
+  end if;
+
+  return true;
+end;
+$$;
+
+revoke all on function public.withdraw_report(uuid, boolean) from public, anon;
+grant execute on function public.withdraw_report(uuid, boolean) to authenticated;
+
+
+-- The other half of one-press reporting: the sentence you did not stop to
+-- write. A day rather than fifteen minutes, because adding what happened is
+-- not undoing anything and somebody may well come back to it once they have
+-- stopped shaking. Still only your own report, and still not one that has
+-- already been read — an account of an incident that can be rewritten after
+-- somebody has acted on it is not a record.
+create or replace function public.amend_report(
+  p_id     uuid,
+  p_detail text
+) returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me uuid := auth.uid();
+  n  int;
+begin
+  if me is null then
+    raise exception 'not signed in' using errcode = 'PF010';
+  end if;
+
+  update public.reports
+     set detail = nullif(btrim(coalesce(p_detail, '')), '')
+   where id = p_id
+     and reporter = me
+     and handled_at is null
+     and created_at > now() - interval '24 hours';
+
+  get diagnostics n = row_count;
+  return n > 0;
+end;
+$$;
+
+revoke all on function public.amend_report(uuid, text) from public, anon;
+grant execute on function public.amend_report(uuid, text) to authenticated;
+
+
+-- ---------- who is on the other side of this call ----------
+-- call.html knows the partner's name and not their id: session_for_call()
+-- returns `partner` as text, because until now nothing on that page needed
+-- to address them as an account. Reporting does.
+--
+-- This is a separate lookup rather than a new column on session_for_call()
+-- deliberately. That function is the gate every call goes through and its
+-- shape is baked into the call-token edge function; widening it would mean a
+-- migration and a redeployment to add a field that one button needs.
+--
+-- It answers only for a session that is yours, so it cannot be used to walk
+-- the calendar looking up who sat with whom. NULL for anything else, which
+-- the caller reads as "no report button".
+create or replace function public.partner_for_session(p_session uuid)
+returns uuid
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  me    uuid := auth.uid();
+  mine  public.sessions%rowtype;
+  other uuid;
+begin
+  if me is null or p_session is null then
+    return null;
+  end if;
+
+  select * into mine
+    from public.sessions
+   where id = p_session and user_id = me;
+  if not found then
+    return null;
+  end if;
+
+  -- The same three-way match the rest of this file uses to pair up the two
+  -- rows of one booking: pair_id is the modern answer and the only one that
+  -- is always right, room_name and room_url cover rows written before it
+  -- existed, and a NULL on either side compares as NULL and simply fails to
+  -- match — which is wanted, since no answer beats a wrong one here.
+  select o.user_id into other
+    from public.sessions o
+   where o.user_id <> me
+     and o.starts_at = mine.starts_at
+     and (o.pair_id   = mine.pair_id
+       or o.room_name = mine.room_name
+       or o.room_url  = mine.room_url)
+   limit 1;
+
+  return other;
+end;
+$$;
+
+revoke all on function public.partner_for_session(uuid) from public, anon;
+grant execute on function public.partner_for_session(uuid) to authenticated;
+
 -- ---------- END migration-safety.sql ----------

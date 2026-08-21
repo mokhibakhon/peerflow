@@ -729,6 +729,182 @@ check "a stranger's session at the same moment is left alone" ok "
       raise exception 'an unrelated partner name was wiped: %', r.partner_name; end if;
   end \$\$;"
 
+
+echo
+echo "==> undo, which is what makes one-press reporting safe"
+
+check "withdrawing removes the report and unblocks them" ok "
+  $AS_A
+  do \$\$ declare rid uuid; gone boolean; begin
+    rid := public.report_person('$B','harassment');
+    if not exists (select 1 from public.blocks where blocker='$A' and blocked='$B') then
+      raise exception 'the report did not block'; end if;
+    gone := public.withdraw_report(rid);
+    if not gone then raise exception 'withdraw_report returned false'; end if;
+    if exists (select 1 from public.reports where id = rid) then
+      raise exception 'the report is still there'; end if;
+    if exists (select 1 from public.blocks where blocker='$A' and blocked='$B') then
+      raise exception 'still blocked after an undo'; end if;
+  end \$\$;"
+
+check "withdrawing can keep the block if asked to" ok "
+  $AS_A
+  do \$\$ declare rid uuid; begin
+    rid := public.report_person('$B','harassment');
+    perform public.withdraw_report(rid, false);
+    if not exists (select 1 from public.blocks where blocker='$A' and blocked='$B') then
+      raise exception 'the block was removed despite p_unblock false'; end if;
+  end \$\$;"
+
+check "you cannot withdraw somebody else's report" ok "
+  $AS_B
+  do \$\$ declare rid uuid; begin
+    rid := public.report_person('$A','harassment', null, null, false);
+    perform set_config('request.jwt.claim.sub', '$A', true);
+    if public.withdraw_report(rid) then
+      raise exception 'A withdrew a report B wrote'; end if;
+    perform set_config('request.jwt.claim.sub', '$B', true);
+    if not exists (select 1 from public.reports where id = rid) then
+      raise exception 'the report was deleted anyway'; end if;
+  end \$\$;"
+
+# Once somebody has read and acted on it, it is a record of a decision rather
+# than a draft.
+check "a report already handled cannot be withdrawn" ok "
+  $AS_A
+  select public.report_person('$B','harassment', null, null, false);
+  reset role;
+  update public.reports set handled_at = now() where reporter='$A' and reported='$B';
+  $AS_A
+  do \$\$ begin
+    if public.withdraw_report(
+         (select id from public.reports where reporter='$A' and reported='$B')) then
+      raise exception 'a handled report was withdrawn'; end if;
+  end \$\$;"
+
+# The setup above only works because it steps out of the authenticated role
+# first. This is that fact, asserted: a report is not something its author can
+# mark as dealt with.
+check "the reporter cannot mark their own report handled" ok "
+  $AS_A
+  select public.report_person('$B','harassment', null, null, false);
+  update public.reports set handled_at = now() where reporter='$A';
+  do \$\$ begin
+    if (select handled_at from public.reports where reporter='$A') is not null then
+      raise exception 'the reporter marked their own report handled'; end if;
+  end \$\$;"
+
+# An undo button, not a way to un-say something a week later: a report that
+# could be withdrawn indefinitely could be withdrawn under pressure.
+check "the window closes after fifteen minutes" ok "
+  $AS_A
+  select public.report_person('$B','harassment', null, null, false);
+  reset role;
+  update public.reports set created_at = now() - interval '16 minutes'
+   where reporter='$A' and reported='$B';
+  $AS_A
+  do \$\$ declare rid uuid; begin
+    select id into rid from public.reports where reporter='$A' and reported='$B';
+    if public.withdraw_report(rid) then
+      raise exception 'a report from 16 minutes ago was withdrawn'; end if;
+    if not exists (select 1 from public.reports where id = rid) then
+      raise exception 'it was deleted despite returning false'; end if;
+  end \$\$;"
+
+check "withdrawing something that is not there is false, not an error" ok "
+  $AS_A
+  do \$\$ begin
+    if public.withdraw_report('00000000-0000-0000-0000-000000000000') then
+      raise exception 'claimed to withdraw a report that does not exist'; end if;
+  end \$\$;"
+
+echo
+echo "==> the sentence you did not stop to write"
+
+check "amending sets the detail on your own report" ok "
+  $AS_A
+  do \$\$ declare rid uuid; begin
+    rid := public.report_person('$B','harassment', null, null, false);
+    if not public.amend_report(rid, '  they would not stop  ') then
+      raise exception 'amend_report returned false'; end if;
+    if (select detail from public.reports where id = rid) <> 'they would not stop' then
+      raise exception 'detail not trimmed or not saved'; end if;
+  end \$\$;"
+
+check "an empty amendment clears the detail rather than storing blanks" ok "
+  $AS_A
+  do \$\$ declare rid uuid; begin
+    rid := public.report_person('$B','harassment','first go', null, false);
+    perform public.amend_report(rid, '   ');
+    if (select detail from public.reports where id = rid) is not null then
+      raise exception 'whitespace was stored'; end if;
+  end \$\$;"
+
+check "you cannot amend somebody else's report" ok "
+  $AS_B
+  do \$\$ declare rid uuid; begin
+    rid := public.report_person('$A','harassment','what really happened', null, false);
+    perform set_config('request.jwt.claim.sub', '$A', true);
+    if public.amend_report(rid, 'no it did not') then
+      raise exception 'A rewrote a report B wrote'; end if;
+    perform set_config('request.jwt.claim.sub', '$B', true);
+    if (select detail from public.reports where id = rid) <> 'what really happened' then
+      raise exception 'the detail was changed anyway'; end if;
+  end \$\$;"
+
+check "a report already handled cannot be rewritten" ok "
+  $AS_A
+  select public.report_person('$B','harassment','as it happened', null, false);
+  reset role;
+  update public.reports set handled_at = now() where reporter='$A' and reported='$B';
+  $AS_A
+  do \$\$ declare rid uuid; begin
+    select id into rid from public.reports where reporter='$A' and reported='$B';
+    if public.amend_report(rid, 'actually never mind') then
+      raise exception 'a handled report was rewritten'; end if;
+    if (select detail from public.reports where id = rid) <> 'as it happened' then
+      raise exception 'the detail changed anyway'; end if;
+  end \$\$;"
+
+
+echo
+echo "==> who is on the other side of this call"
+
+check "the counterpart row's owner is found" ok "
+  insert into public.sessions (id, user_id, starts_at, duration_min, room_url, status)
+    values ('44444444-4444-4444-4444-444444444444','$A', now() + interval '1 day',
+            50,'pf:pair','confirmed'),
+           ('55555555-5555-5555-5555-555555555555','$B', now() + interval '1 day',
+            50,'pf:pair','confirmed');
+  $AS_A
+  do \$\$ begin
+    if public.partner_for_session('44444444-4444-4444-4444-444444444444') <> '$B' then
+      raise exception 'wrong partner, or none'; end if;
+  end \$\$;"
+
+# It must not be usable to walk the calendar looking up who sat with whom.
+check "a session that is not yours answers nothing" ok "
+  insert into public.sessions (id, user_id, starts_at, duration_min, room_url, status)
+    values ('44444444-4444-4444-4444-444444444444','$A', now() + interval '1 day',
+            50,'pf:pair','confirmed'),
+           ('55555555-5555-5555-5555-555555555555','$B', now() + interval '1 day',
+            50,'pf:pair','confirmed');
+  $AS_B
+  do \$\$ begin
+    if public.partner_for_session('44444444-4444-4444-4444-444444444444') is not null then
+      raise exception 'answered for somebody else''s session row'; end if;
+  end \$\$;"
+
+check "a session sat alone answers nothing rather than guessing" ok "
+  insert into public.sessions (id, user_id, starts_at, duration_min, room_url, status)
+    values ('44444444-4444-4444-4444-444444444444','$A', now() + interval '1 day',
+            50,'pf:solo','confirmed');
+  $AS_A
+  do \$\$ begin
+    if public.partner_for_session('44444444-4444-4444-4444-444444444444') is not null then
+      raise exception 'invented a partner'; end if;
+  end \$\$;"
+
 echo
 echo "==================================================="
 printf 'passed %d, failed %d\n' "$PASS" "$FAIL"

@@ -1,0 +1,122 @@
+/* PeerFlow — reporting somebody.
+ *
+ * Its own stylesheet rather than a block in app.css, because the two pages
+ * that open it do not share a stylesheet: app-person.html loads app.css and
+ * call.html loads call.css, and the whole point of this component is that it
+ * is the same thing in both places. A copy in each file would be two things
+ * that look alike until one of them is edited.
+ *
+ * It is an overlay, which app.css is on record as avoiding — the note beside
+ * the badge popup says "everything else here tries not to be a modal". The
+ * rule is about interruption: do not stop somebody who is reading to show them
+ * what they did not ask for. This is the opposite. They pressed the button,
+ * what follows is what they wanted, and on a call the dimming is doing real
+ * work — it is the only way to be legible over moving video, and it takes the
+ * other person's face off the screen while somebody types a sentence about
+ * them.
+ */
+
+.rp-wrap{
+  position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:20px;
+  background:rgba(16,20,34,.55);
+  /* Not decoration: on a call the ground behind this is moving, and a flat
+     scrim over motion still reads as motion. */
+  backdrop-filter:blur(4px);
+  opacity:0;transition:opacity .16s ease;
+}
+.rp-wrap.in{opacity:1}
+
+.rp-card{
+  width:min(400px,100%);max-height:100%;overflow:auto;
+  padding:22px 22px 20px;
+  background:var(--card);border-radius:var(--r-card);color:var(--ink);
+  box-shadow:0 24px 60px rgba(16,20,34,.3),0 2px 8px rgba(16,20,34,.14);
+  transform:translateY(8px) scale(.985);
+  transition:transform .2s cubic-bezier(.2,.9,.3,1);
+  font-family:var(--body,inherit);
+}
+.rp-wrap.in .rp-card{transform:none}
+
+.rp-h{margin:0 0 4px;font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.25}
+.rp-s{margin:0 0 15px;font-size:13.5px;color:var(--ink-soft);line-height:1.5}
+
+/* ---------- the five reasons ----------
+   Buttons rather than radios with a submit underneath, because pressing one
+   IS the submit. A radio implies a later confirmation step that does not
+   exist here. */
+.rp-reasons{display:grid;gap:7px;margin-bottom:6px}
+.rp-r{
+  display:block;width:100%;text-align:left;padding:11px 13px;
+  border:1px solid var(--line);border-radius:10px;background:var(--card);
+  font-family:inherit;font-size:14.5px;color:var(--ink);cursor:pointer;
+  transition:border-color .12s ease,background .12s ease;
+}
+.rp-r:hover:not(:disabled){border-color:var(--p2);background:var(--p0)}
+.rp-r:disabled{opacity:.5;cursor:default}
+.rp-r b{display:block;font-weight:700}
+.rp-r span{display:block;font-size:12.5px;color:var(--ink-faint);margin-top:2px;line-height:1.4}
+/* The one being sent. Stays put and says so rather than the whole card
+   swapping out from under a thumb that is still on the screen. */
+.rp-r.sending{border-color:var(--p2);background:var(--p0)}
+.rp-r.sending b::after{content:' — sending…';font-weight:600;color:var(--p6)}
+
+/* ---------- what comes after ---------- */
+.rp-done{
+  margin:0 0 4px;padding:12px 14px;border-radius:10px;
+  background:var(--p0);border:1px solid var(--p1);
+  font-size:14.5px;line-height:1.5;color:var(--p8);
+}
+.rp-done b{font-weight:800}
+/* Blocking ended a partnership and cleared a calendar, and undoing does not
+   put those back. Somebody deciding whether to undo needs that in front of
+   them, not in a help page. */
+.rp-caveat{margin:10px 0 0;font-size:12.5px;color:var(--ink-faint);line-height:1.5}
+
+.rp-t{
+  display:block;width:100%;min-height:76px;margin:14px 0 12px;padding:10px 12px;
+  font-family:inherit;font-size:14px;line-height:1.5;
+  border:1px solid var(--line);border-radius:10px;
+  background:var(--card);color:var(--ink);resize:vertical;
+}
+.rp-t:focus{outline:none;border-color:var(--p2);box-shadow:0 0 0 3px var(--p0)}
+
+.rp-keep{
+  display:flex;gap:9px;align-items:flex-start;margin-bottom:14px;cursor:pointer;
+  font-size:13.5px;color:var(--ink-soft);line-height:1.45;
+}
+.rp-keep input{margin-top:2px;flex:none;accent-color:var(--p4)}
+
+.rp-acts{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.rp-note{flex:1 0 100%;margin:2px 0 0;font-size:13px;line-height:1.45;color:var(--ink-faint)}
+.rp-note.bad{color:#B4471F}
+.rp-note.ok{color:var(--p6)}
+
+/* Buttons, defined here rather than borrowed. call.css has no .small and
+   app.css's would not be loaded on the call page — this component cannot
+   depend on either. */
+.rp-b{
+  padding:9px 15px;border-radius:var(--r-control,10px);border:1px solid var(--line-strong);
+  background:var(--card);color:var(--ink);font-family:inherit;font-size:14px;font-weight:600;
+  cursor:pointer;
+}
+.rp-b:hover:not(:disabled){border-color:#C6C5D0}
+.rp-b:disabled{opacity:.55;cursor:default}
+/* Undoing is not destructive — it is the un-destructive one — so it is not
+   red. Red here would make taking a report back feel like a second mistake. */
+.rp-b.quiet{border-color:transparent;color:var(--ink-faint);padding-left:6px;padding-right:6px}
+.rp-b.quiet:hover:not(:disabled){color:var(--ink);border-color:transparent;text-decoration:underline}
+
+/* ---------- the buttons that open it ---------- */
+/* On a profile. Destructive actions are outlined and never solid, which is
+   app.css's rule and holds here: a red slab invites the click it warns about. */
+.rp-open{
+  padding:11px 18px;border-radius:var(--r-control,10px);
+  border:1px solid #EBCFC4;background:var(--card);color:#B4471F;
+  font-family:inherit;font-size:14.5px;font-weight:600;cursor:pointer;
+}
+.rp-open:hover{border-color:#B4471F;color:#8F3717;background:#FEF7F4}
+
+@media (max-width:480px){
+  .rp-wrap{padding:12px}
+  .rp-card{padding:18px 16px 16px}
+}

@@ -13,6 +13,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/app.css">
+<link rel="stylesheet" href="assets/report.css">
 <script src="assets/authgate.js"></script>
 </head>
 <body>
@@ -78,6 +79,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
+<script src="assets/report.js"></script>
 <script src="assets/appshell.js"></script>
 <script>
 /* PeerFlow — somebody else's profile.
@@ -164,6 +166,11 @@
     /* Messaging needs a request in some direction — the same rule the
        database enforces — so the button only appears when it would work. */
     if (req) out += '<a class="ghost" href="app-chat.html?to=' + esc(person.id) + '">Message</a>';
+    /* Report is not conditional on anything. The code of conduct promises it
+       whether or not you are still on the call, which means whether or not
+       you ever partnered with them — somebody can be harassing you through
+       partner requests alone. */
+    out += '<button type="button" class="rp-open" data-report>Report or block</button>';
     return out;
   }
 
@@ -175,6 +182,15 @@
       ? 'Learning ' + person.topic
       : 'Hasn’t said what they’re learning yet';
     $('pv-acts').innerHTML = actions(person, req);
+    var rbtn = $('pv-acts').querySelector('[data-report]');
+    if (rbtn) {
+      rbtn.addEventListener('click', function(){
+        /* No session id from here: this is the profile, not a call, and
+           report_person() treats a missing one as "there was no session",
+           which is often the truth. */
+        pfReport.open({ userId: person.id, name: nm });
+      });
+    }
 
     var tracks = (window.pf && pf.trackNames) || {};
     var facts = [];
@@ -268,7 +284,18 @@
         }
         render(person, r[1], req);
       })
-      .catch(function(){ missing(); });
+      .catch(function(err){
+        /* Anything that throws inside render() lands here too, not just a
+           person who is not there — and this catch used to swallow it, so a
+           bug in drawing the page was indistinguishable from a deleted
+           account. It cost real time: pf.availabilityHours was missing from
+           the dev stub, render() threw on it, and every stubbed profile
+           showed "we couldn't find that person" while the markup sat
+           complete and hidden underneath. Still show missing(), because
+           there is nothing better to show, but say what happened first. */
+        try { console.error('PeerFlow: could not draw this profile', err); } catch(e){}
+        missing();
+      });
   }
 })();
 </script>

@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-20b';
+window.PF_BUILD = '2026-08-20c';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -1930,6 +1930,51 @@ window.pf = (function(){
     }, 'Could not send that report. Please try again.');
   }
 
+  /* call.html knows the partner's name and not their id — session_for_call()
+     returns `partner` as text. Reporting needs the account. Answers null for
+     anything that is not your own session, which the caller reads as "no
+     report button" rather than as an error. */
+  function partnerForSession(sessionId){
+    if (!client || !sessionId) return Promise.resolve(null);
+    return client.rpc('partner_for_session', { p_session: sessionId })
+      .then(function(r){
+        if (r.error) {
+          if (!missingFunction(r.error)) { try { console.warn('PeerFlow: partnerForSession', r.error); } catch(e){} }
+          return null;
+        }
+        return r.data || null;
+      }).catch(function(){ return null; });
+  }
+
+  /* Undo. The one-press flow files the report and blocks in the same breath,
+     which is only a safe thing to build because this exists — see
+     supabase/migration-safety.sql for what it will and will not put back.
+     Answers false rather than erroring when there is nothing to undo: the
+     caller is a button, and "that has already been read" is not a fault. */
+  function withdrawReport(reportId, alsoUnblock){
+    if (!reportId) return Promise.resolve({ error: 'Nothing to undo.' });
+    return safetyRpc('withdraw_report', {
+      p_id: reportId,
+      p_unblock: alsoUnblock !== false
+    }, 'Could not undo that. Please try again.').then(function(res){
+      if (res && res.saved && res.data === false) {
+        return { tooLate: true,
+                 error: 'That report has already been read, so it can’t be taken back.' };
+      }
+      return res;
+    });
+  }
+
+  /* The sentence somebody did not stop to write. A day to add it, because
+     coming back to it once you have stopped shaking is the normal case. */
+  function amendReport(reportId, detail){
+    if (!reportId) return Promise.resolve({ error: 'No report to add to.' });
+    return safetyRpc('amend_report', {
+      p_id: reportId,
+      p_detail: (detail && String(detail).slice(0, 2000)) || null
+    }, 'Could not save that. Please try again.');
+  }
+
   /* Irreversible, and the only thing in the data layer that is. The sign-out
      afterwards is not tidiness: the access token stays valid until it expires
      and every page it touches would 404 its way through a database where the
@@ -1972,6 +2017,9 @@ window.pf = (function(){
     unblockPerson: unblockPerson,
     myBlocks: myBlocks,
     reportPerson: reportPerson,
+    partnerForSession: partnerForSession,
+    withdrawReport: withdrawReport,
+    amendReport: amendReport,
     reportReasons: REPORT_REASONS,
     deleteAccount: deleteAccount,
     /* Console check when something has moved on one side and not the other:
