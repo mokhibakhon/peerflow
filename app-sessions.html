@@ -71,6 +71,13 @@
               <div><dt>Weeks running</dt><dd id="pair-streak">—</dd></div>
               <div><dt>Sessions</dt><dd id="pair-done">—</dd></div>
               <div><dt>Time together</dt><dd id="pair-mins">—</dd></div>
+              <!-- How long the two of you have been at this, which is a
+                   different question from the streak above it: the streak is
+                   the run you are on now, this is when it started. A pair who
+                   studied every week for two months and then took August off
+                   have a streak of nothing and four months together, and the
+                   second number is the one that says the partnership is real. -->
+              <div id="pair-since-row" hidden><dt>Together</dt><dd id="pair-since">—</dd></div>
             </dl>
             <p class="ph-note" id="pair-note"></p>
           </div>
@@ -131,6 +138,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
+<script src="assets/reliability.js"></script>
 <script>
 (function(){
   var track = '';
@@ -218,7 +226,7 @@
       'stroke-linecap="round" stroke-linejoin="round">' + ICON[name] + '</svg>';
   }
 
-  function renderPartners(list, counts){
+  function renderPartners(list, counts, rel){
     document.getElementById('none-card').hidden = true;
     document.getElementById('queue-card').hidden = true;
     document.getElementById('pt-grid').hidden = false;
@@ -235,6 +243,19 @@
       if (n !== null) {
         chips.push(['video', n ? n + (n === 1 ? ' session' : ' sessions') + ' together'
                               : 'No sessions yet', n > 0]);
+      }
+      /* How often they turn up, on the card for the person you are actually
+         booking with. It is on the directory and on their profile, and it was
+         missing from the one page where you decide whether to propose another
+         hour to somebody you have already met \u2014 which is where it is most
+         load-bearing. Same words as everywhere else, from the same helper. */
+      var r = rel && rel[pr.id];
+      if (r) {
+        chips.push(['aim',
+          (r.pct === null || r.pct === undefined)
+            ? 'New partner'
+            : r.pct + '% reliable',
+          r.pct !== null && r.pct !== undefined && r.pct >= 80]);
       }
       if (levelLabel(pr.level)) chips.push(['aim', levelLabel(pr.level), false]);
       if (tzLabel(pr.timezone)) chips.push(['globe', tzLabel(pr.timezone), false]);
@@ -369,11 +390,29 @@
       var now = Date.now();
       var mine = all.filter(function(s){
         if (s.pairId !== pairId) return;
+        /* A settled 'attended' counts however the status reads. The three
+           tests are one fact asked three ways, oldest last: what the room
+           observed, what close_room wrote, and — for sessions from before any
+           of that existed — a booking whose hour has passed. */
+        if (s.attendance === 'attended') return true;
         return s.status === 'completed' ||
                (s.status === 'confirmed' && s.startsAt.getTime() + s.durationMin * 60000 <= now);
       }).sort(function(a, b){ return b.startsAt - a.startsAt; });
 
       if (!mine.length) return;
+
+      /* How long the two of you have been going, counted from the first
+         session you actually sat rather than from the day one of you pressed
+         accept — a partnership that agreed in March and first met in June has
+         been together since June. */
+      var firstAt = mine[mine.length - 1].startsAt.getTime();
+      var weeks = Math.floor((now - firstAt) / (7 * 86400000));
+      if (weeks >= 1) {
+        document.getElementById('pair-since').textContent =
+          weeks < 9 ? plural(weeks, 'week')
+                    : plural(Math.round(weeks / 4.345), 'month');
+        document.getElementById('pair-since-row').hidden = false;
+      }
       document.getElementById('hist-card').hidden = false;
       document.getElementById('hist-list').innerHTML = mine.slice(0, 6).map(function(s){
         var d = s.startsAt;
@@ -422,8 +461,17 @@
       }
       pf.acceptedPartners().then(function(list){
         if (list && list.length) {
-          sessionCounts().then(function(counts){
-            renderPartners(list, counts);
+          /* Counts and scores together, then draw once. Drawing the cards and
+             adding a chip to each of them a moment later reflows every row on
+             the page after it has already been read. */
+          var ids = list.map(function(x){ return x.profile && x.profile.id; }).filter(Boolean);
+          Promise.all([
+            sessionCounts(),
+            pf.reliabilityOf ? pf.reliabilityOf(ids).catch(function(){ return null; })
+                             : Promise.resolve(null)
+          ]).then(function(both){
+            var counts = both[0], rel = both[1];
+            renderPartners(list, counts, rel);
             /* The pair's record and history only make sense for one pair. With
                two partners the room is ambiguous, so the block stays out of the
                way rather than picking a favourite. */

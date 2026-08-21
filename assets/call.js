@@ -654,12 +654,17 @@
     if (room) { try { room.disconnect(); } catch(e){} }
     [local.audio, local.video].forEach(function(t){ if (t) { try { t.stop(); } catch(e){} } });
     local = { audio:null, video:null };
-    /* Nothing underneath unless there is a goal to mention. Attendance is
-       recorded either way and saying so was telling somebody about the
-       plumbing at the one moment they have stopped caring about it. */
+    /* What Today is going to ask, so it is expected rather than a surprise.
+       Still nothing about attendance itself: that is recorded either way and
+       mentioning it here would be telling somebody about the plumbing at the
+       one moment they have stopped caring about it.
+
+       The check-in half is worth flagging because it is the question that
+       decides whether these two book another session, and somebody who has
+       closed the tab will not see it at all. */
     done('You’ve left the call', pass && pass.goal
-      ? 'Today will ask whether you got it done.'
-      : '');
+      ? 'Today will ask whether you got it done, and whether you want to book another.'
+      : 'Today will ask whether you want to book another one with them.');
   }
 
   /* ---------- wiring ---------- */

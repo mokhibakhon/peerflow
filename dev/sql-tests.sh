@@ -141,8 +141,13 @@ $PSQL -c "grant select on all tables in schema public to anon;" >/dev/null 2>&1
 # Two people who are partners, which is what the insert policy wants to see.
 A=11111111-1111-1111-1111-111111111111
 B=22222222-2222-2222-2222-222222222222
+# A third account, partnered with nobody. The attendance cases need somebody
+# who is a stranger to the other two: to be asked for a partner request while
+# the sender is paused, and to try reading a session that is none of theirs.
+C=33333333-3333-3333-3333-333333333333
 $PSQL >/dev/null 2>&1 <<SQL
-insert into auth.users (id, email) values ('$A','a@example.com'), ('$B','b@example.com');
+insert into auth.users (id, email)
+  values ('$A','a@example.com'), ('$B','b@example.com'), ('$C','c@example.com');
 insert into public.partner_requests (from_user, to_user, status) values ('$A','$B','accepted');
 SQL
 
@@ -396,6 +401,32 @@ check "a second call books nothing, having recognised the weeks already there" o
 AS_B="set local role authenticated; set local request.jwt.claim.sub = '$B';
       do \$\$ begin if auth.uid() is null then
         raise exception 'auth.uid() is NULL — the test would have passed vacuously'; end if; end \$\$;"
+
+# The same thing from INSIDE a wrap block, where SET LOCAL is not available:
+# it is a plain SQL statement and a wrapped case is a plpgsql body. set_config
+# with is_local = true is the same setting by another name, and the surrounding
+# transaction is rolled back either way.
+#
+# The role is set as well as the claim, and it matters as much: the guard that
+# stops a browser writing its own attendance works by asking whether
+# current_user is `authenticated`, so a case that only set the JWT claim would
+# run as superuser and sail straight past the thing it is testing.
+IN_A="perform set_config('request.jwt.claim.sub', '$A', true);
+      perform set_config('role', 'authenticated', true);
+      if auth.uid() is null then
+        raise exception 'auth.uid() is NULL — the test would have passed vacuously'; end if;"
+IN_B="perform set_config('request.jwt.claim.sub', '$B', true);
+      perform set_config('role', 'authenticated', true);
+      if auth.uid() is null then
+        raise exception 'auth.uid() is NULL — the test would have passed vacuously'; end if;"
+IN_C="perform set_config('request.jwt.claim.sub', '$C', true);
+      perform set_config('role', 'authenticated', true);
+      if auth.uid() is null then
+        raise exception 'auth.uid() is NULL — the test would have passed vacuously'; end if;"
+# Back to the owner, so the assertions afterwards can read both halves of a
+# session rather than only the caller's own row.
+IN_OWNER="perform set_config('role', 'none', true);"
+
 
 # Names, so the report snapshot has something to snapshot.
 $PSQL >/dev/null 2>&1 <<SQL
@@ -904,6 +935,596 @@ check "a session sat alone answers nothing rather than guessing" ok "
     if public.partner_for_session('44444444-4444-4444-4444-444444444444') is not null then
       raise exception 'invented a partner'; end if;
   end \$\$;"
+
+# ============================================================
+# Attendance: the outcome, the score, and the pause
+# (supabase/migration-attendance.sql)
+#
+# The score is computed in two places — reliability_of() here and score() in
+# assets/reliability.js — and a formula written twice is only safe if
+# something notices when the two drift. So the fixtures below are built to
+# match the ones marked "shared with sql-tests" in dev/reliability-tests.js
+# and asserted to the same percentages. Change the policy in one file and both
+# suites go red together.
+# ============================================================
+echo
+echo "==> the outcome of a session"
+
+# The case the whole feature exists for: one of them turns up and the other
+# does not. Nothing used to decide this at all — LiveKit only sends
+# room_finished once a room has existed, so a session where one person ghosts
+# produced no event and attended stayed null for ever.
+SETTLED="
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status, joined_at, attended)
+  values ('$A','B', now() - interval '3 hours', 50, 'pf:s1','pf-s1','confirmed',
+          now() - interval '3 hours', true),
+         ('$B','A', now() - interval '3 hours', 50, 'pf:s1','pf-s1','confirmed', null, null);
+  perform public.settle_pair((select starts_at from public.sessions where room_url='pf:s1' limit 1), 'pf:s1');"
+
+check "the one who was in the room is marked attended" ok "$(wrap "
+  $SETTLED
+  if (select attendance from public.sessions where room_url='pf:s1' and user_id='$A')
+     is distinct from 'attended' then raise exception 'not attended'; end if;")"
+
+check "the one who never arrived is marked no_show" ok "$(wrap "
+  $SETTLED
+  if (select attendance from public.sessions where room_url='pf:s1' and user_id='$B')
+     is distinct from 'no_show' then raise exception 'not a no-show'; end if;")"
+
+check "and the verdict records that the room is where it came from" ok "$(wrap "
+  $SETTLED
+  if (select attendance_source from public.sessions where room_url='pf:s1' and user_id='$B')
+     is distinct from 'livekit' then raise exception 'wrong source'; end if;")"
+
+# The rule that keeps the whole thing honest, and the one most tempting to
+# break. A session neither of them joined is indistinguishable, from inside
+# the database, from a site whose webhook was never deployed — so it gets no
+# verdict at all rather than two no-shows.
+check "a session nothing observed gets no verdict, not two no-shows" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status)
+  values ('$A','B', now() - interval '3 hours', 50, 'pf:s2','pf-s2','confirmed'),
+         ('$B','A', now() - interval '3 hours', 50, 'pf:s2','pf-s2','confirmed');
+  perform public.settle_pair((select starts_at from public.sessions where room_url='pf:s2' limit 1), 'pf:s2');
+  if exists (select 1 from public.sessions where room_url='pf:s2' and attendance is not null)
+    then raise exception 'invented a verdict out of silence'; end if;")"
+
+check "a session still running is not decided early" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status, joined_at, attended)
+  values ('$A','B', now() - interval '5 minutes', 50, 'pf:s3','pf-s3','confirmed',
+          now() - interval '5 minutes', true),
+         ('$B','A', now() - interval '5 minutes', 50, 'pf:s3','pf-s3','confirmed', null, null);
+  perform public.settle_pair((select starts_at from public.sessions where room_url='pf:s3' limit 1), 'pf:s3');
+  if exists (select 1 from public.sessions where room_url='pf:s3' and attendance is not null)
+    then raise exception 'graded a session that had not finished'; end if;")"
+
+# The ten minute grace is the line between on time and late, not a deadline to
+# be graded at. Somebody who walks in at minute twenty attended.
+check "somebody who joined twenty minutes in attended, and is not a no-show" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status, joined_at, attended)
+  values ('$A','B', now() - interval '3 hours', 50, 'pf:s4','pf-s4','confirmed',
+          now() - interval '3 hours' + interval '20 minutes', true),
+         ('$B','A', now() - interval '3 hours', 50, 'pf:s4','pf-s4','confirmed',
+          now() - interval '3 hours', true);
+  perform public.settle_pair((select starts_at from public.sessions where room_url='pf:s4' limit 1), 'pf:s4');
+  if (select attendance from public.sessions where room_url='pf:s4' and user_id='$A')
+     is distinct from 'attended' then raise exception 'a late arrival is not an absence'; end if;")"
+
+echo
+echo "==> cancelling, and who wears it"
+
+CANCEL_EARLY="
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status)
+  values ('$A','B', now() + interval '20 hours', 50, 'pf:c1','pf-c1','confirmed'),
+         ('$B','A', now() + interval '20 hours', 50, 'pf:c1','pf-c1','confirmed');
+  $IN_A
+  perform public.answer_session(
+    (select starts_at from public.sessions where room_url='pf:c1' limit 1), 'pf:c1', 'cancelled');
+  $IN_OWNER"
+
+CANCEL_LATE="
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status)
+  values ('$A','B', now() + interval '2 hours', 50, 'pf:c2','pf-c2','confirmed'),
+         ('$B','A', now() + interval '2 hours', 50, 'pf:c2','pf-c2','confirmed');
+  $IN_A
+  perform public.answer_session(
+    (select starts_at from public.sessions where room_url='pf:c2' limit 1), 'pf:c2', 'cancelled');
+  $IN_OWNER"
+
+check "twenty hours' notice is an early cancellation" ok "$(wrap "
+  $CANCEL_EARLY
+  if (select attendance from public.sessions where room_url='pf:c1' and user_id='$A')
+     is distinct from 'cancelled_early' then raise exception 'not early'; end if;")"
+
+check "two hours' notice is a late one" ok "$(wrap "
+  $CANCEL_LATE
+  if (select attendance from public.sessions where room_url='pf:c2' and user_id='$A')
+     is distinct from 'cancelled_late' then raise exception 'not late'; end if;")"
+
+# The rule that stops one flaky partner dragging down everybody they booked
+# with. Whoever pressed Cancel wears it; the other one is excused.
+check "the person who was cancelled ON is excused, not penalised" ok "$(wrap "
+  $CANCEL_LATE
+  if (select attendance from public.sessions where room_url='pf:c2' and user_id='$B')
+     is distinct from 'excused' then raise exception 'penalised the wrong person'; end if;")"
+
+check "an early cancellation is not a graded session at all" ok "$(wrap "
+  $CANCEL_EARLY
+  if (select counted from public.reliability_of(array['$A']::uuid[])) <> 0
+    then raise exception 'an early cancellation was graded'; end if;")"
+
+# Cancelling a proposal nobody ever accepted is not a broken promise, and must
+# not land on anybody's record.
+check "cancelling a time nobody had agreed to lands on nobody" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status, proposed_by)
+  values ('$A','B', now() + interval '2 hours', 50, 'pf:c3','pf-c3','proposed','$A'),
+         ('$B','A', now() + interval '2 hours', 50, 'pf:c3','pf-c3','proposed','$A');
+  $IN_A
+  perform public.answer_session(
+    (select starts_at from public.sessions where room_url='pf:c3' limit 1), 'pf:c3', 'cancelled');
+  $IN_OWNER
+  if exists (select 1 from public.sessions where room_url='pf:c3' and attendance is not null)
+    then raise exception 'graded an unaccepted proposal'; end if;")"
+
+echo
+echo "==> the score"
+
+# Helper: $4 settled outcomes for person $1, one a day going back, starting
+# $5 days ago (default 1).
+#
+# The offset is not decoration. Two batches for the same person both starting
+# a day ago put two sessions on the same hour, and the exclusion constraint
+# from migration-no-double-booking.sql refuses the second — correctly, since
+# nobody can be in two places at once. A fixture describing an impossible
+# calendar tests nothing, so each batch gets its own stretch of days.
+grade_rows() {
+  local from="${5:-1}"
+  echo "insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+          room_url, status, attendance, attendance_source, settled_at)
+        select '$1','X', date_trunc('hour', now()) - (n || ' days')::interval, 50,
+               'pf:$3'||n, 'confirmed', '$2', 'livekit', now()
+          from generate_series($from, $from + $4 - 1) n;"
+}
+
+check "two sessions is not enough for a percentage" ok "$(wrap "
+  $(grade_rows "$A" attended g1 2)
+  if (select pct from public.reliability_of(array['$A']::uuid[])) is not null
+    then raise exception 'scored somebody with two sessions'; end if;")"
+
+# shared with dev/reliability-tests.js: "three perfect sessions is not 100%"
+check "three perfect sessions scores 94, not 100" ok "$(wrap "
+  $(grade_rows "$A" attended g2 3)
+  if (select pct from public.reliability_of(array['$A']::uuid[])) <> 94
+    then raise exception 'got %', (select pct from public.reliability_of(array['$A']::uuid[])); end if;")"
+
+# shared with dev/reliability-tests.js: 23 attended and one no-show 12 days back
+check "23 attended and one missed reads as 94" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+          room_url, status, attendance, attendance_source, settled_at)
+  select '$A','X', date_trunc('hour', now()) - (n || ' days')::interval, 50,
+         'pf:g3'||n, 'confirmed',
+         case when n = 12 then 'no_show' else 'attended' end, 'livekit', now()
+    from generate_series(1, 24) n;
+  if (select pct from public.reliability_of(array['$A']::uuid[])) <> 94
+    then raise exception 'got %', (select pct from public.reliability_of(array['$A']::uuid[])); end if;")"
+
+check "  and the window caps what is counted at twenty" ok "$(wrap "
+  $(grade_rows "$A" attended g4 30)
+  if (select counted from public.reliability_of(array['$A']::uuid[])) <> 20
+    then raise exception 'counted %', (select counted from public.reliability_of(array['$A']::uuid[])); end if;")"
+
+check "  while the totals underneath count everything" ok "$(wrap "
+  $(grade_rows "$A" attended g5 30)
+  if (select attended_n from public.reliability_of(array['$A']::uuid[])) <> 30
+    then raise exception 'attended_n was wrong'; end if;")"
+
+# shared with dev/reliability-tests.js: five sessions, all joined 25 minutes in
+check "turning up late five times running is 82" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+          room_url, status, attendance, attendance_source, settled_at, joined_at)
+  select '$A','X', date_trunc('hour', now()) - (n || ' days')::interval, 50,
+         'pf:g6'||n, 'confirmed', 'attended', 'livekit', now(),
+         date_trunc('hour', now()) - (n || ' days')::interval + interval '25 minutes'
+    from generate_series(1, 5) n;
+  if (select pct from public.reliability_of(array['$A']::uuid[])) <> 82
+    then raise exception 'got %', (select pct from public.reliability_of(array['$A']::uuid[])); end if;")"
+
+# The obvious way to game a system that forgives early cancellations. It does
+# not work, and this is why: an early cancellation is not a graded session, so
+# the floor is never reached and the profile reads "New partner" for ever.
+check "cancelling everything early never buys a score" ok "$(wrap "
+  $(grade_rows "$A" cancelled_early g7 10)
+  if (select pct from public.reliability_of(array['$A']::uuid[])) is not null
+    then raise exception 'a serial canceller was given a percentage'; end if;
+  if (select early_n from public.reliability_of(array['$A']::uuid[])) <> 10
+    then raise exception 'the cancellations were not counted at all'; end if;")"
+
+# 96 is what six clean sessions score on their own, so asserting it after six
+# excused ones have been added is the claim: the excused ones changed nothing.
+# dev/reliability-tests.js makes the same claim as a direct comparison, which
+# is clearer but needs two scores at once and this has one transaction.
+check "excused sessions do not move the score" ok "$(wrap "
+  $(grade_rows "$A" attended g8 6)
+  $(grade_rows "$A" excused g9 6 20)
+  if (select pct from public.reliability_of(array['$A']::uuid[])) <> 96
+    then raise exception 'got %', (select pct from public.reliability_of(array['$A']::uuid[])); end if;
+  if (select counted from public.reliability_of(array['$A']::uuid[])) <> 6
+    then raise exception 'excused sessions were graded'; end if;
+  if (select expected_n from public.reliability_of(array['$A']::uuid[])) <> 6
+    then raise exception 'excused sessions were counted as expected of them'; end if;")"
+
+check "a no-show costs more than a late cancellation" ok "$(wrap "
+  $(grade_rows "$A" attended ga 4)
+  $(grade_rows "$A" cancelled_late gb 2 20)
+  $(grade_rows "$B" attended gc 4)
+  $(grade_rows "$B" no_show gd 2 20)
+  if (select pct from public.reliability_of(array['$A']::uuid[]))
+     <= (select pct from public.reliability_of(array['$B']::uuid[]))
+    then raise exception 'a no-show cost no more than a late cancellation'; end if;")"
+
+echo
+echo "==> nobody may write their own attendance"
+
+# The hole this closes: schema.sql's "answer a proposal" policy allows an
+# UPDATE on your own session row, and attended is a column on that row.
+check "the browser cannot mark itself present" "PF020" "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min, room_url, status)
+  values ('$A','B', now() - interval '3 hours', 50, 'pf:t1','confirmed');
+  $IN_A
+  update public.sessions set attended = true where room_url='pf:t1';")"
+
+check "nor set its own outcome" "PF020" "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min, room_url, status)
+  values ('$A','B', now() - interval '3 hours', 50, 'pf:t2','confirmed');
+  $IN_A
+  update public.sessions set attendance = 'attended' where room_url='pf:t2';")"
+
+check "nor move a session to completed to inflate the count" "PF020" "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min, room_url, status)
+  values ('$A','B', now() - interval '3 hours', 50, 'pf:t3','confirmed');
+  $IN_A
+  update public.sessions set status = 'completed' where room_url='pf:t3';")"
+
+# Claimed on the way in rather than refused, because nothing in the app sends
+# these and losing a booking over a column nobody asked for would be the wrong
+# trade.
+check "attendance claimed on an insert is quietly dropped" ok "$(wrap "
+  $IN_A
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, attended, attendance)
+  values ('$A','B', now() + interval '30 hours', 50, 'pf:t4','confirmed', true, 'attended');
+  $IN_OWNER
+  if exists (select 1 from public.sessions
+              where room_url='pf:t4' and (attended is not null or attendance is not null))
+    then raise exception 'the browser wrote its own attendance'; end if;")"
+
+# And the writes the app really does make from a page must keep working.
+check "the browser can still answer its own goal" ok "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, goal)
+  values ('$A','B', now() - interval '3 hours', 50, 'pf:t5','confirmed','read a pcap');
+  $AS_A
+  update public.sessions set goal_done = true, completed_at = now() where room_url='pf:t5';"
+
+echo
+echo "==> the check-in, and what an accusation is allowed to do"
+
+check "saying they showed up fills an empty verdict" ok "$(wrap "
+  insert into public.sessions (id, user_id, partner_name, starts_at, duration_min,
+                               room_url, status)
+  values ('66666666-6666-6666-6666-666666666666','$A','B', now() - interval '3 hours', 50, 'pf:k1','confirmed'),
+         ('77777777-7777-7777-7777-777777777777','$B','A', now() - interval '3 hours', 50, 'pf:k1','confirmed');
+  $IN_A
+  perform public.session_checkin('66666666-6666-6666-6666-666666666666', true, null);
+  $IN_OWNER
+  if (select attendance from public.sessions where id='77777777-7777-7777-7777-777777777777')
+     is distinct from 'attended' then raise exception 'vouching did nothing'; end if;")"
+
+# The one input in this feature somebody could lie into, and the rule that
+# stops them: you cannot report an empty room you never entered.
+check "accusing somebody of a no-show settles nothing if you weren't there either" ok "$(wrap "
+  insert into public.sessions (id, user_id, partner_name, starts_at, duration_min,
+                               room_url, status)
+  values ('66666666-6666-6666-6666-666666666666','$A','B', now() - interval '3 hours', 50, 'pf:k2','confirmed'),
+         ('77777777-7777-7777-7777-777777777777','$B','A', now() - interval '3 hours', 50, 'pf:k2','confirmed');
+  $IN_A
+  if public.session_checkin('66666666-6666-6666-6666-666666666666', false, null) <> 'unverified'
+    then raise exception 'the claim was acted on'; end if;
+  $IN_OWNER
+  if (select attendance from public.sessions where id='77777777-7777-7777-7777-777777777777')
+     is not null then raise exception 'an unverifiable accusation was written down'; end if;")"
+
+check "  but it does when the accuser demonstrably was in the room" ok "$(wrap "
+  insert into public.sessions (id, user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status, joined_at, attended)
+  values ('66666666-6666-6666-6666-666666666666','$A','B', now() - interval '3 hours', 50,
+          'pf:k3','pf-k3','confirmed', now() - interval '3 hours', true),
+         ('77777777-7777-7777-7777-777777777777','$B','A', now() - interval '3 hours', 50,
+          'pf:k3','pf-k3','confirmed', null, null);
+  $IN_A
+  perform public.session_checkin('66666666-6666-6666-6666-666666666666', false, null);
+  $IN_OWNER
+  if (select attendance from public.sessions where id='77777777-7777-7777-7777-777777777777')
+     is distinct from 'no_show' then raise exception 'a verifiable miss was not recorded'; end if;")"
+
+check "a check-in on somebody else's session is refused" "PF012" "$(wrap "
+  insert into public.sessions (id, user_id, partner_name, starts_at, duration_min, room_url, status)
+  values ('66666666-6666-6666-6666-666666666666','$A','B', now() - interval '3 hours', 50, 'pf:k4','confirmed');
+  $IN_B
+  perform public.session_checkin('66666666-6666-6666-6666-666666666666', false, null);")"
+
+check "a check-in before the session is over is refused" "PF014" "$(wrap "
+  insert into public.sessions (id, user_id, partner_name, starts_at, duration_min, room_url, status)
+  values ('66666666-6666-6666-6666-666666666666','$A','B', now() + interval '3 hours', 50, 'pf:k5','confirmed');
+  $IN_A
+  perform public.session_checkin('66666666-6666-6666-6666-666666666666', true, null);")"
+
+echo
+echo "==> walking away without it being a report"
+
+END_IT="
+  insert into public.sessions (id, user_id, partner_name, starts_at, duration_min,
+                               room_url, pair_id, status)
+  values ('66666666-6666-6666-6666-666666666666','$A','B', now() - interval '3 hours', 50,
+          'pf:e1', (select id from public.partner_requests limit 1), 'confirmed'),
+         ('77777777-7777-7777-7777-777777777777','$B','A', now() - interval '3 hours', 50,
+          'pf:e1', (select id from public.partner_requests limit 1), 'confirmed'),
+         ('88888888-8888-8888-8888-888888888888','$A','B', now() + interval '3 days', 50,
+          'pf:e2', (select id from public.partner_requests limit 1), 'confirmed'),
+         ('99999999-9999-9999-9999-999999999999','$B','A', now() + interval '3 days', 50,
+          'pf:e2', (select id from public.partner_requests limit 1), 'confirmed');
+  $IN_A
+  perform public.session_checkin('66666666-6666-6666-6666-666666666666', true, 'stop');
+  $IN_OWNER"
+
+check "choosing another partner ends the partnership" ok "$(wrap "
+  $END_IT
+  if (select status from public.partner_requests limit 1) <> 'ended'
+    then raise exception 'the partnership survived'; end if;")"
+
+check "  and takes the sessions still to come off both calendars" ok "$(wrap "
+  $END_IT
+  if exists (select 1 from public.sessions where room_url='pf:e2' and status <> 'cancelled')
+    then raise exception 'a session outlived the partnership'; end if;")"
+
+# A bad match is not misconduct. Neither of them failed to attend something
+# that was called off.
+check "  as excused, so neither of them is marked down for it" ok "$(wrap "
+  $END_IT
+  if exists (select 1 from public.sessions where room_url='pf:e2' and attendance <> 'excused')
+    then raise exception 'ending a partnership cost somebody their record'; end if;")"
+
+check "  and it is not a block: neither profile is hidden" ok "$(wrap "
+  $END_IT
+  if exists (select 1 from public.blocks) then raise exception 'ending it blocked somebody'; end if;")"
+
+# Being harassed is not a late cancellation.
+check "blocking somebody costs the blocker nothing" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, pair_id, status)
+  values ('$A','B', now() + interval '2 hours', 50, 'pf:b1',
+          (select id from public.partner_requests limit 1), 'confirmed'),
+         ('$B','A', now() + interval '2 hours', 50, 'pf:b1',
+          (select id from public.partner_requests limit 1), 'confirmed');
+  $IN_A
+  perform public.block_person('$B');
+  $IN_OWNER
+  if exists (select 1 from public.sessions where room_url='pf:b1' and attendance <> 'excused')
+    then raise exception 'blocking was scored as a cancellation'; end if;")"
+
+echo
+echo "==> three misses in a month"
+
+MISSES="
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+          room_url, status, attendance, attendance_source, settled_at)
+  select '$A','X', now() - (n || ' days')::interval, 50, 'pf:ns'||n, 'confirmed',
+         'no_show', 'livekit', now() from generate_series(1, 3) n;"
+
+check "two misses do not pause anything" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+          room_url, status, attendance, attendance_source, settled_at)
+  select '$A','X', now() - (n || ' days')::interval, 50, 'pf:nt'||n, 'confirmed',
+         'no_show', 'livekit', now() from generate_series(1, 2) n;
+  if public.partnering_restricted_until('$A') is not null
+    then raise exception 'paused somebody after two'; end if;")"
+
+check "three inside thirty days do" ok "$(wrap "
+  $MISSES
+  if public.partnering_restricted_until('$A') is null
+    then raise exception 'three misses did not pause anything'; end if;")"
+
+check "  and it runs seven days from the last of them" ok "$(wrap "
+  $MISSES
+  if public.partnering_restricted_until('$A')::date
+     <> (now() - interval '1 day' + interval '7 days')::date
+    then raise exception 'the cooldown runs from the wrong end'; end if;")"
+
+# Rolling, so it expires on its own. That is the difference between a cooldown
+# and a punishment.
+check "three misses spread over more than thirty days is not a pattern" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+          room_url, status, attendance, attendance_source, settled_at)
+  select '$A','X', now() - (n || ' days')::interval, 50, 'pf:nu'||n, 'confirmed',
+         'no_show', 'livekit', now() from unnest(array[2, 20, 40]) n;
+  if public.partnering_restricted_until('$A') is not null
+    then raise exception 'counted a miss from outside the window'; end if;")"
+
+check "three misses that have served their week are free again" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+          room_url, status, attendance, attendance_source, settled_at)
+  select '$A','X', now() - (n || ' days')::interval, 50, 'pf:nv'||n, 'confirmed',
+         'no_show', 'livekit', now() from unnest(array[20, 22, 25]) n;
+  if public.partnering_restricted_until('$A') is not null
+    then raise exception 'the pause never lifted'; end if;")"
+
+# The enforcement, in the only place that cannot be walked around.
+check "a paused account cannot send a new partner request" "42501" "$(wrap "
+  $MISSES
+  $IN_A
+  insert into public.partner_requests (from_user, to_user)
+  values ('$A','$C');")"
+
+check "  and can still send one once the pause has lifted" ok "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+          room_url, status, attendance, attendance_source, settled_at)
+  select '$A','X', now() - (n || ' days')::interval, 50, 'pf:nw'||n, 'confirmed',
+         'no_show', 'livekit', now() from unnest(array[20, 22, 25]) n;
+  $AS_A
+  insert into public.partner_requests (from_user, to_user) values ('$A','$C');"
+
+# Not a ban. The point of the pause is that it is narrow.
+check "  while everything they already have keeps working" ok "
+  $MISSES
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, pair_id, status, proposed_by)
+  values ('$B','A', now() + interval '2 days', 50, 'pf:nx',
+          (select id from public.partner_requests limit 1), 'proposed','$A');
+  $AS_A
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, pair_id, status, proposed_by)
+  values ('$A','B', now() + interval '2 days', 50, 'pf:nx',
+          (select id from public.partner_requests limit 1), 'proposed','$A');
+  select 1 from public.sessions where user_id = '$A' limit 1;"
+
+echo
+echo "==> reminders"
+
+REMIND="
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status)
+  values ('$A','B', now() + interval '6 minutes', 25, 'pf:r1','pf-r1','confirmed'),
+         ('$B','A', now() + interval '6 minutes', 25, 'pf:r1','pf-r1','confirmed');
+  $IN_A
+  perform public.send_due_reminders();
+  $IN_OWNER"
+
+check "the ten-minute reminder names the person expecting you" ok "$(wrap "
+  $REMIND
+  if not exists (select 1 from public.notifications
+                  where user_id='$A' and title like '%expecting you in 10 minutes%')
+    then raise exception 'no ten-minute reminder'; end if;")"
+
+# The whole reason the page-load path is worth having on a site with no
+# scheduler: your partner opening PeerFlow is what reminds you.
+check "  and reaches the partner too, not just whoever opened the page" ok "$(wrap "
+  $REMIND
+  if not exists (select 1 from public.notifications
+                  where user_id='$B' and title like '%expecting you in 10 minutes%')
+    then raise exception 'the partner was not reminded'; end if;")"
+
+check "  running twice does not send it twice" ok "$(wrap "
+  $REMIND
+  $IN_A
+  perform public.send_due_reminders();
+  $IN_OWNER
+  if (select count(*) from public.notifications where user_id='$A' and kind='reminder') <> 1
+    then raise exception 'sent a reminder twice'; end if;")"
+
+# A session booked for this evening should get the ten-minute reminder when it
+# is due, and not also the two it slept through.
+check "a session booked inside the hour gets one reminder, not three" ok "$(wrap "
+  $REMIND
+  if (select count(*) from public.notifications where user_id='$A' and kind='reminder') <> 1
+    then raise exception 'sent the reminders it had already missed'; end if;")"
+
+check "a session a day out gets the day-before one" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status)
+  values ('$A','B', now() + interval '20 hours', 25, 'pf:r2','pf-r2','confirmed'),
+         ('$B','A', now() + interval '20 hours', 25, 'pf:r2','pf-r2','confirmed');
+  $IN_A
+  perform public.send_due_reminders();
+  $IN_OWNER
+  if not exists (select 1 from public.notifications where user_id='$A' and title like 'Tomorrow:%')
+    then raise exception 'no day-before reminder'; end if;")"
+
+check "a session next month is not mentioned yet" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status)
+  values ('$A','B', now() + interval '20 days', 25, 'pf:r3','pf-r3','confirmed'),
+         ('$B','A', now() + interval '20 days', 25, 'pf:r3','pf-r3','confirmed');
+  $IN_A
+  perform public.send_due_reminders();
+  $IN_OWNER
+  if exists (select 1 from public.notifications where kind='reminder')
+    then raise exception 'reminded somebody three weeks early'; end if;")"
+
+echo
+echo "==> your partner is waiting"
+
+check "joining a room tells the one who has not" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status)
+  values ('$A','B', now() - interval '2 minutes', 50, 'pf:w1','pf-w1','confirmed'),
+         ('$B','A', now() - interval '2 minutes', 50, 'pf:w1','pf-w1','confirmed');
+  perform public.record_presence('pf-w1', '$A', now(), null);
+  if not exists (select 1 from public.notifications
+                  where user_id='$B' and title like '%is waiting for you%')
+    then raise exception 'nobody was told'; end if;")"
+
+check "  once, however many times the webhook redelivers" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status)
+  values ('$A','B', now() - interval '2 minutes', 50, 'pf:w2','pf-w2','confirmed'),
+         ('$B','A', now() - interval '2 minutes', 50, 'pf:w2','pf-w2','confirmed');
+  perform public.record_presence('pf-w2', '$A', now(), null);
+  perform public.record_presence('pf-w2', '$A', now(), null);
+  perform public.record_presence('pf-w2', '$A', now(), null);
+  if (select count(*) from public.notifications where user_id='$B') <> 1
+    then raise exception 'spammed the partner'; end if;")"
+
+check "  and not at all once they are both in the room" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status, joined_at, attended)
+  values ('$A','B', now() - interval '2 minutes', 50, 'pf:w3','pf-w3','confirmed', now(), true),
+         ('$B','A', now() - interval '2 minutes', 50, 'pf:w3','pf-w3','confirmed', now(), true);
+  perform public.record_presence('pf-w3', '$A', now(), null);
+  if exists (select 1 from public.notifications where user_id='$B' and title like '%waiting%')
+    then raise exception 'told somebody who was already there'; end if;")"
+
+check "leaving is not a reason to tell anybody anything" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, room_name, status)
+  values ('$A','B', now() - interval '2 minutes', 50, 'pf:w4','pf-w4','confirmed'),
+         ('$B','A', now() - interval '2 minutes', 50, 'pf:w4','pf-w4','confirmed');
+  perform public.record_presence('pf-w4', '$A', now(), now());
+  if exists (select 1 from public.notifications where user_id='$B' and title like '%waiting%')
+    then raise exception 'announced somebody leaving as somebody waiting'; end if;")"
+
+echo
+echo "==> the other side of a session, and nothing else"
+
+check "you can read your partner's outcome for a session you own" ok "$(wrap "
+  insert into public.sessions (id, user_id, partner_name, starts_at, duration_min,
+                               room_url, status, attendance, settled_at)
+  values ('66666666-6666-6666-6666-666666666666','$A','B', now() - interval '3 hours', 50,
+          'pf:p1','confirmed', 'attended', now()),
+         ('77777777-7777-7777-7777-777777777777','$B','A', now() - interval '3 hours', 50,
+          'pf:p1','confirmed', 'no_show', now());
+  $IN_A
+  if (select attendance from public.partner_outcomes(
+        array['66666666-6666-6666-6666-666666666666']::uuid[])) is distinct from 'no_show'
+    then raise exception 'could not read the other half'; end if;")"
+
+# It must not be usable to walk the table looking up strangers.
+check "  and nothing at all for a session that is not yours" ok "$(wrap "
+  insert into public.sessions (id, user_id, partner_name, starts_at, duration_min,
+                               room_url, status, attendance, settled_at)
+  values ('66666666-6666-6666-6666-666666666666','$A','B', now() - interval '3 hours', 50,
+          'pf:p2','confirmed', 'attended', now()),
+         ('77777777-7777-7777-7777-777777777777','$B','A', now() - interval '3 hours', 50,
+          'pf:p2','confirmed', 'no_show', now());
+  $IN_C
+  if exists (select 1 from public.partner_outcomes(
+               array['66666666-6666-6666-6666-666666666666']::uuid[]))
+    then raise exception 'read a stranger''s session'; end if;")"
 
 echo
 echo "==================================================="

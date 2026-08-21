@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-21a';
+window.PF_BUILD = '2026-08-21b';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -377,6 +377,11 @@ window.pf = (function(){
          The narrowest rung is what sessions looked like before any of this,
          so there is always something that reads. */
       var COLS = [
+        { need:'supabase/migration-attendance.sql',
+          cols:'id,partner_name,topic,starts_at,duration_min,room_url,room_name,pair_id,' +
+               'status,proposed_by,note,goal,goal_done,cancelled_by,attended,joined_at,' +
+               'completed_at,cancelled_at,attendance,attendance_source,settled_at,' +
+               'partner_ok,checked_in_at,continue_pref' },
         { need:'supabase/migration-video.sql',
           cols:'id,partner_name,topic,starts_at,duration_min,room_url,room_name,pair_id,' +
                'status,proposed_by,note,goal,goal_done,cancelled_by,attended,' +
@@ -445,8 +450,31 @@ window.pf = (function(){
               /* Undefined on an un-migrated database, which reads everywhere
                  as "unknown" and never as "did not attend". */
               attended: (s.attended === true || s.attended === false) ? s.attended : null,
+              joinedAt: s.joined_at ? new Date(s.joined_at) : null,
               completedAt: s.completed_at ? new Date(s.completed_at) : null,
-              cancelledAt: s.cancelled_at ? new Date(s.cancelled_at) : null
+              cancelledAt: s.cancelled_at ? new Date(s.cancelled_at) : null,
+              /* The settled outcome — one of the five in assets/reliability.js,
+                 or null. Null covers two quite different things and the pages
+                 have to keep telling them apart: a session that has not
+                 happened yet, and a session nothing was watching. Neither of
+                 them is "did not attend", and the day this column starts
+                 reading as one is the day somebody's record becomes a lie.
+
+                 Undefined rather than null on a database that has not run
+                 migration-attendance.sql, because the column is not selected
+                 at all there and "we did not ask" is not "the answer was
+                 nothing". */
+              attendance: s.attendance || null,
+              attendanceSource: s.attendance_source || null,
+              settledAt: s.settled_at ? new Date(s.settled_at) : null,
+              /* The check-in: what this person said about the other one, and
+                 whether they want to carry on. Both are theirs alone — the
+                 partner's answers live on the partner's row and are not
+                 readable from here, which is deliberate. Nobody should be
+                 able to see that they were the one who said stop. */
+              partnerOk: (s.partner_ok === true || s.partner_ok === false) ? s.partner_ok : null,
+              checkedInAt: s.checked_in_at ? new Date(s.checked_in_at) : null,
+              continuePref: s.continue_pref || null
             };
           });
         });
@@ -675,6 +703,25 @@ window.pf = (function(){
         .then(function(r){
           if (r.error) {
             if (r.error.code === '23505') return { error: 'You’ve already sent them a request.' };
+            /* The insert policy refusing it. Two rules sit behind that policy
+               — you have blocked each other, or new requests are paused after
+               three missed sessions — and the browser is told neither, on
+               purpose: which of the two it is is a fact about somebody else's
+               blocklist, and "you have been blocked" is not something PeerFlow
+               says out loud.
+
+               The page still explains the half it is allowed to. People
+               already knows about its own cooldown, from partnering_status(),
+               and puts a notice above the list and disables the buttons — so
+               anybody who reaches this line during a pause has been told
+               already, and this is the backstop rather than the explanation.
+
+               What it must not do is what it used to: report a rule working
+               correctly as "please try again", which invites somebody to
+               press a button that will refuse them every time. */
+            if (r.error.code === '42501') {
+              return { error: 'You can’t send this person a request right now.' };
+            }
             /* Safe to name: it describes what this person already did, not the schema. */
             return fail(r.error, 'Could not send the request. Please try again.');
           }
@@ -1629,7 +1676,17 @@ window.pf = (function(){
       var by = {};
       (r.data || []).forEach(function(x){
         by[x.uid] = { pct: x.pct, counted: x.counted,
-                      attended: x.attended_n, noShows: x.noshow_n };
+                      attended: x.attended_n, noShows: x.noshow_n,
+                      /* Added by migration-attendance.sql. Undefined against
+                         the older function, which every reader treats as zero
+                         — the counts are a detail line, and a profile missing
+                         one clause is a much smaller problem than a page that
+                         throws because a field it expected is not there. */
+                      early: x.early_n || 0, late: x.late_n || 0,
+                      expected: (x.expected_n === undefined || x.expected_n === null)
+                        ? (x.attended_n || 0) + (x.noshow_n || 0)
+                        : x.expected_n,
+                      firstAt: x.first_at ? new Date(x.first_at) : null };
       });
       return by;
     }).catch(function(){ return null; });
@@ -1637,14 +1694,198 @@ window.pf = (function(){
 
   /* The words that go in front of the number. A bare percentage invites
      arithmetic nobody wants to do — "is 82 good?" — so the label answers it
-     and the number backs the label up. */
-  function reliabilityLabel(pct){
-    if (pct === null || pct === undefined) return '';
+     and the number backs the label up.
+
+     The bands themselves moved to assets/reliability.js, along with the rest
+     of the scoring policy, so that the thresholds and the words that describe
+     them sit next to each other and can be tested without a browser. This is
+     the shim that keeps every existing caller working: the pages call
+     pf.reliabilityLabel(pct) and always have.
+
+     `counted` is new and optional, and it is the whole reason the shim is not
+     just a rename. Without it a person with no score renders as an empty
+     string, which is how a brand-new user came to show as a blank column
+     between two people who had numbers — reading, to anybody scanning the
+     list, as though PeerFlow knew something about them and would not say.
+     With it they read as "New partner", which is the truth. */
+  function reliabilityLabel(pct, counted){
+    if (window.pfReliability) return window.pfReliability.label(pct, counted);
+    /* assets/reliability.js not on the page. Every page that shows a score
+       loads it, but db.js is loaded by pages that do not, so this stays
+       rather than throwing at them. */
+    if (pct === null || pct === undefined) return counted === undefined ? '' : 'New partner';
     if (pct >= 95) return 'Always turns up';
     if (pct >= 90) return 'Very reliable';
     if (pct >= 80) return 'Reliable';
     if (pct >= 65) return 'Usually turns up';
     return 'Often misses';
+  }
+
+  /* ================================================================
+     Attendance.
+
+     Four calls, all of them thin: the rules are in the database, because
+     attendance that a browser can write is attendance nobody can rely on.
+     What these do is ask, at the moments a page knows something has changed.
+     ================================================================ */
+
+  /* Decide the outcome of everything of yours that has finished.
+
+     There is no scheduler behind a static site — the same problem
+     migration-standing.sql solved by materialising occurrences on page load —
+     so this runs when somebody opens the app. That is not a compromise here
+     so much as the right shape: the person who most wants a no-show written
+     down is the person who sat waiting through it, and they are exactly the
+     one who opens PeerFlow afterwards to find out what happened.
+
+     Silent about everything. A page that told somebody "could not settle
+     attendance" would be reporting on plumbing they never asked about, and
+     the answer is the same either way — try again next load. */
+  function settleAttendance(){
+    if (!client) return Promise.resolve(0);
+    return client.rpc('settle_due', { p_limit: 30 }).then(function(r){
+      if (r.error) {
+        if (missingFunction(r.error)) {
+          console.warn('PeerFlow: settle_due is missing. ' +
+                       'Run supabase/migration-attendance.sql to turn on attendance.');
+        }
+        return 0;
+      }
+      return r.data || 0;
+    }).catch(function(){ return 0; });
+  }
+
+  /* The reminders due on any session you are part of — including your
+     partner's copy of it, which is the point. Your partner opening PeerFlow
+     at lunchtime is what sends you the reminder for this evening.
+
+     With pg_cron installed the database does this on a timer and this call
+     finds nothing to do, every time, which is the intended steady state. */
+  function sendReminders(){
+    if (!client) return Promise.resolve(0);
+    return client.rpc('send_due_reminders').then(function(r){
+      return (r.error || !r.data) ? 0 : r.data;
+    }).catch(function(){ return 0; });
+  }
+
+  /* The two questions after a session. Either may be omitted — answering one
+     of them is a complete answer.
+
+       showed    true or false: was the other person there
+       carryOn   'continue' or 'stop'
+
+     Comes back with what the database did with it, which the page needs
+     because the honest answers are not all the same:
+
+       confirmed   you vouched for them and it counted
+       recorded    the miss is on their record
+       unverified  kept, but it settled nothing — PeerFlow did not see either
+                   of you in the room, so it has nothing to stand the claim on
+       continuing  you both want to carry on
+       ended       the partnership is over
+       noted       stored, nothing else follows
+
+     'unverified' is the one that matters. It is not a failure and it is not
+     an error, and the page must not report it as either: it is PeerFlow
+     declining to take somebody's word about somebody else when it has no way
+     to check, which is the difference between a reliability system and a
+     denunciation box. */
+  function sessionCheckin(sessionId, showed, carryOn){
+    if (!client) return Promise.resolve({ demo: true });
+    if (!sessionId) return Promise.resolve({ error: 'No session to check in on.' });
+    return client.rpc('session_checkin', {
+      p_session: sessionId,
+      p_showed: (showed === true || showed === false) ? showed : null,
+      p_continue: carryOn || null
+    }).then(function(r){
+      if (r.error) {
+        if (missingFunction(r.error)) {
+          return { needsMigration: true,
+                   error: 'Check-ins aren’t switched on for this site yet.' };
+        }
+        if (r.error.code === 'PF014') {
+          return { error: 'That session isn’t over yet.' };
+        }
+        return fail(r.error, 'Could not save that. Please try again.');
+      }
+      return { saved: true, outcome: r.data || 'noted' };
+    }).catch(function(e){
+      return fail(e, 'Could not save that — check your connection and try again.');
+    });
+  }
+
+  /* What happened on the other side of sessions you own a half of.
+
+     Asked in one call for a handful of sessions rather than one call each,
+     for the same reason reliabilityOf is: a page that needs four answers
+     should not make four round trips to draw one sentence.
+
+     Comes back keyed by session id, holding only what the dashboard has to
+     know to say "your partner didn't make it" — their outcome, whether they
+     were ever in the room, and whether they have answered their own check-in.
+     Nothing else about their row is readable and nothing else is returned. */
+  function partnerOutcomes(ids){
+    if (!client) return Promise.resolve(null);
+    var want = (ids || []).filter(Boolean);
+    if (!want.length) return Promise.resolve({});
+    return client.rpc('partner_outcomes', { p_sessions: want }).then(function(r){
+      if (r.error) return null;
+      var by = {};
+      (r.data || []).forEach(function(x){
+        by[x.session_id] = { attendance: x.attendance || null,
+                             joined: !!x.joined, checkedIn: !!x.checked_in };
+      });
+      return by;
+    }).catch(function(){ return null; });
+  }
+
+  /* Stop studying with somebody, without it being a report.
+
+     Deliberately not blockPerson(). Blocking files somebody under "people I
+     had to block", hides both profiles from each other for good, and is meant
+     for somebody who did something. A pairing that simply is not working is
+     not that — and if the only way out is the block button, people either use
+     it wrongly or they stop replying, which is the ghosting this whole
+     feature exists to reduce. */
+  function endPartnership(requestId){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.rpc('end_partnership', { p_request: requestId }).then(function(r){
+      if (r.error) {
+        if (missingFunction(r.error)) {
+          return { needsMigration: true,
+                   error: 'That isn’t switched on for this site yet.' };
+        }
+        return fail(r.error, 'Could not end that. Please try again.');
+      }
+      return { saved: true };
+    }).catch(function(e){
+      return fail(e, 'Could not end that — check your connection and try again.');
+    });
+  }
+
+  /* Your own standing: how many sessions you have missed inside the rolling
+     window, and whether new partner requests are paused.
+
+     Only ever about the caller. Somebody else's cooldown is not a fact this
+     returns, and there is no function that does: a pause is between PeerFlow
+     and the person in it, and what their existing partners see is the same
+     reliability score everybody else sees.
+
+     Null when the database has not been migrated, which every reader takes as
+     "no restriction" — the honest default, since without the migration there
+     is none. */
+  function partneringStatus(){
+    if (!client) return Promise.resolve(null);
+    return client.rpc('partnering_status').then(function(r){
+      if (r.error || !r.data || !r.data.length) return null;
+      var x = r.data[0];
+      return {
+        noShows: x.no_shows || 0,
+        restrictedUntil: x.restricted_until ? new Date(x.restricted_until) : null,
+        windowDays: x.window_days || 30,
+        allowed: x.allowed || 3
+      };
+    }).catch(function(){ return null; });
   }
 
   function saveStage(index){
@@ -2076,6 +2317,15 @@ window.pf = (function(){
     /* Progress page */
     reliabilityOf: reliabilityOf,
     reliabilityLabel: reliabilityLabel,
+
+    /* Attendance */
+    settleAttendance: settleAttendance,
+    sendReminders: sendReminders,
+    sessionCheckin: sessionCheckin,
+    partnerOutcomes: partnerOutcomes,
+    endPartnership: endPartnership,
+    partneringStatus: partneringStatus,
+
     saveStage: saveStage,
     savePlan: savePlan,
     resetPlan: resetPlan,

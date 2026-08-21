@@ -170,6 +170,26 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 .now[data-tone="load"]{background:var(--card)}
 .now[data-tone="load"] .now-h{color:var(--faint)}
 
+/* A session that did not happen. The one tone that is neither tinted nor
+   dark, and it needed to exist rather than borrowing one of the others.
+
+   Green is what every other quiet state here wears, and green over "Amir
+   didn't make it" reads as the page being pleased about it. Amber is taken,
+   deliberately and exclusively, by "somebody is waiting on you" — and the
+   whole point of this band is that nothing is being asked of the person
+   reading it: they turned up, it cost them nothing, and the three buttons
+   are offers rather than tasks. Red was never a candidate. Somebody who has
+   just been stood up does not need the interface to be upset on their
+   behalf; they need it to be calm and to hand them the next thing.
+
+   So: the plain card ground the rest of the page is built from, with the
+   section's own border, which leaves the band reading as the band without
+   colouring the news. */
+.now[data-tone="quiet"]{background:var(--card);border-color:var(--line)}
+.now[data-tone="quiet"] .now-k{color:var(--faint)}
+.now[data-tone="quiet"] .now-s{color:var(--soft)}
+.now[data-tone="quiet"] .now-cd{color:var(--ink)}
+
 /* ---------- the two columns ---------- */
 /* Nothing in the main column yet — no partner, so no calendar and no
    sessions. Two columns with one of them empty left a 700px void beside the
@@ -509,6 +529,27 @@ h1 .g{color:var(--p4)}
 .prop-goal b{color:var(--ink);font-weight:700}
 .goalrow .gr-g{display:block;font-size:var(--t-sm);font-weight:700;color:var(--ink);line-height:1.4}
 .gr-a{display:flex;gap:8px;flex:0 0 auto}
+
+/* The check-in after a session. Same row as the goal, same two-part label,
+   same button cluster on the right — it is the same kind of thing being asked
+   in the same place, and giving it its own component would have made two
+   questions on one card look like two features.
+
+   Four buttons is one more than the goal row carries, so they are allowed to
+   wrap onto their own line rather than squeezing the question. */
+.cirow .ci-t{display:block;font-size:var(--t-sm);font-weight:700;color:var(--ink);line-height:1.4}
+/* Two questions, two groups, and the gap between them is wider than the gap
+   inside them — which is the only thing on the row saying they are two
+   questions rather than one menu of four answers. */
+.ci-a{display:flex;gap:18px;flex:0 0 auto;flex-wrap:wrap;align-items:center}
+.ci-q{display:flex;gap:8px;align-items:center}
+@media (max-width:600px){
+  .ci-a{flex:1 1 100%;gap:10px}
+  .ci-q{flex-wrap:wrap}
+  /* The one that ends a partnership goes last on a narrow screen, where it
+     would otherwise land under the thumb. */
+  .ci-a [data-ci-go="stop"]{order:9}
+}
 
 /* ---------- session calendar ---------- */
 .calhead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
@@ -1053,6 +1094,11 @@ html{scroll-behavior:smooth}
 .pstate.no{color:var(--faint)}
 
 .slot-err{flex:1 0 100%;margin:8px 0 0;font-size:var(--t-xs);color:#B4471F}
+/* The same line, saying something that is not a failure: what cancelling is
+   about to cost, or what ending a partnership does. Red would make a plain
+   statement of consequence read as an error, and the commonest one of these
+   says cancelling costs nothing — which in red would be actively misleading. */
+.slot-err.note{color:var(--soft)}
 
 /* ---------- proposing a time ----------
    The form is a sentence. Every green word opens a menu, so the card says
@@ -2166,6 +2212,22 @@ a.who:hover{text-decoration:underline}
 .relchip.mid{color:#8A6410}
 .relchip.low{color:#B4471F}
 .relchip i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
+/* Somebody with too little history to score. Grey and unweighted, and no dot:
+   the dot is the mark that says "here is a measurement", and there isn't one.
+   It has to sit clearly outside the green-amber-red run rather than at the
+   bottom of it — a new member is not a bad one, and the commonest way to make
+   a reliability score cruel is to let it read as an accusation of somebody who
+   has not had a chance yet. */
+.relchip.new{color:var(--faint);font-weight:600}
+
+/* New partner requests paused. Amber rather than red, and the same amber the
+   band uses for "somebody is waiting on you", because it is the same kind of
+   thing: a state that needs reading rather than a failure. Red would make a
+   seven-day pause on one action look like an account being closed, which is
+   exactly the misreading the copy inside it spends three lines heading off. */
+.coolnote{background:#FFF9EC;border-color:#F2DCB0;margin:0 0 18px}
+.cool-h{margin:0;font-size:var(--t-sm);font-weight:700;color:#8A5A12;letter-spacing:-.01em}
+.cool-s{margin:8px 0 0;font-size:var(--t-xs);color:#7A5518;line-height:1.6;max-width:70ch}
 
 /* ---------- requests waiting for you ---------- */
 /* These used to be an annotation on a directory row, which meant a request was

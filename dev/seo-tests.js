@@ -43,7 +43,13 @@ for (const file of privatePages) {
 }
 
 const robots = read('robots.txt');
-if (/Sitemap:\s*https:\/\/peerflow\.dev\/sitemap\.xml/i.test(robots)) pass('robots.txt: sitemap declared'); else fail('robots.txt: sitemap missing');
+/* www is optional in the pattern, and that is the fix rather than a
+   loosening. Everything else in this file — publicPages, the sitemap <loc>
+   checks, the canonical redirect — was moved to the www canonical, and
+   robots.txt with it; this one line was left behind matching the bare domain,
+   so the suite went red against a robots.txt that was correct. A check that
+   fails on the right answer stops being read. */
+if (/Sitemap:\s*https:\/\/(www\.)?peerflow\.dev\/sitemap\.xml/i.test(robots)) pass('robots.txt: sitemap declared'); else fail('robots.txt: sitemap missing');
 
 const sitemap = read('sitemap.xml');
 for (const [, canonical] of publicPages) {

@@ -61,6 +61,23 @@ alter table public.sessions
 -- underneath, but publishing it would be arithmetic pretending to be
 -- evidence, and it is somebody's reputation.
 -- ------------------------------------------------------------
+
+-- Dropped before it is created, which every other definition in this
+-- repository gets away without.
+--
+-- `create or replace function` cannot change a function's return type, and
+-- this one's changed: migration-attendance.sql replaced it with a version
+-- returning more columns. So on the second run of migrate-2026-08.sql — which
+-- the paste's own header tells people to do whenever they are not sure what
+-- they have run — this statement met a nine-column function and raised
+-- "cannot change return type of existing function", stopping the file dead
+-- less than a tenth of the way in.
+--
+-- The drop makes the older definition land cleanly whatever is already there,
+-- and the newer one further down the same file then replaces it, so the end
+-- state is identical and running the paste twice is safe again.
+drop function if exists public.reliability_of(uuid[]);
+
 create or replace function public.reliability_of(p_users uuid[])
 returns table (
   uid        uuid,

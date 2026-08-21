@@ -99,6 +99,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
+<script src="assets/reliability.js"></script>
 <script src="assets/report.js"></script>
 <script src="assets/appshell.js"></script>
 <script>
@@ -275,40 +276,52 @@
 
   /* The score, when there is enough behind it to publish one.
 
-     Under five graded sessions the block still appears and says so, rather
-     than vanishing: "no score yet" and "score hidden" look identical if the
-     row is simply absent, and the first is a fact worth knowing about
-     somebody new. Above the floor it is a label, the number behind the
-     label, and the two counts the number is made of — a claim you can check
-     rather than a badge you have to trust. */
+     Below the floor the block still appears and says so, rather than
+     vanishing: "no score yet" and "score hidden" look identical if the row is
+     simply absent, and the first is a fact worth knowing about somebody new.
+     Above it, it is a label, the number behind the label, and the counts the
+     number is made of — a claim you can check rather than a badge you have to
+     trust. */
   function renderReliability(pid, first){
     if (!pf.reliabilityOf) return;
     pf.reliabilityOf([pid]).then(function(by){
       var r = by && by[pid];
       if (!r) return;                       /* migration not run: say nothing */
 
+      var R = window.pfReliability;
       var box = $('pv-rel'), fill = $('pv-relfill');
-      var counts = r.attended + (r.attended === 1 ? ' session attended' : ' sessions attended') +
-                   ' · ' + r.noShows + (r.noShows === 1 ? ' no-show' : ' no-shows');
+      /* "23 of 24 sessions attended", plus a clause about the ones they
+         called off ahead of time if there were any. Built in
+         assets/reliability.js so this page and the People list cannot come to
+         describe the same numbers differently. */
+      var counts = R ? R.summary(r)
+        : r.attended + ' attended · ' + r.noShows + ' missed';
 
       if (r.pct === null || r.pct === undefined) {
-        $('pv-rellab').textContent = 'Not enough sessions yet';
+        /* "New partner", the same two words the directory uses, so somebody
+           who clicked through from a row reading "New partner" does not
+           arrive at a differently-worded version of the same fact and wonder
+           whether it means something else. */
+        $('pv-rellab').textContent = 'New partner';
         $('pv-relpct').textContent = '';
         $('pv-relbar').hidden = true;
         $('pv-relsub').textContent = r.counted
-          ? counts + '. A score appears once ' + first + ' has five behind them.'
-          : first + ' hasn’t finished a session yet, so there is nothing to go on.';
+          ? counts + '. A reliability score appears once ' + first + ' has ' +
+            (R ? R.POLICY.minGraded : 3) + ' sessions behind them.'
+          : first + ' hasn’t finished a session yet, so there is nothing to go on. ' +
+            'That is not a mark against them — everybody starts here.';
+        box.className = 'relbox';
         box.hidden = false;
         return;
       }
 
       var band = r.pct >= 80 ? 'good' : r.pct >= 65 ? 'mid' : 'low';
-      $('pv-rellab').textContent = pf.reliabilityLabel(r.pct);
+      $('pv-rellab').textContent = pf.reliabilityLabel(r.pct, r.counted);
       $('pv-relpct').textContent = r.pct + '%';
       $('pv-relbar').hidden = false;
       fill.style.width = r.pct + '%';
       box.className = 'relbox ' + band;
-      $('pv-relsub').textContent = counts + '.';
+      $('pv-relsub').textContent = counts ? counts + '.' : '';
       box.hidden = false;
     }).catch(function(){});
   }

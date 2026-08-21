@@ -39,6 +39,20 @@
       made up, and you can ask anyone on the list instead.
     </p>
 
+    <!-- New partner requests are paused. Above the directory, because the
+         Send request buttons below it are about to refuse and a button that
+         fails without explanation is worse than one that is not there.
+
+         Deliberately a statement rather than a warning: it says what has
+         happened, what is unaffected, and when it lifts. Nothing here scolds
+         anybody — the notification at the time of each missed session already
+         said what was going on, and repeating it on every page load would be
+         nagging somebody about something they cannot now change. -->
+    <section class="b coolnote" id="coolnote" hidden>
+      <p class="cool-h" id="cool-h"></p>
+      <p class="cool-s" id="cool-s"></p>
+    </section>
+
     <!-- Anyone who has asked you, above the directory and independent of it.
          This used to be a state chip on a search result, which meant a request
          was only visible if the sender happened to appear in your list. -->
@@ -58,6 +72,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
+<script src="assets/reliability.js"></script>
 <script>
 (function(){
   var name = '', myTopic = '';
@@ -105,6 +120,28 @@
   };
   function chip(kind, icon, label){
     return '<span class="pstate ' + kind + '">' + ICON[icon] + label + '</span>';
+  }
+
+  /* Set once partneringStatus() comes back saying new requests are paused.
+     The insert is refused by RLS either way — the rule lives in the database,
+     where it cannot be talked round — so this is only about not offering
+     somebody a button that is going to say no. */
+  var cooled = false;
+
+  /* Every Send request on the page, taken out of service, with the reason
+     attached to each one rather than only at the top. Somebody who has
+     scrolled past the notice and is now looking at a row needs the answer on
+     the row.
+
+     Applied after each render as well as when the status lands, because the
+     two arrive in either order — the directory does not wait for the cooldown
+     check and should not. */
+  function lockRequests(){
+    if (!cooled) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ask]'), function(b){
+      b.disabled = true;
+      b.title = 'New partner requests are paused for now — see the note at the top of the page.';
+    });
   }
 
   function actionFor(userId){
@@ -166,17 +203,63 @@
 
   function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
 
-  /* Reliability, compressed to fit a row. Silent below the floor rather than
-     showing "—": a dash in a column implies the number exists and is being
-     withheld, when the truth is that nobody has enough sessions to have one. */
+  /* Reliability, compressed to fit a row.
+   *
+   * This used to render nothing at all below the floor, on the reasoning that
+   * a dash implies a number is being withheld. That was right about the dash
+   * and wrong about the silence: on a directory where some rows carry a green
+   * percentage and others carry nothing, the empty ones read as the worse
+   * option — you assume the blank means bad news rather than no news. A page
+   * whose whole job is helping somebody pick a partner cannot afford that,
+   * because every single new member starts there.
+   *
+   * So a person with too little history says "New partner", in its own quiet
+   * treatment, and the reader gets to decide what they think of that. It is
+   * also the honest description: they are new, and being new is not a mark
+   * against anybody.
+   *
+   * The number, when there is one, is the percentage and the count that backs
+   * it up, because "96%" of what is the first thing anybody wants to know. */
+  /* The cooldown notice, and the one thing it must get right: what is NOT
+     affected. Somebody reading "paused" about a study site will assume they
+     have lost their partner, their history and their booked sessions unless
+     the sentence tells them otherwise, and none of that is true — the pause
+     is on starting something new with somebody new, and nothing else. */
+  function renderCooldown(st){
+    if (!st || !st.restrictedUntil) return;
+    var until = st.restrictedUntil;
+    var days = Math.max(1, Math.ceil((until.getTime() - Date.now()) / 86400000));
+    document.getElementById('cool-h').textContent =
+      'New partner requests are paused until ' +
+      until.toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' }) +
+      (days === 1 ? ' — tomorrow.' : '.');
+    document.getElementById('cool-s').textContent =
+      st.noShows + ' sessions in the last ' + st.windowDays + ' days were missed without ' +
+      'being cancelled, which is what pauses this. Your partners, your booked sessions, ' +
+      'your messages and your history all carry on exactly as they are — it is only ' +
+      'asking someone new that waits. Cancelling ahead of time has never counted.';
+    document.getElementById('coolnote').hidden = false;
+    cooled = true;
+    lockRequests();
+  }
+
   var relBy = {};
   function relChip(id){
     var r = relBy[id];
-    if (!r || r.pct === null || r.pct === undefined) return '';
+    if (!r) return '';
+    var R = window.pfReliability;
+    if (r.pct === null || r.pct === undefined) {
+      return '<span class="relchip new" title="' +
+        esc('Hasn’t finished enough sessions for a reliability score yet.') +
+        '">New partner</span>';
+    }
     var band = r.pct >= 80 ? '' : r.pct >= 65 ? ' mid' : ' low';
+    var done = r.attended || 0;
     return '<span class="relchip' + band + '" title="' +
-      esc(pf.reliabilityLabel(r.pct) + ' — ' + r.attended + ' attended, ' +
-          r.noShows + ' missed') + '"><i></i>' + r.pct + '%</span>';
+      esc(pf.reliabilityLabel(r.pct, r.counted) +
+          (R ? ' — ' + R.summary(r) : ' — ' + done + ' attended, ' + r.noShows + ' missed')) +
+      '"><i></i>' + r.pct + '% reliable' +
+      (done ? ' · ' + done + (done === 1 ? ' session' : ' sessions') : '') + '</span>';
   }
 
   /* "3 blocks" is our word for a cell in the availability grid, not a
@@ -210,9 +293,18 @@
     }
     if (levelLabel[p.level]) facts.push(['Stage', levelLabel[p.level]]);
     if (p.timezone)          facts.push(['Timezone', p.timezone]);
+    /* The top pick argues its case, and how often somebody turns up is the
+       only fact on this card that is a record rather than an intention —
+       which makes it the one most worth stating, and the one it was quietest
+       about. It showed a percentage when there was one and nothing at all
+       when there was not, so the strongest claim on the card disappeared for
+       exactly the people a reader most wants to know about. Now it says
+       which of the two it is. */
     var rel = relBy[p.id];
-    if (rel && rel.pct !== null && rel.pct !== undefined) {
-      facts.push(['Turns up', rel.pct + '%']);
+    if (rel) {
+      facts.push((rel.pct === null || rel.pct === undefined)
+        ? ['On PeerFlow', 'New partner']
+        : ['Turns up', rel.pct + '%']);
     }
 
     return '<div class="top-pick" data-id="' + esc(p.id) + '">' +
@@ -284,6 +376,7 @@
       '</div>';
     }
     list.innerHTML = html;
+    lockRequests();
   }
 
   /* Requests waiting on you, drawn from the requests rather than from the
@@ -384,6 +477,12 @@
     document.getElementById('st-total').textContent = people.length + 1;
     document.getElementById('st-same').textContent =
       me.track ? people.filter(function(p){ return p.track_id === me.track; }).length : 0;
+
+    /* Whether new partner requests are paused for this account, and why.
+       Independent of the directory below it and never blocking it: the list
+       is still worth reading during a cooldown, and the pause is on asking
+       rather than on looking. */
+    if (pf.partneringStatus) pf.partneringStatus().then(renderCooldown).catch(function(){});
 
     /* One call for the whole page, then draw once. Drawing without the scores
        and again with them would move every row a moment after paint. */
