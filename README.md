@@ -144,6 +144,21 @@ schema as it was before that migration, so the cases can be seen to fail.
 signed wrongly there surfaces as "could not join" on somebody's call, which is
 a long way from the cause.
 
+`node dev/seo-tests.js` checks the public pages: canonicals, titles and
+descriptions and their uniqueness, social metadata, structured data, internal
+linking, robots.txt, the sitemap and the IndexNow key file. It derives the list
+of public pages by reading the robots meta tag off every page rather than
+holding its own copy, because the copy it used to hold went stale — the three
+legal pages were never in it, so nothing noticed that they pointed their
+canonicals at the bare apex domain while the rest of the site had moved to
+`www`, or that they were missing from the sitemap entirely. A new landing page
+is covered the moment it is committed.
+
+`node dev/sitemap-build.js` regenerates `sitemap.xml` from those same pages,
+with `lastmod` taken from git rather than the filesystem, since a fresh clone
+stamps every file with the checkout time. Run it after changing page content;
+`dev/seo-tests.js` fails if the committed sitemap no longer matches.
+
 **Standing weekly sessions are joinable.** They were not, ever:
 `materialise_standing` gave every occurrence of a weekly slot the same
 `room_url` — one per partnership, still in the old `meet.jit.si` shape — and
