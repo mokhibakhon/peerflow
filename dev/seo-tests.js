@@ -5,15 +5,15 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 
 const publicPages = [
-  ['index.html', 'https://peerflow.dev/'],
-  ['frontend-study-partner.html', 'https://peerflow.dev/frontend-study-partner.html'],
-  ['backend-study-partner.html', 'https://peerflow.dev/backend-study-partner.html'],
-  ['cybersecurity-study-partner.html', 'https://peerflow.dev/cybersecurity-study-partner.html'],
-  ['data-science-study-partner.html', 'https://peerflow.dev/data-science-study-partner.html'],
-  ['mobile-development-study-partner.html', 'https://peerflow.dev/mobile-development-study-partner.html'],
-  ['devops-cloud-study-partner.html', 'https://peerflow.dev/devops-cloud-study-partner.html'],
-  ['ai-machine-learning-study-partner.html', 'https://peerflow.dev/ai-machine-learning-study-partner.html'],
-  ['ux-ui-design-study-partner.html', 'https://peerflow.dev/ux-ui-design-study-partner.html'],
+  ['index.html', 'https://www.peerflow.dev/'],
+  ['frontend-study-partner.html', 'https://www.peerflow.dev/frontend-study-partner.html'],
+  ['backend-study-partner.html', 'https://www.peerflow.dev/backend-study-partner.html'],
+  ['cybersecurity-study-partner.html', 'https://www.peerflow.dev/cybersecurity-study-partner.html'],
+  ['data-science-study-partner.html', 'https://www.peerflow.dev/data-science-study-partner.html'],
+  ['mobile-development-study-partner.html', 'https://www.peerflow.dev/mobile-development-study-partner.html'],
+  ['devops-cloud-study-partner.html', 'https://www.peerflow.dev/devops-cloud-study-partner.html'],
+  ['ai-machine-learning-study-partner.html', 'https://www.peerflow.dev/ai-machine-learning-study-partner.html'],
+  ['ux-ui-design-study-partner.html', 'https://www.peerflow.dev/ux-ui-design-study-partner.html'],
 ];
 const privatePages = [
   'app.html','app-badges.html','app-chat.html','app-people.html','app-person.html',
