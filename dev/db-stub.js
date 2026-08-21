@@ -418,6 +418,6 @@ window.pf = (function(){
 
     signOut:function(){return P()},
     trackNames:{frontend:'Frontend',backend:'Backend',cybersecurity:'Cybersecurity',
-      data:'Data & Analytics',mobile:'Mobile',devops:'DevOps & Cloud',aiml:'AI & ML',design:'UX/UI Design'}
+      data:'Data Science',mobile:'Mobile',devops:'DevOps & Cloud',aiml:'AI & ML',design:'UX/UI Design'}
   };
 })();

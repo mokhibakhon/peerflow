@@ -1993,7 +1993,7 @@ window.pf = (function(){
 
   var trackNames = {
     frontend:'Frontend', backend:'Backend', cybersecurity:'Cybersecurity',
-    data:'Data & Analytics', mobile:'Mobile', devops:'DevOps & Cloud',
+    data:'Data Science', mobile:'Mobile', devops:'DevOps & Cloud',
     aiml:'AI & ML', design:'UX/UI Design'
   };
 

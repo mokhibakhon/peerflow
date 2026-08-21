@@ -360,7 +360,7 @@ insert into public.tracks (id, name, career, sort) values
   ('frontend',      'Frontend Development',   'Frontend / web developer',      1),
   ('backend',       'Backend Development',    'Backend / software engineer',   2),
   ('cybersecurity', 'Cybersecurity',          'Security analyst / pentester',  3),
-  ('data',          'Data & Analytics',       'Data analyst',                  4),
+  ('data',          'Data Science',       'Data analyst',                  4),
   ('mobile',        'Mobile Development',     'Mobile developer',              5),
   ('devops',        'DevOps & Cloud',         'DevOps / cloud engineer',       6),
   ('aiml',          'AI & Machine Learning',  'ML / AI engineer',              7),
