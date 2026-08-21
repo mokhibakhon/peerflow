@@ -727,7 +727,18 @@
       /* Which session it happened on. report_person() checks it against your
          own rows, so a wrong one stores nothing rather than pointing at
          somebody else's booking. */
-      sessionId: sessionId()
+      sessionId: sessionId(),
+      /* Said before they close the card rather than discovered after. */
+      afterBlock: 'You will leave the call when you close this.',
+      onDone: function(o){
+        /* Blocking somebody does not remove them from the LiveKit room — the
+           block is a rule about what happens next, and the call is happening
+           now. Staying on a video call with somebody you have just reported
+           is not a state to leave anybody in, so this is the one place the
+           block has an immediate physical consequence. leave() is the same
+           path the Leave button takes, so check-out still records properly. */
+        if (o && o.blocked) leave();
+      }
     });
   });
 

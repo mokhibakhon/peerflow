@@ -155,25 +155,25 @@ async function main() {
 
   console.log('\n==> the optional half');
 
-  await t('typing detail and saving amends the report', async () => {
+  /* This is the bug that came back from real use: Save wrote "Saved." into the
+     card and left it sitting there, with the page behind it unchanged. From
+     where somebody is standing that is indistinguishable from nothing having
+     happened, and the only way to find out was to reload. Closing is what says
+     it worked, because closing is what lets the page redraw. */
+  await t('saving detail closes the card rather than sitting there', async () => {
     const p = await sent();
     await p.fill('[data-detail]', 'they would not stop');
     await p.click('[data-save]');
-    await p.waitForFunction(() => {
-      const n = document.querySelector('.rp-note');
-      return n && /Saved/.test(n.textContent);
-    });
+    await p.waitForSelector('.rp-wrap', { state: 'detached', timeout: 5000 });
     await p.close();
   });
 
-  await t('unchecking "keep blocked" and saving unblocks them', async () => {
+  await t('unchecking "keep blocked" and saving unblocks them, and closes', async () => {
     const p = await sent({ __blocks: [] });
     await p.uncheck('[data-keep]');
     await p.click('[data-save]');
-    await p.waitForFunction(() => {
-      const n = document.querySelector('.rp-note');
-      return n && /no longer blocked/.test(n.textContent);
-    });
+    await p.waitForSelector('.rp-wrap', { state: 'detached', timeout: 5000 });
+    eq(await p.evaluate(() => (window.__blocks || []).length), 0, 'unblocked:');
     await p.close();
   });
 
@@ -181,6 +181,48 @@ async function main() {
     const p = await sent();
     await p.click('[data-save]');
     await p.waitForSelector('.rp-wrap', { state: 'detached' });
+    await p.close();
+  });
+
+  /* A failure must NOT close, or somebody walks away believing something was
+     saved that was not. */
+  await t('a save that fails stays open and says why', async () => {
+    const p = await sent({ __amendFail: 'Could not save that.' });
+    await p.fill('[data-detail]', 'more detail');
+    await p.click('[data-save]');
+    await p.waitForFunction(() => {
+      const n = document.querySelector('.rp-note');
+      return n && n.textContent.length > 0;
+    });
+    eq(await p.locator('.rp-note').innerText(), 'Could not save that.');
+    eq(await p.locator('.rp-wrap').count(), 1, 'card still open:');
+    eq(await p.locator('[data-save]').isDisabled(), false, 'Save usable again:');
+    await p.close();
+  });
+
+  console.log('\n==> the page behind has to change');
+
+  await t('blocking leaves the profile in a blocked state, not as it was', async () => {
+    const p = await sent({ __blocks: [] });
+    await p.click('[data-close]');
+    await p.waitForSelector('#pv-blocked:not([hidden])', { timeout: 5000 });
+    eq(await p.locator('#pv').evaluate((e) => e.hidden), true, 'old profile hidden:');
+    const txt = await p.locator('#pv-blocked').innerText();
+    if (!/You blocked Amir/.test(txt)) throw new Error('does not name them: ' + txt);
+    /* Reloading would fetch a profile the database now hides, landing on
+       "we couldn't find that person" — untrue, and the opposite of
+       reassuring. */
+    eq(await p.locator('#pv-miss').isVisible(), false, 'not the missing-person state:');
+    await p.close();
+  });
+
+  await t('undoing does not leave the page claiming they are blocked', async () => {
+    const p = await sent({ __blocks: [] });
+    await p.click('[data-undo]');
+    await p.waitForSelector('.rp-h');
+    await p.click('[data-close]');
+    await p.waitForSelector('[data-report]', { timeout: 8000 });
+    eq(await p.locator('#pv-blocked').isVisible(), false);
     await p.close();
   });
 
@@ -274,6 +316,50 @@ async function main() {
     await p.click('#c-report');
     await p.waitForSelector('.rp-wrap .rp-r');
     eq(await p.locator('.rp-r').count(), 5, 'same five reasons:');
+    await p.close();
+  });
+
+  /* Blocking does not remove anybody from the LiveKit room — the block is a
+     rule about what happens next, and the call is happening now. Staying on a
+     video call with somebody you have just reported is not a state to leave
+     anybody in. */
+  await t('blocking says the call will end, before you close the card', async () => {
+    const p = await call({ __farId: 'u2' });
+    await p.waitForSelector('#c-report:not([hidden])', { timeout: 8000 });
+    await p.click('#c-report');
+    await p.waitForSelector('.rp-wrap .rp-r');
+    await p.click('[data-reason="harassment"]');
+    await p.waitForSelector('[data-undo]');
+    const txt = await p.locator('.rp-caveat').innerText();
+    if (!/leave the call/.test(txt)) throw new Error('no warning: ' + txt);
+    await p.close();
+  });
+
+  await t('and closing the card actually leaves it', async () => {
+    const p = await call({ __farId: 'u2' });
+    await p.waitForSelector('#c-report:not([hidden])', { timeout: 8000 });
+    await p.click('#c-report');
+    await p.waitForSelector('.rp-wrap .rp-r');
+    await p.click('[data-reason="harassment"]');
+    await p.waitForSelector('[data-undo]');
+    await p.click('[data-close]');
+    /* Leaving swaps the room for the after-the-call screen. */
+    await p.waitForSelector('#st-live[hidden]', { state: 'attached', timeout: 8000 });
+    await p.close();
+  });
+
+  await t('undoing on a call keeps you in it', async () => {
+    const p = await call({ __farId: 'u2' });
+    await p.waitForSelector('#c-report:not([hidden])', { timeout: 8000 });
+    await p.click('#c-report');
+    await p.waitForSelector('.rp-wrap .rp-r');
+    await p.click('[data-reason="harassment"]');
+    await p.waitForSelector('[data-undo]');
+    await p.click('[data-undo]');
+    await p.waitForSelector('.rp-h');
+    await p.click('[data-close]');
+    await p.waitForTimeout(800);
+    eq(await p.locator('#st-live').evaluate((e) => e.hidden), false, 'still in the room:');
     await p.close();
   });
 
