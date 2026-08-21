@@ -80,6 +80,13 @@ Supabase → **SQL Editor** → paste the whole of `supabase/migration-notify.sq
 
 At this point the bell works for every session event. Email does not yet.
 
+This was not true when it was written, and it is worth saying why. The rows
+landed in `public.notifications` correctly — but nothing read that table.
+`assets/notify.js` built the panel entirely from `myRequests()` and
+`fetchSessions()`, so the bell you saw working after step 1 was an older,
+derived one that had worked all along, and every row these triggers wrote was
+invisible. The panel reads the table now, in its **Recent** half.
+
 ### 2. Turn on pg_net
 
 ```sql
@@ -148,7 +155,9 @@ a POST endpoint that unsubscribes with no further interaction, and
 Claiming a control that does not work is worse than not claiming it.
 
 Badges never send email — a note to yourself about something you have just been
-shown on screen is not worth one.
+shown on screen is not worth one. The guard for that checked `kind = 'badge'`
+and the only thing that writes a self-note writes `'achievement'`, so it never
+fired; it takes both now.
 
 ## What the email looks like
 

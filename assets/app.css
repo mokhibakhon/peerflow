@@ -832,6 +832,24 @@ html{scroll-behavior:smooth}
 .bell-item b{color:var(--ink)}
 .bell-msg{margin-top:5px!important;color:var(--muted);font-style:italic;font-size:var(--t-xs)}
 .bell-time{margin-top:5px!important;font-size:var(--t-xs);color:var(--muted)}
+
+/* The two halves of the panel. "Needs you" is what is still yours to answer
+   and is the only thing the badge counts; "Recent" is what has happened and
+   is read the moment you open the panel. They used to be one list, so the
+   count went down for reasons you could not see and stayed up for reasons you
+   could not see either.
+
+   Sticky, because the log can be thirty rows inside a 420px scroller and a
+   heading that scrolls away leaves you reading a list with no idea which half
+   of it you are in. */
+.bell-sec{position:sticky;top:0;z-index:1;margin:0;
+  padding:9px 16px;background:var(--band);border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-faint)}
+/* The log's rows link where the notification points. The anchor wraps the
+   title only, so the timestamp and body do not turn blue with it. */
+.bell-go{display:block;color:inherit}
+.bell-go:hover b{color:var(--p6);text-decoration:underline}
 .bell-actions{display:flex;gap:8px;margin-top:11px}
 .bell-actions .btn{padding:7px 14px;font-size:var(--t-xs)}
 
