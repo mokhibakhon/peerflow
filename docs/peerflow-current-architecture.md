@@ -153,6 +153,17 @@ possible values.
 The two-row shape is the single most important fact about this schema and the
 cause of the trickiest bug in the project's history — see §6.
 
+> **Stale from here down for this table.** `sessions` has gained a great deal
+> since this section was written — `confirmed_at`, `goal`, `attended`,
+> `joined_at`, `left_at`, `room_name`, `pair_id`, `cancelled_at`, and the
+> `attendance` / `attendance_source` / `settled_at` trio that carries the
+> settled outcome — along with `completed` and `no_show` statuses. The two-row
+> shape above is still exactly right and is still the thing to understand
+> first; the column list is not. `README.md` is current, and
+> `supabase/migration-attendance.sql` carries the reasoning for the attendance
+> half. This whole document is a snapshot from before the migrations existed
+> and is worth a pass of its own rather than patching section by section.
+
 ### `tracks` — the eight paths
 Seeded, RLS-readable by anyone. **The client never queries it**; `db.js`
 carries a hardcoded `trackNames` map instead. Two sources of truth.

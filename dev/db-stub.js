@@ -49,6 +49,25 @@
                    with nobody on the other side — which hides Report
      __safetyMissing  true to act as though migration-safety.sql has not been
                    run: every safety call answers needsMigration
+     __rel         reliability by user id, as
+                   {u2:{pct, counted, attended, noShows, early, late, expected}} —
+                   omit somebody and they come back unscored, which is the
+                   "New partner" state and the one most easily got wrong
+     __relMissing  true to act as though migration-reliability.sql has not run
+     __partnerOut  the other side of your sessions, as
+                   {sessionId:{attendance, joined, checkedIn}} — this is what
+                   decides whether the dashboard says your partner stood you
+                   up, and it is the only way to see that band
+     __standingStatus  {noShows, restrictedUntil, windowDays, allowed} for the
+                   cooldown notice on People, or null for no restriction
+     __checkinOut  what session_checkin answers: 'confirmed', 'recorded',
+                   'unverified', 'continuing', 'ended' or 'noted'. 'unverified'
+                   is the one worth looking at — it is the branch that keeps
+                   the row on screen and explains itself instead of reloading
+     __checkinFail an error sentence for the check-in's failure path
+     __attendanceMissing  true to act as though migration-attendance.sql has
+                   not been run: settling, check-ins and the cooldown all go
+                   quiet and the pages fall back to what they said before
 
    Add a dial rather than editing a fixture in place: the fixtures are shared
    by every test, and quietly changing one moves the ground under the others. */
@@ -71,21 +90,40 @@ window.pf = (function(){
 
   var soon=new Date(); soon.setHours(soon.getHours()+2,0,0,0);
   var prop=new Date(); prop.setDate(prop.getDate()+3); prop.setHours(19,0,0,0);
+  /* A session that has already happened. `att` is what the room observed, and
+     the settled outcome is derived from it rather than passed separately, so
+     a fixture cannot say "attended: false" and "attendance: attended" at the
+     same time — which is a state the database cannot produce and a test that
+     relied on it would be testing nothing.
+
+     checkedInAt is null throughout: an unanswered check-in is the state the
+     dashboard actually has to draw, and every fixture row here is old enough
+     that the question has passed anyway (renderCheckins only asks about the
+     last few days). __sessions is the dial for anything else. */
   function past(d,st,att){var x=new Date();x.setDate(x.getDate()-d);x.setHours(19,0,0,0);
     return {id:'p'+d,partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:x,durationMin:50,
-      roomUrl:'pf:demo',status:st,proposedBy:'me',note:null,mine:true,
+      roomUrl:'pf:demo',pairId:'r1',status:st,proposedBy:'me',note:null,mine:true,
       cancelledByMe:false,confirmedAt:x,goal:'Read a packet capture',goalDone:true,attended:att,
-      completedAt:x,cancelledAt:null};}
+      completedAt:x,cancelledAt:null,
+      joinedAt:att===true?x:null,
+      attendance:att===true?'attended':att===false?'no_show':null,
+      attendanceSource:att===null||att===undefined?null:'livekit',
+      settledAt:att===null||att===undefined?null:x,
+      partnerOk:null,checkedInAt:null,continuePref:null};}
 
   var SESSIONS=[
     {id:'s1',partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:soon,durationMin:50,
-     roomUrl:'pf:demo',status:'confirmed',proposedBy:'them',note:null,
+     roomUrl:'pf:demo',pairId:'r1',status:'confirmed',proposedBy:'them',note:null,
      mine:false,cancelledByMe:false,confirmedAt:null,goal:'Wireshark TCP practice',goalDone:null,
-     attended:null,completedAt:null,cancelledAt:null},
+     attended:null,completedAt:null,cancelledAt:null,
+     joinedAt:null,attendance:null,attendanceSource:null,settledAt:null,
+     partnerOk:null,checkedInAt:null,continuePref:null},
     {id:'s2',partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:prop,durationMin:50,
-     roomUrl:'pf:demo2',status:'proposed',proposedBy:'them',note:null,
+     roomUrl:'pf:demo2',pairId:'r1',status:'proposed',proposedBy:'them',note:null,
      mine:false,cancelledByMe:false,confirmedAt:null,goal:null,goalDone:null,attended:null,
-     completedAt:null,cancelledAt:null},
+     completedAt:null,cancelledAt:null,
+     joinedAt:null,attendance:null,attendanceSource:null,settledAt:null,
+     partnerOk:null,checkedInAt:null,continuePref:null},
     past(7,'completed',true), past(14,'completed',true), past(21,'completed',true),
     past(28,'completed',false)
   ];
@@ -366,16 +404,50 @@ window.pf = (function(){
       if(window.__relMissing) return P(null);
       var by={}, src=window.__rel||{};
       (ids||[]).forEach(function(i){
-        by[i]=src[i]||{pct:null,counted:0,attended:0,noShows:0};
+        /* Unscored rather than absent, because that is what the real function
+           returns for somebody new — a row of zeroes and a null percentage.
+           A dial that left them out entirely would hide the "New partner"
+           state, which is the one this whole column has to get right. */
+        by[i]=src[i]||{pct:null,counted:0,attended:0,noShows:0,
+                       early:0,late:0,expected:0,firstAt:null};
       });
       return P(by)},
-    reliabilityLabel:function(p){
-      if(p===null||p===undefined) return '';
+    /* Defers to the real assets/reliability.js when the page has loaded it,
+       so the words in the stub cannot drift from the words in production —
+       which is exactly what happened to the copy that used to live here. */
+    reliabilityLabel:function(p,counted){
+      if(window.pfReliability) return window.pfReliability.label(p,counted);
+      if(p===null||p===undefined) return counted===undefined?'':'New partner';
       if(p>=95) return 'Always turns up';
       if(p>=90) return 'Very reliable';
       if(p>=80) return 'Reliable';
       if(p>=65) return 'Usually turns up';
       return 'Often misses'},
+
+    /* ---- attendance ---- */
+    settleAttendance:function(){note('settleAttendance');
+      return P(window.__attendanceMissing?0:1)},
+    sendReminders:function(){note('sendReminders');
+      return P(window.__attendanceMissing?0:0)},
+    partnerOutcomes:function(ids){
+      if(window.__attendanceMissing) return P(null);
+      var by={}, src=window.__partnerOut||{};
+      (ids||[]).forEach(function(i){ if(src[i]) by[i]=src[i]; });
+      return P(by)},
+    sessionCheckin:function(id,showed,go){
+      note('checkin:'+id+':'+(showed===null||showed===undefined?'-':showed)+':'+(go||'-'));
+      if(window.__attendanceMissing) return P({needsMigration:true,
+        error:'Check-ins aren’t switched on for this site yet.'});
+      if(window.__checkinFail) return P({error:window.__checkinFail});
+      return P({saved:true,outcome:window.__checkinOut||
+        (go==='stop'?'ended':go==='continue'?'continuing':showed?'confirmed':'recorded')})},
+    endPartnership:function(id){note('endPartnership:'+id);
+      if(window.__attendanceMissing) return P({needsMigration:true,
+        error:'That isn’t switched on for this site yet.'});
+      return P({saved:true})},
+    partneringStatus:function(){
+      if(window.__attendanceMissing) return P(null);
+      return P(window.__standingStatus||null)},
     markRequestsSeen:function(){return P({saved:true})},
 
     /* ---- safety: block, report, delete ---- */

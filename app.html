@@ -158,6 +158,13 @@
         <p class="mono sub-h" id="up-h" hidden>Booked</p>
         <div id="upcoming"></div>
 
+        <!-- Two questions after a session, and neither is a review. Kept
+             above the goal because one of them decides whether there is a
+             partnership at all next week, and the goal is about the hour
+             that has already gone. -->
+        <p class="mono sub-h" id="ci-h" hidden>How did it go?</p>
+        <div id="ci-list"></div>
+
         <!-- The other half of the goal. Only ever shown for a session that
              had one written, so nobody who skipped the box is ever asked. -->
         <p class="mono sub-h" id="goal-h" hidden>Did you get it done?</p>
@@ -298,6 +305,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
+<script src="assets/reliability.js"></script>
 <script src="assets/plans.js"></script>
 <script src="assets/appshell.js"></script>
 <script>
@@ -379,6 +387,23 @@
   function lastWithEach(list, sessions){
     var seen = {}, now = Date.now();
     sessions.forEach(function(s){
+      /* 'completed' counts, and used to not.
+       *
+       * close_room moves a booking to 'completed' once its hour is up and
+       * somebody was in it, so a session that went perfectly ends in exactly
+       * the state this filter was throwing away — and the better the video
+       * side worked, the more certain the band was that you had never
+       * studied with this person. Two partners who met every week for a
+       * month were told "You haven't studied with Amir yet".
+       *
+       * A settled 'attended' is the same fact from the other direction and
+       * counts for the same reason. */
+      if (s.attendance === 'attended' || s.status === 'completed') {
+        var k0 = (s.partnerName || '').trim().toLowerCase();
+        var t0 = s.startsAt.getTime();
+        if (k0 && (!seen[k0] || t0 > seen[k0])) seen[k0] = t0;
+        return;
+      }
       if (s.status !== 'confirmed') return;
       var t = s.startsAt.getTime();
       if (t + (s.durationMin || 0) * 60000 > now) return;
@@ -460,14 +485,36 @@
       ? Math.round((dayKey(new Date()) - dayKey(new Date(pick.last))) / 86400000) : null;
     var some = rows.some(function(r){ return r.last; });
 
-    /* Nobody has a history yet: there is no one to single out. */
+    /* Nobody has a history yet, so there is nobody to single out — and this
+     * is the most important band on the whole page.
+     *
+     * A partnership that never has a first session is the commonest way this
+     * product fails, and it fails quietly: two people say yes to each other,
+     * neither proposes anything, and a fortnight later both assume the other
+     * lost interest. "Book your first session" was a heading over a form, and
+     * a form is a decision to make later.
+     *
+     * So this names one, in full: who, when, and how long. The time is the
+     * next hour they are both actually free — the same hour the form opens on
+     * — so pressing the button leads to a filled-in proposal rather than an
+     * empty one. And it is a short session on purpose: twenty-five minutes is
+     * the lowest-commitment thing PeerFlow can book, which is the right size
+     * for a first meeting with a stranger and much easier to say yes to than
+     * an hour.
+     */
     if (!some){
+      var who1 = n === 1 ? (list[0].name || 'your partner') : '';
+      var firstAt = n === 1 ? chosen() : null;
       band({
-        tone:'idle', k:'Nothing booked',
-        h: n === 1 ? 'Book your first session with ' + esc(list[0].name || 'your partner') + '.'
+        tone:'idle', k: n === 1 ? 'Your first session' : 'Nothing booked',
+        h: n === 1 ? 'Your first session with ' + esc(String(who1).split(/\s+/)[0]) + '.'
                    : 'Book your first session with one of your partners.',
-        s: pickWhen + tail,
-        a: '<a class="btn" data-open-book href="#book-card">Propose a time</a>'
+        s: firstAt
+             ? dayLong(firstAt) + ' · ' + clockOf(firstAt.getHours(), firstAt.getMinutes()) +
+               ' · a ' + bkLen + '-minute first session. Nothing is booked until they accept.'
+             : pickWhen + tail,
+        a: '<a class="btn" data-open-book href="#book-card">' +
+             (firstAt ? 'Propose this time' : 'Propose a time') + '</a>'
       });
       return;
     }
@@ -805,6 +852,28 @@
     syncRail();
   }
 
+  /* ---------- cancelling, and saying what it costs ----------
+
+     The single most useful thing this whole feature does for somebody who
+     cannot make a session is tell them, before they press anything, which
+     kind of cancellation they are about to make. Six hours out it is free and
+     should say so, because "I might as well just not turn up" is exactly the
+     thought this is here to head off. Inside six hours it is a late
+     cancellation, and knowing that is still far better than finding out
+     afterwards — and both are enormously better than saying nothing.
+
+     Deliberately never a warning. Cancelling is the behaviour PeerFlow wants;
+     a button that flinched at it would be arguing with its own product. */
+  function cancelCost(startsAt){
+    if (!window.pfReliability) return '';
+    var kind = pfReliability.cancelKind(startsAt, new Date());
+    return kind === 'cancelled_early'
+      ? 'Cancelling now costs you nothing.'
+      : 'That is under ' + pfReliability.POLICY.cancelNoticeHours +
+        ' hours’ notice, so it counts as a late cancellation. Still much better ' +
+        'than not turning up.';
+  }
+
   /* ---------- sessions list ---------- */
   function slot(s, past){
     var label = [s.partnerName ? 'with ' + s.partnerName : '', s.topic || ''].filter(Boolean).join(' · ');
@@ -834,6 +903,11 @@
     if (!btn) {
       Array.prototype.forEach.call(this.querySelectorAll('[data-armed="1"]'), function(b){
         b.removeAttribute('data-armed'); b.classList.remove('danger'); b.textContent = 'Cancel';
+        /* Disarming takes the notice with it. A sentence about what
+           cancelling would cost, sitting under a row with no armed button,
+           reads as something that has already happened. */
+        var n = b.closest('.slot').querySelector('.slot-err.note');
+        if (n) { n.hidden = true; n.textContent = ''; n.className = 'slot-err'; }
       });
       return;
     }
@@ -841,9 +915,17 @@
       btn.setAttribute('data-armed', '1');
       btn.classList.add('danger');
       btn.textContent = 'Sure? Cancel it';
+      /* The arming press is the moment to say what this will do, because it
+         is the last moment where saying it can change anything. It goes in
+         the row's own error line, which is the one element already positioned
+         to hold a sentence about this session. */
+      var note = btn.closest('.slot').querySelector('.slot-err');
+      var cost = cancelCost(new Date(btn.getAttribute('data-at')));
+      if (note && cost) { note.textContent = cost; note.hidden = false; note.className = 'slot-err note'; }
       return;
     }
     var row = btn.closest('.slot'), err = row.querySelector('.slot-err');
+    err.className = 'slot-err';
     btn.disabled = true; btn.textContent = 'Cancelling…';
     err.hidden = true;
     /* cancelBooked, not cancelSession: this one has to leave a trace, so the
@@ -1309,6 +1391,16 @@
     bookPartner = bookPartners[i] || null;
     if (!bookPartner) return;
     document.getElementById('bk-note').textContent = '';
+    /* A first meeting opens at twenty-five minutes rather than fifty.
+     *
+     * It is the shortest thing PeerFlow books, and it is the right size for
+     * an hour with somebody you have never spoken to: easier to say yes to,
+     * easier to turn up for, and it makes the second one a decision the two
+     * of them get to take together rather than something the form assumed.
+     * Every later session with the same person goes back to the usual fifty.
+     *
+     * Only ever a default. The length menu is right there and untouched. */
+    bkLen = bookPartner.met ? 50 : 25;
     buildPicks();
     bkMin = 0;
     var first = freeDays()[0];
@@ -1403,7 +1495,7 @@
      sub-headings already track their own list, so they answer the question. */
   /* How many rows the card is holding, so it can tell whether it is saying
      anything the band has not already said. */
-  var sessRows = { prop: 0, up: 0, goal: 0 };
+  var sessRows = { prop: 0, up: 0, goal: 0, ci: 0 };
 
   /* The card exists to list things. With one booked session and nothing else
      it listed the one thing the band above it was already describing, in
@@ -1443,9 +1535,10 @@
     document.getElementById('prop-h').hidden = !sessRows.prop;
     document.getElementById('up-h').hidden   = !showBooked;
     document.getElementById('upcoming').hidden = !showBooked;
+    document.getElementById('ci-h').hidden   = !sessRows.ci;
     document.getElementById('goal-h').hidden = !sessRows.goal;
     document.getElementById('sess-card').hidden =
-      !sessRows.goal && !sessRows.prop && !showBooked;
+      !sessRows.goal && !sessRows.prop && !showBooked && !sessRows.ci;
     syncDash();
   }
   /* Called by a relay from the band before it clicks the row's real button,
@@ -1485,6 +1578,150 @@
     }).join('');
     syncSessCard();
   }
+
+  /* ---------- the check-in ----------
+
+     Two questions after a session, and deliberately no more than two. Every
+     instinct here is to ask for a rating, and every rating asked for is a
+     rating most people skip and the rest answer out of politeness — which
+     leaves a number that measures how somebody felt about being asked. The
+     two things worth knowing cannot be got any other way: whether the other
+     person was actually there, and whether these two want to carry on.
+
+     Only for sessions that finished in the last few days, and only once. An
+     unanswered check-in from three weeks ago is not a question anybody can
+     usefully answer, and a dashboard that keeps a stack of them is a
+     dashboard people learn to scroll past. */
+  var CHECKIN_DAYS = 4;
+
+  /* The sessions worth asking about: recent, finished, not already answered,
+     and with somebody on the other side of them. */
+  function checkinsDue(all){
+    var now = Date.now();
+    return (all || []).filter(function(s){
+      if (s.checkedInAt) return false;
+      if (s.status === 'cancelled' || s.status === 'declined' || s.status === 'proposed') return false;
+      var ended = s.startsAt.getTime() + (s.durationMin || 50) * 60000;
+      if (ended > now) return false;
+      if (now - ended > CHECKIN_DAYS * 86400000) return false;
+      return !!s.partnerName;
+    }).sort(function(a, b){ return b.startsAt - a.startsAt; }).slice(0, 2);
+  }
+
+  /* `outcomes` is what partner_outcomes() said about the OTHER side of each
+     of these sessions, keyed by session id, or null if it could not be asked.
+
+     It has to be the partner's row and not this one. The first version read
+     s.attendance — which is the caller's own outcome — so a session where you
+     turned up and your partner did not printed "Amir was there", cheerfully,
+     directly underneath a band saying he had not been. Your attendance is
+     never the answer to a question about theirs. */
+  function renderCheckins(all, outcomes){
+    var due = checkinsDue(all);
+    sessRows.ci = due.length;
+    document.getElementById('ci-list').innerHTML = due.map(function(s){
+      var who = esc(String(s.partnerName || 'your partner').split(/\s+/)[0]);
+      var key = ' data-s="' + esc(s.id) + '"';
+      var o = outcomes && outcomes[s.id];
+      /* The first question is skipped where PeerFlow already knows the
+         answer. Asking somebody to confirm what the room watched happen is
+         asking them to do the server's job, and an answer that cannot change
+         anything is a question that should not have been put. */
+      var known = o && (o.attendance === 'attended' || o.attendance === 'no_show');
+      return '<div class="slot cirow">' +
+        '<span class="what"><b class="ci-t">' + esc(when(s.startsAt)) + ' with ' +
+          esc(s.partnerName) + '</b>' +
+          '<span>' + (known
+            ? (o.attendance === 'attended'
+                 ? who + ' was there.'
+                 : who + ' didn’t make it. Nothing on your record changes.')
+            : 'Did ' + who + ' show up?') + '</span></span>' +
+        /* Two questions, so two groups. Four buttons in one even row read as
+           one menu of four choices, and "No" sitting flush against "Study
+           again" invited the pair to be read as a single answer. The gap
+           between the groups is the only thing saying they are separate
+           questions, so it is wider than the gap inside them. */
+        '<span class="ci-a">' +
+          (known ? '' :
+            '<span class="ci-q">' +
+              '<button class="small" data-ci-showed="1"' + key + '>Yes</button>' +
+              '<button class="small" data-ci-showed="0"' + key + '>No</button>' +
+            '</span>') +
+          '<span class="ci-q">' +
+            '<button class="btn" data-ci-go="continue"' + key + '>Study again</button>' +
+            '<button class="small" data-ci-go="stop"' + key + '>Find someone else</button>' +
+          '</span>' +
+        '</span>' +
+        '<p class="slot-err" hidden></p></div>';
+    }).join('');
+    syncSessCard();
+  }
+
+  document.getElementById('ci-list').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-ci-showed],[data-ci-go]');
+    if (!btn) return;
+    var row = btn.closest('.slot'), err = row.querySelector('.slot-err');
+    var stop = btn.getAttribute('data-ci-go') === 'stop';
+
+    /* Ending a partnership is the one irreversible thing on this row, so it
+       asks twice — the same two-press shape as Cancel, for the same reason
+       and with the same look. Nothing else here needs it: saying somebody
+       turned up, or that you would like to carry on, is not a thing anybody
+       needs protecting from. */
+    if (stop && btn.getAttribute('data-armed') !== '1') {
+      btn.setAttribute('data-armed', '1');
+      btn.classList.add('danger');
+      btn.textContent = 'Sure? End it';
+      err.textContent = 'This ends the partnership and takes anything you had booked off ' +
+                        'both calendars. It is not a report and they are not told why.';
+      err.hidden = false;
+      err.className = 'slot-err note';
+      return;
+    }
+
+    var showed = btn.hasAttribute('data-ci-showed')
+      ? btn.getAttribute('data-ci-showed') === '1' : null;
+    var go = btn.getAttribute('data-ci-go');
+
+    Array.prototype.forEach.call(row.querySelectorAll('button'), function(b){ b.disabled = true; });
+    err.hidden = true; err.className = 'slot-err';
+
+    function back(msg){
+      Array.prototype.forEach.call(row.querySelectorAll('button'), function(b){ b.disabled = false; });
+      btn.removeAttribute('data-armed'); btn.classList.remove('danger');
+      if (stop) btn.textContent = 'Find someone else';
+      err.textContent = msg; err.hidden = false;
+    }
+
+    pf.sessionCheckin(btn.getAttribute('data-s'), showed, go).then(function(res){
+      if (!res || !res.saved) {
+        back((res && res.error) || 'Could not save that — please try again.');
+        return;
+      }
+      /* One case does not reload, and it is the important one. "They did not
+         turn up" that PeerFlow cannot stand behind is not a failure and must
+         not be reported as one — but silently reloading would let somebody
+         believe they had put a no-show on a record when they had not. It says
+         what happened, keeps the answer, and leaves the row alone. */
+      if (res.outcome === 'unverified') {
+        err.textContent = 'Noted. PeerFlow did not see either of you in the room, so there ' +
+                          'is nothing to check that against and it has not been put on ' +
+                          'their record. If this keeps happening, report it instead.';
+        err.hidden = false;
+        err.className = 'slot-err note';
+        Array.prototype.forEach.call(row.querySelectorAll('[data-ci-showed]'), function(b){
+          b.disabled = true;
+        });
+        Array.prototype.forEach.call(row.querySelectorAll('[data-ci-go]'), function(b){
+          b.disabled = false;
+        });
+        return;
+      }
+      window.location.reload();
+    }, function(){
+      back('Could not save that — check your connection and try again.');
+    });
+  });
 
   document.getElementById('goal-list').addEventListener('click', function(e){
     var btn = e.target.closest('[data-goal]');
@@ -2026,6 +2263,28 @@
     var meta = user.user_metadata || {};
     var name = meta.name || meta.full_name || cached || (user.email || '').split('@')[0];
 
+    /* Two housekeeping calls, both of them safe on every load and neither of
+       them blocking anything on screen.
+
+       settleAttendance decides the outcome of anything of yours that has
+       finished — which is how a no-show gets written down at all on a static
+       site with no scheduler. It runs here rather than on a timer because the
+       person who most wants it written down is the one who sat waiting
+       through it, and they are exactly the person opening this page.
+
+       sendReminders posts the 24-hour, 1-hour and 10-minute notes that are
+       due on any session you are part of, including your partner's copy — so
+       your partner opening PeerFlow at lunchtime is what reminds you about
+       this evening. With pg_cron installed the database has already done both
+       and these find nothing to do.
+
+       Deliberately not awaited. Neither changes anything the page is about to
+       draw for THIS load — a verdict settled now shows up on the next one —
+       and making the dashboard wait on them would trade the thing people came
+       for against bookkeeping they never asked about. */
+    if (pf.settleAttendance) pf.settleAttendance();
+    if (pf.sendReminders) pf.sendReminders();
+
     /* All three at once. The profile used to be awaited on its own before the
        partner and sessions queries were even sent, which made the page wait
        out two round trips end to end instead of one. Nothing in the partner
@@ -2090,6 +2349,42 @@
             return s.status === 'cancelled' && !s.cancelledByMe;
           })[0] || null;
           var upcoming = sessions.filter(function(s){ return s.startsAt.getTime() + s.durationMin * 60000 > now; });
+
+          /* Sessions where somebody may have been left sitting there.
+           *
+           * Only candidates at this point. Whether the other person actually
+           * turned up lives on their row, which is not readable from here —
+           * "read own sessions" keeps a calendar private, correctly — so it
+           * takes a round trip, and the band is upgraded when it lands rather
+           * than the page waiting on it. In the ordinary case this list is
+           * empty and no call is made at all.
+           *
+           * The filter is "I was there, it is recent, and I have not already
+           * answered the check-in about it". Anything that survives that is
+           * worth one question of the database. */
+          var stoodUpMaybe = all.filter(function(s){
+            if (s.attendance !== 'attended') return false;
+            if (!s.partnerName || s.checkedInAt) return false;
+            return s.startsAt.getTime() > now - 2 * 86400000;
+          }).sort(function(a, b){ return b.startsAt - a.startsAt; }).slice(0, 4);
+
+          /* And the live version of the same thing, which needs no round trip
+           * because it is about a room you are in right now. Past the ten
+           * minute grace, you have joined, they have not arrived yet.
+           *
+           * Nothing is decided at this point and the wording must not pretend
+           * otherwise — they can still walk in at minute twenty, and the
+           * band says "hasn't arrived" rather than anything final. It is the
+           * grace period doing its actual job: the ten minutes are what
+           * PeerFlow waits before it will say anything at all. */
+          var GRACE_MS = (window.pfReliability
+            ? pfReliability.POLICY.graceMinutes : 10) * 60000;
+          var alone = upcoming.filter(function(s){
+            var began = now - s.startsAt.getTime();
+            return began > GRACE_MS && began < s.durationMin * 60000 &&
+                   s.joinedAt && !!s.partnerName;
+          })[0] || null;
+
           var partner = partners[0] || null;
           /* acceptedPartners() gives {requestId, profile} — the name
              lives on .profile, not on the row itself. */
@@ -2099,6 +2394,17 @@
              people accepting you, and the form used to be wired to
              partners[0] — so a second partner existed in the database and
              was unreachable from the page. */
+          /* Whether the two of you have actually met yet, which decides how
+             long the form opens at and how the band talks about it. Counted
+             off the partnership rather than the name, so somebody with two
+             partners called Sam gets the right answer. */
+          var metPairs = {};
+          all.forEach(function(s){
+            if (!s.pairId) return;
+            if (s.attendance === 'attended') { metPairs[s.pairId] = true; return; }
+            if (s.status === 'completed') metPairs[s.pairId] = true;
+          });
+
           bookPartners = partners.filter(function(x){ return x.profile && x.profile.id; })
             .map(function(x){
               return {
@@ -2108,6 +2414,7 @@
                 availability: x.profile.availability || [],
                 timezone: x.profile.timezone || '',
                 requestId: x.requestId,
+                met: !!metPairs[x.requestId],
                 standing: x.standing || null
               };
             });
@@ -2151,12 +2458,57 @@
             });
           });
 
-          /* ----- which of the six states are you in? -----
+          /* The band for "you are in the room and they are not", built here
+             so that both the live version and the settled one below say the
+             same three things in the same order.
+
+             Reschedule first, because it is what most people actually want
+             after being stood up once and it is the outcome PeerFlow wants
+             too. Message second. Somebody else last — offered plainly rather
+             than buried, because a person who has been let down should not
+             have to go looking for the exit, but not first either, because
+             one miss is not a reason to end a partnership and the page should
+             not suggest that it is. */
+          function abandonedActs(s){
+            var acts = '<a class="btn" data-open-book href="#book-card">Reschedule</a>';
+            var pid = (bookPartners.filter(function(p){
+              return p.requestId === s.pairId; })[0] || {}).id;
+            if (pid) acts += '<a class="ghost" href="app-chat.html?to=' + encodeURIComponent(pid) +
+                             '">Message ' + esc(String(s.partnerName).split(/\s+/)[0]) + '</a>';
+            acts += '<a class="ghost" href="app-people.html">Find another partner</a>';
+            return acts;
+          }
+
+          /* ----- which of the states are you in? -----
              Priority runs from the most time-critical downwards, and the
              first match wins. Whoever is waiting on whom decides the tone:
              something you have to answer looks different from something
              already agreed, which looks different from an empty week. */
-          if (upcoming.length){
+          /* Sitting in a room nobody else came to.
+           *
+           * This is tested before the live band and not after it, because the
+           * live band says "Alex is waiting" — which, in this exact state, is
+           * the opposite of what has happened. It is the same session and the
+           * room is still open, so the tone and the primary action stay the
+           * same and only the sentence changes.
+           *
+           * Softer than the settled version below, deliberately. The session
+           * is still running and they can still walk in at minute twenty, so
+           * nothing here is a verdict and nothing offers to end anything. */
+          if (alone){
+            var af = String(alone.partnerName).split(/\s+/)[0];
+            var apid = (bookPartners.filter(function(p){
+              return p.requestId === alone.pairId; })[0] || {}).id;
+            band({
+              tone:'live', at: alone.startsAt, k:'Nobody there yet',
+              h: esc(af) + ' hasn’t arrived.',
+              s: 'It has been more than ' + (GRACE_MS / 60000) + ' minutes. They may still turn ' +
+                 'up — and if they don’t, none of this lands on your record.',
+              a: '<a class="btn" href="call.html?s=' + encodeURIComponent(alone.id) + '">Back to the room</a>' +
+                 (apid ? '<a class="ghost" href="app-chat.html?to=' + encodeURIComponent(apid) +
+                         '">Message ' + esc(af) + '</a>' : '')
+            });
+          } else if (upcoming.length){
             var next = upcoming[0];
             var live = isOpen(next);
             var who  = next.partnerName || pname;
@@ -2239,6 +2591,64 @@
           $('upcoming').innerHTML = upcoming.map(function(s){ return slot(s, false); }).join('');
           sessRows.up = upcoming.length;
           renderGoals(all);
+
+          /* ----- the two things that need an answer from the server -----
+           *
+           * Whether your partner turned up lives on their row, and their row
+           * is not readable — "read own sessions" keeps a calendar private.
+           * So both the band that says they did not and the check-in row that
+           * would otherwise ask you a question PeerFlow can already answer
+           * are waiting on the same fact, and it is fetched once for both.
+           *
+           * The check-in card is drawn from inside that call rather than
+           * before it. It appears a beat later than the rest of the page,
+           * which is the right trade: a row that asks "did Amir show up?" and
+           * then rewrites itself to "Amir didn't make it" half a second later
+           * is worse than one that arrives correct.
+           */
+          var ciDue = checkinsDue(all);
+          var askAbout = {};
+          stoodUpMaybe.concat(ciDue).forEach(function(s){ askAbout[s.id] = true; });
+          var askIds = Object.keys(askAbout);
+
+          if (askIds.length && pf.partnerOutcomes){
+            pf.partnerOutcomes(askIds).then(function(by){
+              renderCheckins(all, by);
+              if (!by) return;
+
+              /* A missed session is worth saying once and then dropping. Held
+               * for two days because that covers "I missed it, and I opened
+               * PeerFlow the following evening"; answering the check-in
+               * directly below clears it for good.
+               *
+               * It replaces the band only over the states it genuinely
+               * outranks: nothing booked, waiting on them, a time they turned
+               * down. Not a live call, not a proposal needing your answer,
+               * and not the band that is already about being stood up —
+               * those are more urgent or the same news. Reading the tone
+               * rather than re-running the priority chain keeps that decision
+               * in one place and stops the page flickering between two bands.
+               */
+              var hit = stoodUpMaybe.filter(function(s){
+                var o = by[s.id];
+                return o && o.attendance === 'no_show';
+              })[0];
+              if (!hit) return;
+              var tone = $('now').getAttribute('data-tone');
+              if (tone !== 'idle' && tone !== 'none') return;
+
+              var f = String(hit.partnerName).split(/\s+/)[0];
+              band({
+                tone:'quiet', k:'Missed session',
+                h: esc(f) + ' didn’t make it.',
+                s: 'You were there for ' + when(hit.startsAt) + ' and they weren’t. Nothing ' +
+                   'about it counts against you, and it is on their record rather than yours.',
+                a: abandonedActs(hit)
+              });
+            }).catch(function(){ renderCheckins(all, null); });
+          } else {
+            renderCheckins(all, null);
+          }
 
           /* ----- calendar -----
              Everything except proposals somebody already answered: a declined

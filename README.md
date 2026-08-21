@@ -161,9 +161,86 @@ alongside the others; without it the app still works — the insert drops the
 column and the partnership is read back out of the older room names — but
 new rooms are unindexed and the backfill hasn't run.
 
+## Who turned up
+
+**A study partner who actually shows up** is the promise, so every scheduled
+person ends with one of five outcomes on their own half of the session
+(`supabase/migration-attendance.sql`):
+
+| | |
+|---|---|
+| `attended` | they were in the room |
+| `cancelled_early` | called off with at least six hours' notice |
+| `cancelled_late` | called off inside six hours |
+| `no_show` | the room was open, they were not in it, and they said nothing |
+| `excused` | nothing was asked of them — the other person called it off first |
+
+Nothing decides an outcome from silence. A session neither of them joined is,
+from inside the database, indistinguishable from a site whose LiveKit webhook
+was never deployed, so it gets no verdict at all rather than two no-shows.
+The case that *is* decided — one turns up and the other does not — is the one
+nothing used to catch, because LiveKit only sends `room_finished` once a room
+has existed and a room only exists once somebody joins.
+
+The score is the last twenty graded outcomes, each older one counting 0.9 as
+much as the one after it, over a prior of two invisible sessions at 85%.
+Attending is full credit (0.8 if you came in more than ten minutes late), a
+late cancellation 0.4, a no-show nothing. Cancelling early is not graded at
+all — it is the behaviour PeerFlow wants, and a system that shaves a point off
+it is arguing with itself. Under three graded sessions there is no percentage,
+only **New partner**: a new member is not an unreliable one, and a blank
+column between two people who have numbers reads as bad news.
+
+Cancelling everything early is therefore not a way to keep a perfect record.
+It is not a graded session, so the floor is never reached and the profile
+reads "New partner" for as long as that continues.
+
+`assets/reliability.js` is the same policy in the browser — the words, the
+six-hour line so the Cancel button can say what it will cost *before* it is
+pressed, and a readable copy of the formula. `reliability_of()` in the
+database is the authority and always will be, because a score a browser can
+compute is a score a browser can edit. The two are pinned to each other:
+`dev/reliability-tests.js` and `dev/sql-tests.sh` build the same fixtures and
+assert the same percentages, so changing the policy in one file turns both
+suites red.
+
+**Nobody writes their own attendance.** `schema.sql`'s "answer a proposal"
+policy allows an UPDATE on your own session row, and `attended` is a column on
+that row — so anybody who could open a console could mark themselves present
+at every session they had ever booked. A trigger now refuses that, and it is
+`SECURITY INVOKER` on purpose: a definer trigger runs as its owner whoever
+called it, so `current_user` inside one would be the owner for everybody
+including the browser it exists to stop.
+
+Three missed sessions inside thirty days pauses **new partner requests** for
+seven days, enforced by the insert policy on `partner_requests`. Nothing else
+is affected — partners, sessions, messages and history all carry on — and it
+lifts on its own.
+
+After a session, Today asks two things and no more: did they show up, and do
+you want to carry on. "Yes" can only ever fill an outcome nobody has yet, so
+there is nothing to gain by lying. "No" is only acted on when the accuser was
+demonstrably in the room and the accused demonstrably was not — you cannot
+report an empty room you never entered, and you cannot contradict a join the
+server watched happen. Where neither holds, the answer is kept and settles
+nothing, and the page says so rather than pretending it landed.
+
+Reminders go at 24 hours, 1 hour and 10 minutes. There is no scheduler behind
+a static site, so the sweep runs from whoever opens the app — for both people
+in a session, which is what makes it useful: your partner opening PeerFlow at
+lunchtime is what reminds you about this evening. With `pg_cron` installed the
+migration schedules it properly and the page-load path finds nothing to do.
+
 ## Status
 
 Early, and live at [peerflow.dev](https://peerflow.dev). Email and Google
 sign-in work, as do password resets. The GitHub button stays hidden until that
 OAuth app is configured. Nothing notifies anyone by email yet — proposals,
-accepts and cancellations only show up in the app.
+accepts, cancellations, reminders and missed sessions only show up in the app.
+
+Attendance needs `supabase/migration-attendance.sql` run, and it needs the
+video side actually deployed (`docs/VIDEO.md`) to have anything to observe.
+Without LiveKit reporting joins, no session is ever settled, the reliability
+score stays blank for everybody, and the check-in's "did they show up" can
+confirm somebody but never accuse them — which is the correct behaviour with
+no evidence, and the reason the number is worth trusting when it does appear.
