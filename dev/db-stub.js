@@ -264,7 +264,27 @@ window.pf = (function(){
     clearStanding:function(){note('clear');return P({saved:true})},
     materialiseStanding:function(){note('materialise');
       return P({saved:true,count:window.__materialiseCount||0})},
-    fetchSessions:function(){return P(applyAnswers(window.__sessions||(window.__empty?[]:SESSIONS)))},
+    /* __attendanceMissing has to change the SHAPE of a row, not just make the
+       attendance RPCs answer needsMigration. The real fetchSessions climbs
+       down a ladder of column sets, so on an un-migrated database the
+       attendance columns are never selected and arrive undefined — and
+       `attendance === undefined` is exactly what the dashboard reads to
+       decide whether the post-session check-in can be stored at all.
+
+       A dial that left the keys in place while the RPCs refused was worse
+       than no dial: it made the un-migrated case look migrated to every
+       reader on the page, which is how the check-in card came to be drawn on
+       a site that could not save it. */
+    fetchSessions:function(){
+      var rows = applyAnswers(window.__sessions||(window.__empty?[]:SESSIONS));
+      if(!window.__attendanceMissing) return P(rows);
+      var GONE = ['attendance','attendanceSource','settledAt','partnerOk',
+                  'checkedInAt','continuePref','joinedAt'];
+      return P((rows||[]).map(function(s){
+        var c={}; for(var k in s){ if(Object.prototype.hasOwnProperty.call(s,k)
+          && GONE.indexOf(k)<0) c[k]=s[k]; }
+        return c;
+      }))},
     /* The real one crosses two timezones; here it is a fixed set of shared
        hours so the booking sentence has days to offer. Tue/Thu/Sun evenings,
        keyed by JS weekday like the real byDay. */

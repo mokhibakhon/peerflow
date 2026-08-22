@@ -369,14 +369,21 @@ const rowOf = p => p.evaluate(() => {
     const r = await p.evaluate(() => ({
       band: document.querySelector('#now-h').innerText.trim(),
       row: !!document.querySelector('#ci-list .cirow'),
-      ask: (document.querySelector('#ci-list .cirow .what span:not(.ci-t)') || {}).innerText
+      head: !document.querySelector('#ci-h').hidden,
+      booked: !!document.querySelector('#upcoming .slot, #now-a')
     }));
-    /* The check-in still asks — it is answerable from either side and the
-       question is not migration-dependent — but nothing claims to know an
-       outcome it cannot have been told. */
     ok('the page still draws', !!r.band);
-    ok('  and asks rather than asserting an outcome it cannot have',
-       r.row && /Did Amir show up\?/.test(r.ask || ''), String(r.ask));
+    /* This asserted the opposite for one commit, on the reasoning that the
+       question is answerable from either side and is not migration-dependent.
+       It is: session_checkin() arrives in the same migration as the column,
+       so on an un-migrated site the card was drawn and all four of its
+       buttons answered "Check-ins aren't switched on for this site yet".
+       Every other part of the dashboard degrades by falling back to what it
+       said before. This one has nothing to fall back to, so it goes. */
+    ok('  and does NOT draw a check-in it has no way to store',
+       !r.row && !r.head, 'row=' + r.row + ' heading=' + r.head);
+    ok('  while everything that does not depend on the migration stays',
+       r.booked);
     await p.close();
   }
 

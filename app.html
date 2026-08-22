@@ -1599,6 +1599,22 @@
   function checkinsDue(all){
     var now = Date.now();
     return (all || []).filter(function(s){
+      /* Nothing to ask on a database that cannot store the answer.
+       *
+       * fetchSessions climbs down a ladder of column sets, so on a site where
+       * migration-attendance.sql has not been run the attendance column is
+       * not selected at all and arrives undefined — as against null, which
+       * means "selected, and no verdict yet". That is the only signal the
+       * page has, and it is the right one: it is true exactly when
+       * session_checkin() is also missing, because they arrive in the same
+       * migration.
+       *
+       * Without this the card was drawn on an un-migrated site and every one
+       * of its four buttons answered "Check-ins aren't switched on for this
+       * site yet" — a question asked of somebody who had no way to answer it.
+       * The rest of the dashboard degrades by falling back to what it said
+       * before; this one had nothing to fall back to, so it goes. */
+      if (s.attendance === undefined) return false;
       if (s.checkedInAt) return false;
       if (s.status === 'cancelled' || s.status === 'declined' || s.status === 'proposed') return false;
       var ended = s.startsAt.getTime() + (s.durationMin || 50) * 60000;

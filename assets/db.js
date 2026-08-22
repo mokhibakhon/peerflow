@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-21b';
+window.PF_BUILD = '2026-08-21c';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -463,8 +463,18 @@ window.pf = (function(){
                  Undefined rather than null on a database that has not run
                  migration-attendance.sql, because the column is not selected
                  at all there and "we did not ask" is not "the answer was
-                 nothing". */
-              attendance: s.attendance || null,
+                 nothing".
+
+                 `'attendance' in s` and not `s.attendance || null`, which is
+                 what this was and which coerced the undefined straight back
+                 to null — destroying the distinction the comment above spends
+                 six lines drawing. The cost was not theoretical: the
+                 dashboard could no longer tell an un-migrated database from
+                 an unsettled session, so it drew the post-session check-in on
+                 a site whose session_checkin() did not exist, and all four
+                 buttons answered "Check-ins aren't switched on for this site
+                 yet". A control that cannot work should not be drawn. */
+              attendance: ('attendance' in s) ? (s.attendance || null) : undefined,
               attendanceSource: s.attendance_source || null,
               settledAt: s.settled_at ? new Date(s.settled_at) : null,
               /* The check-in: what this person said about the other one, and

@@ -90,21 +90,25 @@ congratulating the user.
   `assets/`**, and ask for it before believing a bug report about behaviour you
   have already fixed.
 
-- **Pushing to `main` does not deploy anything.** The Vercel project's GitHub
-  connection is broken — its Git settings still name the repository
-  `mokhibakhon/posfps`, which is what this repo was called before it was
-  renamed, and no push has produced a deployment since. Production tracks
-  `main` and simply never hears about it. Deploy by hand from the user's
-  clone:
+- **Pushing to `main` deploys to production.** The Vercel Git connection works;
+  it was reconnected after the repository rename. Treat a merge to `main` as a
+  release, not as saving your work — there is no separate deploy step to
+  forget, and no window between merging and it being live.
 
-      git pull && npx vercel --prod
+  **So anything that needs a migration must have the migration run first, or
+  at least in the same sitting.** `supabase/*.sql` are pasted in by hand (see
+  below) and nothing in CI applies them, so a merge can put code in front of
+  users whose tables do not exist yet. Every reader in `db.js` falls back when
+  a column or function is missing — but falling back is not free: a control
+  that cannot save anything must not be drawn at all, rather than drawn and
+  refusing. `checkinsDue()` in `app.html` is the worked example, and it exists
+  because that exact thing shipped.
 
-  This cost most of a day. Several correct fixes appeared to do nothing,
-  because the live site was serving a build from before the video work
-  existed, and the hunt went through the code instead of the deploy. **If a
-  fix you have verified does not show up live, ask for `PF_BUILD` from the
-  browser console before writing another line.** Reconnecting the repository
-  in Vercel → Settings → Git is still to do.
+  This entry used to say the opposite — that the connection was broken and you
+  had to run `npx vercel --prod` by hand — and it was wrong for long enough to
+  cause the above. **If a fix you have verified does not show up live, ask for
+  `PF_BUILD` from the browser console before writing another line**, and ask
+  the owner rather than trusting this file about deployment.
 
 ## Migrations
 
