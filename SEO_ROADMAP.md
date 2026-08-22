@@ -38,23 +38,62 @@ indexable and linked from every footer, so they belong in the sitemap and under
 the same canonical rules as the landing pages; they had been treated as if they
 were not.
 
+## What is worth what
+
+Not everything in Phase 1 carries the same weight, and it is worth writing the
+difference down so nobody spends another week on schema tags expecting a
+ranking change.
+
+**Load-bearing.** Canonical host consistency is the only item here that was
+actively costing something: a canonical naming a host the site does not serve
+from tells Google the real page is elsewhere. The IndexNow key had to be
+correct or the whole mechanism was inert. Tests that derive the page list stop
+the next page from being added and forgotten.
+
+**Worth having, not worth expecting much from.** FAQPage markup is the clearest
+case. Google restricted FAQ rich results to well-known authoritative government
+and health sites in August 2023, so for a site like this one the markup will
+almost certainly produce no visible change in Google results. It is kept
+because it is accurate, cheap, and machine-readable for consumers other than
+Google Search — not because it will move a ranking. The same goes for
+`og:locale`, the Open Graph image dimensions, and the extra WebPage and
+BreadcrumbList nodes: correctness and polish, not leverage.
+
+Listing the legal pages in the sitemap is likewise optional rather than urgent.
+A sitemap should carry the canonical URLs you want in search, and nobody needs
+organic traffic on a terms page. Their canonicals pointing at the wrong host
+mattered; their absence from the sitemap did not. They are included because the
+sitemap is now generated from whatever is indexable, and carving out exceptions
+would cost more than it saves.
+
+## Confirmed outside the repository
+
+- **`peerflow.dev` 301s to `www.peerflow.dev`.** Checked directly. Every
+  canonical, the sitemap and robots.txt name the `www` host, and the apex
+  redirects to it, so the site has one address.
+
 ## Still to verify outside the repository
 
-These cannot be checked from the codebase and are worth confirming once:
-
-- **`peerflow.dev` must 301 to `www.peerflow.dev`.** Every canonical, the
-  sitemap and robots.txt name the `www` host. If the apex also serves the site
-  with a 200 instead of redirecting, the whole site exists at two addresses and
-  the canonical tag is the only thing preventing a split. This is a Vercel
-  domain setting, not something `vercel.json` controls.
 - **Search Console** should have both the `www` and apex properties, with the
   sitemap submitted for `www`.
-- **IndexNow** verification: the key file is served at
-  `/be030ef03ed94c948bb69dfcc4f0d4b1.txt` and contains exactly that key. It was
-  previously committed as `YOUR_NEW_KEY.txt`, a placeholder filename, which
-  meant verification could never have succeeded.
-- **The production deploy actually carries these changes.** Pushing to `main`
-  does not deploy; see the deploy note in `CLAUDE.md`.
+- **IndexNow** verification, once deployed: `/be030ef03ed94c948bb69dfcc4f0d4b1.txt`
+  must return exactly that key. It was previously committed as
+  `YOUR_NEW_KEY.txt`, a placeholder filename, which meant verification could
+  never have succeeded.
+- **Which Vercel project a `main` push actually deploys.** `CLAUDE.md` says
+  pushes do not reach production because the production project's Git settings
+  still name the pre-rename repository, and separately that `peerflow-apfq` is
+  a duplicate that deploys on every push. Both can be true at once, which is
+  exactly what makes this confusing: a push can produce a real deployment on
+  the duplicate while `www.peerflow.dev` never changes. Do not settle it from
+  the dashboard's deployment list alone — settle it on the live host. This
+  branch adds a file that did not exist before, so after merging:
+
+      curl -s https://www.peerflow.dev/be030ef03ed94c948bb69dfcc4f0d4b1.txt
+
+  If that returns the key, production is carrying the branch and the deploy
+  note in `CLAUDE.md` is stale and should be corrected. If it 404s, deploy by
+  hand with `npx vercel --prod` and leave the note alone.
 
 ## Phase 2 — prove queries before expanding
 Use Google Search Console. For 4–8 weeks, record queries, impressions, CTR and average position by landing page. Expand only around queries that earn impressions or clearly represent high product intent.
