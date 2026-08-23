@@ -9,10 +9,13 @@
 <link rel="canonical" href="https://www.peerflow.dev/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PeerFlow">
+<meta property="og:locale" content="en_US">
 <meta property="og:title" content="Find a Tech Study Partner for Live Study Sessions | PeerFlow">
 <meta property="og:description" content="Find one compatible tech learner for recurring 1-on-1 camera-on study sessions across eight learning paths.">
 <meta property="og:url" content="https://www.peerflow.dev/">
 <meta property="og:image" content="https://www.peerflow.dev/assets/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="PeerFlow — find one study partner for your IT learning path">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Find a Tech Study Partner for Live Study Sessions | PeerFlow">
@@ -24,12 +27,21 @@
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Organization",
-      "@id": "https://www.peerflow.dev/#organization",
-      "name": "PeerFlow",
+      "@type": "WebPage",
+      "@id": "https://www.peerflow.dev/#webpage",
+      "name": "Find a Tech Study Partner for Live Study Sessions | PeerFlow",
       "url": "https://www.peerflow.dev/",
-      "logo": "https://www.peerflow.dev/assets/logo.svg",
-      "email": "hello@peerflow.dev"
+      "description": "Find a tech study partner across 8 learning paths for recurring 1-on-1 camera-on study sessions. Match by path, level, goals and weekly availability.",
+      "isPartOf": {
+        "@id": "https://www.peerflow.dev/#website"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://www.peerflow.dev/assets/social.png",
+        "width": 1200,
+        "height": 630
+      },
+      "inLanguage": "en"
     },
     {
       "@type": "WebSite",
@@ -37,8 +49,18 @@
       "url": "https://www.peerflow.dev/",
       "name": "PeerFlow",
       "description": "PeerFlow matches tech learners across eight learning paths for recurring 1-on-1 camera-on study sessions.",
-      "publisher": {"@id": "https://www.peerflow.dev/#organization"},
+      "publisher": {
+        "@id": "https://www.peerflow.dev/#organization"
+      },
       "inLanguage": "en"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.peerflow.dev/#organization",
+      "name": "PeerFlow",
+      "url": "https://www.peerflow.dev/",
+      "logo": "https://www.peerflow.dev/assets/logo.svg",
+      "email": "hello@peerflow.dev"
     }
   ]
 }

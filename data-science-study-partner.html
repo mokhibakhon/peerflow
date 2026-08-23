@@ -8,10 +8,13 @@
 <link rel="canonical" href="https://www.peerflow.dev/data-science-study-partner.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PeerFlow">
+<meta property="og:locale" content="en_US">
 <meta property="og:title" content="Find a Data Science Study Partner | PeerFlow">
 <meta property="og:description" content="Find a data science study partner for recurring 1-on-1 camera-on study sessions. Match around Python, SQL, pandas, statistics and projects.">
 <meta property="og:url" content="https://www.peerflow.dev/data-science-study-partner.html">
 <meta property="og:image" content="https://www.peerflow.dev/assets/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="PeerFlow — find a data science study partner for camera-on study sessions">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Find a Data Science Study Partner | PeerFlow">
@@ -29,20 +32,106 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebPage",
-  "name": "Find a Data Science Study Partner",
-  "url": "https://www.peerflow.dev/data-science-study-partner.html",
-  "description": "Find a data science study partner for recurring 1-on-1 camera-on study sessions. Match around Python, SQL, pandas, statistics and projects.",
-  "isPartOf": {
-    "@type": "WebSite",
-    "name": "PeerFlow",
-    "url": "https://www.peerflow.dev/"
-  },
-  "about": {
-    "@type": "Thing",
-    "name": "Data science"
-  },
-  "inLanguage": "en"
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://www.peerflow.dev/data-science-study-partner.html#webpage",
+      "name": "Find a Data Science Study Partner | PeerFlow",
+      "url": "https://www.peerflow.dev/data-science-study-partner.html",
+      "description": "Find a data science study partner for recurring 1-on-1 camera-on study sessions. Match around Python, SQL, pandas, statistics and projects.",
+      "isPartOf": {
+        "@id": "https://www.peerflow.dev/#website"
+      },
+      "about": {
+        "@type": "Thing",
+        "name": "Data science"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://www.peerflow.dev/assets/social.png",
+        "width": 1200,
+        "height": 630
+      },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.peerflow.dev/#website",
+      "url": "https://www.peerflow.dev/",
+      "name": "PeerFlow",
+      "publisher": {
+        "@id": "https://www.peerflow.dev/#organization"
+      },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.peerflow.dev/#organization",
+      "name": "PeerFlow",
+      "url": "https://www.peerflow.dev/",
+      "logo": "https://www.peerflow.dev/assets/logo.svg",
+      "email": "hello@peerflow.dev"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.peerflow.dev/data-science-study-partner.html#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "PeerFlow",
+          "item": "https://www.peerflow.dev/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Data Science study partner",
+          "item": "https://www.peerflow.dev/data-science-study-partner.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.peerflow.dev/data-science-study-partner.html#faq",
+      "isPartOf": {
+        "@id": "https://www.peerflow.dev/data-science-study-partner.html#webpage"
+      },
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is a PeerFlow “study with me” session?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is a live 1-on-1 study session with your matched peer. You both turn on your cameras, say what you plan to work on, focus on your own learning or project, and use check-ins when discussion helps."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is this only for advanced data scientists?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. PeerFlow can work for learners starting with spreadsheets, SQL, Python or pandas as well as people building more complete data projects."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use my own course or dataset?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. PeerFlow does not replace your curriculum. Bring the course, dataset, notebook, or project you are already using and add a consistent peer to the process."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is this a random public study room?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. PeerFlow focuses on peer-to-peer matching. The goal is to find one compatible learner and build a recurring study routine together rather than drop into an anonymous group."
+          }
+        }
+      ]
+    }
+  ]
 }
 </script>
 </head>

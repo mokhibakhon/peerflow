@@ -8,10 +8,13 @@
 <link rel="canonical" href="https://www.peerflow.dev/frontend-study-partner.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PeerFlow">
+<meta property="og:locale" content="en_US">
 <meta property="og:title" content="Find a Frontend Study Partner | PeerFlow">
 <meta property="og:description" content="Find a frontend study partner for recurring 1-on-1 camera-on study sessions. Match by level, goals and weekly availability on PeerFlow.">
 <meta property="og:url" content="https://www.peerflow.dev/frontend-study-partner.html">
 <meta property="og:image" content="https://www.peerflow.dev/assets/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="PeerFlow — find a frontend study partner for camera-on study sessions">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Find a Frontend Study Partner | PeerFlow">
@@ -29,20 +32,106 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebPage",
-  "name": "Find a Frontend Study Partner",
-  "url": "https://www.peerflow.dev/frontend-study-partner.html",
-  "description": "Find a frontend study partner for recurring 1-on-1 camera-on study sessions. Match by level, goals and weekly availability on PeerFlow.",
-  "isPartOf": {
-    "@type": "WebSite",
-    "name": "PeerFlow",
-    "url": "https://www.peerflow.dev/"
-  },
-  "about": {
-    "@type": "Thing",
-    "name": "Frontend development"
-  },
-  "inLanguage": "en"
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://www.peerflow.dev/frontend-study-partner.html#webpage",
+      "name": "Find a Frontend Study Partner | PeerFlow",
+      "url": "https://www.peerflow.dev/frontend-study-partner.html",
+      "description": "Find a frontend study partner for recurring 1-on-1 camera-on study sessions. Match by level, goals and weekly availability on PeerFlow.",
+      "isPartOf": {
+        "@id": "https://www.peerflow.dev/#website"
+      },
+      "about": {
+        "@type": "Thing",
+        "name": "Frontend development"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://www.peerflow.dev/assets/social.png",
+        "width": 1200,
+        "height": 630
+      },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.peerflow.dev/#website",
+      "url": "https://www.peerflow.dev/",
+      "name": "PeerFlow",
+      "publisher": {
+        "@id": "https://www.peerflow.dev/#organization"
+      },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.peerflow.dev/#organization",
+      "name": "PeerFlow",
+      "url": "https://www.peerflow.dev/",
+      "logo": "https://www.peerflow.dev/assets/logo.svg",
+      "email": "hello@peerflow.dev"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.peerflow.dev/frontend-study-partner.html#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "PeerFlow",
+          "item": "https://www.peerflow.dev/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Frontend study partner",
+          "item": "https://www.peerflow.dev/frontend-study-partner.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.peerflow.dev/frontend-study-partner.html#faq",
+      "isPartOf": {
+        "@id": "https://www.peerflow.dev/frontend-study-partner.html#webpage"
+      },
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is a PeerFlow “study with me” session?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is a live 1-on-1 study session with your matched peer. You both turn on your cameras, say what you plan to work on, focus on your own learning or project, and use check-ins when discussion helps."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to know React already?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Beginners can match around HTML, CSS, JavaScript or another starting point; your level and current topic help make the pairing useful."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can we code together during the session?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. You can work independently on camera, compare code during breaks, debug together, or review each other’s small projects."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is this a random public study room?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. PeerFlow focuses on peer-to-peer matching. The goal is to find one compatible learner and build a recurring study routine together rather than drop into an anonymous group."
+          }
+        }
+      ]
+    }
+  ]
 }
 </script>
 </head>
