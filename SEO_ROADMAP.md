@@ -80,20 +80,20 @@ would cost more than it saves.
   must return exactly that key. It was previously committed as
   `YOUR_NEW_KEY.txt`, a placeholder filename, which meant verification could
   never have succeeded.
-- **Which Vercel project a `main` push actually deploys.** `CLAUDE.md` says
-  pushes do not reach production because the production project's Git settings
-  still name the pre-rename repository, and separately that `peerflow-apfq` is
-  a duplicate that deploys on every push. Both can be true at once, which is
-  exactly what makes this confusing: a push can produce a real deployment on
-  the duplicate while `www.peerflow.dev` never changes. Do not settle it from
-  the dashboard's deployment list alone — settle it on the live host. This
-  branch adds a file that did not exist before, so after merging:
 
-      curl -s https://www.peerflow.dev/be030ef03ed94c948bb69dfcc4f0d4b1.txt
+Merging to `main` is the deploy. The Vercel Git connection was reconnected
+after the repository rename, so there is no separate release step for any of
+this — see the deploy entry in `CLAUDE.md`. Nothing here needs a migration, so
+this particular merge carries no ordering risk.
 
-  If that returns the key, production is carrying the branch and the deploy
-  note in `CLAUDE.md` is stale and should be corrected. If it 404s, deploy by
-  hand with `npx vercel --prod` and leave the note alone.
+The one thing worth a look afterwards is that production really is serving the
+branch, and this change happens to make that free to check: it adds a file that
+has never existed in production before.
+
+    curl -s https://www.peerflow.dev/be030ef03ed94c948bb69dfcc4f0d4b1.txt
+
+That returning the key means the deploy landed, and it is also the IndexNow
+verification working for the first time. Both at once.
 
 ## Phase 2 — prove queries before expanding
 Use Google Search Console. For 4–8 weeks, record queries, impressions, CTR and average position by landing page. Expand only around queries that earn impressions or clearly represent high product intent.
