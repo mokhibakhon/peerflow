@@ -275,7 +275,13 @@
           }).join('') + '</div>' : '') +
         '</div>' +
         '<div class="pcard-acts">' +
-          '<a class="btn" href="app.html">' + icon('cal', 17) + 'Propose a time</a>' +
+          /* Straight into the booking form with this person already in it,
+             rather than at the top of Sessions with a form to find and a
+             partner to choose. The label changes on the one that matters:
+             a partnership with no sessions behind it is the state this whole
+             card exists to get out of. */
+          '<a class="btn" href="' + (pr.id ? 'app.html?plan=' + esc(pr.id) : 'app.html') + '">' +
+            icon('cal', 17) + (n === 0 ? 'Plan your first session' : 'Propose a time') + '</a>' +
           (pr.id ? '<a class="ghost" href="app-chat.html?to=' + esc(pr.id) + '">' +
                      icon('chat', 17) + 'Message</a>' +
                    /* Everything else this row can do, folded away. Three

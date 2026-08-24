@@ -1527,6 +1527,76 @@ check "  and nothing at all for a session that is not yours" ok "$(wrap "
     then raise exception 'read a stranger''s session'; end if;")"
 
 echo
+echo "==> saying yes, and the person who asked finding out"
+# assets/db.js does two things when somebody accepts a request: it updates the
+# row and reads back who asked, and it then calls notify_partner() to tell
+# them. Neither had a test, and the second one is only legal because of the
+# first — notify_partner checks the partnership, and the partnership is what
+# the update has just created. Get the order wrong in the browser and the
+# notification is refused every time, silently, because the call is
+# deliberately swallowed on failure.
+
+check "the recipient's answer hands back the row it changed" ok "$(wrap "
+  insert into public.partner_requests (id, from_user, to_user, status)
+  values ('88888888-8888-8888-8888-888888888888','$C','$A','pending');
+  $IN_A
+  declare who uuid;
+  begin
+    update public.partner_requests set status = 'accepted', to_seen_at = now()
+     where id = '88888888-8888-8888-8888-888888888888'
+    returning from_user into who;
+    if not found then raise exception 'the update returned nothing to notify'; end if;
+  end;")"
+
+check "  and it is the person who asked" ok "$(wrap "
+  insert into public.partner_requests (id, from_user, to_user, status)
+  values ('88888888-8888-8888-8888-888888888888','$C','$A','pending');
+  $IN_A
+  declare who uuid;
+  begin
+    update public.partner_requests set status = 'accepted'
+     where id = '88888888-8888-8888-8888-888888888888'
+    returning from_user into who;
+    if who is distinct from '$C'::uuid then
+      raise exception 'the wrong person would have been told'; end if;
+  end;")"
+
+check "accepting, then telling them, reaches their bell" ok "$(wrap "
+  insert into public.partner_requests (id, from_user, to_user, status)
+  values ('88888888-8888-8888-8888-888888888888','$C','$A','pending');
+  $IN_A
+  update public.partner_requests set status = 'accepted'
+   where id = '88888888-8888-8888-8888-888888888888';
+  perform public.notify_partner('$C', 'partner', 'A said yes',
+            'You are partners now.', 'app.html?plan=$A');
+  $IN_OWNER
+  if not exists (select 1 from public.notifications
+                  where user_id = '$C' and kind = 'partner'
+                    and href = 'app.html?plan=$A')
+    then raise exception 'nothing landed in their notifications'; end if;")"
+
+# The order the browser does it in is the only order that works. This is the
+# case that would have caught it silently doing them the other way round.
+check "  and telling them before accepting is refused" "P0001" "$(wrap "
+  insert into public.partner_requests (id, from_user, to_user, status)
+  values ('88888888-8888-8888-8888-888888888888','$C','$A','pending');
+  $IN_A
+  perform public.notify_partner('$C', 'partner', 'A said yes', null, 'app.html?plan=$A');")"
+
+check "  and a stranger cannot be told anything" "P0001" "$(wrap "
+  $IN_A
+  perform public.notify_partner('$C', 'partner', 'hello', null, 'app.html');")"
+
+check "  nor can anybody write straight into somebody else's bell" ok "$(wrap "
+  $IN_A
+  begin
+    insert into public.notifications (user_id, kind, title)
+    values ('$C', 'partner', 'straight in');
+    raise exception 'the insert policy let a stranger write a notification';
+  exception when insufficient_privilege then null;
+  end;")"
+
+echo
 echo "==================================================="
 printf 'passed %d, failed %d\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1

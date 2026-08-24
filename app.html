@@ -483,10 +483,8 @@
        nine evenings ago is "nine days" to a person and 8.7 to a subtraction. */
     var days = pick && pick.last
       ? Math.round((dayKey(new Date()) - dayKey(new Date(pick.last))) / 86400000) : null;
-    var some = rows.some(function(r){ return r.last; });
-
-    /* Nobody has a history yet, so there is nobody to single out — and this
-     * is the most important band on the whole page.
+    /* Somebody you have said yes to and never met — and this is the most
+     * important band on the whole page.
      *
      * A partnership that never has a first session is the commonest way this
      * product fails, and it fails quietly: two people say yes to each other,
@@ -501,20 +499,43 @@
      * the lowest-commitment thing PeerFlow can book, which is the right size
      * for a first meeting with a stranger and much easier to say yes to than
      * an hour.
+     *
+     * It used to require that you had met NOBODY, so somebody with one partner
+     * they saw weekly and one they had never spoken to got the generic "book
+     * your next session" — which describes precisely the wrong half of their
+     * week. One never-met partnership is enough now, and where there are
+     * several it names the one that has been waiting longest.
      */
-    if (!some){
-      var who1 = n === 1 ? (list[0].name || 'your partner') : '';
-      var firstAt = n === 1 ? chosen() : null;
+    var never = rows.filter(function(r){ return !r.last; })
+      .sort(function(a, b){ return (a.p.askedAt || 0) - (b.p.askedAt || 0); });
+
+    if (never.length){
+      var target = never[0];
+      /* A link that named somebody outranks the longest wait. They have just
+         been told, in an email or in the bell, to come here and book with
+         that person; the band has to be about them or the page argues with
+         the thing that sent them to it. */
+      if (planFor >= 0){
+        var asked = never.filter(function(r){ return r.i === planFor; })[0];
+        if (asked) target = asked;
+      }
+      /* Point the sentence at them before reading a time off it. The band and
+         the form have to be about the same person and the same hour, or
+         "Propose this time" opens a form offering a different one. */
+      pickPartner(target.i);
+      var firstAt = chosen();
+      var who1 = String(target.p.name || 'your partner').split(/\s+/)[0];
       band({
-        tone:'idle', k: n === 1 ? 'Your first session' : 'Nothing booked',
-        h: n === 1 ? 'Your first session with ' + esc(String(who1).split(/\s+/)[0]) + '.'
-                   : 'Book your first session with one of your partners.',
+        tone:'idle', k:'Your first session',
+        h: 'Your first session with ' + esc(who1) + '.',
         s: firstAt
              ? dayLong(firstAt) + ' · ' + clockOf(firstAt.getHours(), firstAt.getMinutes()) +
                ' · a ' + bkLen + '-minute first session. Nothing is booked until they accept.'
              : pickWhen + tail,
-        a: '<a class="btn" data-open-book href="#book-card">' +
-             (firstAt ? 'Propose this time' : 'Propose a time') + '</a>'
+        a: '<a class="btn" data-open-book data-pick="' + target.i + '" href="#book-card">' +
+             (firstAt ? 'Propose this time' : 'Propose a time') + '</a>' +
+           (n === 1 ? '' :
+             '<a class="ghost" data-open-book data-focus="who" href="#book-card">Someone else</a>')
       });
       return;
     }
@@ -968,6 +989,18 @@
                   { v:80, why:'a proper session' } ];
 
   var myAvail = [], myTz = '', bookPartner = null, myName = '', bookPartners = [];
+  /* Every session this account has, exactly as fetchSessions returned it.
+
+     Filled once by the loader and read by the two things that must not
+     suggest an hour without looking at the calendar first: the time the
+     booking form opens on, and "study again" after a session. Both used to
+     reason about a week nothing had told them about, which is how the form
+     came to open on an hour you had already given away. */
+  var allSessions = [];
+  /* Which partner a ?plan= link named, as an index into bookPartners, or -1.
+     Read by the band so that a link and the sentence under it cannot end up
+     about two different people. */
+  var planFor = -1;
   /* bkMin exists for one option: "Now". Every other time in this form is a
      whole hour, because availability is bands rather than clock times — but
      "we are both here, let's start" is a real thing to want and no whole hour
@@ -1385,39 +1418,180 @@
   document.addEventListener('click', closeMenu);
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMenu(); });
 
+  /* ----- what to suggest -----
+
+     One place decides what "a reasonable next time with this person" means,
+     because three things now ask the question: the form opening, the band
+     naming a first session, and "study again" after one. They were about to
+     answer it three different ways.
+
+     The order is the order a person would think in. An hour the two of you
+     have already talked about beats an hour you merely both said you were
+     free in, which beats a guess.
+
+     Everything here reads bookPartner rather than taking a partner, because
+     freeDays() and hoursOn() do — the shared window is a fact about whoever
+     the sentence is currently pointed at. Point it first, then ask. */
+
+  /* An hour you have already given away. The same rule as db.js's clashIn,
+     asked of the calendar this page has in memory: a proposal holds time,
+     because the whole point of proposing is that it may become a session.
+     Cancelled and declined rows hold none. */
+  function clashFree(when, minutes){
+    var from = when.getTime(), to = from + (minutes || 50) * 60000;
+    return !(allSessions || []).some(function(s){
+      if (s.status !== 'confirmed' && s.status !== 'proposed' && s.status !== 'completed') return false;
+      var a = s.startsAt.getTime();
+      return a < to && from < a + (s.durationMin || 50) * 60000;
+    });
+  }
+
+  /* How long to open at.
+   *
+   * A first meeting opens at twenty-five minutes rather than fifty. It is the
+   * shortest thing PeerFlow books, and it is the right size for an hour with
+   * somebody you have never spoken to: easier to say yes to, easier to turn
+   * up for, and it makes the second one a decision the two of them get to
+   * take together rather than something the form assumed. Every later session
+   * with the same person goes back to the usual fifty.
+   *
+   * A standing slot overrides both, because the two of them have already
+   * agreed what an hour with each other is worth.
+   *
+   * Only ever a default. The length menu is right there and untouched. */
+  function suggestLen(){
+    if (bookPartner && bookPartner.standing && bookPartner.standing.minutes) {
+      return bookPartner.standing.minutes;
+    }
+    return (bookPartner && bookPartner.met) ? 50 : 25;
+  }
+
+  /* The next four occurrences of a standing slot, or none if there isn't one.
+   *
+   * Four rather than one because materialiseStanding books the agreed weeks
+   * ahead on every load, so the very next occurrence is usually already on
+   * the calendar — and offering somebody an hour they are looking at is not
+   * offering them anything. The clash filter below steps past those to the
+   * first week that is genuinely empty. */
+  var STANDING_WEEKS = 4;
+  function standingSlots(){
+    var st = bookPartner && bookPartner.standing;
+    if (!st || !st.anchor) return [];
+    var out = [], d0 = nextAnchor(st.anchor.getDay(), st.anchor.getHours());
+    for (var w = 0; w < STANDING_WEEKS; w++){
+      /* setDate rather than adding milliseconds: a week is not 604800000ms
+         across a clock change, and an hour that drifts is the one thing a
+         standing slot exists to stop. */
+      var d = new Date(d0); d.setDate(d.getDate() + w * 7);
+      out.push({ day: midnight(d), hour: d.getHours(), min: 0,
+                 len: st.minutes || 50, why: 'standing' });
+    }
+    return out;
+  }
+
+  /* The first time from here that is in the future and not already spoken
+     for. Null when there is nothing to go on — no standing slot and no hours
+     the two of you share — which is a real state and its own answer: the
+     caller falls back to a plain guess rather than this inventing one. */
+  function suggestNext(){
+    var len = suggestLen(), out = standingSlots();
+    freeDays().forEach(function(x){
+      hoursOn(x.date).forEach(function(h){
+        out.push({ day: x.date, hour: h, min: 0, len: len, why: 'shared' });
+      });
+    });
+    if (!out.length) return null;
+    for (var i = 0; i < out.length; i++){
+      var c = out[i], when = new Date(c.day);
+      when.setHours(c.hour, c.min, 0, 0);
+      if (when.getTime() <= Date.now()) continue;
+      if (!clashFree(when, c.len)) continue;
+      return c;
+    }
+    /* Everything they share is taken. Still better to open on one of those
+       hours than on a guess — the form says what clashes when you press it,
+       and the menus are right there. */
+    return out[0];
+  }
+
+  /* Nothing shared and nothing standing. Tomorrow evening, not tomorrow at
+     whatever time it happens to be now — the form used to open at 04:13 if
+     that is when you loaded the page — and the first such evening that isn't
+     already booked. */
+  function suggestBlind(){
+    for (var i = 1; i <= 7; i++){
+      var d = midnight(new Date(Date.now() + i * 86400000));
+      var when = new Date(d); when.setHours(19, 0, 0, 0);
+      if (clashFree(when, suggestLen())) return { day: d, hour: 19, min: 0, len: suggestLen() };
+    }
+    return { day: midnight(new Date(Date.now() + 86400000)), hour: 19, min: 0, len: suggestLen() };
+  }
+
+  /* A session with this partnership that hasn't happened yet — waiting on an
+     answer or already agreed, either way something is in flight.
+
+     This is the guard that stops every path added for the retention work from
+     proposing a second time on top of a first: pressing "study again" twice,
+     following the same emailed link twice, or answering a check-in about a
+     partnership you are already booked with next Tuesday. */
+  function nextWithPair(pairId){
+    if (!pairId) return null;
+    var now = Date.now();
+    return (allSessions || []).filter(function(s){
+      if (s.pairId !== pairId) return false;
+      if (s.status !== 'proposed' && s.status !== 'confirmed') return false;
+      return s.startsAt.getTime() > now;
+    }).sort(function(a, b){ return a.startsAt - b.startsAt; })[0] || null;
+  }
+
+  /* Where a partnership sits in the booking sentence's list of people, or -1.
+     Both callers hold one end of a partnership — a pair id from a session
+     row, or an account id from a link — and need the other. */
+  function partnerIndexOfPair(pairId){
+    for (var i = 0; i < bookPartners.length; i++){
+      if (bookPartners[i].requestId === pairId) return i;
+    }
+    return -1;
+  }
+  function partnerIndexOfUser(userId){
+    for (var i = 0; i < bookPartners.length; i++){
+      if (bookPartners[i].id === userId) return i;
+    }
+    return -1;
+  }
+
+  /* The one query parameter this page reads: app.html?plan=<account id>.
+     Parsed by hand rather than with URLSearchParams to match the rest of the
+     file, which is ES5 and is served to whatever browser turns up. */
+  function planParam(){
+    try {
+      var m = /[?&]plan=([^&]+)/.exec(window.location.search || '');
+      return m ? decodeURIComponent(m[1]) : '';
+    } catch (e) { return ''; }
+  }
+
   /* Free windows and the note are both about one specific person, so changing
      who this is for has to redraw them. */
   function pickPartner(i){
     bookPartner = bookPartners[i] || null;
     if (!bookPartner) return;
     document.getElementById('bk-note').textContent = '';
-    /* A first meeting opens at twenty-five minutes rather than fifty.
-     *
-     * It is the shortest thing PeerFlow books, and it is the right size for
-     * an hour with somebody you have never spoken to: easier to say yes to,
-     * easier to turn up for, and it makes the second one a decision the two
-     * of them get to take together rather than something the form assumed.
-     * Every later session with the same person goes back to the usual fifty.
-     *
-     * Only ever a default. The length menu is right there and untouched. */
-    bkLen = bookPartner.met ? 50 : 25;
     buildPicks();
     bkMin = 0;
-    var first = freeDays()[0];
-    if (first){
-      bkDay = first.date;
-      /* hoursOn drops hours that have gone, and freeDays no longer offers a
-         day with none left, so this is always a time you can still propose.
-         It used to be the day's first shared hour whether or not it had
-         already happened, which is how the form came to open on a time the
-         Propose button then rejected. */
-      bkHour = hoursOn(bkDay)[0];
-    } else if (!bkDay){
-      /* Tomorrow evening, not tomorrow at whatever time it happens to be now —
-         the form used to open at 04:13 if that's when you loaded the page. */
-      bkDay = midnight(new Date(Date.now() + 86400000));
-      bkHour = 19;
-    }
+    /* suggestNext knows about the standing slot, the hours you share and the
+       calendar; all this has to decide is what to do when it has nothing to
+       go on. A day already picked by hand — from the calendar grid, or from
+       the menu — is left alone in that case, because switching who the
+       sentence is about should not throw away a day you chose.
+
+       It used to be the day's first shared hour whether or not it had
+       already happened, which is how the form came to open on a time the
+       Propose button then rejected. hoursOn drops hours that have gone and
+       suggestNext skips anything already in the past, so what opens here is
+       always a time you can still propose. */
+    var s = suggestNext() || (bkDay ? null : suggestBlind());
+    if (s){ bkDay = s.day; bkHour = s.hour; bkMin = s.min; bkLen = s.len; }
+    else { bkLen = suggestLen(); }
     paintSentence();
   }
 
@@ -1637,7 +1811,14 @@
     sessRows.ci = due.length;
     document.getElementById('ci-list').innerHTML = due.map(function(s){
       var who = esc(String(s.partnerName || 'your partner').split(/\s+/)[0]);
-      var key = ' data-s="' + esc(s.id) + '"';
+      /* The pair and the name ride on the buttons as well as the session id,
+         because "study again" now has to find this partnership in the booking
+         sentence — and the only handle a session row has on a partnership is
+         its pair id. Read off the row rather than looked up by name: two
+         partners called Sam are a state this has to survive. */
+      var key = ' data-s="' + esc(s.id) + '"' +
+                ' data-pair="' + esc(s.pairId || '') + '"' +
+                ' data-partner="' + esc(s.partnerName || '') + '"';
       var o = outcomes && outcomes[s.id];
       /* The first question is skipped where PeerFlow already knows the
          answer. Asking somebody to confirm what the room watched happen is
@@ -1671,6 +1852,121 @@
         '<p class="slot-err" hidden></p></div>';
     }).join('');
     syncSessCard();
+  }
+
+  /* ---------- study again ----------
+
+     What "study again" used to do: write continue_pref on your own row and
+     reload. If your partner had already answered the same way you got a
+     notification saying you both wanted to carry on; if they had not — which
+     is the ordinary case, because somebody has to answer first — the page
+     came back looking exactly as it had, and the press had gone nowhere.
+
+     That is the second half of the way this product fails. The session that
+     went well is the cheapest next session PeerFlow will ever sell, and the
+     moment somebody says they want another one is the moment to ask when.
+
+     So the answer is still recorded, and the two-sided rule is untouched:
+     this proposes, it does not book. What changes is that the press now ends
+     somewhere — a form open on this partner, at a time worth saying yes to,
+     with one button left to press.
+
+     It deliberately does not reload. The reload is what would throw the
+     suggestion away, and it is the same reasoning as "suggest another time"
+     on a proposal: a page that has just filled a form in for you cannot then
+     go and fetch itself again. */
+  function planNext(row, btn){
+    var err   = row.querySelector('.slot-err');
+    var pair  = btn.getAttribute('data-pair');
+    var first = String(btn.getAttribute('data-partner') || '').trim().split(/\s+/)[0] ||
+                'your partner';
+
+    function say(msg){
+      err.textContent = msg;
+      err.className = 'slot-err note';
+      err.hidden = false;
+    }
+
+    /* The row is finished with, whichever way this goes.
+     *
+     * session_checkin stamps checked_in_at on any answer at all, so the other
+     * question on this row — whether they turned up — cannot be asked again
+     * once this one has been answered. The reload used to take the row away
+     * with it; without the reload, leaving four dead buttons under a question
+     * nobody can now answer is worse than either. So the row says what was
+     * said and stops offering. */
+    function settle(){
+      var acts = row.querySelector('.ci-a');
+      if (acts) acts.innerHTML = '';
+      var line = row.querySelector('.what > span');
+      if (line) line.textContent = 'You said you’d like to carry on.';
+    }
+    settle();
+
+    var i = partnerIndexOfPair(pair);
+    /* Not partners any more — they ended it, or a block did. The answer is
+       still worth keeping and the database has kept it; there is simply
+       nothing left to book, and saying so is better than opening a form
+       addressed to somebody who is no longer there. */
+    if (i < 0){
+      say('You’re not partners with ' + first + ' any more, so there’s nothing to book — ' +
+          'you can ask them again from People.');
+      return;
+    }
+
+    /* Already something in flight with them. Pressing this twice, following
+       the same link twice, and answering a check-in about a partnership you
+       are already booked with next week all arrive here, and none of them
+       should produce a second session. */
+    var have = nextWithPair(pair);
+    if (have){
+      var w = when(have.startsAt);
+      say(have.status === 'confirmed'
+            ? 'You’re already booked with ' + first + ' for ' + w + '.'
+            : (have.mine
+                ? 'You’ve already asked ' + first + ' for ' + w + ' — nothing more to send ' +
+                  'until they answer.'
+                : first + ' has already proposed ' + w + ' — answer that one rather than ' +
+                  'sending another.'));
+      band({
+        tone:'idle', k: have.status === 'confirmed' ? 'Already booked' : 'Already waiting',
+        h: have.status === 'confirmed'
+             ? 'You’re booked with ' + esc(first) + ' for ' + friendlyMid(have.startsAt) + '.'
+             : 'There’s already a time with ' + esc(first) + ' on the table.',
+        s: have.status === 'confirmed'
+             ? 'Nothing else to arrange with them for now.'
+             : when(have.startsAt) + '. One at a time is enough.',
+        a: '<button class="ghost" type="button" data-open-sess>See it</button>'
+      });
+      return;
+    }
+
+    /* The ordinary path. pickPartner points the whole sentence — who, day,
+       hour and length — at this partnership and at the next time worth
+       offering: the standing slot if the two of you have one, otherwise the
+       next hour you both said you were free, and never an hour already spoken
+       for. */
+    pickPartner(i);
+    var at = chosen();
+    say('Pick a time below and send it to ' + first + '.');
+
+    band({
+      tone:'idle', k:'Next session',
+      h: 'Another one with ' + esc(first) + '?',
+      s: at
+           ? dayLong(at) + ' · ' + clockOf(at.getHours(), at.getMinutes()) + ' · ' + bkLen +
+             ' minutes. Change anything you like — nothing is booked until ' + esc(first) +
+             ' accepts.'
+           : 'Pick an hour you’re both free and it lands on both calendars once they accept.',
+      a: ''
+    });
+
+    var note = document.getElementById('bk-note');
+    note.style.color = 'var(--muted)';
+    note.textContent = at
+      ? 'Suggested from the hours you’re both free. Change anything you like.'
+      : 'Pick a day and a time.';
+    openBook('day');
   }
 
   document.getElementById('ci-list').addEventListener('click', function(e){
@@ -1733,6 +2029,11 @@
         });
         return;
       }
+      /* Saying you want to carry on is the one answer with somewhere to go,
+         so it goes there instead of reloading. Everything else — vouching for
+         somebody, ending a partnership — changes what the rest of the page
+         should say and cannot work that out for itself. */
+      if (go === 'continue') { planNext(row, btn); return; }
       window.location.reload();
     }, function(){
       back('Could not save that — check your connection and try again.');
@@ -2334,6 +2635,10 @@
         .then(function(r){
           var partners = r[1] || [], all = r[2] || [];
           var now = Date.now();
+          /* Held for the rest of the load. Everything that suggests an hour
+             has to be able to see what is already on the calendar, and the
+             suggestions are made before the calendar itself is drawn. */
+          allSessions = all;
           /* A proposal is not a session. It doesn't go on the calendar, it
              isn't "coming up", and it doesn't tick the checklist — until
              somebody accepts it, nothing has been agreed. */
@@ -2444,6 +2749,31 @@
                stays shut until something asks for it. */
             pickPartner(0);
           }
+
+          /* ----- app.html?plan=<their account id> -----
+
+             The link on the other end of "they said yes". It is in the bell,
+             in the email the accept now sends, on the inbox row that accepted
+             it, and on the partner card — every one of them ends here, with
+             the form open on that person and on a time worth proposing.
+
+             A partner id and not a partnership id, because the two places
+             that write the link — db.js, telling somebody their request was
+             accepted, and a partner card — both hold an account and neither
+             holds a request row.
+
+             Not opened when there is already a time in flight with them.
+             Somebody following the same link twice, or coming back to an
+             email a week later, should see what is booked rather than a form
+             offering to book a second one. */
+          var wanted = planParam();
+          var planIndex = wanted ? partnerIndexOfUser(wanted) : -1;
+          if (planIndex >= 0 && !nextWithPair(bookPartners[planIndex].requestId)) {
+            pickPartner(planIndex);
+          } else {
+            planIndex = -1;
+          }
+          planFor = planIndex;
           renderProposals(all);
           renderPartnerRail(bookPartners);
 
@@ -2603,6 +2933,10 @@
               a: '<a class="btn" href="app-people.html">Find someone</a>'
             });
           }
+
+          /* Opened after the band, so the form is the last thing to move and
+             the scroll lands on it rather than racing the band's own paint. */
+          if (planFor >= 0) openBook('day');
 
           $('upcoming').innerHTML = upcoming.map(function(s){ return slot(s, false); }).join('');
           sessRows.up = upcoming.length;

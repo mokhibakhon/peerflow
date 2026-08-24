@@ -65,6 +65,9 @@
                    is the one worth looking at — it is the branch that keeps
                    the row on screen and explains itself instead of reloading
      __checkinFail an error sentence for the check-in's failure path
+     __incoming    requests waiting on you, as partner_requests rows with an
+                   `other` profile attached — what the People inbox and the
+                   bell answer from
      __attendanceMissing  true to act as though migration-attendance.sql has
                    not been run: settling, check-ins and the cooldown all go
                    quiet and the pages fall back to what they said before
@@ -136,6 +139,10 @@ window.pf = (function(){
   }
 
   var PARTNER={requestId:'r1',roomUrl:'pf:demo',
+    /* When the request was sent. The dashboard orders partnerships you have
+       never met on by this, oldest first, so a fixture without it cannot show
+       which of two new partners the band should name. */
+    askedAt:new Date('2026-06-02T00:00:00Z'),
     get standing(){return standingOf();},
     profile:{id:'u2',name:'Amir Karimov',track_id:'cybersecurity',topic:'Cybersecurity',
       level:'tutorials',timezone:'Asia/Tashkent',availability:THEIR_AVAIL}};
@@ -156,6 +163,9 @@ window.pf = (function(){
     for(var i=0;i<Math.min(n-1,MORE.length);i++){
       var m=MORE[i];
       out.push({requestId:'r'+(i+2), roomUrl:'pf:demo'+(i+2), standing:null,
+        /* Later than PARTNER's, so "the one that has been waiting longest" is
+           a question with a stable answer in the fixture. */
+        askedAt:new Date(Date.parse('2026-06-02T00:00:00Z')+(i+1)*86400000),
         profile:{id:'u'+(i+3), name:m.name, track_id:m.track, topic:m.topic,
           level:'tutorials', timezone:'Asia/Tashkent', availability:THEIR_AVAIL}});
     }
@@ -417,9 +427,15 @@ window.pf = (function(){
       {id:'r1',from_user:'u1',to_user:'u2',status:'accepted',created_at:'2026-06-02T00:00:00Z',
        other:PARTNER.profile}
     ],me:'u1'})},
+    /* Answers with partnerId the way the real one does — it reads it off the
+       row the update returned — because the People inbox now turns that id
+       into a link to book with them. A stub that answered {saved:true} alone
+       would draw the partnered state with nowhere to go. */
     respondToRequest:function(id,st){note('respond:'+id+':'+st);
       if(window.__respondFail) return P({error:window.__respondFail});
-      return P({saved:true})},
+      var to=(window.__incoming||[]).filter(function(x){return x.id===id})[0];
+      return P({saved:true, partnerId:(to&&to.from_user)||'u2',
+                notified:st==='accepted'})},
     reliabilityOf:function(ids){
       if(window.__relMissing) return P(null);
       var by={}, src=window.__rel||{};

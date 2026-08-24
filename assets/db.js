@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-24a';
+window.PF_BUILD = '2026-08-24b';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -832,15 +832,83 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
-  /* Accept or decline a request sent to you. */
+  /* Telling somebody you have said yes to them.
+
+     Saying yes used to be silent. The row changed, and the person who asked
+     found out the next time they happened to open PeerFlow and look at the
+     bell — which is derived from partner_requests, so it only exists while
+     the tab is open and never leaves the building. Nothing was emailed,
+     because nothing was written to public.notifications, because the accept
+     path never wrote a row there.
+
+     That is the first half of the commonest way this product fails: two
+     people say yes to each other, neither knows what to do next, and a
+     fortnight later both assume the other lost interest. So the answer is a
+     real notification — it survives, it goes in the log, and the trigger in
+     migration-notify.sql posts it to notify-email like every other one.
+
+     notify_partner() rather than notify_request(): the row is 'accepted' by
+     the time this runs, so the partnership check passes, and notify_partner
+     is the one that takes a kind and an href. notify_request would have
+     worked too and would have landed everybody on People, which is a
+     directory of strangers — the wrong place to send somebody who has just
+     stopped needing one.
+
+     The href names the accepter, so the link opens the booking form already
+     pointed at them. See the ?plan= handler in app.html.
+
+     The accept has already succeeded by the time this is called, so a failure
+     here is logged and swallowed. The partnership is real either way, and an
+     error saying otherwise would misreport what happened. */
+  function notifyAccepted(toUserId){
+    return getProfile().then(function(me){
+      var who = (me && me.name) ? String(me.name).trim() : '';
+      var first = who ? who.split(/\s+/)[0] : 'They';
+      return client.rpc('notify_partner', {
+        p_to: toUserId,
+        p_kind: 'partner',
+        p_title: (who || 'Your request') + ' said yes',
+        p_body: 'You\u2019re partners now. Pick an hour you\u2019re both free and propose it \u2014 ' +
+                'nothing is booked until ' + first + ' accepts.',
+        p_href: 'app.html?plan=' + ((me && me.id) || '')
+      }).then(function(n){
+        if (n.error) {
+          if (missingFunction(n.error)) {
+            console.warn('PeerFlow: notify_partner is missing. Run ' +
+                         'supabase/migration-mvp.sql so an accepted request reaches people.');
+          } else {
+            try { console.warn('PeerFlow: notify_partner', n.error); } catch(e){}
+          }
+        }
+        return !n.error;
+      });
+    }).catch(function(){ return false; });
+  }
+
+  /* Accept or decline a request sent to you.
+
+     Comes back with partnerId — who the answer was about — because every
+     caller wants it and none of them has it: the inbox row on People knows a
+     request id, and what it needs afterwards is a link to the person. Read
+     off the updated row rather than passed in, so it cannot disagree with
+     what the database actually changed. */
   function respondToRequest(id, status){
     if (!client) return Promise.resolve({ demo: true });
     return client.from('partner_requests')
       .update({ status: status, to_seen_at: new Date().toISOString() })
       .eq('id', id)
+      /* Allowed by "read own requests": you are the to_user of anything you
+         are answering. A database that refuses it still answers saved — the
+         answer is the point, the id is a convenience. */
+      .select('id,from_user,to_user')
       .then(function(r){
-        return r.error ? fail(r.error, 'Could not save that answer. Please try again.')
-                       : { saved: true };
+        if (r.error) return fail(r.error, 'Could not save that answer. Please try again.');
+        var row = (r.data || [])[0] || null;
+        var them = row ? row.from_user : null;
+        if (status !== 'accepted' || !them) return { saved: true, partnerId: them };
+        return notifyAccepted(them).then(function(notified){
+          return { saved: true, partnerId: them, notified: notified };
+        });
       }).catch(function(e){
         return fail(e, 'Could not save that answer \u2014 check your connection and try again.');
       });
@@ -873,6 +941,14 @@ window.pf = (function(){
           return {
             requestId: x.id,
             profile: x.other,
+            /* When the request was sent, which is the closest thing this
+               table has to when the partnership started — there is no
+               accepted_at column and adding one is a migration for a date
+               nothing displays. Used only to order partnerships you have
+               never met on, oldest first, so the dashboard singles out the
+               one that has been sitting longest rather than whichever the
+               query happened to return first. */
+            askedAt: x.created_at ? new Date(x.created_at) : null,
             /* No roomUrl here any more. Handing out one address per
                partnership is what made it a standing key; a room is minted
                when a session is booked. requestId is what callers now use to

@@ -396,7 +396,10 @@
       var p = x.other || {}, nm = p.name || 'Someone', t = tone(nm);
       var sub = [pathLabel[p.track_id] || '', p.topic ? 'learning ' + p.topic : '']
                   .filter(Boolean).join(' · ');
-      return '<div class="inreq" data-req="' + esc(x.id) + '">' +
+      /* The account id as well as the request id. Answering used to reload,
+         so nothing on the page needed to know who the row was about; now the
+         row rewrites itself into a link to book with them. */
+      return '<div class="inreq" data-req="' + esc(x.id) + '" data-uid="' + esc(p.id || '') + '">' +
         '<span class="inreq-av" style="background:' + t[0] + ';color:' + t[1] + '">' +
           initial(nm) + '</span>' +
         '<div class="inreq-b">' +
@@ -422,6 +425,15 @@
     box.hidden = false;
   }
 
+  /* How many of these are still waiting, so the heading can stop saying
+     "waiting on you" about a card where nothing is. */
+  function retitleInbox(){
+    var left = document.querySelectorAll('#inbox-list [data-answer]').length;
+    document.getElementById('inbox-n').textContent = String(left);
+    document.getElementById('inbox-n').hidden = !left;
+    document.getElementById('inbox-t').textContent = left ? 'Waiting on you' : 'Just answered';
+  }
+
   document.getElementById('inbox-list').addEventListener('click', function(e){
     var btn = e.target.closest && e.target.closest('[data-answer]');
     if (!btn) return;
@@ -438,10 +450,53 @@
         msg.textContent = res.error;
         return;
       }
-      /* Reload rather than patch: saying yes changes the partner list, the
-         directory row and the Partner page all at once, and re-deriving all
-         three by hand here is how they drift apart. */
-      location.reload();
+
+      /* This used to reload, on the reasoning that saying yes changes the
+         partner list, the directory row and the Partner page at once and
+         re-deriving all three by hand is how they drift apart. True — but the
+         reload also threw away the one thing worth putting on screen at that
+         moment. Accepting somebody and being handed the same directory back
+         is why so many accepted partnerships never book anything: the page
+         answered the question and then offered nothing to do about it.
+
+         So the three things the reload was for are done explicitly instead,
+         which is three lines, and the row becomes the next action.
+
+         partnerId comes back off the row the database actually updated;
+         data-uid is what the page rendered from. They are the same person,
+         and either will do — the fallback is for a database that would not
+         return the updated row. */
+      var uid = row.getAttribute('data-uid') || (res && res.partnerId) || '';
+      var nm = (row.querySelector('.who') || {}).textContent || 'them';
+      var first = String(nm).trim().split(/\s+/)[0];
+
+      /* 1. what the page believes about this person, which every later
+            render of the directory reads. */
+      if (uid) reqByUser[uid] = { status: status, direction: 'in' };
+      /* 2. their row in the directory below, if they are in it at all —
+            somebody who never picked a path is not. */
+      if (/^[A-Za-z0-9_-]+$/.test(uid)) {
+        var dirRow = document.querySelector('#people [data-id="' + uid + '"]');
+        if (dirRow) redraw(dirRow);
+      }
+      /* 3. the request row itself. Declining says so and stops; accepting is
+            the whole point of this change and ends in the booking form, with
+            the partner already chosen. */
+      var acts = row.querySelector('.inreq-acts');
+      var msg2 = row.querySelector('.inreq-msg');
+      if (status === 'accepted') {
+        if (msg2) msg2.textContent = 'You’re partners. Nothing is booked until one of you ' +
+                                     'proposes a time and the other accepts.';
+        acts.innerHTML = uid
+          ? '<a class="btn" href="app.html?plan=' + esc(uid) + '">Plan your first session</a>'
+          : '<span class="pstate ok">Partners</span>';
+      } else {
+        /* textContent, so the name goes in as itself — esc() here would put
+           the entities on screen rather than the characters. */
+        if (msg2) msg2.textContent = 'Declined. ' + first + ' is not told why.';
+        acts.innerHTML = '<span class="pstate no">Declined</span>';
+      }
+      retitleInbox();
     });
   });
 
