@@ -97,7 +97,7 @@ hand in eleven files; nothing enforces it.
 | Database queries | `assets/db.js` — every query in the product, ~700 lines, one module |
 | Notifications | `assets/notify.js` — the bell, its panel, and request accept/decline |
 | Schema | `supabase/schema.sql` |
-| Step pictures | `assets/how-frames.html` renders `how-1-find.png` and `how-2-time.png` |
+| Step pictures | `assets/how-frames.html` renders `how-1-find.png`; its second frame is no longer stored. `how-3-call.webp` is a photograph, not a rendered frame |
 
 ---
 

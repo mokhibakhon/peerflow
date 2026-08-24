@@ -26,8 +26,7 @@ document covers the structure.
 │   ├── home.css                landing stylesheet                358
 │   ├── home.js                 landing pomodoro + path counts     76
 │   ├── how-1-find.png          how-it-works step 1 picture
-│   ├── how-2-time.png          how-it-works step 2 picture
-│   ├── how-3-call.png          how-it-works step 3 picture (photo)
+│   ├── how-3-call.webp         how-it-works step 3 picture (photo, WebP)
 │   ├── how-frames.html         source that renders steps 1 and 2  130
 │   ├── logo.svg                UNREFERENCED
 │   ├── notify.js               notification bell + panel         228
@@ -90,7 +89,7 @@ the repository at all.
 | `assets/home.css` | Landing only | `index.html` | — | — | **Low** — one consumer |
 | `assets/app.css` | The six signed-in pages | app pages | — | — | **High** — six pages at once; class names are generic (`.opt`, `.pop`, `.row`) and have collided before |
 | `assets/styles.css` | Login, signup, reset, conduct | those four | — | — | **Medium** — four pages, including both auth entry points |
-| `assets/how-frames.html` | Renders `how-1-find.png` and `how-2-time.png`. Not linked from the site | nothing at runtime | `app.css` | none | **None at runtime** — build-time source for two images |
+| `assets/how-frames.html` | Renders `how-1-find.png`. Its second frame is no longer stored as a file. Not linked from the site | nothing at runtime | `app.css` | none | **None at runtime** — build-time source for the step pictures |
 | `supabase/schema.sql` | Every table, index, policy, trigger and function | applied by hand in the Supabase SQL editor | — | defines all of it | **Highest overall** — production is not verifiably in sync (see §6) |
 | `assets/logo.svg` | Unreferenced | nothing | — | — | **None** — dead file |
 

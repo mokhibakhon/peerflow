@@ -308,6 +308,17 @@ header{background:var(--paper)}
   background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
   padding:38px 40px 34px;
 }
+/* The section headings inside .prose are h2, because they are the top-level
+   sections of these documents and h1 -> h3 skipped a level for nothing. They
+   must not look like it: a bare h2 is sized --t-h2 here, the same as the h1,
+   and a privacy page whose every section title matches its page title reads
+   as a wall. So .prose h2 is given the h3 treatment verbatim — this is a
+   change to the document outline, not to the page. line-height is spelled out
+   because the bare h2 rule sets 1.2 while h3 set none and inherited the body's
+   1.6, so leaving it off would tighten every heading that wraps. The h3 rules
+   stay for any genuine sub-heading underneath. */
+.prose h2{font-size:var(--t-h3);font-weight:700;letter-spacing:-.015em;line-height:inherit;margin:28px 0 8px}
+.prose h2:first-child{margin-top:0}
 .prose h3{margin:28px 0 8px}
 .prose h3:first-child{margin-top:0}
 .prose p{margin-bottom:14px;color:var(--ink-soft)}

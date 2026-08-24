@@ -240,8 +240,17 @@
        PeerFlow bar over a white body, at the same 1280:841 shape, so all four
        cards line up whatever the row width is.
 
-       assets/how-2-time.png is no longer used by this section. It is still in
-       the repo; nothing else references it. -->
+       how-frames.html still draws a step-two frame that this section no longer
+       uses. It used to be stored as assets/how-2-time.png, which nothing
+       referenced; the file is gone and the frame can be re-rendered from
+       how-frames.html if a step two is ever wanted back.
+
+       Step three is a WebP rather than a PNG because it is photographic — two
+       webcam stills in a chrome frame — and PNG is the wrong container for
+       that. It was 256KB as a palette PNG, which also banded the flat walls;
+       at WebP q82 it is 50KB and cleaner. Step one stays a PNG because it is
+       a flat UI screenshot, which is precisely what PNG is good at: it is
+       twice the pixels and a fifth of the bytes. -->
   <section id="how" class="sec">
     <!-- No mono kicker above the heading here, the way the other sections
          have one — it would only repeat the heading. No line under it either:
@@ -349,7 +358,7 @@
       <!-- ---- 03 ---- -->
       <article class="how-card">
         <div class="how-shot">
-          <img src="assets/how-3-call.png" width="1280" height="813" loading="lazy"
+          <img src="assets/how-3-call.webp" width="1280" height="813" loading="lazy"
                alt="Two people in a video session, cameras on">
         </div>
         <div class="how-body">
