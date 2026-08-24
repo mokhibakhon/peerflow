@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-24c';
+window.PF_BUILD = '2026-08-24d';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -849,6 +849,21 @@ window.pf = (function(){
      separately from the rest so a database without it still loads partners. */
   var REQ_BASE = 'id,from_user,to_user,message,status,to_seen_at,from_seen_at,created_at';
   var REQ_FULL = REQ_BASE + ',standing_anchor,standing_minutes,standing_by,standing_set_at,standing_ok_at';
+  /* dormant_nudged_at arrives with migration-dormancy.sql, and it gets a rung
+     of its own for the same reason the sessions ladder gives one to
+     rescheduled_from: a database that has standing slots but not dormancy
+     should lose dormancy, not fall all the way to the base set and lose the
+     standing slot with it. */
+  var REQ_DORM = REQ_FULL + ',dormant_nudged_at';
+
+  /* Widest first, one migration per step down. */
+  var REQ_LADDER = [
+    { cols: REQ_DORM, need: 'supabase/migration-dormancy.sql',
+      what: 'the dormancy stamp is missing' },
+    { cols: REQ_FULL, need: 'supabase/migrate-2026-08.sql',
+      what: 'standing-slot columns are missing' },
+    { cols: REQ_BASE, need: null, what: null }
+  ];
 
   /* Which column set this database actually has, once we have found out.
      The fallback works, but it costs a failed request to discover — and
@@ -873,17 +888,24 @@ window.pf = (function(){
           .or('from_user.eq.' + uid + ',to_user.eq.' + uid)
           .order('created_at', { ascending: false });
       }
-      if (reqCols === REQ_BASE) return read(REQ_BASE);
-      return read(REQ_FULL).then(function(r){
-        if (missingColumn(r.error)) {
-          reqCols = REQ_BASE;
-          console.warn('PeerFlow: standing-slot columns are missing. ' +
-                       'Run supabase/migrate-2026-08.sql to turn on weekly slots.');
-          return read(REQ_BASE);
-        }
-        if (!r.error) reqCols = REQ_FULL;
-        return r;
-      })
+      /* Once a rung has answered, stay on it for the life of the page. The
+         fallback works but costs a failed request to discover, and myRequests
+         runs at least twice on any page with the bell. */
+      function climb(i){
+        var rung = REQ_LADDER[i];
+        return read(rung.cols).then(function(r){
+          if (!missingColumn(r.error) || i + 1 >= REQ_LADDER.length) {
+            if (!r.error) reqCols = rung.cols;
+            return r;
+          }
+          try {
+            console.warn('PeerFlow: ' + rung.what + '. Run ' + rung.need + '.');
+          } catch(e){}
+          return climb(i + 1);
+        });
+      }
+      if (reqCols) return climb(REQ_LADDER.map(function(x){ return x.cols; }).indexOf(reqCols));
+      return climb(0)
         .then(function(r){
           if (r.error) return null;
           var rows = r.data || [];
@@ -1024,6 +1046,18 @@ window.pf = (function(){
                one that has been sitting longest rather than whichever the
                query happened to return first. */
             askedAt: x.created_at ? new Date(x.created_at) : null,
+            /* When this partnership's dormancy was last raised with one of
+               them, or waved off by one of them. The dashboard reads it as
+               "leave this pair alone for now".
+
+               Undefined rather than null without migration-dormancy.sql — the
+               column is not selected on that rung at all — so the band can
+               tell "nothing has been raised" from "this database cannot
+               remember whether anything was", and does not offer a Not now
+               that has nowhere to be stored. */
+            dormantNudgedAt: ('dormant_nudged_at' in x)
+              ? (x.dormant_nudged_at ? new Date(x.dormant_nudged_at) : null)
+              : undefined,
             /* No roomUrl here any more. Handing out one address per
                partnership is what made it a standing key; a room is minted
                when a session is booked. requestId is what callers now use to
@@ -2024,6 +2058,57 @@ window.pf = (function(){
     });
   }
 
+  /* ---------- a partnership that has gone quiet ----------
+
+     Both of these are thin wrappers. The rules — what counts as dormant, who
+     gets told, and how a pair is stopped from being asked twice — live in
+     supabase/migration-dormancy.sql, where the browser cannot be talked round
+     and where the function can see the other person's calendar. The long note
+     is in that file.
+
+     nudgeDormant is called on every load, next to settleAttendance and
+     sendReminders, and for the same reason all three exist: there is no
+     scheduler behind a static site, so somebody opening the app is what makes
+     work happen — including work about the person who is not opening it. It
+     answers with how many notes it raised, which on almost every load is
+     zero.
+
+     Silent about failure, like its two neighbours. Somebody who opened their
+     dashboard did not ask about this and cannot act on it going wrong. */
+  function nudgeDormant(){
+    if (!client) return Promise.resolve(0);
+    return client.rpc('nudge_dormant').then(function(r){
+      if (r.error) {
+        if (missingFunction(r.error)) {
+          console.warn('PeerFlow: nudge_dormant is missing. ' +
+                       'Run supabase/migration-dormancy.sql.');
+        }
+        return 0;
+      }
+      return r.data || 0;
+    }).catch(function(){ return 0; });
+  }
+
+  /* Not now. Stamps the same column the nudge does, so the pair goes quiet
+     for a cooldown — for both of them, which is the honest reading of one of
+     the two saying they would rather not right now. */
+  function snoozeDormant(requestId){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.rpc('snooze_dormant', { p_request: requestId }).then(function(r){
+      if (!r.error) return { saved: true };
+      if (missingFunction(r.error)) {
+        return { needsMigration: true,
+                 error: 'That isn\u2019t switched on for this site yet.' };
+      }
+      if (r.error.code === 'PF031') {
+        return { error: 'That partnership isn\u2019t yours. Refresh the page.' };
+      }
+      return fail(r.error, 'Could not put that away. Please try again.');
+    }).catch(function(e){
+      return fail(e, 'Could not put that away \u2014 check your connection and try again.');
+    });
+  }
+
   /* Your own standing: how many sessions you have missed inside the rolling
      window, and whether new partner requests are paused.
 
@@ -2483,6 +2568,8 @@ window.pf = (function(){
     /* Attendance */
     settleAttendance: settleAttendance,
     sendReminders: sendReminders,
+    nudgeDormant: nudgeDormant,
+    snoozeDormant: snoozeDormant,
     sessionCheckin: sessionCheckin,
     partnerOutcomes: partnerOutcomes,
     endPartnership: endPartnership,

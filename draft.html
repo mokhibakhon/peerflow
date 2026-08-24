@@ -310,6 +310,52 @@ body{background:var(--paper)}
       a new outcome being invented to soften it.</p>
   </section>
 
+  <!-- ============ 5. gone quiet ============ -->
+  <section class="dsec">
+    <h2>5 · Nobody ever decided to stop</h2>
+    <p class="dnote">The quietest failure in the product. Two people match, they meet, it
+      goes well — and then neither books the next one. No falling out, no no-show; the
+      third session simply never gets proposed and a month later both assume the other lost
+      interest.</p>
+    <p class="was"><b>Before:</b> at seven days the band said "It's been nine days since you
+      studied with Amir" — the right sentence in the wrong place, because it is only ever
+      read by somebody who has opened PeerFlow. The half of the pair that needs reaching is
+      the half that is not looking.</p>
+
+    <p class="mono slabel">Fourteen days, and the band changes its question</p>
+    <div class="stage">
+      <section class="now" data-tone="quiet">
+        <div class="now-txt">
+          <span class="mono now-k">It has been a while</span>
+          <p class="now-h">You and Amir haven’t studied together recently.</p>
+          <p class="now-s">Your last session was three weeks ago. Plan your next one — pick
+            an hour and send it over, and it lands on both calendars once they accept.</p>
+          <div class="now-a"><a class="btn" href="#">Study with Amir again</a>
+            <button class="ghost" type="button">Not now</button></div>
+        </div>
+      </section>
+    </div>
+    <p class="dnote" style="margin-top:14px">Nothing in it says anybody should have done
+      something, because nobody did anything wrong — that is asserted in the tests, along
+      with there being no exclamation mark and no invitation to go and find somebody else.
+      <b>Not now</b> is real: it stamps the partnership so neither of them is asked again
+      for three weeks, rather than hiding a card until the next reload.</p>
+
+    <p class="dnote"><b>Fourteen days is read off the product, not picked.</b> The default
+      goal is two sessions a week; <code>sinceWords()</code> already starts counting in
+      weeks at fourteen days; a standing slot books four weeks ahead, so a pair with one can
+      never reach this state. The existing seven-day line is untouched — this is a second,
+      quieter state above it.</p>
+
+    <p class="dnote"><b>And the person who is not here gets told.</b> There is no scheduler
+      behind a static site, so <code>nudge_dormant()</code> copies what
+      <code>settle_due()</code> and <code>send_due_reminders()</code> already do: it runs
+      when somebody opens the app and acts on the <i>other</i> person's rows. Only the other
+      person is notified — telling the one reading the band would be telling them what their
+      own screen says. One note per partnership per three weeks, however many times either
+      of them opens anything.</p>
+  </section>
+
   <section class="dsec">
     <h2>What this did not touch</h2>
     <p class="dnote">No new tables and no migration — the accept notification goes through

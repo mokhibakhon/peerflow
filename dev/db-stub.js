@@ -77,6 +77,15 @@
      __rescheduleClash  the sentence the exclusion constraint produces, for
                    the case where one of you has since agreed to something
                    else at the new time
+     __dormantAt   what partner_requests.dormant_nudged_at holds for the
+                   partnership — a Date, or null for "never raised". Leave it
+                   undefined and the fixture behaves as a migrated database
+                   with nothing raised yet
+     __dormancyMissing  true to act as though migration-dormancy.sql has not
+                   been run: the column is not selected, nudge_dormant and
+                   snooze_dormant answer as missing, and the gone-quiet band
+                   must not be drawn — there would be nowhere to put a Not now
+     __snoozeFail  an error sentence for the Not now failure path
      __attendanceMissing  true to act as though migration-attendance.sql has
                    not been run: settling, check-ins and the cooldown all go
                    quiet and the pages fall back to what they said before
@@ -152,6 +161,14 @@ window.pf = (function(){
        never met on by this, oldest first, so a fixture without it cannot show
        which of two new partners the band should name. */
     askedAt:new Date('2026-06-02T00:00:00Z'),
+    /* Undefined when the migration is missing, the way the real
+       acceptedPartners reports a column its rung did not select. */
+    get dormantNudgedAt(){
+      if (window.__dormancyMissing) return undefined;
+      var snoozed = null;
+      try{ snoozed = sessionStorage.getItem('pf_stub_snoozed'); }catch(e){}
+      if (snoozed) return new Date(snoozed);
+      return window.__dormantAt || null; },
     get standing(){return standingOf();},
     profile:{id:'u2',name:'Amir Karimov',track_id:'cybersecurity',topic:'Cybersecurity',
       level:'tutorials',timezone:'Asia/Tashkent',availability:THEIR_AVAIL}};
@@ -172,6 +189,7 @@ window.pf = (function(){
     for(var i=0;i<Math.min(n-1,MORE.length);i++){
       var m=MORE[i];
       out.push({requestId:'r'+(i+2), roomUrl:'pf:demo'+(i+2), standing:null,
+        dormantNudgedAt: window.__dormancyMissing ? undefined : null,
         /* Later than PARTNER's, so "the one that has been waiting longest" is
            a question with a stable answer in the fixture. */
         askedAt:new Date(Date.parse('2026-06-02T00:00:00Z')+(i+1)*86400000),
@@ -535,6 +553,21 @@ window.pf = (function(){
       return P(window.__attendanceMissing?0:1)},
     sendReminders:function(){note('sendReminders');
       return P(window.__attendanceMissing?0:0)},
+    /* Called on every load beside the two above. It answers with how many
+       notes it raised, and on almost every load that is zero — the real one
+       is silent about failure for the same reason these are. */
+    nudgeDormant:function(){note('nudgeDormant');
+      return P(window.__dormancyMissing?0:(window.__dormantRaised||0))},
+    snoozeDormant:function(id){note('snoozeDormant:'+id);
+      if(window.__dormancyMissing) return P({needsMigration:true,
+        error:'That isn\u2019t switched on for this site yet.'});
+      if(window.__snoozeFail) return P({error:window.__snoozeFail});
+      /* Really stamps it, and in sessionStorage rather than on window,
+         because the button reloads the page — addInitScript runs again and
+         would put the dial straight back. The point of the test is what the
+         band says AFTER the reload. */
+      try{ sessionStorage.setItem('pf_stub_snoozed', new Date().toISOString()); }catch(e){}
+      return P({saved:true})},
     partnerOutcomes:function(ids){
       if(window.__attendanceMissing) return P(null);
       var by={}, src=window.__partnerOut||{};

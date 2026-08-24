@@ -557,6 +557,53 @@
     }
 
     var first = String(pick.p.name || '').trim().split(/\s+/)[0] || 'your partner';
+
+    /* ----- gone quiet -----
+     *
+     * The state above this one is a week, and it is a nudge in the ordinary
+     * sense: book the next one. This is two weeks, and it is a different
+     * question — whether the two of you are still doing this at all.
+     *
+     * It is worth its own band because it is the commonest way a partnership
+     * that WORKED ends: nobody decides anything, the third session simply
+     * never gets proposed, and a month later both of them assume the other
+     * lost interest. So it says the thing neither of them is saying, in the
+     * plainest words available, and it does not imply anybody did anything
+     * wrong — because nobody did.
+     *
+     * Fourteen days is where the app's own language already changes:
+     * sinceWords starts counting in weeks there, the default goal is two
+     * sessions a week, and a standing slot books four weeks ahead so a pair
+     * with one can never reach this. The same number is in
+     * migration-dormancy.sql, which is what tells the other person.
+     *
+     * Not now is real and goes to the database: it stamps the partnership so
+     * neither of them is asked again for three weeks. A dismissal that only
+     * hid a card until the next reload would be a dismissal in name.
+     */
+    var DORMANT_DAYS = 14;
+    var stamped = pick.p.dormantNudgedAt;
+    /* undefined means migration-dormancy.sql has not been run, so there is
+       nowhere to put a Not now and no note reaching the other person. The
+       seven-day band below still does its job; this one does not appear at
+       all rather than appearing with a button that cannot save anything. */
+    var canQuiet = stamped !== undefined;
+    var quietFor = stamped ? (Date.now() - stamped.getTime()) / 86400000 : Infinity;
+
+    if (canQuiet && pick.last && days >= DORMANT_DAYS && quietFor >= 21){
+      band({
+        tone:'quiet', k:'It has been a while',
+        h: 'You and ' + esc(first) + ' haven’t studied together recently.',
+        s: 'Your last session was ' + sinceWords(days) + ' ago. Plan your next one — ' +
+           'pick an hour and send it over, and ' + tail,
+        a: '<a class="btn" data-open-book data-pick="' + pick.i + '" href="#book-card">' +
+             'Study with ' + esc(first) + ' again</a>' +
+           '<button class="ghost" type="button" data-quiet-off="' +
+             esc(pick.p.requestId || '') + '">Not now</button>'
+      });
+      return;
+    }
+
     /* The suggestion is only a suggestion if the form agrees with it, and
        only fair if there's a way past it. */
     var acts = '<a class="btn" data-open-book data-pick="' + pick.i + '" href="#book-card">' +
@@ -2237,6 +2284,33 @@
      real button wants, one to arm it and one to confirm, so nothing
      irreversible happens on a single press in either place. */
   document.getElementById('now-a').addEventListener('click', function(e){
+    /* Not now, on the gone-quiet band. It goes to the database rather than
+       hiding the card, because the same stamp is what stops the other person
+       being told — so waving it away here genuinely means neither of you is
+       asked again for three weeks, which is what "not now" has to mean if it
+       is to be worth offering. */
+    var off = e.target.closest('[data-quiet-off]');
+    if (off) {
+      e.preventDefault();
+      off.disabled = true;
+      off.textContent = 'Putting it away\u2026';
+      pf.snoozeDormant(off.getAttribute('data-quiet-off')).then(function(res){
+        if (res && res.saved) { window.location.href = 'app.html'; return; }
+        off.disabled = false;
+        off.textContent = 'Not now';
+        var line = $('now-f');
+        line.textContent = (res && res.error) || 'That didn\u2019t go through \u2014 please try again.';
+        line.hidden = false;
+      }, function(){
+        off.disabled = false;
+        off.textContent = 'Not now';
+        var line = $('now-f');
+        line.textContent = 'That didn\u2019t go through \u2014 check your connection and try again.';
+        line.hidden = false;
+      });
+      return;
+    }
+
     var b = e.target.closest('[data-relay]');
     if (!b) return;
     var target = document.querySelector(b.getAttribute('data-relay'));
@@ -2774,6 +2848,16 @@
        for against bookkeeping they never asked about. */
     if (pf.settleAttendance) pf.settleAttendance();
     if (pf.sendReminders) pf.sendReminders();
+    /* And the third thing that happens because somebody opened the page.
+       nudge_dormant asks about partnerships that have gone quiet and tells
+       the OTHER person — the one who is not here, which is the whole point:
+       the half of the pair that needs reaching is the half that is not
+       looking at this. The caller gets the band below instead, so nothing
+       tells them what their own screen is already saying.
+
+       Not awaited, like its neighbours, and silent about failure for the same
+       reason: nobody opened a dashboard to be told about this. */
+    if (pf.nudgeDormant) pf.nudgeDormant();
 
     /* All three at once. The profile used to be awaited on its own before the
        partner and sessions queries were even sent, which made the page wait
@@ -2909,7 +2993,12 @@
                 timezone: x.profile.timezone || '',
                 requestId: x.requestId,
                 met: !!metPairs[x.requestId],
-                standing: x.standing || null
+                standing: x.standing || null,
+                /* Carried through so idleBand can tell a pair that has been
+                   asked recently from one that has not, and so Not now has a
+                   partnership to stamp. Undefined without the migration. */
+                askedAt: x.askedAt || null,
+                dormantNudgedAt: x.dormantNudgedAt
               };
             });
           canBook = bookPartners.length > 0;

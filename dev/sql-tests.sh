@@ -97,7 +97,7 @@ SQL
 # migrate-2026-08.sql is the paste the user actually runs, and it now ends
 # with migration-no-double-booking.sql concatenated onto it, so loading it is
 # the real path rather than an approximation of one.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-reschedule.sql"
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-reschedule.sql supabase/migration-dormancy.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
@@ -1873,6 +1873,213 @@ check "  and declining it leaves nobody holding a session" ok "$(wrap "
     then raise exception 'something stayed booked after the move was turned down'; end if;
   if (select count(*) from public.sessions where status='declined') <> 2
     then raise exception 'the declined move did not reach both rows'; end if;")"
+
+echo
+echo "==> a partnership that has gone quiet"
+# Every case here is really the same question: does this pair qualify, and can
+# they be asked twice. QUIET builds the shape a dormant partnership has —
+# one session that genuinely happened, three weeks ago, and nothing since.
+#
+# The partnership row itself is aged too, because a pair who accepted last week
+# are new rather than dormant and the dashboard has a different band for them.
+QUIET="update public.partner_requests set created_at = now() - interval '60 days'
+        where from_user='$A' and to_user='$B';
+       insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                                    room_url, status, attendance, settled_at, created_at, pair_id)
+       select u.id, 'X', now() - interval '21 days', 50, 'pf:old1', 'completed',
+              'attended', now() - interval '21 days', now() - interval '21 days',
+              (select id from public.partner_requests
+                where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+         from (select '$A'::uuid as id union all select '$B'::uuid) u;"
+
+check "three weeks of nothing, after a real session, is dormant" ok "$(wrap "
+  $QUIET
+  if not exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a pair with nothing for three weeks did not qualify'; end if;")"
+
+check "  a pair who never met is not dormant, it is new" ok "$(wrap "
+  update public.partner_requests set created_at = now() - interval '60 days'
+   where from_user='$A' and to_user='$B';
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a partnership with no sessions was called dormant'; end if;")"
+
+check "  a partnership younger than the threshold is not dormant" ok "$(wrap "
+  $QUIET
+  update public.partner_requests set created_at = now() - interval '3 days'
+   where from_user='$A' and to_user='$B';
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a three-day-old partnership was called dormant'; end if;")"
+
+check "  a session still ahead of them means nothing has gone quiet" ok "$(wrap "
+  $QUIET
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, pair_id)
+  select u.id, 'X', now() + interval '3 days', 50, 'pf:ahead', 'confirmed',
+         (select id from public.partner_requests
+           where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+    from (select '$A'::uuid as id union all select '$B'::uuid) u;
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a pair with a booking ahead was called dormant'; end if;")"
+
+# A proposal that was turned down is still two people talking to each other.
+check "  a proposal made recently resets it, even a declined one" ok "$(wrap "
+  $QUIET
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, created_at, pair_id)
+  select u.id, 'X', now() - interval '2 days', 50, 'pf:tried', 'declined',
+         now() - interval '3 days',
+         (select id from public.partner_requests
+           where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+    from (select '$A'::uuid as id union all select '$B'::uuid) u;
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a pair who tried three days ago was called dormant'; end if;")"
+
+check "  a session inside the threshold is not long enough ago" ok "$(wrap "
+  update public.partner_requests set created_at = now() - interval '60 days'
+   where from_user='$A' and to_user='$B';
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, attendance, settled_at, created_at, pair_id)
+  select u.id, 'X', now() - interval '5 days', 50, 'pf:recent', 'completed',
+         'attended', now() - interval '5 days', now() - interval '5 days',
+         (select id from public.partner_requests
+           where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+    from (select '$A'::uuid as id union all select '$B'::uuid) u;
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a pair who met five days ago was called dormant'; end if;")"
+
+# end_partnership and block_person both set the row to 'ended', so one status
+# test covers both. These two prove it rather than assuming it.
+check "  a partnership somebody walked away from gets no nudge" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.end_partnership(
+    (select id from public.partner_requests
+      where from_user='$A' and to_user='$B' limit 1));
+  $IN_OWNER
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'an ended partnership was called dormant'; end if;")"
+
+check "  and neither does one where somebody blocked the other" ok "$(wrap "
+  $QUIET
+  $IN_B
+  perform public.block_person('$A');
+  $IN_OWNER
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a blocked partnership was called dormant'; end if;")"
+
+check "the nudge goes to the partner, not to whoever opened the app" ok "$(wrap "
+  $QUIET
+  $IN_A
+  if public.nudge_dormant() <> 1 then raise exception 'expected exactly one note'; end if;
+  $IN_OWNER
+  if exists (select 1 from public.notifications where user_id='$A' and kind='dormant')
+    then raise exception 'the caller was told something their own page says'; end if;
+  if not exists (select 1 from public.notifications where user_id='$B' and kind='dormant')
+    then raise exception 'the partner was not told'; end if;")"
+
+check "  and it names them and links to the booking form" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select href from public.notifications where user_id='$B' and kind='dormant')
+       is distinct from 'app.html?plan=$A'
+    then raise exception 'the link does not open the form on the right person'; end if;
+  if (select title from public.notifications where user_id='$B' and kind='dormant')
+       not like '%haven''t studied together recently%'
+    then raise exception 'the title is not the agreed sentence'; end if;")"
+
+# The whole point of the column. Opening the app is not an event; it happens
+# dozens of times a week and must not produce dozens of notes.
+check "opening the app again does not nudge again" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  perform public.nudge_dormant();
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select count(*) from public.notifications where kind='dormant') <> 1
+    then raise exception 'repeated loads produced % notes',
+      (select count(*) from public.notifications where kind='dormant'); end if;")"
+
+check "  nor does the other one opening it inside the cooldown" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_B
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select count(*) from public.notifications where kind='dormant') <> 1
+    then raise exception 'both sides opening the app produced two notes'; end if;")"
+
+check "  and the stamp is written even so" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select dormant_nudged_at from public.partner_requests
+       where from_user='$A' and to_user='$B') is null
+    then raise exception 'nothing was stamped, so it would ask again'; end if;")"
+
+check "  once the cooldown has passed it may ask once more" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_OWNER
+  update public.partner_requests set dormant_nudged_at = now() - interval '30 days'
+   where from_user='$A' and to_user='$B';
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select count(*) from public.notifications where kind='dormant') <> 2
+    then raise exception 'a pair still quiet after three weeks was never asked again'; end if;")"
+
+check "booking something stops it, without waiting for the cooldown" ok "$(wrap "
+  $QUIET
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, pair_id)
+  select u.id, 'X', now() + interval '2 days', 50, 'pf:back', 'proposed',
+         (select id from public.partner_requests
+           where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+    from (select '$A'::uuid as id union all select '$B'::uuid) u;
+  $IN_A
+  if public.nudge_dormant() <> 0 then raise exception 'a pair who just booked was nudged'; end if;")"
+
+check "not now silences the pair for the cooldown" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.snooze_dormant(
+    (select id from public.partner_requests
+      where from_user='$A' and to_user='$B' limit 1));
+  if public.nudge_dormant() <> 0
+    then raise exception 'not now did not stop the nudge'; end if;
+  $IN_B
+  if public.nudge_dormant() <> 0
+    then raise exception 'the other side was nudged after not now'; end if;")"
+
+check "  and a stranger cannot silence somebody else's partnership" "PF031" "$(wrap "
+  $QUIET
+  $IN_C
+  perform public.snooze_dormant(
+    (select id from public.partner_requests
+      where from_user='$A' and to_user='$B' limit 1));")"
+
+# The cron branch has nobody at the keyboard, so both of them are equally
+# absent and both are told.
+check "with no caller, cron tells both of them" ok "$(wrap "
+  $QUIET
+  if public.nudge_dormant_all(10) <> 2
+    then raise exception 'cron did not tell both people'; end if;
+  $IN_OWNER
+  if (select count(*) from public.notifications where kind='dormant') <> 2
+    then raise exception 'expected one note each'; end if;")"
+
+check "  and cron is no more repeatable than the app is" ok "$(wrap "
+  $QUIET
+  perform public.nudge_dormant_all(10);
+  perform public.nudge_dormant_all(10);
+  if (select count(*) from public.notifications where kind='dormant') <> 2
+    then raise exception 'a second sweep sent it again'; end if;")"
 
 echo
 echo "==================================================="

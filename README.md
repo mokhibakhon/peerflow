@@ -112,7 +112,13 @@ There is no automatic matching engine, and no hand-editing of tables.
    the same partner, at the standing slot if you have one and otherwise the
    next hour you share, skipping anything already on your calendar. It is
    still a proposal — the other person still accepts.
-6. **Reschedule** moves a session you had both agreed to, rather than
+6. If a partnership that was working goes quiet — a real session behind it,
+   nothing on either calendar, and **fourteen days** of neither of them
+   proposing anything — the dashboard says so once and offers to book the next
+   one, with a **Not now** that puts the pair away for three weeks. The person
+   who is *not* looking gets the notification, because the person who is
+   looking is reading the band. `supabase/migration-dormancy.sql`.
+7. **Reschedule** moves a session you had both agreed to, rather than
    cancelling it and hoping somebody books another. It is one
    `SECURITY DEFINER` function and one transaction — both copies of the old
    hour come off, both copies of the new one go on as a proposal — so it
@@ -160,6 +166,12 @@ schema as it was before that migration, so the cases can be seen to fail.
 `supabase/functions/_shared/livekit.ts` against Node's own crypto — a token
 signed wrongly there surfaces as "could not join" on somebody's call, which is
 a long way from the cause.
+
+`node dev/dormancy-tests.js` covers the band a partnership gets once it has
+gone quiet — including the two things that are easy to get wrong and invisible
+in the source: that it never reads as an accusation (nobody did anything
+wrong), and that opening the app repeatedly does not turn one nudge into fifty.
+The rules themselves are in `dev/sql-tests.sh`.
 
 `node dev/reschedule-tests.js` covers the half of moving a session that only
 exists on screen: that Reschedule is offered before Cancel and not offered at
