@@ -68,6 +68,15 @@
      __incoming    requests waiting on you, as partner_requests rows with an
                    `other` profile attached — what the People inbox and the
                    bell answer from
+     __rescheduleMissing  true to act as though migration-reschedule.sql has
+                   not been run: sessions arrive without rescheduled_from and
+                   reschedule_session() answers needsMigration, which is
+                   exactly when the Reschedule button must not be drawn
+     __rescheduleFail  an error sentence, for the failure path — the one that
+                   has to leave the original booking untouched
+     __rescheduleClash  the sentence the exclusion constraint produces, for
+                   the case where one of you has since agreed to something
+                   else at the new time
      __attendanceMissing  true to act as though migration-attendance.sql has
                    not been run: settling, check-ins and the cooldown all go
                    quiet and the pages fall back to what they said before
@@ -112,7 +121,7 @@ window.pf = (function(){
       attendance:att===true?'attended':att===false?'no_show':null,
       attendanceSource:att===null||att===undefined?null:'livekit',
       settledAt:att===null||att===undefined?null:x,
-      partnerOk:null,checkedInAt:null,continuePref:null};}
+      partnerOk:null,checkedInAt:null,continuePref:null,rescheduledFrom:null};}
 
   var SESSIONS=[
     {id:'s1',partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:soon,durationMin:50,
@@ -120,13 +129,13 @@ window.pf = (function(){
      mine:false,cancelledByMe:false,confirmedAt:null,goal:'Wireshark TCP practice',goalDone:null,
      attended:null,completedAt:null,cancelledAt:null,
      joinedAt:null,attendance:null,attendanceSource:null,settledAt:null,
-     partnerOk:null,checkedInAt:null,continuePref:null},
+     partnerOk:null,checkedInAt:null,continuePref:null,rescheduledFrom:null},
     {id:'s2',partnerName:'Amir Karimov',topic:'Cybersecurity',startsAt:prop,durationMin:50,
      roomUrl:'pf:demo2',pairId:'r1',status:'proposed',proposedBy:'them',note:null,
      mine:false,cancelledByMe:false,confirmedAt:null,goal:null,goalDone:null,attended:null,
      completedAt:null,cancelledAt:null,
      joinedAt:null,attendance:null,attendanceSource:null,settledAt:null,
-     partnerOk:null,checkedInAt:null,continuePref:null},
+     partnerOk:null,checkedInAt:null,continuePref:null,rescheduledFrom:null},
     past(7,'completed',true), past(14,'completed',true), past(21,'completed',true),
     past(28,'completed',false)
   ];
@@ -210,6 +219,29 @@ window.pf = (function(){
     return list;
   }
 
+  /* Sessions created by a reschedule, kept where a reload cannot lose them
+     for the same reason answers are: the whole point of the feature is what
+     the page looks like AFTER the move, and a stub that forgets would let a
+     test pass on a page that had not actually changed. */
+  var MOVES='pf_stub_moves';
+  function movesList(){
+    try{ return JSON.parse(sessionStorage.getItem(MOVES)||'[]'); }catch(e){ return []; }
+  }
+  function addMove(m){
+    var a=movesList(); a.push(m);
+    try{ sessionStorage.setItem(MOVES,JSON.stringify(a)); }catch(e){}
+  }
+  function movedRows(){
+    return movesList().map(function(m,i){
+      return {id:'mv'+i,partnerName:m.partnerName,topic:m.topic,
+        startsAt:new Date(m.at),durationMin:m.len,roomUrl:m.room,roomName:'pf-mv'+i,
+        pairId:m.pairId,status:'proposed',proposedBy:'u1',note:m.note||null,mine:true,
+        cancelledByMe:false,goal:null,goalDone:null,attended:null,joinedAt:null,
+        attendance:null,attendanceSource:null,settledAt:null,partnerOk:null,
+        checkedInAt:null,continuePref:null,rescheduledFrom:new Date(m.from)};
+    });
+  }
+
   var P=function(v){return Promise.resolve(v)};
   function note(k){ try{ var a=JSON.parse(sessionStorage.getItem('__calls')||'[]');
     a.push(k); sessionStorage.setItem('__calls',JSON.stringify(a)); }catch(e){} }
@@ -286,7 +318,15 @@ window.pf = (function(){
        reader on the page, which is how the check-in card came to be drawn on
        a site that could not save it. */
     fetchSessions:function(){
-      var rows = applyAnswers(window.__sessions||(window.__empty?[]:SESSIONS));
+      var rows = applyAnswers(window.__sessions||(window.__empty?[]:SESSIONS))
+                   .concat(movedRows());
+      /* Its own rung in the real ladder, so its own dial here: a database
+         without migration-reschedule.sql still has attendance, and the page
+         has to be able to tell those two apart. */
+      if(window.__rescheduleMissing) rows=(rows||[]).map(function(s){
+        var c={}; for(var k in s){ if(Object.prototype.hasOwnProperty.call(s,k)
+          && k!=='rescheduledFrom') c[k]=s[k]; }
+        return c; });
       if(!window.__attendanceMissing) return P(rows);
       var GONE = ['attendance','attendanceSource','settledAt','partnerOk',
                   'checkedInAt','continuePref','joinedAt'];
@@ -422,6 +462,36 @@ window.pf = (function(){
     cancelBooked:function(at,room){note('cancelBooked');
       answer(at,room,'cancelled'); return P({saved:true})},
     cancelSession:function(at,room){answer(at,room,'cancelled');return P({saved:true})},
+    /* The atomic half is the database's job and cannot be modelled here; what
+       this has to be faithful about is the ORDER of the refusals, because
+       every one of them is a state the page can reach by being a few seconds
+       stale, and each has its own sentence. A failure must leave the original
+       booking exactly as it was — which is what the tests check, and which is
+       why nothing is written until every check has passed. */
+    rescheduleSession:function(at,room,newAt,len,noteText){
+      note('reschedule');
+      if(window.__rescheduleMissing) return P({needsMigration:true,
+        error:'Moving a session isn\u2019t switched on for this site yet.'});
+      if(window.__rescheduleFail) return P({error:window.__rescheduleFail});
+      var d=newAt instanceof Date?newAt:new Date(newAt);
+      var rows=applyAnswers(window.__sessions||(window.__empty?[]:SESSIONS));
+      var t=new Date(at).getTime();
+      var old=(rows||[]).filter(function(s){
+        return s.roomUrl===room && s.startsAt.getTime()===t; })[0];
+      if(!old) return P({error:'That session isn\u2019t yours to move \u2014 refresh the page.'});
+      if(old.status!=='confirmed') return P({error:'That session can\u2019t be moved any more \u2014 '+
+        'refresh the page to see where it got to.'});
+      if(old.startsAt.getTime()<=Date.now()) return P({error:'That session has already started.'});
+      if(isNaN(d.getTime())||d.getTime()<=Date.now())
+        return P({error:'That\u2019s in the past \u2014 pick a future time.'});
+      if(d.getTime()===t) return P({error:'That is the time it is already at.'});
+      if(window.__rescheduleClash) return P({error:window.__rescheduleClash});
+      var room2='pf:moved'+movesList().length;
+      answer(at,room,'cancelled');
+      addMove({at:d.toISOString(),len:len||old.durationMin,room:room2,
+        from:new Date(at).toISOString(),partnerName:old.partnerName,topic:old.topic,
+        pairId:old.pairId,note:noteText||null});
+      return P({saved:true,roomUrl:room2});},
     sendPartnerRequest:function(){note('sendPartnerRequest');return P({sent:true})},
     myRequests:function(){return P({incoming:(window.__incoming||[]),outgoing:[
       {id:'r1',from_user:'u1',to_user:'u2',status:'accepted',created_at:'2026-06-02T00:00:00Z',

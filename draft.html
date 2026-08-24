@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Accept → first session, session → next — PeerFlow draft</title>
+<title>Where a partnership goes quiet — PeerFlow draft</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,10 +16,11 @@
 <style>
 /* Standalone draft, noindex, overwritten by whoever drafts next.
  *
- * The two places a partnership goes quiet, and what is now on screen at each
- * of them. Both are states you cannot reach with one account — one needs
- * somebody to accept your request, the other needs a session that has already
- * finished — so they are laid out here rather than described.
+ * The places a partnership goes quiet, and what is now on screen at each of
+ * them. All of them are states you cannot reach with one account — one needs
+ * somebody to accept your request, one needs a session that has already
+ * finished, one needs a booking the two of you agreed to — so they are laid
+ * out here rather than described.
  *
  * Everything below is the real markup with the real stylesheet. Nothing here
  * is a mock-up of something that might be built; it is what the pages do now,
@@ -64,12 +65,15 @@ body{background:var(--paper)}
 <div class="dw">
 
   <p class="mono slabel" style="margin-top:0">PeerFlow draft · /draft</p>
-  <h1 class="dtitle">Two places a partnership went quiet</h1>
-  <p class="dlede">Both are the same bug: somebody presses a button, the database does
-    exactly the right thing, and the page comes back looking identical. <b>Accept → first
-    session</b> and <b>completed session → next session</b> are the two biggest drops
-    between signing up and studying weekly, and neither of them was a missing feature —
-    they were presses that ended nowhere.</p>
+  <h1 class="dtitle">Where a partnership goes quiet</h1>
+  <p class="dlede">The first two are the same bug: somebody presses a button, the database
+    does exactly the right thing, and the page comes back looking identical. <b>Accept →
+    first session</b> and <b>completed session → next session</b> are the two biggest drops
+    between signing up and studying weekly, and neither was a missing feature — they were
+    presses that ended nowhere.</p>
+  <p class="dlede">The third is a missing one. <b>"I can't make Thursday"</b> had nowhere to
+    go but Cancel, so the difference between a clash and a breakup was left for the two
+    people to sort out in chat, or not at all.</p>
   <p class="dlede">Everything below is the live markup and the live stylesheet, in the
     states the app now produces. Nothing is booked by anything here: every path still ends
     in a proposal the other person has to accept.</p>
@@ -235,14 +239,88 @@ body{background:var(--paper)}
     </div>
   </section>
 
+  <!-- ============ 3.5 moving one instead of losing it ============ -->
+  <section class="dsec">
+    <h2>4 · "I can't make Thursday"</h2>
+    <p class="dnote">A confirmed session had exactly one way out of it, so
+      <b>I can't make Thursday</b> and <b>I don't want to study with you</b> ended at the
+      same button. Reschedule is now a real thing rather than a label on an empty form:
+      one <code>SECURITY DEFINER</code> function, one transaction, all of it or none of
+      it. It is still a proposal — the partner accepts the new time the way they accept
+      any other.</p>
+
+    <p class="was"><b>Before:</b> Cancel. The control labelled Reschedule opened a blank
+      booking form with nothing connecting it to the session you were trying to keep.</p>
+
+    <p class="mono slabel">Reschedule sits before Cancel, everywhere</p>
+    <div class="stage">
+      <section class="now" data-tone="booked">
+        <div class="now-txt">
+          <span class="mono now-k">Next session</span>
+          <p class="now-h">Today at 11:00 AM with Amir Karimov</p>
+          <p class="now-s">50 minutes · Cybersecurity. Both of you have agreed to this one.</p>
+          <div class="now-a"><a class="btn" href="#">Book another</a>
+            <button class="ghost" type="button">Reschedule</button>
+            <button class="ghost" type="button">Cancel this one</button></div>
+          <p class="now-f">Your room opens fifteen minutes before you start.</p>
+        </div>
+        <div class="now-side"><span class="now-cd">2h</span><span class="now-cl">from now</span></div>
+      </section>
+    </div>
+
+    <p class="mono slabel">The same form, saying which job it is doing</p>
+    <div class="stage">
+      <section class="b bookp" data-mode="move" style="margin:0">
+        <div class="ch">
+          <div class="grow"><span class="mono kick">Move</span><h2>Pick another time</h2></div>
+          <div class="side"><button class="small" type="button">Close</button></div>
+        </div>
+        <p class="bk-line">Instead of Mon, 24 Aug, 11:00 AM with Amir Karimov.</p>
+        <p>Meet <b>Amir</b> on <b>Tuesday, 25 Aug</b> at <b>5:00 PM</b> for <b>50 minutes</b>.</p>
+        <p class="bk-line">You’re both free in the evening that day.</p>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
+          <button class="btn primary" type="button">Propose the new time</button>
+          <span class="bk-hint">The old time comes off both calendars now. The new one is
+            booked when Amir accepts.</span>
+        </div>
+      </section>
+    </div>
+
+    <p class="mono slabel">And what the other person gets — one thing, not two</p>
+    <div class="stage">
+      <div class="prop">
+        <p class="prop-h"><b>Amir Karimov</b> proposed <b>Tue, 25 Aug, 05:00 PM</b></p>
+        <p class="prop-m">50 minutes · Cybersecurity · moved from Mon, 24 Aug, 11:00 AM</p>
+        <div class="prop-acts">
+          <button class="btn" type="button">Accept</button>
+          <button class="small" type="button">Decline</button>
+          <button class="small" type="button">Suggest another time</button>
+        </div>
+      </div>
+    </div>
+    <p class="dnote" style="margin-top:14px">Both note triggers stand down during a move,
+      so the partner is told once — <b>"Amir moved your session. Was Monday 11:00, now
+      Tuesday 17:00."</b> — rather than being told it was cancelled and then, separately,
+      that something new was proposed. The first of those two is alarming and obsolete by
+      the time it is read, and both were emailed.</p>
+    <p class="dnote"><b>Reliability is untouched.</b> Moving with six hours' notice or more
+      already settles as <code>cancelled_early</code>, which the score does not count.
+      Moving inside six hours still counts as a late cancellation, because your partner has
+      lost the evening either way — so the form says the six-hour line out loud instead of
+      a new outcome being invented to soften it.</p>
+  </section>
+
   <section class="dsec">
     <h2>What this did not touch</h2>
     <p class="dnote">No new tables and no migration — the accept notification goes through
       <code>notify_partner()</code>, which has been in the database since the MVP migration
       and was called from nowhere. Attendance, reliability, the no-show policy, the
       standing-slot rules and messaging are all unchanged, and their tests were run to say
-      so rather than assumed. Rescheduling, dormancy nudges and scheduled reminders are
-      deliberately not here.</p>
+      so rather than assumed. Rescheduling adds one migration —
+      <code>supabase/migration-reschedule.sql</code> — which has to be run by hand before
+      the Reschedule button appears; until it is, the button is not drawn at all rather
+      than drawn and refusing. Dormancy nudges and scheduled reminders are deliberately
+      not here.</p>
   </section>
 
 </div>

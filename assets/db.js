@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-24b';
+window.PF_BUILD = '2026-08-24c';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -377,6 +377,16 @@ window.pf = (function(){
          The narrowest rung is what sessions looked like before any of this,
          so there is always something that reads. */
       var COLS = [
+        /* A rung of its own for one column, so that a database which has not
+           run migration-reschedule.sql loses exactly rescheduling and not
+           attendance with it. That is what each rung is for: the cost of a
+           missing migration should be the feature it brings and nothing
+           else. */
+        { need:'supabase/migration-reschedule.sql',
+          cols:'id,partner_name,topic,starts_at,duration_min,room_url,room_name,pair_id,' +
+               'status,proposed_by,note,goal,goal_done,cancelled_by,attended,joined_at,' +
+               'completed_at,cancelled_at,attendance,attendance_source,settled_at,' +
+               'partner_ok,checked_in_at,continue_pref,rescheduled_from' },
         { need:'supabase/migration-attendance.sql',
           cols:'id,partner_name,topic,starts_at,duration_min,room_url,room_name,pair_id,' +
                'status,proposed_by,note,goal,goal_done,cancelled_by,attended,joined_at,' +
@@ -484,7 +494,20 @@ window.pf = (function(){
                  able to see that they were the one who said stop. */
               partnerOk: (s.partner_ok === true || s.partner_ok === false) ? s.partner_ok : null,
               checkedInAt: s.checked_in_at ? new Date(s.checked_in_at) : null,
-              continuePref: s.continue_pref || null
+              continuePref: s.continue_pref || null,
+              /* The time this session was moved from, or null if it was
+                 booked outright.
+
+                 Undefined rather than null on a database that has not run
+                 migration-reschedule.sql, for the same reason `attendance` is
+                 — the column is not selected at all there, and "we did not
+                 ask" is not "the answer was nothing". The dashboard reads the
+                 undefined as "rescheduling is not switched on here" and does
+                 not draw the button, because a control that cannot do
+                 anything should not be drawn. */
+              rescheduledFrom: ('rescheduled_from' in s)
+                ? (s.rescheduled_from ? new Date(s.rescheduled_from) : null)
+                : undefined
             };
           });
         });
@@ -674,6 +697,58 @@ window.pf = (function(){
   function cancelBooked(startsAt, roomUrl){
     return answer(startsAt, roomUrl, 'cancelled',
                   'Could not cancel that. Please try again.');
+  }
+
+  /* Move a session the two of you had already agreed.
+
+     Everything about this is one call because it has to be one transaction.
+     Rescheduling is four writes across two rooms — call off both copies of
+     the old hour, offer both copies of a new one — and a browser can neither
+     see all four rows (RLS hides your partner's) nor guarantee that the
+     second pair happens if the first pair did. Doing it as cancel-then-book
+     from here is how somebody ends up holding a cancelled evening while their
+     partner holds a booking.
+
+     So reschedule_session() in supabase/migration-reschedule.sql does the
+     whole thing or none of it, and answers with the new room. The long note
+     about what it refuses, and why each refusal is the database's job rather
+     than the page's, is in that file.
+
+     It is still a proposal. Nothing here books anything: the new time goes in
+     as 'proposed' and the partner accepts it the way they accept any other,
+     which is the rule this feature is least allowed to bend. */
+  function rescheduleSession(startsAt, roomUrl, newStartsAt, newDuration, note){
+    if (!client) return Promise.resolve({ demo: true });
+    return client.rpc('reschedule_session', {
+      p_starts_at: (startsAt instanceof Date ? startsAt.toISOString() : startsAt),
+      p_room: roomUrl,
+      p_new_starts_at: (newStartsAt instanceof Date ? newStartsAt.toISOString() : newStartsAt),
+      p_new_duration: newDuration || null,
+      p_note: note || null
+    }).then(function(r){
+      if (r.error) {
+        if (missingFunction(r.error)) {
+          return { needsMigration: true,
+                   error: 'Moving a session isn\u2019t switched on for this site yet.' };
+        }
+        var code = r.error.code;
+        /* Every one of these is a rule working correctly, so none of them is
+           reported as a fault. They are also all states the page can reach
+           legitimately by being a few seconds out of date, which is why each
+           says what to do rather than only what went wrong. */
+        if (code === 'PF001' || clashError(r.error)) return fail(r.error, clashMessage(r.error));
+        if (code === 'PF021') return { error: 'That session isn\u2019t yours to move \u2014 refresh the page.' };
+        if (code === 'PF022') return { error: 'That session can\u2019t be moved any more \u2014 refresh the page ' +
+                                              'to see where it got to.' };
+        if (code === 'PF023') return { error: 'That session has already started.' };
+        if (code === 'PF024') return { error: 'That\u2019s in the past \u2014 pick a future time.' };
+        if (code === 'PF025') return { error: 'That is the time it is already at.' };
+        return fail(r.error, 'Could not move that session. Please try again.');
+      }
+      return { saved: true, roomUrl: r.data || null };
+    }).catch(function(e){
+      return fail(e, 'Could not move that session \u2014 check your connection and try again.');
+    });
   }
 
   /* Removes both rows outright. For withdrawing a proposal nobody has
@@ -2368,6 +2443,7 @@ window.pf = (function(){
     declineSession: declineSession,
     cancelBooked: cancelBooked,
     cancelSession: cancelSession,
+    rescheduleSession: rescheduleSession,
     sendPartnerRequest: sendPartnerRequest,
     myRequests: myRequests,
     respondToRequest: respondToRequest,

@@ -75,6 +75,10 @@
          the line underneath says whether your partner has told us they're
          free then. Labels, boxes and a row of three fields said the same
          thing in four times the space and never once said it out loud. -->
+    <!-- Which session this is about, and only while it is about one. With two
+         bookings on the calendar "Pick another time" is a question with two
+         possible subjects, and the form has to say which one it took. -->
+    <p class="bk-line" id="bk-was" hidden></p>
     <p id="bk-sent">Meet
       <span class="pick" data-k="who"></span> on
       <span class="pick" data-k="day"></span> at
@@ -913,6 +917,13 @@
       /* A booked session had no way out of it: Cancel only ever appeared on a
          proposal you'd made, so once the other person accepted, neither of you
          could call it off without editing the database by hand. */
+      /* Reschedule first, and not only because it reads better in that order.
+         "I can't make Thursday" and "I don't want to study with you" ended at
+         the same button, and the one that keeps the partnership should be the
+         one the hand reaches first. Cancel is still there, one place further
+         along, and still asks twice. */
+      (past || !canMove(s) ? '' :
+        '<button class="small" data-reschedule' + key + '>Reschedule</button>') +
       (past ? '' : '<button class="small" data-cancel-booked' + key + '>Cancel</button>') +
       '<p class="slot-err" hidden></p></div>';
   }
@@ -920,6 +931,15 @@
   /* Ask once, same as the proposal cards — this takes the session off your
      partner's calendar too. */
   document.getElementById('upcoming').addEventListener('click', function(e){
+    /* Moving is not destructive at the point of pressing — it opens a form —
+       so it does not arm, and it is handled before the disarm sweep below
+       swallows the click. */
+    var move = e.target.closest('[data-reschedule]');
+    if (move) {
+      var s0 = sessionAt(move.getAttribute('data-at'), move.getAttribute('data-room'));
+      if (s0) openReschedule(s0);
+      return;
+    }
     var btn = e.target.closest('[data-cancel-booked]');
     if (!btn) {
       Array.prototype.forEach.call(this.querySelectorAll('[data-armed="1"]'), function(b){
@@ -1001,6 +1021,17 @@
      Read by the band so that a link and the sentence under it cannot end up
      about two different people. */
   var planFor = -1;
+
+  /* The session currently being moved, or null when the form is doing its
+     ordinary job of proposing a new one.
+
+     One form, two jobs, because they are the same decision — who, when, how
+     long — and a second form offering the same four choices would be a second
+     thing to learn for no reason. What changes is where Propose sends it and
+     what the buttons say. Cleared by closeBook, so backing out of a
+     reschedule cannot leave the next proposal secretly attached to an old
+     booking. */
+  var movingSession = null;
   /* bkMin exists for one option: "Now". Every other time in this form is a
      whole hour, because availability is bands rather than clock times — but
      "we are both here, let's start" is a real thing to want and no whole hour
@@ -1019,14 +1050,49 @@
        leaves this reachable from today, so it is a guard rather than a
        feature, but a guard that goes somewhere beats one that swallows the
        press. */
-    if (!canBook) { location.href = 'app-people.html'; return; }
+    /* Moving a session you already have is not something a partner list can
+       help with, and bouncing somebody to People mid-reschedule would lose
+       the booking they were trying to keep. */
+    if (!canBook && !movingSession) { location.href = 'app-people.html'; return; }
     var card = $('book-card');
     card.hidden = false;
     try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
     var trig = card.querySelector('#bk-sent .pick[data-k="' + (focusKey || 'day') + '"] .trig');
     if (trig) trig.focus();
   }
-  function closeBook(){ closeMenu(); $('book-card').hidden = true; }
+  function closeBook(){
+    closeMenu();
+    $('book-card').hidden = true;
+    /* Backing out of a move is backing out of it. Left set, the next ordinary
+       proposal would quietly cancel a booking nobody had asked it to. */
+    if (movingSession) { movingSession = null; paintBookMode(); }
+  }
+
+  /* What the form calls itself. The only difference between proposing and
+     moving is what the press means, so that is the only thing that changes —
+     the kicker, the heading, the button, and the line under it. Everything
+     between them is the same sentence with the same menus. */
+  function paintBookMode(){
+    var card = $('book-card');
+    var head = card.querySelector('.ch .grow');
+    var save = $('bk-save');
+    var was  = $('bk-was');
+    if (movingSession){
+      card.setAttribute('data-mode', 'move');
+      head.innerHTML = '<span class="mono kick">Move</span><h2>Pick another time</h2>';
+      save.textContent = 'Propose the new time';
+      was.textContent = 'Instead of ' + when(movingSession.startsAt) +
+        (movingSession.partnerName ? ' with ' + movingSession.partnerName : '') + '.';
+      was.hidden = false;
+    } else {
+      card.removeAttribute('data-mode');
+      head.innerHTML = '<span class="mono kick">Book</span><h2>Propose a time</h2>';
+      save.textContent = 'Propose this time';
+      was.textContent = '';
+      was.hidden = true;
+    }
+    paintSentence();
+  }
 
   $('bk-close').addEventListener('click', closeBook);
   /* Delegated, because the band rewrites its own buttons on every state
@@ -1302,9 +1368,16 @@
       var v = host.querySelector('.v');
       if (v) v.textContent = pickLabel(kind);
     });
-    document.getElementById('bk-hint').textContent = bookPartner
-      ? 'Nothing is booked until ' + shortName() + ' accepts.'
-      : 'Nothing is booked until they accept.';
+    /* Moving says the harder half out loud. The old hour comes off both
+       calendars the moment this is sent, and the new one is not booked until
+       they answer — which is the honest description of a reschedule under
+       two-sided rules, and not something to discover afterwards. */
+    document.getElementById('bk-hint').textContent = movingSession
+      ? 'The old time comes off both calendars now. The new one is booked when ' +
+        shortName() + ' accepts.'
+      : (bookPartner
+          ? 'Nothing is booked until ' + shortName() + ' accepts.'
+          : 'Nothing is booked until they accept.');
     var line = document.getElementById('bk-warn');
     if (!bookPartner || !chosen()) { line.textContent = ''; line.className = 'bk-line'; return; }
     if (bothFree()){
@@ -1441,6 +1514,12 @@
     var from = when.getTime(), to = from + (minutes || 50) * 60000;
     return !(allSessions || []).some(function(s){
       if (s.status !== 'confirmed' && s.status !== 'proposed' && s.status !== 'completed') return false;
+      /* The session being moved does not block its own replacement. It is
+         about to stop existing, and counting it would rule out the hour
+         either side of it — including, on a short move, the only hours the
+         two of them share that day. */
+      if (movingSession && s.roomUrl === movingSession.roomUrl &&
+          s.startsAt.getTime() === movingSession.startsAt.getTime()) return false;
       var a = s.startsAt.getTime();
       return a < to && from < a + (s.durationMin || 50) * 60000;
     });
@@ -1544,6 +1623,30 @@
     }).sort(function(a, b){ return a.startsAt - b.startsAt; })[0] || null;
   }
 
+  /* Whether this session can still be moved, which is the same set of
+     conditions reschedule_session() enforces — asked here so a button that
+     would only ever be refused is never drawn.
+
+     rescheduledFrom === undefined is the migration test, the same shape as
+     the attendance one in checkinsDue: on a database that has not run
+     migration-reschedule.sql the column is not selected at all, the RPC does
+     not exist either, and a Reschedule button there could do nothing but
+     apologise. */
+  function canMove(s){
+    if (!s || s.rescheduledFrom === undefined) return false;
+    if (s.status !== 'confirmed') return false;
+    return s.startsAt.getTime() > Date.now();
+  }
+
+  /* One session out of the calendar this page already has, by the pair that
+     identifies it everywhere else. */
+  function sessionAt(at, room){
+    var t = new Date(at).getTime();
+    return (allSessions || []).filter(function(s){
+      return s.roomUrl === room && s.startsAt.getTime() === t;
+    })[0] || null;
+  }
+
   /* Where a partnership sits in the booking sentence's list of people, or -1.
      Both callers hold one end of a partnership — a pair id from a session
      row, or an account id from a link — and need the other. */
@@ -1595,6 +1698,36 @@
     paintSentence();
   }
 
+  /* ----- moving one you already have -----
+
+     The entry point for every Reschedule on the page. It puts the form into
+     move mode, points it at the same partner, and opens it on the next time
+     worth offering — which is the same suggestion the booking form makes,
+     minus the session being moved, since that hour is about to be free.
+
+     The length carries over rather than being re-derived. Somebody moving a
+     fifty-minute session wants fifty minutes at a different hour, not the
+     twenty-five a first meeting would open at. */
+  function openReschedule(s){
+    movingSession = { startsAt: s.startsAt, roomUrl: s.roomUrl,
+                      partnerName: s.partnerName || '', durationMin: s.durationMin || 50,
+                      pairId: s.pairId || null };
+    var i = partnerIndexOfPair(s.pairId);
+    if (i >= 0) {
+      pickPartner(i);
+    } else {
+      /* A confirmed session whose partnership is no longer in the list —
+         possible only in the seconds after one side ends it. The move can
+         still be sent; what it cannot do is read hours the two of you share,
+         so it falls back to a plain suggestion. */
+      var blind = suggestBlind();
+      bkDay = blind.day; bkHour = blind.hour; bkMin = blind.min;
+    }
+    bkLen = movingSession.durationMin;
+    paintBookMode();
+    openBook('day');
+  }
+
   /* ----- proposing -----
      Nothing reaches either calendar as a real session here. Both rows go in
      as 'proposed'; the other person turns them into a booking. */
@@ -1611,6 +1744,39 @@
     var btn = this;
     btn.disabled = true; btn.textContent = 'Sending\u2026';
     note.textContent = '';
+
+    /* Moving an existing session is a different call, and it has to be: what
+       looks from here like "cancel that one, propose this one" is four writes
+       across two rooms, half of which this browser cannot even see. One RPC,
+       one transaction, all of it or none of it. The long note is in db.js.
+       
+       Disabling the button is the first half of not doing it twice; the
+       database is the second, since a second call finds the old session no
+       longer 'confirmed' and refuses with PF022. */
+    if (movingSession) {
+      pf.rescheduleSession(movingSession.startsAt, movingSession.roomUrl, w, bkLen,
+                           document.getElementById('bk-msg').value.trim())
+        .then(function(res){
+          btn.disabled = false; btn.textContent = 'Propose the new time';
+          if (res && res.saved) {
+            movingSession = null;
+            /* Reload for the same reason every other answer does: the band,
+               the calendar and the sessions card all describe a booking that
+               has just stopped existing, and none of them can work that out
+               for itself. */
+            window.location.href = 'app.html';
+            return;
+          }
+          note.textContent = (res && res.error) ||
+            (res && res.demo ? 'You need to be signed in to move a session.'
+                             : 'Could not move that \u2014 please try again.');
+        }, function(){
+          btn.disabled = false; btn.textContent = 'Propose the new time';
+          note.textContent = 'Could not move that \u2014 check your connection and try again.';
+        });
+      return;
+    }
+
     pf.proposeSession({
       partnerId: bookPartner.id,
       partnerName: bookPartner.name,
@@ -2135,7 +2301,14 @@
               '<button class="small" data-swap' + key + '>Suggest another time</button>';
         return '<div class="prop' + (turned ? ' turned' : '') + '">' +
           '<p class="prop-h">' + head + '</p>' +
-          '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') + '</p>' +
+          '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') +
+            /* Where it came from, on the row rather than only in the
+               notification that announced it. The note is read once; this
+               sits here for days, and without it a moved session reads as an
+               extra one somebody is asking for on top of the Thursday you
+               had already agreed. */
+            (x.rescheduledFrom
+              ? ' \u00b7 moved from ' + esc(propWhen(x.rescheduledFrom)) : '') + '</p>' +
           (x.goal ? '<p class="prop-goal"><b>By the end:</b> ' + esc(x.goal) + '</p>' : '') +
           (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
           '<div class="prop-acts">' + acts + '</div><p class="prop-err" hidden></p></div>';
@@ -2872,7 +3045,16 @@
                       second thing to read at the one moment the page has
                       exactly one thing to say. */
                    ? '<a class="btn" href="call.html?s=' + encodeURIComponent(next.id) + '">Join the call</a>'
+                   /* Reschedule between booking another and calling this one
+                      off, because that is the order of how much somebody
+                      wants each of them. Drawn only when the database can
+                      actually move it; the relay borrows the row's own
+                      button, so there is one implementation of what
+                      Reschedule means. */
                    : '<a class="btn" data-open-book href="#book-card">Book another</a>' +
+                     (canMove(next)
+                       ? '<button class="ghost" type="button"' +
+                         ' data-relay="#upcoming [data-reschedule]">Reschedule</button>' : '') +
                      '<button class="ghost" type="button" data-relay="#upcoming [data-cancel-booked]"' +
                      ' data-arm="Sure? Cancel it">Cancel this one</button>',
               /* Not "the call link" any more: there is no link. The room is

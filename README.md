@@ -112,6 +112,14 @@ There is no automatic matching engine, and no hand-editing of tables.
    the same partner, at the standing slot if you have one and otherwise the
    next hour you share, skipping anything already on your calendar. It is
    still a proposal — the other person still accepts.
+6. **Reschedule** moves a session you had both agreed to, rather than
+   cancelling it and hoping somebody books another. It is one
+   `SECURITY DEFINER` function and one transaction — both copies of the old
+   hour come off, both copies of the new one go on as a proposal — so it
+   either happens completely or the original booking is exactly as it was.
+   The partner is told once, naming both times, and still has to accept.
+   Needs `supabase/migration-reschedule.sql`; until that is run the button is
+   not drawn at all rather than drawn and refusing.
 
 **The call happens in PeerFlow.** `call.html` is a LiveKit room, one per
 booked session, that opens 15 minutes before the start and closes 20 minutes
@@ -152,6 +160,14 @@ schema as it was before that migration, so the cases can be seen to fail.
 `supabase/functions/_shared/livekit.ts` against Node's own crypto — a token
 signed wrongly there surfaces as "could not join" on somebody's call, which is
 a long way from the cause.
+
+`node dev/reschedule-tests.js` covers the half of moving a session that only
+exists on screen: that Reschedule is offered before Cancel and not offered at
+all where the migration is missing, that the form says which session it took,
+that a refused move leaves the booking untouched, and that the calendar and the
+sessions card never disagree about what happened. `dev/sql-tests.sh` has the
+primitive itself, including the case that matters most — every refusal rolls
+back, so nothing can half-move.
 
 `node dev/retention-tests.js` (with `PF_STUB=1 node dev/serve.js` running)
 covers the two places a partnership used to go quiet: accepting a request, and
