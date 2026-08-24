@@ -100,9 +100,18 @@ There is no automatic matching engine, and no hand-editing of tables.
    apart look like a perfect match.
 2. You press **Send request** and can add a note. They get it in their bell.
 3. They accept, and you're partners. Either of you can have more than one.
+   The accept notifies the person who asked — a real row in `notifications`,
+   so it survives and is emailed — and both sides get a **Plan your first
+   session** link. It points at `app.html?plan=<their account id>`, which
+   opens the booking form with that person and a suggested hour already in it.
 4. On **Sessions**, one of you proposes a time. Nothing is booked until the
    other accepts; they can also decline or suggest another time. Either side
    can cancel a booked session, and the other is told.
+5. After a session, **Study again** proposes the next one rather than only
+   recording that you would like there to be one: it opens the same form on
+   the same partner, at the standing slot if you have one and otherwise the
+   next hour you share, skipping anything already on your calendar. It is
+   still a proposal — the other person still accepts.
 
 **The call happens in PeerFlow.** `call.html` is a LiveKit room, one per
 booked session, that opens 15 minutes before the start and closes 20 minutes
@@ -143,6 +152,16 @@ schema as it was before that migration, so the cases can be seen to fail.
 `supabase/functions/_shared/livekit.ts` against Node's own crypto — a token
 signed wrongly there surfaces as "could not join" on somebody's call, which is
 a long way from the cause.
+
+`node dev/retention-tests.js` (with `PF_STUB=1 node dev/serve.js` running)
+covers the two places a partnership used to go quiet: accepting a request, and
+"Study again" after a session. Both are states one account cannot reach, and
+both are the same shape of bug — the database does the right thing and the page
+comes back looking identical — so every check is about what is on screen after
+the press. The edge cases are most of the file: a second press, a second visit
+to the same emailed link, a partnership that has since ended, and an hour that
+is already booked all have to end somewhere and none of them may produce a
+second session.
 
 `node dev/seo-tests.js` checks the public pages: canonicals, titles and
 descriptions and their uniqueness, social metadata, structured data, internal

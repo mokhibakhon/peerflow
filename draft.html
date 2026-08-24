@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Report and block — PeerFlow draft</title>
+<title>Accept → first session, session → next — PeerFlow draft</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,22 +16,30 @@
 <style>
 /* Standalone draft, noindex, overwritten by whoever drafts next.
  *
- * The database half of report-and-block is merged and tested. This is the
- * question it left behind: what does pressing Report actually look like.
+ * The two places a partnership goes quiet, and what is now on screen at each
+ * of them. Both are states you cannot reach with one account — one needs
+ * somebody to accept your request, the other needs a session that has already
+ * finished — so they are laid out here rather than described.
  *
- * It matters more than most layout questions because of where it has to work.
- * The same control is needed on somebody's profile page, where there is a
- * whole page to use, and inside a live call, where navigating anywhere drops
- * the call and there is video underneath everything. And app.css already has
- * an opinion, written next to the badge popup: "Everything else here tries not
- * to be a modal; this is the single event worth stopping for." Option B is a
- * second modal. That is the argument.
+ * Everything below is the real markup with the real stylesheet. Nothing here
+ * is a mock-up of something that might be built; it is what the pages do now,
+ * put where it can be looked at side by side.
  *
- * All three are live — click them. They are wired to a fake send so the
- * sending and sent states are real rather than described. */
-
+ * Two things are worth a decision:
+ *
+ *   1. The "Another one with Amir?" band carries no button. The form
+ *      underneath it is the action, and it is already open and filled in —
+ *      the same shape as "suggest another time" on a proposal. A button
+ *      saying "Propose" that scrolls to a Propose button would be two of
+ *      them.
+ *
+ *   2. The check-in row closes both questions once either is answered.
+ *      session_checkin stamps checked_in_at on any answer, so "did they turn
+ *      up" genuinely cannot be asked again afterwards — the alternative is
+ *      four dead buttons under a question nobody can answer.
+ */
 body{background:var(--paper)}
-.dw{max-width:1180px;margin:0 auto;padding:34px 26px 110px}
+.dw{max-width:1080px;margin:0 auto;padding:34px 26px 110px}
 .dtitle{margin:0 0 10px;font-size:var(--t-page);font-weight:800;letter-spacing:-.025em}
 .dlede{max-width:70ch;margin:0 0 6px;font-size:var(--t-sm);color:var(--ink-soft);line-height:1.65}
 .dlede b{color:var(--ink)}
@@ -40,364 +48,203 @@ body{background:var(--paper)}
 .dnote{max-width:70ch;margin:0 0 18px;font-size:var(--t-sm);color:var(--ink-soft);line-height:1.65}
 .dnote b{color:var(--ink)}
 .dnote code{font-family:var(--mono);font-size:.92em;background:#E9E8EF;border-radius:4px;padding:1px 5px}
-
 .slabel{margin:26px 0 10px;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.09em;
   text-transform:uppercase;color:var(--ink-faint)}
-
-/* The frame each option is shown in. Fixed height so the three read as
-   comparable rather than as three different amounts of page. */
-/* Tall enough that the whole form is visible without the sheet scrolling
-   inside itself — the point here is to judge the design, and a card cut off
-   at "Something else" is a judgement about this frame rather than about the
-   option. */
-.stage{position:relative;overflow:hidden;border:1px solid var(--line-strong);
-  border-radius:var(--r-card);background:var(--paper);min-height:640px;padding:18px}
-.stage.oncall{background:#14161F;border-color:#2A2E3C}
-
-/* A stand-in for the two video tiles, so the call cases are judged against
-   something the right shade rather than against white. */
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;height:230px}
-.tile{border-radius:12px;background:linear-gradient(140deg,#232735,#1A1D28);
-  display:grid;place-items:center;color:#5A6070;font-size:13px;font-weight:600}
-.callbar{display:flex;gap:8px;align-items:center;margin-top:12px;padding:10px 12px;
-  background:#1C1F2A;border-radius:12px}
-.callbar .cb{padding:8px 14px;border-radius:9px;background:#2A2E3C;color:#C7CBD8;
-  font-size:13px;font-weight:600;border:0;cursor:pointer;font-family:inherit}
-.callbar .cb.warn{color:#E7A08C}
-.callbar .sp{flex:1}
-
-/* ---------- shared bits of the form, used by all three ---------- */
-.rf-h{margin:0 0 4px;font-size:16.5px;font-weight:800;letter-spacing:-.02em}
-.rf-s{margin:0 0 14px;font-size:13.5px;color:var(--ink-soft);line-height:1.5}
-.rf-reasons{display:grid;gap:7px;margin-bottom:14px}
-.rf-r{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;text-align:left;
-  border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;
-  font-family:inherit;font-size:14px;color:var(--ink);width:100%}
-.rf-r:hover{border-color:var(--line-strong)}
-.rf-r[aria-pressed="true"]{border-color:var(--p2);background:var(--p0);color:var(--p8)}
-.rf-r b{font-weight:700}
-.rf-r span{display:block;font-size:12.5px;color:var(--ink-faint);font-weight:400;margin-top:2px}
-.rf-r[aria-pressed="true"] span{color:var(--p6)}
-.rf-t{width:100%;min-height:70px;padding:10px 12px;font-family:inherit;font-size:14px;
-  border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);
-  resize:vertical;margin-bottom:12px}
-.rf-blk{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--ink-soft);
-  line-height:1.45;margin-bottom:14px;cursor:pointer}
-.rf-blk input{margin-top:2px;flex:none}
-.rf-acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.rf-note{font-size:13px;color:var(--ink-faint)}
-.rf-done{padding:14px 2px;font-size:14px;color:var(--ink-soft);line-height:1.55}
-.rf-done b{color:var(--ink)}
-
-/* ---------- A — the inline panel ---------- */
-/* Opens in the flow of the page, pushing what is below it down. No overlay,
-   no dimming, nothing to trap focus in, and it is the pattern .askbox already
-   set for sending a partner request. On a call it has to sit somewhere, and
-   the only somewhere is over the tiles — which is where the honesty of this
-   option runs out. */
-.a-panel{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
-
-/* ---------- B — the overlay sheet ---------- */
-.b-wrap{position:absolute;inset:0;display:grid;place-items:center;padding:20px;
-  background:rgba(16,20,34,.5);backdrop-filter:blur(3px)}
-.b-card{width:min(380px,100%);max-height:100%;overflow:auto;padding:22px 22px 20px;
-  background:var(--card);border-radius:var(--r-card);
-  box-shadow:0 24px 60px rgba(16,20,34,.28),0 2px 8px rgba(16,20,34,.12)}
-
-/* ---------- C — reason first, detail after ---------- */
-/* No form at first: five buttons, and pressing one sends. The detail box and
-   the block choice come after, on a screen that can be walked away from
-   because the report is already filed. Fewest decisions at the moment when
-   somebody is least able to make them. */
-.c-after{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
-
-.verdict{margin-top:30px;padding:18px 20px;border:1px solid var(--line-strong);
-  border-radius:var(--r-card);background:var(--card)}
-.verdict h3{margin:0 0 8px;font-size:15px;font-weight:800}
-.verdict p{margin:0 0 8px;font-size:14px;color:var(--ink-soft);line-height:1.6}
-.verdict p:last-child{margin:0}
-.verdict b{color:var(--ink)}
+/* The frame each state is shown in. Padded rather than cropped, so a band and
+   a row are judged at the size they are on the page. */
+.stage{border:1px solid var(--line-strong);border-radius:var(--r-card);
+  background:var(--paper);padding:18px}
+.stage + .stage{margin-top:14px}
+.was{border-left:3px solid var(--line-strong);padding-left:14px;margin:0 0 18px;
+  font-size:var(--t-sm);color:var(--faint);line-height:1.6;max-width:70ch}
+.was b{color:var(--ink-soft)}
 </style>
 </head>
 <body>
-
 <div class="dw">
-  <h1 class="dtitle">Report and block — how the control opens</h1>
-  <p class="dlede">The database half is merged and tested: <code>block_person()</code>,
-    <code>report_person()</code>, five reasons, block-by-default, and policies that
-    make a block actually stop a message, a partner request and a booking. What is
-    left is the part you have to look at.</p>
-  <p class="dlede">It has to work in <b>two very different places</b>. On
-    <b>app-person.html</b> there is a whole page to use. Inside <b>call.html</b> there
-    is live video underneath, and navigating anywhere at all drops the call. One
-    control that works in both is worth more than two that each work in one.</p>
-  <p class="dlede">And app.css already has an opinion, written beside the badge
-    popup: <b>“Everything else here tries not to be a modal; this is the single event
-    worth stopping for.”</b> Option B is a second modal. That is the argument, and
-    it is a real one — reporting somebody may well be the second event worth
-    stopping for.</p>
-  <p class="dlede">All three are live. Click them.</p>
 
-  <!-- ============================================================ -->
-  <div class="dsec">
-    <h2>A — an inline panel</h2>
-    <p class="dnote">Opens in the flow of the page and pushes what is below it down.
-      No overlay, no dimming, nothing to trap focus inside, and it is the pattern
-      <code>.askbox</code> already set for asking somebody to be your partner. The
-      page stays a page.</p>
+  <p class="mono slabel" style="margin-top:0">PeerFlow draft · /draft</p>
+  <h1 class="dtitle">Two places a partnership went quiet</h1>
+  <p class="dlede">Both are the same bug: somebody presses a button, the database does
+    exactly the right thing, and the page comes back looking identical. <b>Accept → first
+    session</b> and <b>completed session → next session</b> are the two biggest drops
+    between signing up and studying weekly, and neither of them was a missing feature —
+    they were presses that ended nowhere.</p>
+  <p class="dlede">Everything below is the live markup and the live stylesheet, in the
+    states the app now produces. Nothing is booked by anything here: every path still ends
+    in a proposal the other person has to accept.</p>
 
-    <p class="slabel">On their profile</p>
+  <!-- ============ 1. accept → first session ============ -->
+  <section class="dsec">
+    <h2>1 · Somebody accepts your request</h2>
+    <p class="dnote">The accept now writes a real notification to the person who asked —
+      the same table every session event goes through, so it survives the tab closing and
+      it is emailed like the rest. The link in it is <code>app.html?plan=&lt;their id&gt;</code>,
+      which opens the booking form with them already in it.</p>
+
+    <p class="was"><b>Before:</b> the row changed status. The person who asked found out the
+      next time they happened to open PeerFlow and look at the bell, and the person who
+      accepted was handed back the directory of strangers they had just stopped needing.</p>
+
+    <p class="mono slabel">The person who accepted, on People</p>
     <div class="stage">
-      <div class="card" style="max-width:520px">
-        <div style="display:flex;gap:14px;align-items:center">
-          <span class="pv-av" style="width:44px;height:44px;font-size:17px">S</span>
-          <div style="flex:1">
-            <div style="font-size:17px;font-weight:800;letter-spacing:-.02em">Sarah Ahmed</div>
-            <div style="font-size:13.5px;color:var(--ink-faint)">Learning React hooks</div>
+      <section class="inbox">
+        <p class="inbox-h"><span class="inbox-n" hidden>0</span><b>Just answered</b></p>
+        <div class="inbox-body">
+          <div class="inreq">
+            <span class="inreq-av" style="background:#F3E8F6;color:#7B3E8F">D</span>
+            <div class="inreq-b">
+              <p class="inreq-nm"><a class="who" href="#">Dilnoza Rahimova</a></p>
+              <p class="inreq-msg">You’re partners. Nothing is booked until one of you proposes
+                a time and the other accepts.</p>
+            </div>
+            <div class="inreq-acts">
+              <a class="btn" href="app.html?plan=demo">Plan your first session</a>
+            </div>
           </div>
-          <span class="pstate ok">Partners</span>
         </div>
-        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-          <a class="ghost" href="#" onclick="return false">Message</a>
-          <button class="small danger" data-open="a-prof">Report or block</button>
-        </div>
-        <div class="a-panel" id="a-prof" hidden></div>
-      </div>
+      </section>
     </div>
 
-    <p class="slabel">On a call — the same panel, with nowhere to go but over the video</p>
-    <div class="stage oncall">
-      <div class="tiles"><div class="tile">you</div><div class="tile">Sarah</div></div>
-      <div class="callbar">
-        <button class="cb">Camera</button><button class="cb">Mic</button>
-        <span class="sp"></span>
-        <button class="cb warn" data-open="a-call">Report</button>
-        <button class="cb">Leave</button>
-      </div>
-      <!-- Capped and scrollable, which is the honest depiction: the panel is
-           taller than the room above the bar, so on a call "inline" resolves
-           to a floating box sitting on top of the video. That is a modal
-           without the dimming — the cost of one with the benefit of neither,
-           and the clearest argument against A. -->
-      <div id="a-call" hidden style="position:absolute;left:18px;right:18px;bottom:78px;
-           max-height:calc(100% - 96px);overflow:auto;
-           background:var(--card);border-radius:var(--r-card);padding:20px;
-           box-shadow:0 20px 50px rgba(0,0,0,.5)"></div>
-    </div>
-  </div>
-
-  <!-- ============================================================ -->
-  <div class="dsec">
-    <h2>B — an overlay sheet</h2>
-    <p class="dnote">One centred card on a dimmed ground. <b>Identical in both
-      places</b>, which is its whole case: one component, one set of states, one
-      thing to get right. It is the <code>.bpop</code> pattern the badge popup
-      already uses, so nothing new is invented — but it is a second modal in a
-      codebase that says in writing it is avoiding them.</p>
-
-    <p class="slabel">On their profile</p>
+    <p class="mono slabel">The person who asked, on Today</p>
     <div class="stage">
-      <div class="card" style="max-width:520px">
-        <div style="display:flex;gap:14px;align-items:center">
-          <span class="pv-av" style="width:44px;height:44px;font-size:17px">S</span>
-          <div style="flex:1">
-            <div style="font-size:17px;font-weight:800;letter-spacing:-.02em">Sarah Ahmed</div>
-            <div style="font-size:13.5px;color:var(--ink-faint)">Learning React hooks</div>
-          </div>
-          <span class="pstate ok">Partners</span>
+      <section class="now" data-tone="idle">
+        <div class="now-txt">
+          <span class="mono now-k">Your first session</span>
+          <p class="now-h">Your first session with Dilnoza.</p>
+          <p class="now-s">Tuesday, 26 Aug · 5:00 PM · a 25-minute first session.
+            Nothing is booked until they accept.</p>
+          <div class="now-a"><a class="btn" href="#">Propose this time</a></div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-          <a class="ghost" href="#" onclick="return false">Message</a>
-          <button class="small danger" data-open="b-prof">Report or block</button>
+      </section>
+    </div>
+    <p class="dnote" style="margin-top:14px">The hour is the next one the two of them are
+      both free, taken from the same availability the form reads, and it skips anything
+      already on the calendar. Twenty-five minutes because it is a first meeting; the
+      length menu is untouched. This band used to require that you had met <b>nobody</b>,
+      so a person with one weekly partner and one they had never spoken to was told to
+      "book your next session" — the wrong half of their week.</p>
+  </section>
+
+  <!-- ============ 2. completed → next ============ -->
+  <section class="dsec">
+    <h2>2 · A session went well</h2>
+    <p class="was"><b>Before:</b> "Study again" wrote your preference and reloaded. If your
+      partner had not already answered the same way — which is the ordinary case, since
+      somebody has to be first — the page came back identical and the press had gone
+      nowhere.</p>
+
+    <p class="mono slabel">The check-in, before</p>
+    <div class="stage">
+      <div class="slot cirow">
+        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
+          <span>Did Amir show up?</span></span>
+        <span class="ci-a">
+          <span class="ci-q">
+            <button class="small" type="button">Yes</button>
+            <button class="small" type="button">No</button>
+          </span>
+          <span class="ci-q">
+            <button class="btn" type="button">Study again</button>
+            <button class="small" type="button">Find someone else</button>
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <p class="mono slabel">And after pressing Study again</p>
+    <div class="stage">
+      <div class="slot cirow">
+        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
+          <span>You said you’d like to carry on.</span></span>
+        <span class="ci-a"></span>
+        <p class="slot-err note">Pick a time below and send it to Amir.</p>
+      </div>
+    </div>
+    <div class="stage">
+      <section class="now" data-tone="idle">
+        <div class="now-txt">
+          <span class="mono now-k">Next session</span>
+          <p class="now-h">Another one with Amir?</p>
+          <p class="now-s">Thursday, 28 Aug · 7:00 PM · 50 minutes. Change anything you
+            like — nothing is booked until Amir accepts.</p>
+          <div class="now-a"></div>
         </div>
+      </section>
+    </div>
+    <p class="dnote" style="margin-top:14px">The booking form opens underneath, filled in.
+      The suggested hour is the standing slot if the two of them have one, otherwise the
+      next hour they share, and never an hour already spoken for on your own calendar. The
+      two-sided rule is untouched: this proposes, Amir still accepts.</p>
+  </section>
+
+  <!-- ============ 3. the ways it must not go ============ -->
+  <section class="dsec">
+    <h2>3 · Where the same press must stop</h2>
+    <p class="dnote">Four states that all have to end somewhere sensible, and none of which
+      may produce a second session. Pressing twice, following the same emailed link twice,
+      and answering a check-in about a partnership that is already booked all arrive at the
+      same guard.</p>
+
+    <p class="mono slabel">You have already asked them</p>
+    <div class="stage">
+      <div class="slot cirow">
+        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
+          <span>You said you’d like to carry on.</span></span>
+        <span class="ci-a"></span>
+        <p class="slot-err note">You’ve already asked Amir for Thu, 28 Aug, 7:00 PM —
+          nothing more to send until they answer.</p>
       </div>
-      <div class="b-wrap" id="b-prof" hidden><div class="b-card"></div></div>
     </div>
 
-    <p class="slabel">On a call — the same component, unchanged</p>
-    <div class="stage oncall">
-      <div class="tiles"><div class="tile">you</div><div class="tile">Sarah</div></div>
-      <div class="callbar">
-        <button class="cb">Camera</button><button class="cb">Mic</button>
-        <span class="sp"></span>
-        <button class="cb warn" data-open="b-call">Report</button>
-        <button class="cb">Leave</button>
+    <p class="mono slabel">They have already asked you</p>
+    <div class="stage">
+      <div class="slot cirow">
+        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
+          <span>You said you’d like to carry on.</span></span>
+        <span class="ci-a"></span>
+        <p class="slot-err note">Amir has already proposed Thu, 28 Aug, 7:00 PM — answer
+          that one rather than sending another.</p>
       </div>
-      <div class="b-wrap" id="b-call" hidden><div class="b-card"></div></div>
     </div>
-  </div>
 
-  <!-- ============================================================ -->
-  <div class="dsec">
-    <h2>C — reason first, everything else after</h2>
-    <p class="dnote">No form at all to begin with: five buttons, and pressing one
-      <b>sends the report and blocks them</b>. The detail box and the "actually,
-      don't block" choice appear afterwards, on a screen that can be walked away
-      from because the thing is already done.</p>
-    <p class="dnote">The argument for it is about the moment rather than the layout.
-      Somebody reaching for this button has just been made uncomfortable, and that
-      is not the state in which to be asked four questions. The argument against is
-      that a one-press irreversible-feeling action is easy to hit by accident — met
-      here by making it genuinely undoable for as long as the panel is open.</p>
-
-    <p class="slabel">On a call — one press is the whole thing</p>
-    <div class="stage oncall">
-      <div class="tiles"><div class="tile">you</div><div class="tile">Sarah</div></div>
-      <div class="callbar">
-        <button class="cb">Camera</button><button class="cb">Mic</button>
-        <span class="sp"></span>
-        <button class="cb warn" data-open="c-call">Report</button>
-        <button class="cb">Leave</button>
+    <p class="mono slabel">The partnership has ended</p>
+    <div class="stage">
+      <div class="slot cirow">
+        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
+          <span>You said you’d like to carry on.</span></span>
+        <span class="ci-a"></span>
+        <p class="slot-err note">You’re not partners with Amir any more, so there’s nothing
+          to book — you can ask them again from People.</p>
       </div>
-      <div class="b-wrap" id="c-call" hidden><div class="b-card"></div></div>
     </div>
-  </div>
 
-  <!-- ============================================================ -->
-  <div class="dsec">
-    <h2>Where I'd land</h2>
-    <div class="verdict">
-      <h3>B, the overlay sheet — and I think the modal rule bends here rather than breaks.</h3>
-      <p>The rule in app.css is about <b>interruption</b>: don't stop somebody who is
-        reading a page to show them something they did not ask for. This is the
-        opposite. They pressed a button, they want the thing that follows, and the
-        dimming is doing a job — on a call it is the only way to be legible over
-        moving video, and it takes the other person's face off the screen while
-        somebody types a sentence about them.</p>
-      <p>A is the better citizen on the profile page and falls apart on the call,
-        where "inline" means a floating box over video that is a modal without the
-        dimming — the costs of one with the benefits of neither.</p>
-      <p>C is the most humane and the one I would want if the whole thing lived on
-        the call. But it needs an undo window to be safe, and an undo window is a
-        fourth state on the one flow that must never be flaky.</p>
-      <p><b>So: B, unless you disagree — say A or C and I'll build that instead.</b>
-        Either way it is one component used from both pages.</p>
+    <p class="mono slabel">Already booked, so the link does not open a second form</p>
+    <div class="stage">
+      <section class="now" data-tone="booked">
+        <div class="now-txt">
+          <span class="mono now-k">Next session</span>
+          <p class="now-h">Thursday at 7:00 PM with Amir Karimov</p>
+          <p class="now-s">50 minutes · Cybersecurity. Both of you have agreed to this one.</p>
+          <div class="now-a"><a class="btn" href="#">Book another</a>
+            <button class="ghost" type="button">Cancel this one</button></div>
+          <p class="now-f">Your room opens fifteen minutes before you start.</p>
+        </div>
+        <div class="now-side"><span class="now-cd">3</span><span class="now-cl">days</span></div>
+      </section>
     </div>
-  </div>
+  </section>
+
+  <section class="dsec">
+    <h2>What this did not touch</h2>
+    <p class="dnote">No new tables and no migration — the accept notification goes through
+      <code>notify_partner()</code>, which has been in the database since the MVP migration
+      and was called from nowhere. Attendance, reliability, the no-show policy, the
+      standing-slot rules and messaging are all unchanged, and their tests were run to say
+      so rather than assumed. Rescheduling, dormancy nudges and scheduled reminders are
+      deliberately not here.</p>
+  </section>
+
 </div>
-
-<script>
-/* All three share one form. That is not a shortcut for the draft — it is the
-   claim being tested: whatever the container turns out to be, the contents
-   are the same five reasons, the same optional sentence and the same
-   block-by-default, so picking a container is genuinely the only open
-   question. */
-(function(){
-  var REASONS = [
-    ['harassment', 'Harassment',        'Abuse, threats, or anything sexual'],
-    ['safety',     'They made me feel unsafe', 'Something else that frightened me'],
-    ['no_show',    'They didn’t turn up', 'Booked time and never appeared'],
-    ['spam',       'Spam or advertising', 'Selling something, or not here to learn'],
-    ['other',      'Something else',      '']
-  ];
-
-  function form(name, opts){
-    opts = opts || {};
-    var reasons = REASONS.map(function(r){
-      return '<button type="button" class="rf-r" aria-pressed="false" data-reason="' + r[0] + '">' +
-             '<span style="flex:1"><b>' + r[1] + '</b>' +
-             (r[2] ? '<span>' + r[2] + '</span>' : '') + '</span></button>';
-    }).join('');
-    return '<p class="rf-h">Report ' + name + '</p>' +
-           '<p class="rf-s">This goes to PeerFlow, not to them. They are never told ' +
-           'they were reported or blocked.</p>' +
-           '<div class="rf-reasons">' + reasons + '</div>' +
-           '<textarea class="rf-t" placeholder="Anything you want to add (optional)"></textarea>' +
-           '<label class="rf-blk"><input type="checkbox" checked>' +
-           '<span>Block them too — they cannot message you, ask to partner with you, ' +
-           'or book time with you, and any sessions you have booked come off both ' +
-           'calendars.</span></label>' +
-           '<div class="rf-acts">' +
-             '<button class="small danger" data-send disabled>Send report</button>' +
-             '<button class="small" data-close>Cancel</button>' +
-             '<span class="rf-note"></span>' +
-           '</div>';
-  }
-
-  function done(blocked){
-    return '<div class="rf-done"><b>Report sent.</b> Somebody will read it. ' +
-           (blocked ? 'They are blocked, and you can undo that in Settings.'
-                    : 'They are not blocked — you can still do that from their profile.') +
-           '</div><div class="rf-acts"><button class="small" data-close>Close</button></div>';
-  }
-
-  /* C: the five reasons on their own, and pressing one is the whole action. */
-  function quick(name){
-    var reasons = REASONS.map(function(r){
-      return '<button type="button" class="rf-r" data-quick="' + r[0] + '">' +
-             '<span style="flex:1"><b>' + r[1] + '</b>' +
-             (r[2] ? '<span>' + r[2] + '</span>' : '') + '</span></button>';
-    }).join('');
-    return '<p class="rf-h">Report ' + name + '</p>' +
-           '<p class="rf-s">Pick one. It sends straight away and blocks them — ' +
-           'you can change both on the next screen.</p>' +
-           '<div class="rf-reasons">' + reasons + '</div>' +
-           '<div class="rf-acts"><button class="small" data-close>Cancel</button></div>';
-  }
-
-  function quickAfter(){
-    return '<div class="rf-done"><b>Sent, and they are blocked.</b> ' +
-           'Nothing else is needed — the rest is optional.</div>' +
-           '<textarea class="rf-t" placeholder="Add what happened (optional)"></textarea>' +
-           '<label class="rf-blk"><input type="checkbox" checked>' +
-           '<span>Keep them blocked</span></label>' +
-           '<div class="c-after rf-acts">' +
-             '<button class="small" data-send>Save</button>' +
-             '<button class="small" data-close>Close</button>' +
-             '<span class="rf-note"></span>' +
-           '</div>';
-  }
-
-  function fill(host, html){
-    host.innerHTML = html;
-    var card = host.classList.contains('b-wrap') ? host.querySelector('.b-card') : host;
-    if (card !== host) { card.innerHTML = html; host.innerHTML = ''; host.appendChild(card); }
-  }
-
-  function open(id){
-    var host = document.getElementById(id);
-    var isSheet = host.classList.contains('b-wrap');
-    var body = isSheet ? host.querySelector('.b-card') : host;
-    body.innerHTML = (id === 'c-call') ? quick('Sarah') : form('Sarah');
-    host.hidden = false;
-  }
-
-  document.addEventListener('click', function(ev){
-    var el = ev.target.closest ? ev.target.closest('[data-open],[data-close],[data-reason],[data-send],[data-quick]') : null;
-    if (!el) return;
-
-    if (el.hasAttribute('data-open')) { open(el.getAttribute('data-open')); return; }
-
-    var host = el.closest('.b-wrap') || el.closest('[id]');
-    while (host && !/^(a|b|c)-/.test(host.id || '')) host = host.parentElement;
-    if (!host) return;
-    var body = host.querySelector('.b-card') || host;
-
-    if (el.hasAttribute('data-close')) { host.hidden = true; return; }
-
-    if (el.hasAttribute('data-reason')) {
-      body.querySelectorAll('[data-reason]').forEach(function(b){
-        b.setAttribute('aria-pressed', String(b === el));
-      });
-      body.querySelector('[data-send]').disabled = false;
-      return;
-    }
-
-    if (el.hasAttribute('data-quick')) {
-      el.disabled = true;
-      body.innerHTML = quickAfter();
-      return;
-    }
-
-    if (el.hasAttribute('data-send')) {
-      var blocked = true;
-      var cb = body.querySelector('.rf-blk input');
-      if (cb) blocked = cb.checked;
-      el.disabled = true; el.textContent = 'Sending…';
-      setTimeout(function(){ body.innerHTML = done(blocked); }, 550);
-    }
-  });
-})();
-</script>
 </body>
 </html>

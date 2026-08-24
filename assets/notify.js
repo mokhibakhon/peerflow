@@ -128,7 +128,31 @@
       var who = x.partnerName || (x.other && x.other.name);
       if (who) busy[who] = true;
     });
+    /* An accepted request is now written to the notifications table as well
+       — that is what makes it survive, and what gets it emailed — and it was
+       already derived from partner_requests by itemOutgoing above. Shown from
+       both sources it appears twice, saying the same thing under two
+       different sentences.
+       
+       The derived row is the one that stays, because it is the one that knows
+       whether anything has been booked since and can say the right thing.
+       Matched on the same leading-name rule as the session notes above, and
+       against the accepted requests rather than the busy list, since an
+       accepted request needs nothing from you and never appears in it. */
+    var answered = {};
+    state.outgoing.forEach(function(x){
+      var who = x.status === 'accepted' && x.other && x.other.name;
+      if (who) answered[who] = true;
+    });
+
     return state.notes.filter(function(n){
+      if (n.kind === 'partner') {
+        for (var name in answered) {
+          if (Object.prototype.hasOwnProperty.call(answered, name) &&
+              String(n.title).indexOf(name) === 0) return false;
+        }
+        return true;
+      }
       if (n.kind !== 'session') return true;
       for (var who in busy) {
         if (Object.prototype.hasOwnProperty.call(busy, who) &&
@@ -161,13 +185,36 @@
       ' <b>' + who + '</b></p><p class="bell-time">' + ago(x.created_at) + '</p></div>';
   }
 
+  /* Whether anything has ever been arranged with this partnership. A session
+     row carries the partner request's id as its pair, so the accepted request
+     and the sessions that came out of it can be matched exactly rather than
+     by name. Cancelled and declined rows are not arrangements. */
+  function everBooked(requestId){
+    return state.proposals.some(function(s){
+      return s.pairId === requestId &&
+             s.status !== 'cancelled' && s.status !== 'declined';
+    });
+  }
+
   function itemOutgoing(x){
     var who = esc(x.other && x.other.name || 'Someone');
     if (x.status === 'accepted') {
+      /* The whole point of the row. "See my partner" went to a page listing
+         who you are paired with, which somebody who has just been told they
+         are paired with this person already knows — so the one moment they
+         are most likely to act ended on a page with nothing to do on it.
+         The link now opens the booking form with them in it.
+
+         Only while there is nothing arranged yet. Once a time is on the
+         table, telling somebody to plan their first session is telling them
+         to do a thing they have done. */
+      var fresh = x.other && x.other.id && !everBooked(x.id);
       return '<div class="bell-item' + (x.from_seen_at ? '' : ' fresh') + '">' +
         '<p><b>' + who + '</b> accepted your request</p>' +
         '<p class="bell-time">' + ago(x.created_at) + '</p>' +
-        '<div class="bell-actions"><a class="btn primary" href="app-sessions.html">See my partner</a></div>' +
+        '<div class="bell-actions"><a class="btn primary" href="' +
+          (fresh ? 'app.html?plan=' + encodeURIComponent(x.other.id) : 'app-sessions.html') +
+          '">' + (fresh ? 'Plan your first session' : 'See my partner') + '</a></div>' +
         '</div>';
     }
     if (x.status === 'declined') {

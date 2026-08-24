@@ -177,7 +177,12 @@
     if (!req) {
       out += '<a class="btn" href="app-people.html?ask=' + esc(person.id) + '">Send request</a>';
     } else if (req.status === 'accepted') {
-      out += '<span class="pstate ok">Partners</span>';
+      /* Partnered, and the page said so and stopped. The one thing two
+         partners have to do is agree an hour, and there was nothing here that
+         led to it — you had to know that booking lives on Sessions and that
+         the form has a menu with this person in it. */
+      out += '<span class="pstate ok">Partners</span>' +
+             '<a class="btn" href="app.html?plan=' + esc(person.id) + '">Propose a time</a>';
     } else if (req.status === 'declined') {
       out += '<span class="pstate no">Declined</span>';
     } else {
