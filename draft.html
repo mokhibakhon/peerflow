@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Where a partnership goes quiet — PeerFlow draft</title>
+<title>What the calendar leaves out — PeerFlow draft</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,358 +16,98 @@
 <style>
 /* Standalone draft, noindex, overwritten by whoever drafts next.
  *
- * The places a partnership goes quiet, and what is now on screen at each of
- * them. All of them are states you cannot reach with one account — one needs
- * somebody to accept your request, one needs a session that has already
- * finished, one needs a booking the two of you agreed to — so they are laid
- * out here rather than described.
+ * Two things the re-check of the retention work turned up, both in the same
+ * corner of app.html and neither visible from the sessions card above it. One
+ * is already fixed, because a booking was genuinely missing from the screen.
+ * The other is a decision about what the calendar is for, which is why it is
+ * on this page instead of in the app.
  *
- * Everything below is the real markup with the real stylesheet. Nothing here
- * is a mock-up of something that might be built; it is what the pages do now,
- * put where it can be looked at side by side.
- *
- * Two things are worth a decision:
- *
- *   1. The "Another one with Amir?" band carries no button. The form
- *      underneath it is the action, and it is already open and filled in —
- *      the same shape as "suggest another time" on a proposal. A button
- *      saying "Propose" that scrolls to a Propose button would be two of
- *      them.
- *
- *   2. The check-in row closes both questions once either is answered.
- *      session_checkin stamps checked_in_at on any answer, so "did they turn
- *      up" genuinely cannot be asked again afterwards — the alternative is
- *      four dead buttons under a question nobody can answer.
+ * The grids are the real stylesheet with hand-written cells. The states need a
+ * week holding a five in the morning booking and a Friday evening proposal at
+ * the same time, and that is not a week you can arrange to be in on demand.
  */
-body{background:var(--paper)}
-.dw{max-width:1080px;margin:0 auto;padding:34px 26px 110px}
-.dtitle{margin:0 0 10px;font-size:var(--t-page);font-weight:800;letter-spacing:-.025em}
-.dlede{max-width:70ch;margin:0 0 6px;font-size:var(--t-sm);color:var(--ink-soft);line-height:1.65}
-.dlede b{color:var(--ink)}
-.dsec{margin:46px 0 0;padding-top:24px;border-top:2px solid var(--line-strong)}
-.dsec > h2{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:-.025em}
-.dnote{max-width:70ch;margin:0 0 18px;font-size:var(--t-sm);color:var(--ink-soft);line-height:1.65}
-.dnote b{color:var(--ink)}
-.dnote code{font-family:var(--mono);font-size:.92em;background:#E9E8EF;border-radius:4px;padding:1px 5px}
-.slabel{margin:26px 0 10px;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.09em;
-  text-transform:uppercase;color:var(--ink-faint)}
-/* The frame each state is shown in. Padded rather than cropped, so a band and
-   a row are judged at the size they are on the page. */
-.stage{border:1px solid var(--line-strong);border-radius:var(--r-card);
-  background:var(--paper);padding:18px}
-.stage + .stage{margin-top:14px}
-.was{border-left:3px solid var(--line-strong);padding-left:14px;margin:0 0 18px;
-  font-size:var(--t-sm);color:var(--faint);line-height:1.6;max-width:70ch}
-.was b{color:var(--ink-soft)}
+body{background:var(--bg);padding:34px 20px 90px}
+.wrap{max-width:1000px;margin:0 auto}
+.dh{margin:0 0 6px;font-size:var(--t-xl);letter-spacing:-.02em}
+.dsub{margin:0 0 34px;color:var(--soft);max-width:64ch;line-height:1.6}
+.sec{margin:0 0 44px}
+.sec > h2{font-size:var(--t-lg);letter-spacing:-.015em;margin:0 0 4px}
+.sec > p{color:var(--soft);max-width:70ch;line-height:1.65;margin:0 0 18px}
+.tag{display:inline-block;font-size:var(--t-xs);font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;padding:3px 9px;border-radius:var(--r-pill);margin-bottom:9px}
+.tag.fixed{background:#E9F6EF;color:#15734F}
+.tag.open{background:#FDF1E3;color:#8A5A1B}
+/* Stacked, never two-up. Each card holds a real calendar, and .cal-grid carries
+   min-width:816px so a week never squeezes its columns into nonsense. A grid
+   item defaults to min-width:auto, so two side by side could not shrink to
+   their track: the second card was pushed past the right edge and the page
+   scrolled sideways — which is how a page with two options on it can look like
+   a page with one. Stacking costs a scroll between them and shows both whole. */
+.pair{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+.opt{border:1px solid var(--line);border-radius:var(--r-card);background:var(--card);padding:16px 16px 18px}
+.opt h3{margin:0 0 3px;font-size:var(--t-md);letter-spacing:-.01em}
+.opt > p{margin:0 0 14px;color:var(--soft);font-size:var(--t-sm);line-height:1.6}
+.opt .why{margin:14px 0 0;font-size:var(--t-sm);color:var(--soft);line-height:1.6}
+.opt .why b{color:var(--ink);font-weight:600}
+/* The real card caps its scroller at seven rows and auto-scrolls to the first
+   block. Right in the app, wrong here: every grid on this page makes its point
+   with a row near the bottom of its window, and at seven rows all of them
+   rendered as the same picture of an empty Tuesday morning. An illustration
+   that hides the thing it illustrates argues for nothing. */
+.opt .cal-scroll{max-height:none}
+.miss{background:#FDF1E3;border-left:3px solid #D99A3C;padding:11px 14px;border-radius:var(--r-control);
+  font-size:var(--t-sm);color:#8A5A1B;line-height:1.55;margin:0 0 16px;max-width:70ch}
 </style>
 </head>
 <body>
-<div class="dw">
+<div class="wrap">
 
-  <p class="mono slabel" style="margin-top:0">PeerFlow draft · /draft</p>
-  <h1 class="dtitle">Where a partnership goes quiet</h1>
-  <p class="dlede">The first two are the same bug: somebody presses a button, the database
-    does exactly the right thing, and the page comes back looking identical. <b>Accept →
-    first session</b> and <b>completed session → next session</b> are the two biggest drops
-    between signing up and studying weekly, and neither was a missing feature — they were
-    presses that ended nowhere.</p>
-  <p class="dlede">The third is a missing one. <b>"I can't make Thursday"</b> had nowhere to
-    go but Cancel, so the difference between a clash and a breakup was left for the two
-    people to sort out in chat, or not at all.</p>
-  <p class="dlede">Everything below is the live markup and the live stylesheet, in the
-    states the app now produces. Nothing is booked by anything here: every path still ends
-    in a proposal the other person has to accept.</p>
+<h1 class="dh">What the calendar leaves out</h1>
+<p class="dsub">Re-checking the reschedule work turned up two things in <code>calHourWindow()</code>
+and the filter that feeds it. The first was losing a booking off the screen. The second was a question about
+what the grid is for. Both are settled and applied; this page is the record of what was compared.</p>
 
-  <!-- ============ 1. accept → first session ============ -->
-  <section class="dsec">
-    <h2>1 · Somebody accepts your request</h2>
-    <p class="dnote">The accept now writes a real notification to the person who asked —
-      the same table every session event goes through, so it survives the tab closing and
-      it is emailed like the rest. The link in it is <code>app.html?plan=&lt;their id&gt;</code>,
-      which opens the booking form with them already in it.</p>
+<section class="sec">
+  <span class="tag fixed">Fixed</span>
+  <h2>A proposal that was not on the calendar at all</h2>
+  <p>The hour window is built from the earliest and latest hour the week contains, then capped at
+  fourteen rows as a backstop against drawing a full day. The cap used to be <code>hi = lo + 13</code>
+  — it trimmed the bottom of the window without looking at what was in it. A week holding a 5am
+  booking and a Friday 7pm proposal drew 05:00 to 18:00 and never rendered the Friday cell. The
+  sessions card said the proposal existed; the calendar beside it showed a free evening.</p>
+  <p class="miss">This is the same divergence between the calendar and the session list that the
+  reschedule flow exists to prevent, arriving from the other direction — and it was invisible,
+  because a cell that was never drawn looks exactly like an hour with nothing booked in it.</p>
+  <div class="pair">
+    <div class="opt"><h3>Before</h3><p>Rows stop at 18:00. Friday evening is not on the grid, and nothing says so.</p><div class="cal-scroll"><div class="cal-grid"><div class="cal-corner"></div><div class="cal-day"><span>Mon</span><b>24</b></div><div class="cal-day today"><span>Tue</span><b>25</b></div><div class="cal-day"><span>Wed</span><b>26</b></div><div class="cal-day"><span>Thu</span><b>27</b></div><div class="cal-day"><span>Fri</span><b>28</b></div><div class="cal-day"><span>Sat</span><b>29</b></div><div class="cal-day"><span>Sun</span><b>30</b></div><div class="cal-h">05:00</div><div class="cal-cell past"></div><div class="cal-cell"><span class="cal-ev booked"><b>Cybersecurity</b><i>05:00 · Amir</i></span></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">06:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">07:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">08:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">09:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">10:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">11:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">12:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">13:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">14:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">15:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">16:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">17:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">18:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div></div></div><p class="why"><b>One booking short.</b> Scroll it all the way down: there is no 19:00 row to find.</p></div>
+    <div class="opt"><h3>After</h3><p>The trim now walks in from whichever end has nothing booked in it and stops as soon as both ends sit on a real session.</p><div class="cal-scroll"><div class="cal-grid"><div class="cal-corner"></div><div class="cal-day"><span>Mon</span><b>24</b></div><div class="cal-day today"><span>Tue</span><b>25</b></div><div class="cal-day"><span>Wed</span><b>26</b></div><div class="cal-day"><span>Thu</span><b>27</b></div><div class="cal-day"><span>Fri</span><b>28</b></div><div class="cal-day"><span>Sat</span><b>29</b></div><div class="cal-day"><span>Sun</span><b>30</b></div><div class="cal-h">05:00</div><div class="cal-cell past"></div><div class="cal-cell"><span class="cal-ev booked"><b>Cybersecurity</b><i>05:00 · Amir</i></span></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">06:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">07:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">08:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">09:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">10:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">11:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">12:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">13:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">14:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">15:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">16:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">17:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">18:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">19:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"><span class="cal-ev waiting"><b>Cybersecurity</b><i>19:00 · needs an answer</i></span></div><div class="cal-cell"></div><div class="cal-cell"></div></div></div><p class="why"><b>Empty availability rows are what the cap may take.</b> If the bookings themselves span more than fourteen hours the window stays wider than the cap — the card scrolls internally, so a wide window costs a scroll and a narrow one costs a booking.</p></div>
+  </div>
+</section>
 
-    <p class="was"><b>Before:</b> the row changed status. The person who asked found out the
-      next time they happened to open PeerFlow and look at the bell, and the person who
-      accepted was handed back the directory of strangers they had just stopped needing.</p>
-
-    <p class="mono slabel">The person who accepted, on People</p>
-    <div class="stage">
-      <section class="inbox">
-        <p class="inbox-h"><span class="inbox-n" hidden>0</span><b>Just answered</b></p>
-        <div class="inbox-body">
-          <div class="inreq">
-            <span class="inreq-av" style="background:#F3E8F6;color:#7B3E8F">D</span>
-            <div class="inreq-b">
-              <p class="inreq-nm"><a class="who" href="#">Dilnoza Rahimova</a></p>
-              <p class="inreq-msg">You’re partners. Nothing is booked until one of you proposes
-                a time and the other accepts.</p>
-            </div>
-            <div class="inreq-acts">
-              <a class="btn" href="app.html?plan=demo">Plan your first session</a>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <p class="mono slabel">The person who asked, on Today</p>
-    <div class="stage">
-      <section class="now" data-tone="idle">
-        <div class="now-txt">
-          <span class="mono now-k">Your first session</span>
-          <p class="now-h">Your first session with Dilnoza.</p>
-          <p class="now-s">Tuesday, 26 Aug · 5:00 PM · a 25-minute first session.
-            Nothing is booked until they accept.</p>
-          <div class="now-a"><a class="btn" href="#">Propose this time</a></div>
-        </div>
-      </section>
-    </div>
-    <p class="dnote" style="margin-top:14px">The hour is the next one the two of them are
-      both free, taken from the same availability the form reads, and it skips anything
-      already on the calendar. Twenty-five minutes because it is a first meeting; the
-      length menu is untouched. This band used to require that you had met <b>nobody</b>,
-      so a person with one weekly partner and one they had never spoken to was told to
-      "book your next session" — the wrong half of their week.</p>
-  </section>
-
-  <!-- ============ 2. completed → next ============ -->
-  <section class="dsec">
-    <h2>2 · A session went well</h2>
-    <p class="was"><b>Before:</b> "Study again" wrote your preference and reloaded. If your
-      partner had not already answered the same way — which is the ordinary case, since
-      somebody has to be first — the page came back identical and the press had gone
-      nowhere.</p>
-
-    <p class="mono slabel">The check-in, before</p>
-    <div class="stage">
-      <div class="slot cirow">
-        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
-          <span>Did Amir show up?</span></span>
-        <span class="ci-a">
-          <span class="ci-q">
-            <button class="small" type="button">Yes</button>
-            <button class="small" type="button">No</button>
-          </span>
-          <span class="ci-q">
-            <button class="btn" type="button">Study again</button>
-            <button class="small" type="button">Find someone else</button>
-          </span>
-        </span>
-      </div>
-    </div>
-
-    <p class="mono slabel">And after pressing Study again</p>
-    <div class="stage">
-      <div class="slot cirow">
-        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
-          <span>You said you’d like to carry on.</span></span>
-        <span class="ci-a"></span>
-        <p class="slot-err note">Pick a time below and send it to Amir.</p>
-      </div>
-    </div>
-    <div class="stage">
-      <section class="now" data-tone="idle">
-        <div class="now-txt">
-          <span class="mono now-k">Next session</span>
-          <p class="now-h">Another one with Amir?</p>
-          <p class="now-s">Thursday, 28 Aug · 7:00 PM · 50 minutes. Change anything you
-            like — nothing is booked until Amir accepts.</p>
-          <div class="now-a"></div>
-        </div>
-      </section>
-    </div>
-    <p class="dnote" style="margin-top:14px">The booking form opens underneath, filled in.
-      The suggested hour is the standing slot if the two of them have one, otherwise the
-      next hour they share, and never an hour already spoken for on your own calendar. The
-      two-sided rule is untouched: this proposes, Amir still accepts.</p>
-  </section>
-
-  <!-- ============ 3. the ways it must not go ============ -->
-  <section class="dsec">
-    <h2>3 · Where the same press must stop</h2>
-    <p class="dnote">Four states that all have to end somewhere sensible, and none of which
-      may produce a second session. Pressing twice, following the same emailed link twice,
-      and answering a check-in about a partnership that is already booked all arrive at the
-      same guard.</p>
-
-    <p class="mono slabel">You have already asked them</p>
-    <div class="stage">
-      <div class="slot cirow">
-        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
-          <span>You said you’d like to carry on.</span></span>
-        <span class="ci-a"></span>
-        <p class="slot-err note">You’ve already asked Amir for Thu, 28 Aug, 7:00 PM —
-          nothing more to send until they answer.</p>
-      </div>
-    </div>
-
-    <p class="mono slabel">They have already asked you</p>
-    <div class="stage">
-      <div class="slot cirow">
-        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
-          <span>You said you’d like to carry on.</span></span>
-        <span class="ci-a"></span>
-        <p class="slot-err note">Amir has already proposed Thu, 28 Aug, 7:00 PM — answer
-          that one rather than sending another.</p>
-      </div>
-    </div>
-
-    <p class="mono slabel">The partnership has ended</p>
-    <div class="stage">
-      <div class="slot cirow">
-        <span class="what"><b class="ci-t">Mon, 24 Aug, 7:00 PM with Amir Karimov</b>
-          <span>You said you’d like to carry on.</span></span>
-        <span class="ci-a"></span>
-        <p class="slot-err note">You’re not partners with Amir any more, so there’s nothing
-          to book — you can ask them again from People.</p>
-      </div>
-    </div>
-
-    <p class="mono slabel">Already booked, so the link does not open a second form</p>
-    <div class="stage">
-      <section class="now" data-tone="booked">
-        <div class="now-txt">
-          <span class="mono now-k">Next session</span>
-          <p class="now-h">Thursday at 7:00 PM with Amir Karimov</p>
-          <p class="now-s">50 minutes · Cybersecurity. Both of you have agreed to this one.</p>
-          <div class="now-a"><a class="btn" href="#">Book another</a>
-            <button class="ghost" type="button">Cancel this one</button></div>
-          <p class="now-f">Your room opens fifteen minutes before you start.</p>
-        </div>
-        <div class="now-side"><span class="now-cd">3</span><span class="now-cl">days</span></div>
-      </section>
-    </div>
-  </section>
-
-  <!-- ============ 3.5 moving one instead of losing it ============ -->
-  <section class="dsec">
-    <h2>4 · "I can't make Thursday"</h2>
-    <p class="dnote">A confirmed session had exactly one way out of it, so
-      <b>I can't make Thursday</b> and <b>I don't want to study with you</b> ended at the
-      same button. Reschedule is now a real thing rather than a label on an empty form:
-      one <code>SECURITY DEFINER</code> function, one transaction, all of it or none of
-      it. It is still a proposal — the partner accepts the new time the way they accept
-      any other.</p>
-
-    <p class="was"><b>Before:</b> Cancel. The control labelled Reschedule opened a blank
-      booking form with nothing connecting it to the session you were trying to keep.</p>
-
-    <p class="mono slabel">Reschedule sits before Cancel, everywhere</p>
-    <div class="stage">
-      <section class="now" data-tone="booked">
-        <div class="now-txt">
-          <span class="mono now-k">Next session</span>
-          <p class="now-h">Today at 11:00 AM with Amir Karimov</p>
-          <p class="now-s">50 minutes · Cybersecurity. Both of you have agreed to this one.</p>
-          <div class="now-a"><a class="btn" href="#">Book another</a>
-            <button class="ghost" type="button">Reschedule</button>
-            <button class="ghost" type="button">Cancel this one</button></div>
-          <p class="now-f">Your room opens fifteen minutes before you start.</p>
-        </div>
-        <div class="now-side"><span class="now-cd">2h</span><span class="now-cl">from now</span></div>
-      </section>
-    </div>
-
-    <p class="mono slabel">The same form, saying which job it is doing</p>
-    <div class="stage">
-      <section class="b bookp" data-mode="move" style="margin:0">
-        <div class="ch">
-          <div class="grow"><span class="mono kick">Move</span><h2>Pick another time</h2></div>
-          <div class="side"><button class="small" type="button">Close</button></div>
-        </div>
-        <p class="bk-line">Instead of Mon, 24 Aug, 11:00 AM with Amir Karimov.</p>
-        <p>Meet <b>Amir</b> on <b>Tuesday, 25 Aug</b> at <b>5:00 PM</b> for <b>50 minutes</b>.</p>
-        <p class="bk-line">You’re both free in the evening that day.</p>
-        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
-          <button class="btn primary" type="button">Propose the new time</button>
-          <span class="bk-hint">The old time comes off both calendars now. The new one is
-            booked when Amir accepts.</span>
-        </div>
-      </section>
-    </div>
-
-    <p class="mono slabel">And what the other person gets — one thing, not two</p>
-    <div class="stage">
-      <div class="prop">
-        <p class="prop-h"><b>Amir Karimov</b> proposed <b>Tue, 25 Aug, 05:00 PM</b></p>
-        <p class="prop-m">50 minutes · Cybersecurity · moved from Mon, 24 Aug, 11:00 AM</p>
-        <div class="prop-acts">
-          <button class="btn" type="button">Accept</button>
-          <button class="small" type="button">Decline</button>
-          <button class="small" type="button">Suggest another time</button>
-        </div>
-      </div>
-    </div>
-    <p class="dnote" style="margin-top:14px">Both note triggers stand down during a move,
-      so the partner is told once — <b>"Amir moved your session. Was Monday 11:00, now
-      Tuesday 17:00."</b> — rather than being told it was cancelled and then, separately,
-      that something new was proposed. The first of those two is alarming and obsolete by
-      the time it is read, and both were emailed.</p>
-    <p class="dnote"><b>Reliability is untouched.</b> Moving with six hours' notice or more
-      already settles as <code>cancelled_early</code>, which the score does not count.
-      Moving inside six hours still counts as a late cancellation, because your partner has
-      lost the evening either way — so the form says the six-hour line out loud instead of
-      a new outcome being invented to soften it.</p>
-  </section>
-
-  <!-- ============ 5. gone quiet ============ -->
-  <section class="dsec">
-    <h2>5 · Nobody ever decided to stop</h2>
-    <p class="dnote">The quietest failure in the product. Two people match, they meet, it
-      goes well — and then neither books the next one. No falling out, no no-show; the
-      third session simply never gets proposed and a month later both assume the other lost
-      interest.</p>
-    <p class="was"><b>Before:</b> at seven days the band said "It's been nine days since you
-      studied with Amir" — the right sentence in the wrong place, because it is only ever
-      read by somebody who has opened PeerFlow. The half of the pair that needs reaching is
-      the half that is not looking.</p>
-
-    <p class="mono slabel">Fourteen days, and the band changes its question</p>
-    <div class="stage">
-      <section class="now" data-tone="quiet">
-        <div class="now-txt">
-          <span class="mono now-k">It has been a while</span>
-          <p class="now-h">You and Amir haven’t studied together recently.</p>
-          <p class="now-s">Your last session was three weeks ago. Plan your next one — pick
-            an hour and send it over, and it lands on both calendars once they accept.</p>
-          <div class="now-a"><a class="btn" href="#">Study with Amir again</a>
-            <button class="ghost" type="button">Not now</button></div>
-        </div>
-      </section>
-    </div>
-    <p class="dnote" style="margin-top:14px">Nothing in it says anybody should have done
-      something, because nobody did anything wrong — that is asserted in the tests, along
-      with there being no exclamation mark and no invitation to go and find somebody else.
-      <b>Not now</b> is real: it stamps the partnership so neither of them is asked again
-      for three weeks, rather than hiding a card until the next reload.</p>
-
-    <p class="dnote"><b>Fourteen days is read off the product, not picked.</b> The default
-      goal is two sessions a week; <code>sinceWords()</code> already starts counting in
-      weeks at fourteen days; a standing slot books four weeks ahead, so a pair with one can
-      never reach this state. The existing seven-day line is untouched — this is a second,
-      quieter state above it.</p>
-
-    <p class="dnote"><b>And the person who is not here gets told.</b> There is no scheduler
-      behind a static site, so <code>nudge_dormant()</code> copies what
-      <code>settle_due()</code> and <code>send_due_reminders()</code> already do: it runs
-      when somebody opens the app and acts on the <i>other</i> person's rows. Only the other
-      person is notified — telling the one reading the band would be telling them what their
-      own screen says. One note per partnership per three weeks, however many times either
-      of them opens anything.</p>
-  </section>
-
-  <section class="dsec">
-    <h2>What this did not touch</h2>
-    <p class="dnote">No new tables and no migration — the accept notification goes through
-      <code>notify_partner()</code>, which has been in the database since the MVP migration
-      and was called from nowhere. Attendance, reliability, the no-show policy, the
-      standing-slot rules and messaging are all unchanged, and their tests were run to say
-      so rather than assumed. Rescheduling adds one migration —
-      <code>supabase/migration-reschedule.sql</code> — which has to be run by hand before
-      the Reschedule button appears; until it is, the button is not drawn at all rather
-      than drawn and refusing. Dormancy nudges and scheduled reminders are deliberately
-      not here.</p>
-  </section>
+<section class="sec">
+  <span class="tag fixed">Chosen &mdash; B</span>
+  <h2>Should a session you have already had stay on the calendar?</h2>
+  <p>Right now it does not. <code>calSessions</code> keeps only <code>confirmed</code> and
+  <code>proposed</code>, so the moment <code>settle_due()</code> flips a finished session to
+  <code>completed</code> it disappears from the grid — mid-week, without anything happening. Page
+  back a week and the calendar is empty even though you studied on the Tuesday.</p>
+  <p>What makes this a question rather than a bug: <code>.cal-ev.done</code> is fully styled in
+  <code>app.css</code> — grey block, grey bar, soft text — and is currently almost unreachable,
+  which reads like it was meant to be drawn. But the legend under the grid has three keys and none
+  of them is "done", which reads like it was not. Both are in the shipped code, so the intent has
+  to come from you.</p>
+  <p style="color:var(--soft);max-width:70ch;line-height:1.65;margin:0 0 18px">Both grids below show
+  the same evening. Monday is the session you had; Friday is the one still waiting on an answer.</p>
+  <div class="pair">
+    <div class="opt"><h3>A · Leave it</h3><p>The calendar stays a picture of what is ahead of you. History lives on the sessions card and the person page, which both already list it.</p><div class="cal-scroll"><div class="cal-grid"><div class="cal-corner"></div><div class="cal-day"><span>Mon</span><b>24</b></div><div class="cal-day today"><span>Tue</span><b>25</b></div><div class="cal-day"><span>Wed</span><b>26</b></div><div class="cal-day"><span>Thu</span><b>27</b></div><div class="cal-day"><span>Fri</span><b>28</b></div><div class="cal-day"><span>Sat</span><b>29</b></div><div class="cal-day"><span>Sun</span><b>30</b></div><div class="cal-h">17:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">18:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">19:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"><span class="cal-ev waiting"><b>Cybersecurity</b><i>19:00 · needs an answer</i></span></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">20:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div></div></div><p class="why"><b>Costs nothing and changes nothing.</b> The dead <code>.cal-ev.done</code> rule gets deleted so the next person does not read intent into it. The empty past week stays empty.</p></div>
+    <div class="opt"><h3>B · Draw them, greyed</h3><p>Completed sessions come back as the grey blocks the stylesheet already describes, and the legend gains a fourth key for them.</p><div class="cal-scroll"><div class="cal-grid"><div class="cal-corner"></div><div class="cal-day"><span>Mon</span><b>24</b></div><div class="cal-day today"><span>Tue</span><b>25</b></div><div class="cal-day"><span>Wed</span><b>26</b></div><div class="cal-day"><span>Thu</span><b>27</b></div><div class="cal-day"><span>Fri</span><b>28</b></div><div class="cal-day"><span>Sat</span><b>29</b></div><div class="cal-day"><span>Sun</span><b>30</b></div><div class="cal-h">17:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">18:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">19:00</div><div class="cal-cell past"><span class="cal-ev done"><b>Cybersecurity</b><i>19:00 · Amir</i></span></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"><span class="cal-ev waiting"><b>Cybersecurity</b><i>19:00 · needs an answer</i></span></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">20:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div></div></div><p class="why"><b>The week reads as a week.</b> Two knock-ons: the hour window has to cover finished hours too, and the grid auto-scrolls to its first block — that would have to keep preferring a live one, or opening the page lands you on last Monday.</p></div>
+  </div>
+  <p style="margin-top:18px;color:var(--soft);max-width:70ch;line-height:1.65">B was chosen and is
+  applied. <code>calSessions</code> and <code>weekOf</code> both take <code>completed</code> now, the
+  legend has its fourth key, and the grid's auto-scroll prefers the first live block so that a week
+  carrying finished sessions still opens on the thing you have to answer rather than on last
+  Monday.</p>
+</section>
 
 </div>
 </body>

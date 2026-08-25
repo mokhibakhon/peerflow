@@ -138,6 +138,7 @@
         <div class="cal-key">
           <span class="k1"><i></i>Booked</span>
           <span class="k2"><i></i>Waiting on an answer</span>
+          <span class="k4"><i></i>Done</span>
           <span class="k3"><i></i>You&rsquo;re both free &mdash; click to propose</span>
         </div>
         <p class="cal-empty" id="cal-empty" hidden></p>
@@ -2565,7 +2566,11 @@
   function calHourWindow(week){
     var hrs = [], byDay = sharedHoursByDay(), k;
     for (k in byDay) if (byDay.hasOwnProperty(k)) hrs = hrs.concat(byDay[k]);
-    week.forEach(function(s){ hrs.push(s.startsAt.getHours()); });
+    /* The hours something is actually booked in, kept apart from the hours you
+       are merely free in, because when the window has to be trimmed below only
+       one of the two is negotiable. */
+    var booked = week.map(function(s){ return s.startsAt.getHours(); });
+    hrs = hrs.concat(booked);
     if (!hrs.length) return [17, 21];
     /* No padding row above and below. It cost two rows out of every window to
        show two hours nothing can happen in, and the grid already has a border
@@ -2577,8 +2582,30 @@
        hour — someone free in the morning and at night spans most of the day.
        That is correct, and it is why the card scrolls internally rather than
        the window being clipped: nothing is hidden, the page just stops growing.
-       The cap is only a backstop against a full 24 rows. */
-    if (hi - lo > 13) hi = lo + 13;
+       The cap is only a backstop against a full 24 rows.
+
+       It used to be `hi = lo + 13`, which chopped the bottom off the window
+       without looking at what was in it. A week holding a 5am booking and a
+       Friday 7pm proposal drew rows 05:00 to 18:00 and simply never rendered
+       the Friday cell — the proposal was not on the calendar at all, while the
+       sessions card above it said the proposal existed. That is the same
+       calendar-versus-sessions divergence the reschedule flow was written to
+       make impossible, arriving from the other direction, and it was invisible
+       because a missing cell looks exactly like a free evening.
+
+       So the trim now walks inwards from whichever end has nothing booked in
+       it, and stops as soon as both ends sit on a real session. Empty
+       availability rows are what the cap is allowed to take. If the bookings
+       themselves span more than fourteen hours the window stays wider than the
+       cap, which is the right way round: the card scrolls internally, so a
+       long window costs a scroll, and a short one costs a booking. */
+    if (hi - lo > 13){
+      var bLo = booked.length ? Math.min.apply(null, booked) : hi;
+      var bHi = booked.length ? Math.max.apply(null, booked) : lo;
+      while (hi - lo > 13 && (hi > bHi || lo < bLo)){
+        if (hi > bHi) hi--; else lo++;
+      }
+    }
     return [lo, hi];
   }
 
@@ -2587,7 +2614,8 @@
     return calSessions.filter(function(s){
       var t = s.startsAt.getTime();
       return t >= start && t < end &&
-             (s.status === 'confirmed' || s.status === 'proposed');
+             (s.status === 'confirmed' || s.status === 'proposed' ||
+              s.status === 'completed');
     });
   }
 
@@ -2666,7 +2694,14 @@
      *
      * Only when there is something to scroll to. An empty week stays at the
      * top of the day, which is where an empty week belongs. */
-    var firstEv = grid.querySelector('.cal-ev');
+    /* The first LIVE block, not simply the first one. Now that finished
+       sessions are drawn, the earliest block in a week is often a grey one
+       from Monday morning, and opening the page on it would put the thing you
+       have to answer below the fold — the exact complaint this scroll was
+       added to fix, re-introduced from the other end. Falls back to any block
+       so that a week holding only finished sessions still opens on them. */
+    var firstEv = grid.querySelector('.cal-ev.booked, .cal-ev.waiting') ||
+                  grid.querySelector('.cal-ev');
     if (firstEv) {
       var scroller = grid.parentNode;
       /* Put one whole row of clear space above the booking, measured against
@@ -3273,9 +3308,20 @@
 
           /* ----- calendar -----
              Everything except proposals somebody already answered: a declined
-             time is not on anybody's week. */
+             time is not on anybody's week.
+
+             Completed sessions are here too, and used not to be. The filter
+             kept confirmed and proposed only, which meant a session left the
+             grid at the moment settle_due() marked it completed — mid-week,
+             with nothing having happened, and paging back a week showed an
+             empty calendar for a week you had studied in. The giveaway that
+             this was an oversight rather than a decision is that
+             .cal-ev.done has always been fully styled in app.css and was
+             very nearly unreachable: only a confirmed session past its end
+             time and not yet settled could ever render it. */
           calSessions = all.filter(function(x){
-            return x.status === 'confirmed' || x.status === 'proposed';
+            return x.status === 'confirmed' || x.status === 'proposed' ||
+                   x.status === 'completed';
           });
           /* Open on the week holding whatever is being asked of you rather
              than always on this one. A proposal for next Monday used to sit in
