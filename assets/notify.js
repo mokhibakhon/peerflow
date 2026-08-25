@@ -236,10 +236,19 @@
   function itemProposal(x){
     var who = esc(x.partnerName || 'Your partner');
     var turned = x.status === 'declined' || x.status === 'cancelled';
+    /* A moved session is not a new one, and calling it "proposed" loses the
+       only thing about it that changes what you do: it is the Thursday you
+       had already agreed, at a different hour. The note the database raises
+       says so, but recent() suppresses that note while the proposal it is
+       about is still outstanding — which is exactly now — so this row is the
+       one that has to carry it. */
+    var moved = x.status === 'proposed' && !!x.rescheduledFrom;
     var verb = x.status === 'cancelled' ? 'cancelled '
-             : x.status === 'declined'  ? 'can’t do ' : 'proposed ';
+             : x.status === 'declined'  ? 'can’t do '
+             : moved ? 'moved your session to ' : 'proposed ';
     return '<div class="bell-item fresh">' +
       '<p><b>' + who + '</b> ' + verb + esc(whenLabel(x.startsAt)) + '</p>' +
+      (moved ? '<p class="bell-msg">Was ' + esc(whenLabel(x.rescheduledFrom)) + '</p>' : '') +
       (x.note ? '<p class="bell-msg">“' + esc(x.note) + '”</p>' : '') +
       '<p class="bell-time">' + x.durationMin + ' minutes</p>' +
       /* Sessions, not Partner: answering moved with the rest of scheduling. */

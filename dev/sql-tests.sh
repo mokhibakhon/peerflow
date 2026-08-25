@@ -97,7 +97,7 @@ SQL
 # migrate-2026-08.sql is the paste the user actually runs, and it now ends
 # with migration-no-double-booking.sql concatenated onto it, so loading it is
 # the real path rather than an approximation of one.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql"
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-reschedule.sql supabase/migration-dormancy.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
@@ -1595,6 +1595,491 @@ check "  nor can anybody write straight into somebody else's bell" ok "$(wrap "
     raise exception 'the insert policy let a stranger write a notification';
   exception when insufficient_privilege then null;
   end;")"
+
+echo
+echo "==> moving a session instead of losing it"
+# reschedule_session() is the one function here that both destroys and creates,
+# so every case below is really the same question asked from a different angle:
+# when it refuses, is the original booking still exactly as it was?
+#
+# A and B are partners. BOOK puts a real agreed session on both their
+# calendars, two rows sharing (starts_at, room_url), the way every other
+# booking in this schema is shaped.
+BOOK="insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                                   room_url, status, pair_id)
+      values ('$A','B', now() + interval '2 days', 50, 'pf:move1', 'confirmed',
+              (select id from public.partner_requests
+                where from_user='$A' and to_user='$B' and status='accepted' limit 1)),
+             ('$B','A', now() + interval '2 days', 50, 'pf:move1', 'confirmed',
+              (select id from public.partner_requests
+                where from_user='$A' and to_user='$B' and status='accepted' limit 1));"
+
+check "a confirmed session moves, and moves both halves" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  $IN_OWNER
+  if (select count(*) from public.sessions
+       where room_url='pf:move1' and status='cancelled') <> 2
+    then raise exception 'the old session did not come off both calendars'; end if;
+  if (select count(*) from public.sessions
+       where status='proposed' and rescheduled_from is not null) <> 2
+    then raise exception 'the new time was not offered to both of them'; end if;")"
+
+check "  the new pair is a proposal, not a booking" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  $IN_OWNER
+  if exists (select 1 from public.sessions
+              where rescheduled_from is not null and status <> 'proposed')
+    then raise exception 'a reschedule booked something outright'; end if;")"
+
+check "  and it remembers what it was moved from" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  $IN_OWNER
+  if not exists (
+    select 1 from public.sessions n
+     join public.sessions o
+       on o.room_url = 'pf:move1' and o.user_id = n.user_id
+    where n.rescheduled_from = o.starts_at and n.status = 'proposed')
+    then raise exception 'rescheduled_from does not point at the old time'; end if;")"
+
+# The reliability half. Nothing about grading changed, and these two are here
+# to prove it did not: an early move is the same free cancellation it always
+# was, and the other person is excused exactly as they always were.
+check "  moving early settles as an early cancellation, which is not counted" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  $IN_OWNER
+  if (select attendance from public.sessions
+       where room_url='pf:move1' and user_id='$A') is distinct from 'cancelled_early'
+    then raise exception 'an early move was not graded as an early cancellation'; end if;")"
+
+check "  and the other person is excused, as with any cancellation" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  $IN_OWNER
+  if (select attendance from public.sessions
+       where room_url='pf:move1' and user_id='$B') is distinct from 'excused'
+    then raise exception 'the person who was moved wears it'; end if;")"
+
+check "  the partner is told once, naming both times" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  $IN_OWNER
+  if (select count(*) from public.notifications where user_id='$B') <> 1
+    then raise exception 'expected exactly one notification, got %',
+      (select count(*) from public.notifications where user_id='$B'); end if;
+  if (select title from public.notifications where user_id='$B')
+       not like '%moved your session%'
+    then raise exception 'the notification does not say it was moved'; end if;
+  if (select body from public.notifications where user_id='$B') not like 'Was %, now %'
+    then raise exception 'the notification does not name both times'; end if;")"
+
+check "  and is not also told it was cancelled" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  $IN_OWNER
+  if exists (select 1 from public.notifications
+              where user_id='$B' and title like '%cancelled%')
+    then raise exception 'the cancellation trigger fired during a reschedule'; end if;")"
+
+check "  while an ordinary cancellation still says so" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.answer_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', 'cancelled');
+  $IN_OWNER
+  if not exists (select 1 from public.notifications
+                  where user_id='$B' and title like '%cancelled%')
+    then raise exception 'the flag left the ordinary cancellation quiet too'; end if;")"
+
+check "a time in the past is refused" "PF024" "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() - interval '1 hour', 50, null);")"
+
+check "  and the original booking is untouched by the refusal" ok "$(wrap "
+  $BOOK
+  $IN_A
+  begin
+    perform public.reschedule_session(
+      (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+      'pf:move1', now() - interval '1 hour', 50, null);
+  exception when others then null;
+  end;
+  $IN_OWNER
+  if (select count(*) from public.sessions
+       where room_url='pf:move1' and status='confirmed') <> 2
+    then raise exception 'a refused move damaged the booking it refused to move'; end if;")"
+
+check "an hour one of you is already booked in is refused" "PF001" "$(wrap "
+  $BOOK
+  -- B is busy at the hour A is about to move them to, with somebody else.
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status)
+  values ('$B','C', now() + interval '3 days', 50, 'pf:other', 'confirmed');
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);")"
+
+check "  and that refusal also leaves the booking alone" ok "$(wrap "
+  $BOOK
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status)
+  values ('$B','C', now() + interval '3 days', 50, 'pf:other', 'confirmed');
+  $IN_A
+  begin
+    perform public.reschedule_session(
+      (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+      'pf:move1', now() + interval '3 days', 50, null);
+  exception when others then null;
+  end;
+  $IN_OWNER
+  if (select count(*) from public.sessions
+       where room_url='pf:move1' and status='confirmed') <> 2
+    then raise exception 'the clash refusal damaged the booking'; end if;")"
+
+check "a session that is not yours cannot be moved" "PF021" "$(wrap "
+  $BOOK
+  $IN_C
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' limit 1),
+    'pf:move1', now() + interval '3 days', 50, null);")"
+
+check "a proposal nobody has accepted is not moved this way" "PF022" "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, proposed_by)
+  values ('$A','B', now() + interval '2 days', 50, 'pf:prop1', 'proposed', '$A'),
+         ('$B','A', now() + interval '2 days', 50, 'pf:prop1', 'proposed', '$A');
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:prop1' and user_id='$A'),
+    'pf:prop1', now() + interval '3 days', 50, null);")"
+
+check "an already cancelled session cannot be moved" "PF022" "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.answer_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', 'cancelled');
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);")"
+
+check "a session that has already started cannot be moved" "PF023" "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status)
+  values ('$A','B', now() - interval '10 minutes', 50, 'pf:begun', 'confirmed'),
+         ('$B','A', now() - interval '10 minutes', 50, 'pf:begun', 'confirmed');
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:begun' and user_id='$A'),
+    'pf:begun', now() + interval '3 days', 50, null);")"
+
+check "moving it to the time it is already at is refused" "PF025" "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1',
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    50, null);")"
+
+# The double-click. The second call cannot find a confirmed session at the old
+# slot any more, because the first one cancelled it — so the guard against
+# doing this twice is the same guard that stops it being done once wrongly,
+# rather than a separate piece of bookkeeping that could drift.
+check "pressing it twice moves it once" "PF022" "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '4 days', 50, null);")"
+
+check "  and leaves exactly one new time on the table" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  begin
+    perform public.reschedule_session(
+      (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+      'pf:move1', now() + interval '4 days', 50, null);
+  exception when others then null;
+  end;
+  $IN_OWNER
+  if (select count(*) from public.sessions where status='proposed') <> 2
+    then raise exception 'a second press produced a second proposal'; end if;")"
+
+check "the partner accepting the new time confirms both halves" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  $IN_B
+  perform public.answer_session(
+    (select starts_at from public.sessions where status='proposed' and user_id='$B'),
+    (select room_url  from public.sessions where status='proposed' and user_id='$B'),
+    'confirmed');
+  $IN_OWNER
+  if (select count(*) from public.sessions
+       where status='confirmed' and rescheduled_from is not null) <> 2
+    then raise exception 'accepting the move did not confirm both halves'; end if;")"
+
+check "  and declining it leaves nobody holding a session" ok "$(wrap "
+  $BOOK
+  $IN_A
+  perform public.reschedule_session(
+    (select starts_at from public.sessions where room_url='pf:move1' and user_id='$A'),
+    'pf:move1', now() + interval '3 days', 50, null);
+  $IN_B
+  perform public.answer_session(
+    (select starts_at from public.sessions where status='proposed' and user_id='$B'),
+    (select room_url  from public.sessions where status='proposed' and user_id='$B'),
+    'declined');
+  $IN_OWNER
+  if exists (select 1 from public.sessions where status='confirmed')
+    then raise exception 'something stayed booked after the move was turned down'; end if;
+  if (select count(*) from public.sessions where status='declined') <> 2
+    then raise exception 'the declined move did not reach both rows'; end if;")"
+
+echo
+echo "==> a partnership that has gone quiet"
+# Every case here is really the same question: does this pair qualify, and can
+# they be asked twice. QUIET builds the shape a dormant partnership has —
+# one session that genuinely happened, three weeks ago, and nothing since.
+#
+# The partnership row itself is aged too, because a pair who accepted last week
+# are new rather than dormant and the dashboard has a different band for them.
+QUIET="update public.partner_requests set created_at = now() - interval '60 days'
+        where from_user='$A' and to_user='$B';
+       insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                                    room_url, status, attendance, settled_at, created_at, pair_id)
+       select u.id, 'X', now() - interval '21 days', 50, 'pf:old1', 'completed',
+              'attended', now() - interval '21 days', now() - interval '21 days',
+              (select id from public.partner_requests
+                where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+         from (select '$A'::uuid as id union all select '$B'::uuid) u;"
+
+check "three weeks of nothing, after a real session, is dormant" ok "$(wrap "
+  $QUIET
+  if not exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a pair with nothing for three weeks did not qualify'; end if;")"
+
+check "  a pair who never met is not dormant, it is new" ok "$(wrap "
+  update public.partner_requests set created_at = now() - interval '60 days'
+   where from_user='$A' and to_user='$B';
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a partnership with no sessions was called dormant'; end if;")"
+
+check "  a partnership younger than the threshold is not dormant" ok "$(wrap "
+  $QUIET
+  update public.partner_requests set created_at = now() - interval '3 days'
+   where from_user='$A' and to_user='$B';
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a three-day-old partnership was called dormant'; end if;")"
+
+check "  a session still ahead of them means nothing has gone quiet" ok "$(wrap "
+  $QUIET
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, pair_id)
+  select u.id, 'X', now() + interval '3 days', 50, 'pf:ahead', 'confirmed',
+         (select id from public.partner_requests
+           where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+    from (select '$A'::uuid as id union all select '$B'::uuid) u;
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a pair with a booking ahead was called dormant'; end if;")"
+
+# A proposal that was turned down is still two people talking to each other.
+check "  a proposal made recently resets it, even a declined one" ok "$(wrap "
+  $QUIET
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, created_at, pair_id)
+  select u.id, 'X', now() - interval '2 days', 50, 'pf:tried', 'declined',
+         now() - interval '3 days',
+         (select id from public.partner_requests
+           where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+    from (select '$A'::uuid as id union all select '$B'::uuid) u;
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a pair who tried three days ago was called dormant'; end if;")"
+
+check "  a session inside the threshold is not long enough ago" ok "$(wrap "
+  update public.partner_requests set created_at = now() - interval '60 days'
+   where from_user='$A' and to_user='$B';
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, attendance, settled_at, created_at, pair_id)
+  select u.id, 'X', now() - interval '5 days', 50, 'pf:recent', 'completed',
+         'attended', now() - interval '5 days', now() - interval '5 days',
+         (select id from public.partner_requests
+           where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+    from (select '$A'::uuid as id union all select '$B'::uuid) u;
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a pair who met five days ago was called dormant'; end if;")"
+
+# end_partnership and block_person both set the row to 'ended', so one status
+# test covers both. These two prove it rather than assuming it.
+check "  a partnership somebody walked away from gets no nudge" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.end_partnership(
+    (select id from public.partner_requests
+      where from_user='$A' and to_user='$B' limit 1));
+  $IN_OWNER
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'an ended partnership was called dormant'; end if;")"
+
+check "  and neither does one where somebody blocked the other" ok "$(wrap "
+  $QUIET
+  $IN_B
+  perform public.block_person('$A');
+  $IN_OWNER
+  if exists (select 1 from public.dormant_partnerships())
+    then raise exception 'a blocked partnership was called dormant'; end if;")"
+
+check "the nudge goes to the partner, not to whoever opened the app" ok "$(wrap "
+  $QUIET
+  $IN_A
+  if public.nudge_dormant() <> 1 then raise exception 'expected exactly one note'; end if;
+  $IN_OWNER
+  if exists (select 1 from public.notifications where user_id='$A' and kind='dormant')
+    then raise exception 'the caller was told something their own page says'; end if;
+  if not exists (select 1 from public.notifications where user_id='$B' and kind='dormant')
+    then raise exception 'the partner was not told'; end if;")"
+
+check "  and it names them and links to the booking form" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select href from public.notifications where user_id='$B' and kind='dormant')
+       is distinct from 'app.html?plan=$A'
+    then raise exception 'the link does not open the form on the right person'; end if;
+  if (select title from public.notifications where user_id='$B' and kind='dormant')
+       not like '%haven''t studied together recently%'
+    then raise exception 'the title is not the agreed sentence'; end if;")"
+
+# The whole point of the column. Opening the app is not an event; it happens
+# dozens of times a week and must not produce dozens of notes.
+check "opening the app again does not nudge again" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  perform public.nudge_dormant();
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select count(*) from public.notifications where kind='dormant') <> 1
+    then raise exception 'repeated loads produced % notes',
+      (select count(*) from public.notifications where kind='dormant'); end if;")"
+
+check "  nor does the other one opening it inside the cooldown" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_B
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select count(*) from public.notifications where kind='dormant') <> 1
+    then raise exception 'both sides opening the app produced two notes'; end if;")"
+
+check "  and the stamp is written even so" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select dormant_nudged_at from public.partner_requests
+       where from_user='$A' and to_user='$B') is null
+    then raise exception 'nothing was stamped, so it would ask again'; end if;")"
+
+check "  once the cooldown has passed it may ask once more" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_OWNER
+  update public.partner_requests set dormant_nudged_at = now() - interval '30 days'
+   where from_user='$A' and to_user='$B';
+  $IN_A
+  perform public.nudge_dormant();
+  $IN_OWNER
+  if (select count(*) from public.notifications where kind='dormant') <> 2
+    then raise exception 'a pair still quiet after three weeks was never asked again'; end if;")"
+
+check "booking something stops it, without waiting for the cooldown" ok "$(wrap "
+  $QUIET
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min,
+                               room_url, status, pair_id)
+  select u.id, 'X', now() + interval '2 days', 50, 'pf:back', 'proposed',
+         (select id from public.partner_requests
+           where from_user='$A' and to_user='$B' and status='accepted' limit 1)
+    from (select '$A'::uuid as id union all select '$B'::uuid) u;
+  $IN_A
+  if public.nudge_dormant() <> 0 then raise exception 'a pair who just booked was nudged'; end if;")"
+
+check "not now silences the pair for the cooldown" ok "$(wrap "
+  $QUIET
+  $IN_A
+  perform public.snooze_dormant(
+    (select id from public.partner_requests
+      where from_user='$A' and to_user='$B' limit 1));
+  if public.nudge_dormant() <> 0
+    then raise exception 'not now did not stop the nudge'; end if;
+  $IN_B
+  if public.nudge_dormant() <> 0
+    then raise exception 'the other side was nudged after not now'; end if;")"
+
+check "  and a stranger cannot silence somebody else's partnership" "PF031" "$(wrap "
+  $QUIET
+  $IN_C
+  perform public.snooze_dormant(
+    (select id from public.partner_requests
+      where from_user='$A' and to_user='$B' limit 1));")"
+
+# The cron branch has nobody at the keyboard, so both of them are equally
+# absent and both are told.
+check "with no caller, cron tells both of them" ok "$(wrap "
+  $QUIET
+  if public.nudge_dormant_all(10) <> 2
+    then raise exception 'cron did not tell both people'; end if;
+  $IN_OWNER
+  if (select count(*) from public.notifications where kind='dormant') <> 2
+    then raise exception 'expected one note each'; end if;")"
+
+check "  and cron is no more repeatable than the app is" ok "$(wrap "
+  $QUIET
+  perform public.nudge_dormant_all(10);
+  perform public.nudge_dormant_all(10);
+  if (select count(*) from public.notifications where kind='dormant') <> 2
+    then raise exception 'a second sweep sent it again'; end if;")"
 
 echo
 echo "==================================================="
