@@ -185,8 +185,21 @@ as $$
              - make_interval(days => public.pf_dormant_cooldown_days()));
 $$;
 
-revoke all on function public.dormant_partnerships() from public, anon;
-grant execute on function public.dormant_partnerships() to authenticated;
+-- Revoked from everybody, authenticated included, and deliberately so.
+--
+-- This function answers "which partnerships have gone quiet" for the whole
+-- platform, not for the caller: request id, both user ids, and when that pair
+-- last studied. It was granted to authenticated on the reasoning that the app
+-- needed to reach it and the SQL tests wanted to ask it without writing
+-- anything. Both were wrong. nudge_dormant() is SECURITY DEFINER, so it
+-- executes as the owner and can call this whatever the caller holds, and the
+-- tests connect as the owner too — neither ever needed the grant.
+--
+-- What the grant did buy was a way for any signed-in account to select
+-- straight from it over PostgREST and read back the partnership graph: who is
+-- partnered with whom, and how long each pair has been idle, for every user
+-- on the platform. Nothing in the product shows that, and nothing should.
+revoke all on function public.dormant_partnerships() from public, anon, authenticated;
 
 
 -- ============================================================
