@@ -138,6 +138,7 @@
         <div class="cal-key">
           <span class="k1"><i></i>Booked</span>
           <span class="k2"><i></i>Waiting on an answer</span>
+          <span class="k4"><i></i>Done</span>
           <span class="k3"><i></i>You&rsquo;re both free &mdash; click to propose</span>
         </div>
         <p class="cal-empty" id="cal-empty" hidden></p>
@@ -2613,7 +2614,8 @@
     return calSessions.filter(function(s){
       var t = s.startsAt.getTime();
       return t >= start && t < end &&
-             (s.status === 'confirmed' || s.status === 'proposed');
+             (s.status === 'confirmed' || s.status === 'proposed' ||
+              s.status === 'completed');
     });
   }
 
@@ -2692,7 +2694,14 @@
      *
      * Only when there is something to scroll to. An empty week stays at the
      * top of the day, which is where an empty week belongs. */
-    var firstEv = grid.querySelector('.cal-ev');
+    /* The first LIVE block, not simply the first one. Now that finished
+       sessions are drawn, the earliest block in a week is often a grey one
+       from Monday morning, and opening the page on it would put the thing you
+       have to answer below the fold — the exact complaint this scroll was
+       added to fix, re-introduced from the other end. Falls back to any block
+       so that a week holding only finished sessions still opens on them. */
+    var firstEv = grid.querySelector('.cal-ev.booked, .cal-ev.waiting') ||
+                  grid.querySelector('.cal-ev');
     if (firstEv) {
       var scroller = grid.parentNode;
       /* Put one whole row of clear space above the booking, measured against
@@ -3299,9 +3308,20 @@
 
           /* ----- calendar -----
              Everything except proposals somebody already answered: a declined
-             time is not on anybody's week. */
+             time is not on anybody's week.
+
+             Completed sessions are here too, and used not to be. The filter
+             kept confirmed and proposed only, which meant a session left the
+             grid at the moment settle_due() marked it completed — mid-week,
+             with nothing having happened, and paging back a week showed an
+             empty calendar for a week you had studied in. The giveaway that
+             this was an oversight rather than a decision is that
+             .cal-ev.done has always been fully styled in app.css and was
+             very nearly unreachable: only a confirmed session past its end
+             time and not yet settled could ever render it. */
           calSessions = all.filter(function(x){
-            return x.status === 'confirmed' || x.status === 'proposed';
+            return x.status === 'confirmed' || x.status === 'proposed' ||
+                   x.status === 'completed';
           });
           /* Open on the week holding whatever is being asked of you rather
              than always on this one. A proposal for next Monday used to sit in

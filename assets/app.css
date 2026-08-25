@@ -1597,6 +1597,7 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
   margin-right:7px;vertical-align:-2px}
 .cal-key .k1 i{background:#EAF7F0;box-shadow:inset 4px 0 0 var(--p6)}
 .cal-key .k2 i{background:#EEEDFB;box-shadow:inset 4px 0 0 #6A61C9}
+.cal-key .k4 i{background:#F3F3F6;box-shadow:inset 4px 0 0 #C7C6D2}
 .cal-key .k3 i{background:#F5FBF8;border:1px solid #DBEDE5;border-radius:var(--r-mark)}
 .cal-empty{margin:12px 0 0;font-size:var(--t-xs);color:var(--soft)}
 
