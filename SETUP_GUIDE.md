@@ -9,50 +9,40 @@ dashboards where it belongs.
 
 ---
 
-## The migrations, in five pastes
+## The migrations, in one paste
 
-**In this order:**
+**Run `supabase/schema.sql`, then `supabase/migration-mvp.sql`, then
+`supabase/migrate-2026-08.sql`.** That is all three, in that order.
 
-1. `supabase/schema.sql`
-2. `supabase/migration-mvp.sql`
-3. `supabase/migrate-2026-08.sql`
-4. `supabase/migration-reschedule.sql`
-5. `supabase/migration-dormancy.sql`
-
-The third one folds in twelve migrations — goal, plan, reliability,
+The third folds in fourteen migrations — goal, plan, reliability,
 room-per-session, video, standing, chat, no-double-booking, no-jitsi, notify,
-safety and attendance — so those twelve files are not run separately. Every
-one of them carries a SUPERSEDED banner at the top saying so.
-
-Four and five are the two written after that paste was assembled, and they are
-the reason this list is five rather than three. Four switches on moving a
-booked session; five switches on the nudge when a partnership goes quiet.
-Neither is folded in yet, and a database without them looks fine — the
-controls those features add are simply never drawn.
+safety, attendance, reschedule and dormancy — so none of those fourteen is run
+separately. Every one of them opens with a SUPERSEDED banner saying so, and
+that list is not maintained by hand: it is the set of `-- BEGIN` markers
+inside the combined file itself.
 
 Each is additive and safe to run more than once, so re-running the whole set
 after any change is the reliable move rather than trying to remember which
-ones landed. Order matters between four and five: the dormancy sweep is folded
-into an `attendance_tick()` that assumes what the reschedule file redefines.
+ones landed.
 
 The sections below describe the individual files and what each one switches
 on. They are still the source of truth for what a migration does — but you do
-not have to run them one at a time, and for the twelve folded ones you must
-not: they are older copies of definitions the combined paste has already made,
-and "create or replace" means the last paste wins, silently.
+not have to run them one at a time, and you must not run them at all: they are
+older copies of definitions the combined paste has already made, and
+"create or replace" means the last paste wins, silently. That is the one way
+this repository can still hurt you, and the banners exist to catch it.
 
 **Skipping one does not fail loudly.** The data layer falls back to whatever
 columns exist, so the page keeps working and the only sign is a red request in
 the browser console — or, more often now, no sign at all.
 
-That is deliberate for the last two. A control that cannot save anything is
-not drawn rather than drawn and refusing, so a database missing
-`migration-reschedule.sql` has no Reschedule button and a database missing
-`migration-dormancy.sql` never shows the gone-quiet band. Both pages look
-finished. If a feature you know shipped is not on screen, an unrun migration
-is the first thing to check and the browser console is the second —
-`window.PF_BUILD` is logged on every load and tells you which build you are
-actually looking at.
+That is deliberate for the newer features. A control that cannot save anything
+is not drawn rather than drawn and refusing, so a database that has not had the
+reschedule half of the paste has no Reschedule button, and one without the
+dormancy half never shows the gone-quiet band. Both pages look finished. If a
+feature you know shipped is not on screen, an unrun migration is the first
+thing to check and the browser console is the second — `window.PF_BUILD` is
+logged on every load and tells you which build you are actually looking at.
 
 ---
 

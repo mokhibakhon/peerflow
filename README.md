@@ -64,10 +64,10 @@ created yet), pages fall back to a safe state rather than breaking.
 
 - `supabase/schema.sql` ([raw file](https://raw.githubusercontent.com/mokhibakhon/peerflow/main/supabase/schema.sql)) — the only schema file;
   always use the version on `main`. Paste into Supabase → SQL Editor → Run.
-  It is the first of five pastes, not the whole story — **SETUP_GUIDE.md has
+  It is the first of three pastes, not the whole story — **SETUP_GUIDE.md has
   the list and the order**. Migration files named below are cited to explain
-  what a change does; twelve of them are folded into `migrate-2026-08.sql`
-  and open with a SUPERSEDED banner saying not to run them, because
+  what a change does; all fourteen are folded into `migrate-2026-08.sql` and
+  open with a SUPERSEDED banner saying not to run them, because
   `create or replace` means an old paste silently wins over a newer one.
   Creates `tracks`, `profiles`, `partner_requests`, `sessions` (plus the older
   `waitlist` and `matches`, which nothing reads any more), row-level security,
