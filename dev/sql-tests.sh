@@ -97,7 +97,13 @@ SQL
 # migrate-2026-08.sql is the paste the user actually runs, and it now ends
 # with migration-no-double-booking.sql concatenated onto it, so loading it is
 # the real path rather than an approximation of one.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-reschedule.sql supabase/migration-dormancy.sql"
+# The three pastes SETUP_GUIDE.md tells a person to run, and nothing else.
+# reschedule and dormancy used to be listed here separately; they are folded
+# into the combined paste now, and listing them again would test an
+# arrangement nobody has — worse, it would keep passing if the fold were
+# broken, because the standalone files would quietly supply what the paste had
+# failed to.
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:

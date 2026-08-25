@@ -16,9 +16,8 @@
 -- change every score in the product without saying so.
 --
 -- To set a database up, see SETUP_GUIDE.md. The short version is schema.sql,
--- then migration-mvp.sql, then migrate-2026-08.sql, then the migrations
--- written after it that are not folded in yet: migration-reschedule.sql and
--- migration-dormancy.sql.
+-- then migration-mvp.sql, then migrate-2026-08.sql. All three, and nothing
+-- else: every migration written so far is folded into the third.
 -- ============================================================
 
 -- ============================================================
