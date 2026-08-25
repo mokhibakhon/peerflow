@@ -2087,6 +2087,14 @@ check "  and cron is no more repeatable than the app is" ok "$(wrap "
   if (select count(*) from public.notifications where kind='dormant') <> 2
     then raise exception 'a second sweep sent it again'; end if;")"
 
+check "  the sweep's evidence is not readable by a signed-in account" ok "$(wrap "
+  if has_function_privilege('authenticated', 'public.dormant_partnerships()', 'execute')
+    then raise exception 'authenticated can select the whole platform''s dormant pairs'; end if;")"
+
+check "  but the entry point they do call is still theirs to call" ok "$(wrap "
+  if not has_function_privilege('authenticated', 'public.nudge_dormant()', 'execute')
+    then raise exception 'nudge_dormant is no longer callable from the app'; end if;")"
+
 echo
 echo "==================================================="
 printf 'passed %d, failed %d\n' "$PASS" "$FAIL"
