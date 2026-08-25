@@ -1,4 +1,27 @@
 -- ============================================================
+-- SUPERSEDED — do not run this file.
+--
+-- Every statement below is already inside supabase/migrate-2026-08.sql, which
+-- is the file that gets pasted into the SQL editor. This copy is kept because
+-- it is the readable account of one change, and README.md links to it by name
+-- to explain what that change was. It is documentation now, not a migration.
+--
+-- Running it is not a no-op and will not raise an error. These are
+-- "create or replace" definitions, so the last paste wins: re-running an old
+-- file replaces the current definition of whatever it defines with the older
+-- one, silently. This file is the worked example — its reliability_of()
+-- scores a fifteen-session window from the old attended/status booleans with
+-- a hardcoded twelve-hour cancellation line. The live one scores twenty from
+-- the attendance enum with pf_cancel_notice_hours(). Pasting this would
+-- change every score in the product without saying so.
+--
+-- To set a database up, see SETUP_GUIDE.md. The short version is schema.sql,
+-- then migration-mvp.sql, then migrate-2026-08.sql, then the migrations
+-- written after it that are not folded in yet: migration-reschedule.sql and
+-- migration-dormancy.sql.
+-- ============================================================
+
+-- ============================================================
 -- PeerFlow — reliability
 --
 -- Run this once in the Supabase SQL editor, after schema.sql and

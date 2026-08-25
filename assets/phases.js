@@ -34,6 +34,12 @@
      schedule built from (ends_at - starts_at) would run a fifty-minute
      booking as seventy and put a break where the session had already
      finished. */
+  /* Twenty is not a number this file gets to choose. It is the same twenty as
+     the "interval '20 minutes'" that session_for_call() adds to closes in
+     supabase/migrate-2026-08.sql, and unlike every other policy number in the
+     product it has no pf_* function to read it from — so the two copies are
+     held together by this comment and nothing else. Change one and change the
+     other, or a fifty-minute booking starts running as seventy again. */
   var GRACE_MIN = 20;
 
   function bookedMinutes(startsAt, endsAt){
