@@ -64,8 +64,8 @@ body{background:var(--bg);padding:34px 20px 90px}
 
 <h1 class="dh">What the calendar leaves out</h1>
 <p class="dsub">Re-checking the reschedule work turned up two things in <code>calHourWindow()</code>
-and the filter that feeds it. The first was losing a booking off the screen and is fixed. The
-second is a question about what the grid is for, and it is yours to answer.</p>
+and the filter that feeds it. The first was losing a booking off the screen. The second was a question about
+what the grid is for. Both are settled and applied; this page is the record of what was compared.</p>
 
 <section class="sec">
   <span class="tag fixed">Fixed</span>
@@ -85,7 +85,7 @@ second is a question about what the grid is for, and it is yours to answer.</p>
 </section>
 
 <section class="sec">
-  <span class="tag open">Needs a decision</span>
+  <span class="tag fixed">Chosen &mdash; B</span>
   <h2>Should a session you have already had stay on the calendar?</h2>
   <p>Right now it does not. <code>calSessions</code> keeps only <code>confirmed</code> and
   <code>proposed</code>, so the moment <code>settle_due()</code> flips a finished session to
@@ -102,9 +102,11 @@ second is a question about what the grid is for, and it is yours to answer.</p>
     <div class="opt"><h3>A · Leave it</h3><p>The calendar stays a picture of what is ahead of you. History lives on the sessions card and the person page, which both already list it.</p><div class="cal-scroll"><div class="cal-grid"><div class="cal-corner"></div><div class="cal-day"><span>Mon</span><b>24</b></div><div class="cal-day today"><span>Tue</span><b>25</b></div><div class="cal-day"><span>Wed</span><b>26</b></div><div class="cal-day"><span>Thu</span><b>27</b></div><div class="cal-day"><span>Fri</span><b>28</b></div><div class="cal-day"><span>Sat</span><b>29</b></div><div class="cal-day"><span>Sun</span><b>30</b></div><div class="cal-h">17:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">18:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">19:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"><span class="cal-ev waiting"><b>Cybersecurity</b><i>19:00 · needs an answer</i></span></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">20:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div></div></div><p class="why"><b>Costs nothing and changes nothing.</b> The dead <code>.cal-ev.done</code> rule gets deleted so the next person does not read intent into it. The empty past week stays empty.</p></div>
     <div class="opt"><h3>B · Draw them, greyed</h3><p>Completed sessions come back as the grey blocks the stylesheet already describes, and the legend gains a fourth key for them.</p><div class="cal-scroll"><div class="cal-grid"><div class="cal-corner"></div><div class="cal-day"><span>Mon</span><b>24</b></div><div class="cal-day today"><span>Tue</span><b>25</b></div><div class="cal-day"><span>Wed</span><b>26</b></div><div class="cal-day"><span>Thu</span><b>27</b></div><div class="cal-day"><span>Fri</span><b>28</b></div><div class="cal-day"><span>Sat</span><b>29</b></div><div class="cal-day"><span>Sun</span><b>30</b></div><div class="cal-h">17:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">18:00</div><div class="cal-cell free past"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell free"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">19:00</div><div class="cal-cell past"><span class="cal-ev done"><b>Cybersecurity</b><i>19:00 · Amir</i></span></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"><span class="cal-ev waiting"><b>Cybersecurity</b><i>19:00 · needs an answer</i></span></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-h">20:00</div><div class="cal-cell past"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div></div></div><p class="why"><b>The week reads as a week.</b> Two knock-ons: the hour window has to cover finished hours too, and the grid auto-scrolls to its first block — that would have to keep preferring a live one, or opening the page lands you on last Monday.</p></div>
   </div>
-  <p style="margin-top:18px;color:var(--soft);max-width:70ch;line-height:1.65">Nothing is changed
-  either way yet. Either is a small edit in <code>calSessions</code> and <code>weekOf</code>;
-  B additionally needs the scroll target and the legend key.</p>
+  <p style="margin-top:18px;color:var(--soft);max-width:70ch;line-height:1.65">B was chosen and is
+  applied. <code>calSessions</code> and <code>weekOf</code> both take <code>completed</code> now, the
+  legend has its fourth key, and the grid's auto-scroll prefers the first live block so that a week
+  carrying finished sessions still opens on the thing you have to answer rather than on last
+  Monday.</p>
 </section>
 
 </div>
