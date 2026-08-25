@@ -2565,7 +2565,11 @@
   function calHourWindow(week){
     var hrs = [], byDay = sharedHoursByDay(), k;
     for (k in byDay) if (byDay.hasOwnProperty(k)) hrs = hrs.concat(byDay[k]);
-    week.forEach(function(s){ hrs.push(s.startsAt.getHours()); });
+    /* The hours something is actually booked in, kept apart from the hours you
+       are merely free in, because when the window has to be trimmed below only
+       one of the two is negotiable. */
+    var booked = week.map(function(s){ return s.startsAt.getHours(); });
+    hrs = hrs.concat(booked);
     if (!hrs.length) return [17, 21];
     /* No padding row above and below. It cost two rows out of every window to
        show two hours nothing can happen in, and the grid already has a border
@@ -2577,8 +2581,30 @@
        hour — someone free in the morning and at night spans most of the day.
        That is correct, and it is why the card scrolls internally rather than
        the window being clipped: nothing is hidden, the page just stops growing.
-       The cap is only a backstop against a full 24 rows. */
-    if (hi - lo > 13) hi = lo + 13;
+       The cap is only a backstop against a full 24 rows.
+
+       It used to be `hi = lo + 13`, which chopped the bottom off the window
+       without looking at what was in it. A week holding a 5am booking and a
+       Friday 7pm proposal drew rows 05:00 to 18:00 and simply never rendered
+       the Friday cell — the proposal was not on the calendar at all, while the
+       sessions card above it said the proposal existed. That is the same
+       calendar-versus-sessions divergence the reschedule flow was written to
+       make impossible, arriving from the other direction, and it was invisible
+       because a missing cell looks exactly like a free evening.
+
+       So the trim now walks inwards from whichever end has nothing booked in
+       it, and stops as soon as both ends sit on a real session. Empty
+       availability rows are what the cap is allowed to take. If the bookings
+       themselves span more than fourteen hours the window stays wider than the
+       cap, which is the right way round: the card scrolls internally, so a
+       long window costs a scroll, and a short one costs a booking. */
+    if (hi - lo > 13){
+      var bLo = booked.length ? Math.min.apply(null, booked) : hi;
+      var bHi = booked.length ? Math.max.apply(null, booked) : lo;
+      while (hi - lo > 13 && (hi > bHi || lo < bLo)){
+        if (hi > bHi) hi--; else lo++;
+      }
+    }
     return [lo, hi];
   }
 
