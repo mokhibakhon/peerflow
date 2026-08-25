@@ -583,6 +583,13 @@
      * hid a card until the next reload would be a dismissal in name.
      */
     var DORMANT_DAYS = 14;
+    /* And the cooldown, which used to be a bare 21 in the test below. Both
+       numbers mirror migration-dormancy.sql — pf_dormant_days() and
+       pf_dormant_cooldown_days() — and only one of them was named, which is
+       the arrangement most likely to let the unnamed one drift: a reader
+       changing the threshold in both places would not think to look for a
+       second literal three lines further down. */
+    var DORMANT_COOLDOWN_DAYS = 21;
     var stamped = pick.p.dormantNudgedAt;
     /* undefined means migration-dormancy.sql has not been run, so there is
        nowhere to put a Not now and no note reaching the other person. The
@@ -591,7 +598,8 @@
     var canQuiet = stamped !== undefined;
     var quietFor = stamped ? (Date.now() - stamped.getTime()) / 86400000 : Infinity;
 
-    if (canQuiet && pick.last && days >= DORMANT_DAYS && quietFor >= 21){
+    if (canQuiet && pick.last && days >= DORMANT_DAYS &&
+        quietFor >= DORMANT_COOLDOWN_DAYS){
       band({
         tone:'quiet', k:'It has been a while',
         h: 'You and ' + esc(first) + ' haven’t studied together recently.',

@@ -1,4 +1,23 @@
 -- ============================================================
+-- SUPERSEDED — do not run this file.
+--
+-- Every statement below is already inside supabase/migrate-2026-08.sql, which
+-- is the file that gets pasted into the SQL editor. This copy is kept because
+-- it is the readable account of one change, and README.md links to it by name
+-- to explain what that change was. It is documentation now, not a migration.
+--
+-- Running it is not a no-op and will not raise an error. These are
+-- "create or replace" definitions, so the last paste wins: re-running an old
+-- file replaces the current definition of whatever it defines with the older
+-- one, silently. Nothing warns you and nothing fails.
+--
+-- To set a database up, see SETUP_GUIDE.md. The short version is schema.sql,
+-- then migration-mvp.sql, then migrate-2026-08.sql, then the migrations
+-- written after it that are not folded in yet: migration-reschedule.sql and
+-- migration-dormancy.sql.
+-- ============================================================
+
+-- ============================================================
 -- PeerFlow — who turned up, and what that is worth
 --
 -- Run this once in the Supabase SQL editor, after schema.sql,
