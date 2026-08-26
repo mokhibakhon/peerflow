@@ -53,9 +53,34 @@ h3{font-size:var(--t-h3);font-weight:700;letter-spacing:-.015em}
    this is the same site two clicks later, and the chrome should not
    grow a bar on the way. */
 header{background:var(--paper)}
-.nav{
+/* .wrap.nav, not .nav, and the extra class is the whole point.
+ *
+ * This bar is <div class="wrap nav">, so .wrap and .nav both set padding on the
+ * same element at the same specificity, and the shorthand that comes later in
+ * the file wins outright — including the axis it did not mean to touch. That
+ * tie was being resolved in opposite directions at the two breakpoints, and
+ * both answers were wrong:
+ *
+ *   above 560px  .nav (here) came after .wrap (line 36), so padding was
+ *                26px 0 and the horizontal gutter vanished. The logo sat
+ *                against the left edge of the viewport and Sign up bled off
+ *                the right.
+ *   at 560 and   .wrap{padding:0 20px} in the media block came after
+ *   below        .nav{padding:18px 0}, so the vertical padding vanished
+ *                instead. The header collapsed from 91px to 39px and the
+ *                logo sat hard against the top of the page.
+ *
+ * Two classes beat one whatever the order, so this now resolves the same way
+ * no matter where anybody moves it. Both axes are stated at both breakpoints
+ * for the same reason: an axis left to inherit from .wrap is an axis waiting
+ * for the next person to reorder the file.
+ *
+ * The one page that already looked right was 404.html, which had carried a
+ * scoped .nf-page .nav override since it shipped. That override is gone with
+ * this; there is nothing left for it to fix. */
+.wrap.nav{
   position:relative;display:flex;align-items:center;gap:18px;
-  padding:26px 0;
+  padding:26px var(--gutter);
 }
 .logo{display:flex;align-items:center;gap:11px;font-weight:400;font-size:20px;letter-spacing:-.015em}
 .logo svg{display:block;flex:0 0 auto;width:26px;height:26px;color:var(--p4)}
@@ -364,20 +389,6 @@ header{background:var(--paper)}
   display:flex;flex-direction:column;
 }
 .nf-page header{background:transparent;border-bottom:1px solid var(--rm-line)}
-/* The header bar in this file has no side gutter, on every page that uses it:
-   .wrap declares padding:0 var(--gutter), .nav declares padding:26px 0 later
-   in the file at the same specificity, and the shorthand wins the tie — so a
-   `.wrap.nav` computes to zero horizontal padding and the logo sits against
-   the viewport edge. It is the source-order trap this codebase has been caught
-   by before, and it is a real bug on conduct, privacy, terms, login, signup
-   and reset too.
-
-   Fixed here only, deliberately. Repairing it in .nav would change the chrome
-   on six pages that are already live, which is the owner's call rather than a
-   side effect of adding a 404 page. It shows on this one more than on those:
-   the ground is dark, so a button bleeding off the right edge reads as broken
-   rather than as wide. */
-.nf-page .nav{padding:26px var(--gutter)}
 .nf-page .logo{color:var(--rm-t)}
 .nf-page .logo svg{color:var(--p2)}
 .nf-page .logo b{color:var(--p1)}
@@ -470,7 +481,6 @@ header{background:var(--paper)}
 @media (max-width:560px){
   .nf-main{padding:26px 18px 48px}
   .nf-page h1{margin-top:26px}
-  .nf-page .nav{padding:18px 20px}
 }
 
 /* ---------- footer ----------
@@ -497,7 +507,7 @@ footer :focus-visible{outline-color:#fff}
   .nav-links{display:none}
 }
 @media (max-width:560px){
-  .nav{padding:18px 0;gap:12px}
+  .wrap.nav{padding:18px 20px;gap:12px}
   .nav-note{display:none}
   .logo{font-size:17px}
   .logo svg{width:24px;height:24px}
