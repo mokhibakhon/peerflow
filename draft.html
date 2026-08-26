@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nine lines in the hero — PeerFlow draft</title>
+<title>What should peerflow.dev/privacy do? — PeerFlow draft</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,330 +11,222 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
-<!-- home.css and nothing else, which is what index.html links. It carries its
-     own :root and does not read tokens.css, so every panel below is the real
-     component at the real sizes rather than an impression of one. -->
-<link rel="stylesheet" href="/assets/home.css">
+<link rel="stylesheet" href="/assets/tokens.css">
 <style>
 /* Standalone draft, noindex, overwritten by whoever drafts next.
  *
- * The hero's left column is 424px of stacked text: three lines of 55px green,
- * four lines of lede, a button and a fifth small line. The copy was lengthened
- * for search and the type scale was never retuned under it — the comments in
- * home.css still describe a five-word headline ("Learn IT together, not
- * alone") that has not been on the page for some time.
+ * Not a design draft. URLs on this site carry .html, so the extensionless form
+ * of every page — /privacy, /login, /frontend — is a 404. The 404 page names
+ * the page you meant and offers the link, which is a rescue and not a fix.
  *
- * Measured at 1280, 1440, 1728 and 2000, because a wrap that only misbehaves
- * at one width is the usual way this kind of thing hides:
+ * There is nothing to look at here, so this page is tables rather than
+ * components: for each option, what the server actually does with a handful of
+ * real addresses, and what the option costs to adopt. The column marked
+ * MEASURED was run against dev/serve.js just now. The rest are read off
+ * Vercel's documented behaviour for cleanUrls, rewrites and redirects — I
+ * cannot reach vercel.com from this container to try them, and I would rather
+ * label that than let four columns look equally verified.
  *
- *   headline at 55px   3 lines at every width
- *   headline at 48px   3 lines at every width
- *   headline at 44px   3 lines at every width
- *   headline at 40px   2 lines — but 40px is a limp hero
- *   copy column 1.3fr  3 lines, unchanged
- *   second sentence removed, still 55px   2 lines at every width
- *
- * So neither the type scale nor the grid is the lever. The copy length is.
- *
- * The panels are index.html's own hero markup with the copy swapped, so what
- * differs between them is the words. The only thing changed for the page is
- * .hero's vertical padding, trimmed from 82/92 to 34/38 so four heroes fit on
- * one screen — that is padding above and below, and it cannot affect how any
- * line wraps.
- */
-body{background:var(--paper);padding:0 0 90px}
-.dhead{background:var(--card);border-bottom:1px solid var(--line);padding:34px 0 30px;margin-bottom:30px}
-.dhead .wrap{max-width:1320px}
-.mono-k{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px}
-.dh{margin:0 0 10px;font-size:34px;font-weight:800;letter-spacing:-.03em;color:var(--ink);line-height:1.1}
-.dsub{margin:0;color:var(--ink-soft);max-width:74ch;line-height:1.65;font-size:16px}
-.dsub + .dsub{margin-top:12px}
-code{font-family:var(--mono);font-size:12.5px;background:#EAE9F0;border:1px solid var(--line);border-radius:4px;padding:2px 6px}
+ * The costs are counted, not estimated: 82 absolute .html URLs across
+ * canonicals, og:url and JSON-LD; 217 internal links; 11 sitemap entries; 25
+ * files; plus urlFor() in dev/sitemap-build.js and every assertion in
+ * dev/seo-tests.js that derives from it. */
+:root{--ok:#0F6E56;--warn:#93641A;--bad:#C0392B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:var(--t-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--p6);text-decoration:underline;text-underline-offset:2px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 32px}
+.dhead{background:var(--card);border-bottom:1px solid var(--line);padding:36px 0 32px;margin-bottom:34px}
+.k{font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-faint);margin-bottom:10px}
+h1{font-size:var(--t-h2);font-weight:800;letter-spacing:-.03em;line-height:1.12;margin-bottom:12px;text-wrap:balance}
+.sub{color:var(--ink-soft);max-width:72ch;line-height:1.65}
+.sub + .sub{margin-top:12px}
+code{font-family:var(--mono);font-size:var(--t-xs);background:var(--band);
+  border:1px solid var(--line-strong);border-radius:var(--r-mark);padding:2px 6px}
 
-/* The count is the argument, so it is a table and not a sentence. */
-.counts{width:100%;max-width:620px;margin:20px 0 0;border-collapse:collapse;font-size:14px}
-.counts th,.counts td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--line)}
-.counts th{font-weight:600;color:var(--ink-faint);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
-.counts td{color:var(--ink-soft);font-variant-numeric:tabular-nums}
-.counts td:first-child{color:var(--ink);font-weight:600}
-.counts tr.rec td{color:var(--live-deep)}
-.counts tr.rec td:first-child{color:var(--live-deep)}
-
-.opt{margin:0 0 40px}
-.opt-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 4px;max-width:1320px;margin-inline:auto;padding:0 32px}
-.opt-head h2{font-size:19px;font-weight:700;letter-spacing:-.015em;margin:0;color:var(--ink)}
-.tag{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;
-  letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
-.tag.on{background:var(--live-soft);color:var(--live-deep)}
-.tag.off{background:#EAE9F0;color:var(--ink-faint)}
-.why{margin:0 auto 14px;color:var(--ink-soft);max-width:1320px;padding:0 32px;line-height:1.65;font-size:14.5px}
+.opt{margin-bottom:38px}
+.opt-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+h2{font-size:var(--t-h3);font-weight:700;letter-spacing:-.015em}
+.tag{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:var(--r-pill)}
+.tag.rec{background:var(--p0);color:var(--p8)}
+.tag.now{background:var(--band);color:var(--ink-faint)}
+.tag.no{background:var(--bad-bg);color:var(--bad-ink)}
+.why{color:var(--ink-soft);font-size:var(--t-sm);line-height:1.65;max-width:80ch;margin-bottom:14px}
 .why b{color:var(--ink);font-weight:700}
-.frame{border:1px solid #D8D7E2;border-radius:16px;margin:0 32px;overflow:hidden;background:var(--paper)}
-.frame .hero{padding:34px 0 38px}
 
-/* D only: the headline in ink with the searched phrase in green. */
-.kw{color:var(--live-deep)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
+  padding:6px 20px 16px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:var(--t-sm);min-width:520px}
+th,td{text-align:left;padding:9px 14px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-family:var(--mono);font-size:var(--t-xs);color:var(--ink);white-space:nowrap}
+.s{font-family:var(--mono);font-size:var(--t-xs);font-weight:700;font-variant-numeric:tabular-nums}
+.s-200{color:var(--ok)} .s-30x{color:var(--warn)} .s-404{color:var(--bad)}
+.note{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:var(--t-xs);color:var(--ink-faint);line-height:1.6}
+.note b{color:var(--ink)}
 
-/* B, C and D: the line under the button is --ink-faint on paper, which is
-   3.23:1 — under the 4.5:1 floor at 13.5px, and the thing on this page that
-   actually is too faint rather than too much. --ink-soft is 7.30:1 and is the
-   colour the lede already uses. */
-.trust-fix{color:var(--ink-soft)}
+.cost{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pill{font-size:var(--t-xs);padding:5px 11px;border-radius:var(--r-pill);
+  background:var(--band);color:var(--ink-soft)}
+.pill.hot{background:var(--bad-bg);color:var(--bad-ink)}
+.pill.cool{background:var(--p0);color:var(--p8)}
 
-@media (max-width:760px){
-  .opt-head,.why{padding:0 20px}
-  .frame{margin:0 20px}
-}
+@media (max-width:560px){ .wrap{padding:0 20px} }
 </style>
 </head>
 <body>
 
 <div class="dhead">
   <div class="wrap">
-    <p class="mono-k">Draft</p>
-    <h1 class="dh">Nine lines in the hero</h1>
-    <p class="dsub">The headline is three lines of 55px green and the lede is four more, which is 424px
-      of stacked text before the button. Shrinking the type does not fix it — the headline holds three
-      lines all the way down to 44px, and widening the copy column does nothing. <b>The copy length is
-      the lever</b>, so all four panels below change words rather than sizes.</p>
-    <p class="dsub">Nothing here costs a ranking word. The primary phrase from
-      <code>SEO_ROADMAP.md</code> — <i>tech study partner</i> — stays in the H1 in every option. The
-      lede's keywords are already in the page's meta description, verbatim, and that is the text a
-      search result actually shows.</p>
-    <table class="counts">
-      <thead><tr><th>Option</th><th>Headline</th><th>Lede</th><th>Lines in the column</th></tr></thead>
-      <tbody>
-        <tr><td>A · was live</td><td>3 lines</td><td>4 lines</td><td>9</td></tr>
-        <tr><td>B</td><td>3 lines</td><td>2 lines</td><td>7</td></tr>
-        <tr class="rec"><td>C · shipped</td><td>2 lines</td><td>2 lines</td><td>6</td></tr>
-        <tr><td>D</td><td>2 lines</td><td>2 lines</td><td>6</td></tr>
-      </tbody>
-    </table>
+    <p class="k">Draft</p>
+    <h1>What should peerflow.dev/privacy do?</h1>
+    <p class="sub">URLs here carry <code>.html</code>, so the extensionless form of every page is a
+      404 — <code>/privacy</code>, <code>/login</code>, <code>/terms</code>, all of them. The 404 page
+      names the page you meant and offers the link, which is a rescue, not a fix. Four ways to make
+      the address itself work, and they are not equally cheap.</p>
+    <p class="sub">Today's column is <b>measured</b>, against <code>dev/serve.js</code>. The other
+      three are read off Vercel's documented behaviour: I cannot reach vercel.com from this container
+      to try them, and I would rather say so than let four columns look equally verified.</p>
   </div>
 </div>
 
+<div class="wrap">
+
+<!-- ─────────────────────────────────────────────────────── A ── -->
 <section class="opt">
-  <div class="opt-head">
-    <h2>A · What is on the site</h2>
-    <span class="tag off">was live</span>
+  <div class="opt-head"><h2>A · Leave it</h2><span class="tag now">today · measured</span></div>
+  <p class="why">Everyone who types a bare path lands on the 404, reads the suggestion and clicks
+    once more. <b>For:</b> costs nothing and risks nothing; the resolver already turns the common
+    cases into one click. <b>Against:</b> the address a person typed is still wrong, and a shared
+    link like <code>peerflow.dev/privacy</code> looks broken to whoever receives it.</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>Address</th><th>Status</th><th>Ends at</th></tr></thead>
+      <tbody>
+        <tr><td>/privacy</td><td class="s s-404">404</td><td>the 404 page, offering the privacy policy</td></tr>
+        <tr><td>/privacy.html</td><td class="s s-200">200</td><td>the page</td></tr>
+        <tr><td>/login</td><td class="s s-404">404</td><td>the 404 page, offering the login page</td></tr>
+        <tr><td>/frontend</td><td class="s s-404">404</td><td>the 404 page, offering frontend study partners</td></tr>
+        <tr><td>/random</td><td class="s s-404">404</td><td>the 404 page, no suggestion</td></tr>
+        <tr><td>/assets/db.js</td><td class="s s-200">200</td><td>the file</td></tr>
+      </tbody>
+    </table>
+    <div class="cost"><span class="pill cool">nothing to change</span></div>
   </div>
-  <p class="why">The control, so the others have something to be different from. <b>Three lines of 55px green, four lines of lede, nine stacked lines in the column.</b> Neither lever you would reach for first moves it: the headline stays at three lines all the way down to 44px, and widening the copy column from <code>1.08fr</code> to <code>1.3fr</code> changes nothing at all. The length of the copy is the whole of it.</p>
-  <div class="frame">
-    <div class="wrap">
-  <header class="hero">
-    <div class="hero-copy">
-      <h1 style="color:var(--live-deep)">Find your tech study partner. Show up and learn together.</h1>
-      <p class="lede">Match with one learner on the same tech path and at a similar level. Pick a recurring time, turn your cameras on, and do focused peer-to-peer &ldquo;study with me&rdquo; sessions each week.</p>
-      <div class="cta-row">
-        <a class="btn" href="signup.html">Find my partner</a>
-      </div>
-      <p class="trust">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── B ── -->
+<section class="opt">
+  <div class="opt-head"><h2>B · <code>cleanUrls: true</code></h2><span class="tag no">a sweep, not a flag</span></div>
+  <p class="why">One line in <code>vercel.json</code>, and it does two things — serves
+    <code>/privacy</code>, <b>and permanently redirects <code>/privacy.html</code> to it</b>. That
+    second half is the whole story. Every canonical on this site currently names the
+    <code>.html</code> form, so the moment this ships, all 12 of them point at a URL that redirects,
+    the sitemap advertises 11 more, and all 217 internal links spend a hop. <code>dev/seo-tests.js</code>
+    already fails a page for linking to the redirecting <code>/index.html</code> — this would make
+    that true of everything. <b>For:</b> the cleanest end state of the four, one URL per page and no
+    duplicates. <b>Against:</b> it is not a config change, it is a coordinated rewrite of the site's
+    entire URL surface, and half-done it is worse than not started.</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>Address</th><th>Status</th><th>Ends at</th></tr></thead>
+      <tbody>
+        <tr><td>/privacy</td><td class="s s-200">200</td><td>the page</td></tr>
+        <tr><td>/privacy.html</td><td class="s s-30x">308</td><td>/privacy — and this is what breaks the canonicals</td></tr>
+        <tr><td>/login</td><td class="s s-200">200</td><td>the page</td></tr>
+        <tr><td>/frontend</td><td class="s s-404">404</td><td>still nothing; it is not a page's name</td></tr>
+        <tr><td>/random</td><td class="s s-404">404</td><td>the 404 page</td></tr>
+        <tr><td>/assets/db.js</td><td class="s s-200">200</td><td>the file</td></tr>
+      </tbody>
+    </table>
+    <div class="cost">
+      <span class="pill hot">82 absolute URLs</span>
+      <span class="pill hot">217 internal links</span>
+      <span class="pill hot">11 sitemap entries</span>
+      <span class="pill hot">25 files</span>
+      <span class="pill hot">urlFor() + its assertions</span>
     </div>
-    <aside class="session" aria-hidden="true">
-      <div class="session-head">
-        <span class="live"><b></b>In session</span>
-        <span class="mono">cameras on</span>
-      </div>
-      <div class="tiles">
-        <div class="tile">
-          <span class="tav" style="background:#534AB7">AM</span>
-          <span class="tname">Amir</span>
-        </div>
-        <div class="tile you">
-          <span class="tav" style="background:#0FA36B">YOU</span>
-          <span class="tname">You</span>
-        </div>
-      </div>
-      <div class="rows">
-        <div class="row"><span>Both learning</span><b>Frontend</b></div>
-        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
-      </div>
-      <div class="pom">
-        <div class="pom-ring">
-          <svg viewBox="0 0 100 100">
-            <circle class="pom-track" cx="50" cy="50" r="43"/>
-            <circle class="pom-arc" cx="50" cy="50" r="43"/>
-          </svg>
-        </div>
-        <div class="pom-txt">
-          <b>25:00</b>
-          <span>left in this pomodoro</span>
-        </div>
-      </div>
-    </aside>
-  </header>
+    <p class="note"><b>All of it in one commit.</b> A canonical pointing at a redirect is the
+      self-inflicted crawl error this repository already has a test against, so there is no safe
+      order in which to do half of this.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── C ── -->
+<section class="opt">
+  <div class="opt-head"><h2>C · Rewrite <code>/privacy</code> to <code>privacy.html</code></h2><span class="tag no">not recommended</span></div>
+  <p class="why">About fifteen <code>rewrites</code> entries. Both forms then answer 200 and nothing
+    else changes. <b>For:</b> purely additive — no canonical, link or sitemap entry moves.
+    <b>Against:</b> it leaves <b>two live URLs serving identical content, permanently</b>. The
+    canonical tag does tell Google which one counts, so this is survivable rather than harmful — but
+    it buys exactly what D buys while doubling the URL surface, and anyone who shares
+    <code>/privacy</code> passes their signal through a canonical hop instead of a redirect. There is
+    no case where this beats D.</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>Address</th><th>Status</th><th>Ends at</th></tr></thead>
+      <tbody>
+        <tr><td>/privacy</td><td class="s s-200">200</td><td>the page — at a second, non-canonical URL</td></tr>
+        <tr><td>/privacy.html</td><td class="s s-200">200</td><td>the page, still canonical</td></tr>
+        <tr><td>/login</td><td class="s s-200">200</td><td>the page</td></tr>
+        <tr><td>/frontend</td><td class="s s-404">404</td><td>the 404 page, unless aliased</td></tr>
+        <tr><td>/random</td><td class="s s-404">404</td><td>the 404 page</td></tr>
+        <tr><td>/assets/db.js</td><td class="s s-200">200</td><td>the file</td></tr>
+      </tbody>
+    </table>
+    <div class="cost">
+      <span class="pill">~15 rewrite entries</span>
+      <span class="pill cool">nothing else changes</span>
+      <span class="pill hot">two URLs per page, forever</span>
     </div>
   </div>
 </section>
 
+<!-- ─────────────────────────────────────────────────────── D ── -->
 <section class="opt">
-  <div class="opt-head">
-    <h2>B · Leave the headline, cut the lede</h2>
-    <span class="tag off">option</span>
-  </div>
-  <p class="why">The smallest change that helps: the headline is untouched, and the supporting line drops the four keyword phrases it was carrying. <b>Four lines to two.</b> Those phrases are not lost — they are already in the page's meta description, word for word, and that is the text Google actually shows in a result. <b>For:</b> nothing about the headline is up for debate. <b>Against:</b> three lines of 55px green is still most of what you see, and that was the thing that prompted this.</p>
-  <div class="frame">
-    <div class="wrap">
-  <header class="hero">
-    <div class="hero-copy">
-      <h1 style="color:var(--live-deep)">Find your tech study partner. Show up and learn together.</h1>
-      <p class="lede">Match with one learner on the same tech path and at a similar level.</p>
-      <div class="cta-row">
-        <a class="btn" href="signup.html">Find my partner</a>
-      </div>
-      <p class="trust trust-fix">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
+  <div class="opt-head"><h2>D · Redirect <code>/privacy</code> to <code>/privacy.html</code></h2><span class="tag rec">recommended</span></div>
+  <p class="why">The same fifteen entries, as <code>redirects</code> instead of rewrites, pointing
+    the other way. <b>For:</b> it fixes the thing that is actually wrong — a typed address failing —
+    and touches nothing else. Zero canonicals move, zero internal links, zero sitemap entries, and
+    no page gains a second URL. The redirect hop is paid by somebody who typed the form the site
+    does not use, which is what redirects are for. <b>Against:</b> it settles <code>.html</code> as
+    this site's URL shape for good, which is the less fashionable choice; if you ever want the bare
+    form to be canonical, that is option B and this does not move you toward it.</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>Address</th><th>Status</th><th>Ends at</th></tr></thead>
+      <tbody>
+        <tr><td>/privacy</td><td class="s s-30x">308</td><td>/privacy.html, then the page</td></tr>
+        <tr><td>/privacy.html</td><td class="s s-200">200</td><td>the page, canonical, untouched</td></tr>
+        <tr><td>/login</td><td class="s s-30x">308</td><td>/login.html, then the page</td></tr>
+        <tr><td>/frontend</td><td class="s s-404">404</td><td>the 404 page, still offering the link</td></tr>
+        <tr><td>/random</td><td class="s s-404">404</td><td>the 404 page</td></tr>
+        <tr><td>/assets/db.js</td><td class="s s-200">200</td><td>the file</td></tr>
+      </tbody>
+    </table>
+    <div class="cost">
+      <span class="pill">~15 redirect entries</span>
+      <span class="pill cool">no canonical moves</span>
+      <span class="pill cool">no second URL</span>
+      <span class="pill cool">no sweep</span>
     </div>
-    <aside class="session" aria-hidden="true">
-      <div class="session-head">
-        <span class="live"><b></b>In session</span>
-        <span class="mono">cameras on</span>
-      </div>
-      <div class="tiles">
-        <div class="tile">
-          <span class="tav" style="background:#534AB7">AM</span>
-          <span class="tname">Amir</span>
-        </div>
-        <div class="tile you">
-          <span class="tav" style="background:#0FA36B">YOU</span>
-          <span class="tname">You</span>
-        </div>
-      </div>
-      <div class="rows">
-        <div class="row"><span>Both learning</span><b>Frontend</b></div>
-        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
-      </div>
-      <div class="pom">
-        <div class="pom-ring">
-          <svg viewBox="0 0 100 100">
-            <circle class="pom-track" cx="50" cy="50" r="43"/>
-            <circle class="pom-arc" cx="50" cy="50" r="43"/>
-          </svg>
-        </div>
-        <div class="pom-txt">
-          <b>25:00</b>
-          <span>left in this pomodoro</span>
-        </div>
-      </div>
-    </aside>
-  </header>
-    </div>
+    <p class="note"><b>The list has to be written out, not patterned.</b> A blanket
+      <code>/(.*)</code> to <code>/$1.html</code> would catch <code>/assets/…</code>,
+      <code>/robots.txt</code>, <code>/sitemap.xml</code>, the IndexNow key file and
+      <code>/draft</code>, and would loop on anything already ending in <code>.html</code>. Fifteen
+      explicit entries, with a check in <code>dev/seo-tests.js</code> asserting the list covers every
+      page — the same shape as the check that keeps the 404 page's suggestions honest.</p>
+    <p class="note"><b>What it does not do:</b> <code>/frontend</code> stays a 404. That is a short
+      alias for <code>frontend-study-partner.html</code>, not an extensionless form of it, and it is
+      a separate decision. The 404 page already offers it in one click.</p>
   </div>
 </section>
 
-<section class="opt">
-  <div class="opt-head">
-    <h2>C · Move the second sentence down</h2>
-    <span class="tag on">shipped</span>
-  </div>
-  <p class="why"><i>Show up and learn together</i> leaves the headline and joins the lede. <b>Two lines of green, two of lede — nine lines down to six.</b> The reason this is the one: <i>find your tech study partner</i> is the primary phrase in <code>SEO_ROADMAP.md</code> and it stays in the H1 untouched; <i>show up and learn together</i> carries none of the roadmap's phrases, so the third line of 55px green was buying nothing. It reads better one line down, where it is a promise rather than a heading. <b>Against:</b> the headline is shorter, and a shorter headline is a smaller claim.</p>
-  <p class="why"><b>One thing found on the way in, which this panel does not show.</b> Shortening the
-    headline flipped an answer that had been settled the other way. <code>text-wrap:balance</code> had
-    been taken off the h1 because the headline of the day balanced into three short lines where greedy
-    filling gave a clean break. On one short sentence greedy is the one that breaks badly — 608px over
-    a lone 233px, <i>Find your tech study</i> above <i>partner.</i> — where balance gives 425 and 416.
-    Two lines either way at every width, so it costs no height and only decides whether the second
-    line is a stub. It went back on, so the live hero now breaks more evenly than the panel below.</p>
-  <div class="frame">
-    <div class="wrap">
-  <header class="hero">
-    <div class="hero-copy">
-      <h1 style="color:var(--live-deep)">Find your tech study partner.</h1>
-      <p class="lede">Match with one learner on the same path and level. Show up on camera each week and learn together.</p>
-      <div class="cta-row">
-        <a class="btn" href="signup.html">Find my partner</a>
-      </div>
-      <p class="trust trust-fix">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
-    </div>
-    <aside class="session" aria-hidden="true">
-      <div class="session-head">
-        <span class="live"><b></b>In session</span>
-        <span class="mono">cameras on</span>
-      </div>
-      <div class="tiles">
-        <div class="tile">
-          <span class="tav" style="background:#534AB7">AM</span>
-          <span class="tname">Amir</span>
-        </div>
-        <div class="tile you">
-          <span class="tav" style="background:#0FA36B">YOU</span>
-          <span class="tname">You</span>
-        </div>
-      </div>
-      <div class="rows">
-        <div class="row"><span>Both learning</span><b>Frontend</b></div>
-        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
-      </div>
-      <div class="pom">
-        <div class="pom-ring">
-          <svg viewBox="0 0 100 100">
-            <circle class="pom-track" cx="50" cy="50" r="43"/>
-            <circle class="pom-arc" cx="50" cy="50" r="43"/>
-          </svg>
-        </div>
-        <div class="pom-txt">
-          <b>25:00</b>
-          <span>left in this pomodoro</span>
-        </div>
-      </div>
-    </aside>
-  </header>
-    </div>
-  </div>
-</section>
-
-<section class="opt">
-  <div class="opt-head">
-    <h2>D · C, with the green on the phrase that earns it</h2>
-    <span class="tag off">option</span>
-  </div>
-  <p class="why">Same as C, with <i>Find your</i> in ink and only <i>tech study partner</i> in green. This was tried once and rejected — the markup still carries the note, <i>&ldquo;colouring one phrase is what made the old headline look broken in two&rdquo;</i> — but that was against the old two-sentence headline, where the colour break fell in the middle of a thought. Here the headline is one sentence and the break falls between the verb and the thing being looked for, which is also the phrase people are searching. <b>Against:</b> it was rejected once for a reason, and two colours in six words can read as fussy.</p>
-  <div class="frame">
-    <div class="wrap">
-  <header class="hero">
-    <div class="hero-copy">
-      <h1 style="color:var(--ink)">Find your <span class="kw">tech study partner</span>.</h1>
-      <p class="lede">Match with one learner on the same path and level. Show up on camera each week and learn together.</p>
-      <div class="cta-row">
-        <a class="btn" href="signup.html">Find my partner</a>
-      </div>
-      <p class="trust trust-fix">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
-    </div>
-    <aside class="session" aria-hidden="true">
-      <div class="session-head">
-        <span class="live"><b></b>In session</span>
-        <span class="mono">cameras on</span>
-      </div>
-      <div class="tiles">
-        <div class="tile">
-          <span class="tav" style="background:#534AB7">AM</span>
-          <span class="tname">Amir</span>
-        </div>
-        <div class="tile you">
-          <span class="tav" style="background:#0FA36B">YOU</span>
-          <span class="tname">You</span>
-        </div>
-      </div>
-      <div class="rows">
-        <div class="row"><span>Both learning</span><b>Frontend</b></div>
-        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
-      </div>
-      <div class="pom">
-        <div class="pom-ring">
-          <svg viewBox="0 0 100 100">
-            <circle class="pom-track" cx="50" cy="50" r="43"/>
-            <circle class="pom-arc" cx="50" cy="50" r="43"/>
-          </svg>
-        </div>
-        <div class="pom-txt">
-          <b>25:00</b>
-          <span>left in this pomodoro</span>
-        </div>
-      </div>
-    </aside>
-  </header>
-    </div>
-  </div>
-</section>
-
+</div>
 </body>
 </html>
