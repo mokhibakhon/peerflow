@@ -184,7 +184,17 @@
   </section>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Pinned and checked, for the same reason the LiveKit line below/above is:
+     the code that holds your session token should be the code we checked, not
+     whatever the CDN is serving under a moving tag today. @2 floated, so a bad
+     publish to any 2.x — or a compromise at jsdelivr — would have run in every
+     signed-in page automatically. The path is explicit so there is no question
+     which file the hash covers: it is the one the package's own jsdelivr field
+     points at. Bumping the version means recomputing the hash; that is the
+     cost, and it is the point. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/dist/umd/supabase.js"
+        integrity="sha384-ysv13JVP3fufiEXfjML9OdCa/rRbMJvUBOWyor82wfuK8INNZAvmbxHgKIHi+oqz"
+        crossorigin="anonymous"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/db.js"></script>
 <script>
