@@ -18,6 +18,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const root = path.resolve(__dirname, '..');
 const { indexable, ordered, urlFor, ORIGIN } = require('./sitemap-build.js');
 
@@ -257,6 +258,74 @@ if (fs.existsSync(path.join(root, '404.html'))) {
   const relative = [...nf.matchAll(/href="(?!https?:|mailto:|data:|\/|#)([^"]+)"/g)].map((m) => m[1]);
   check(relative.length === 0,
     `404.html: every link is root-relative${relative.length ? ' — ' + relative.join(', ') : ''}`);
+}
+
+// ── the build marker ───────────────────────────────────────────────────────
+// PF_BUILD answers "is it deployed?" from the browser console, and CLAUDE.md
+// leans on it: ask for the build before believing a bug report about behaviour
+// you have already fixed. That only works while the number goes up.
+//
+// It went down once. A branch carried
+//   -window.PF_BUILD = '2026-08-26d'
+//   +window.PF_BUILD = '2026-08-26c'
+// because the bump was written blind — a substitution over whatever was there
+// rather than a read of the current value and a step past it — and landing it
+// wrote an older marker back over a newer one. The fix that branch was shipping
+// was live and correct; only the number was wrong, which is worse than it
+// sounds, because the number is the thing you check instead of arguing.
+//
+// Two sessions work this repository at a time and assets/db.js is the one file
+// both are guaranteed to touch, so this is not a rare shape of mistake. It sits
+// in this file, beside the vercel.json checks, for the reason those are here:
+// a fix nobody can tell has shipped is most of the way to a fix that has not.
+{
+  const build = read('assets/db.js').match(/window\.PF_BUILD\s*=\s*'([^']*)'/);
+  check(!!build, 'assets/db.js: declares PF_BUILD');
+
+  // A marker that does not parse cannot be ordered, and a near miss like
+  // 2026-8-26e sorts before 2026-08-25a rather than after it.
+  const parse = (v) => {
+    const m = /^(\d{4}-\d{2}-\d{2})([a-z]+)$/.exec(v || '');
+    return m && { date: m[1], rev: m[2], raw: v };
+  };
+  const here = build && parse(build[1]);
+  check(!!here, `assets/db.js: PF_BUILD is YYYY-MM-DD plus a letter (got ${build ? build[1] : 'nothing'})`);
+
+  // Dates are ISO so they sort as strings; the suffix is compared by length
+  // first so that a two-letter revision lands after 'z' rather than between
+  // 'a' and 'b'.
+  const cmp = (a, b) =>
+    a.date !== b.date ? (a.date < b.date ? -1 : 1)
+      : a.rev.length !== b.rev.length ? a.rev.length - b.rev.length
+        : a.rev < b.rev ? -1 : a.rev > b.rev ? 1 : 0;
+
+  // origin/main is the baseline. A clone that has never fetched it has nothing
+  // to compare against, and a check that fails for that reason teaches people
+  // to ignore the suite — which is the failure this file's own header is about
+  // — so it says why it did not run and moves on.
+  let base = null, changed = null;
+  try {
+    const at = (rev, f) => execFileSync('git', ['show', `${rev}:${f}`], { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+    base = parse((at('origin/main', 'assets/db.js').match(/window\.PF_BUILD\s*=\s*'([^']*)'/) || [])[1]);
+    changed = execFileSync('git', ['diff', '--name-only', 'origin/main', '--', 'assets/'], { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString().split('\n').filter(Boolean);
+  } catch (e) {
+    console.log('SKIP  PF_BUILD ordering — no origin/main to compare against (git fetch origin main)');
+  }
+
+  if (here && base) {
+    const order = cmp(here, base);
+    // Equal is fine only while assets/ is untouched. The moment a byte in there
+    // differs from main, the marker has to move: a stale marker over changed
+    // assets is the same lie as a marker that went backwards, told quietly.
+    if (changed.length) {
+      check(order > 0,
+        `PF_BUILD moves past main's ${base.raw}, which ${changed.length} changed file(s) under assets/ require`
+        + (order > 0 ? ` (now ${here.raw})` : ` — it is ${here.raw}; bump it past ${base.raw} (changed: ${changed.join(', ')})`));
+    } else {
+      check(order >= 0, `PF_BUILD ${here.raw} is not behind main's ${base.raw}`);
+    }
+  }
 }
 
 if (failures) {

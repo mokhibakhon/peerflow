@@ -200,7 +200,13 @@ second session.
 
 `node dev/seo-tests.js` checks the public pages: canonicals, titles and
 descriptions and their uniqueness, social metadata, structured data, internal
-linking, robots.txt, the sitemap and the IndexNow key file. It derives the list
+linking, robots.txt, the sitemap and the IndexNow key file. It also guards
+two things that are not SEO but decide whether any of it ships: that
+`vercel.json` keeps its build command empty, and that `PF_BUILD` never lands
+behind the value on `main` — it went backwards once, when a branch bumped it
+blind and wrote an older marker over a newer one, and a marker that names a
+build from before the fix is worse than no marker at all. Changing anything
+under `assets/` without moving it fails the same check. It derives the list
 of public pages by reading the robots meta tag off every page rather than
 holding its own copy, because the copy it used to hold went stale — the three
 legal pages were never in it, so nothing noticed that they pointed their
