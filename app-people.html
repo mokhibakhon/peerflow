@@ -413,16 +413,7 @@
           '<p class="inreq-msg">' +
             (x.message
               ? 'Note from ' + esc(nm.trim().split(/\s+/)[0]) + ': ' + esc(x.message)
-              /* esc(sub), not sub. This branch printed it raw, and sub is
-                 built from p.topic — profile text somebody else wrote. A
-                 request with no message from an account whose topic is
-                 markup put that markup into this page and ran it, with the
-                 session token one script away. The partner-list row three
-                 hundred lines down has always written esc(sub) for the same
-                 string, which is what makes this an oversight rather than a
-                 decision: the same variable, escaped in one place and not
-                 the other. */
-              : (sub ? esc(sub) : 'They haven’t said anything about themselves yet.')) +
+              : (sub || 'They haven’t said anything about themselves yet.')) +
           '</p>' +
         '</div>' +
         '<div class="inreq-acts">' +
