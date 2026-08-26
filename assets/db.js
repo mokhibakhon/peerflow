@@ -904,8 +904,23 @@ window.pf = (function(){
           return climb(i + 1);
         });
       }
-      if (reqCols) return climb(REQ_LADDER.map(function(x){ return x.cols; }).indexOf(reqCols));
-      return climb(0)
+      /* One path out, and it has to be one path.
+      
+         This used to read "if (reqCols) return climb(...)" on its own line,
+         which returned the raw PostgREST response — {data, error} — straight
+         to the caller, skipping the .then() below that turns rows into
+         {incoming, outgoing, me}. So the first call on a page was correct, it
+         cached reqCols, and every call after it answered with an object that
+         had no incoming key. The comment above already says this runs at
+         least twice on any page with the bell; the second time, notify.js did
+         state.incoming = r.incoming and then filtered undefined.
+      
+         Nothing caught it because the browser tests swap db.js for the stub,
+         so the ladder never runs there at all — this only exists against a
+         real PostgREST, on the second call, which is why it reached
+         production. */
+      var at = reqCols ? REQ_LADDER.map(function(x){ return x.cols; }).indexOf(reqCols) : 0;
+      return climb(at < 0 ? 0 : at)
         .then(function(r){
           if (r.error) return null;
           var rows = r.data || [];
