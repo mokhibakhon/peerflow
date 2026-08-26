@@ -128,18 +128,29 @@
   <!-- ================= HERO ================= -->
   <header class="hero">
     <div class="hero-copy">
-      <!-- Green, but the whole line rather than a coloured half — colouring one
-           phrase is what made the old headline look broken in two.
+      <!-- One sentence, not two. "Show up and learn together" moved down into
+           the lede. It carries none of the phrases SEO_ROADMAP.md targets, so
+           at 55px it was buying a whole third line of green for nothing, and it
+           reads better a line down where it is a promise rather than a heading.
 
-           --live-deep, not --live: the bright accent green is 2.9:1 against
-           this background, which fails even the relaxed large-text bar, and a
-           headline is the one thing on a page nobody should have to squint at.
-           --live-deep is 5.2:1 and reads as the same brand green.
+           The two-sentence version wrapped to three lines at 1280, 1440, 1728
+           and 2000 — every desktop width measured — and neither lever moved it:
+           three lines at 48px and at 44px too, and a copy column widened from
+           1.08fr to 1.3fr changed nothing anywhere. The length of the line is
+           the only lever there is, which is why this is a copy change and not a
+           type change.
 
-           The colour is inline because this task may not touch home.css; it
-           belongs in a rule there next to the other h1 styles. -->
-      <h1 style="color:var(--live-deep)">Find your tech study partner. Show up and learn together.</h1>
-      <p class="lede">Match with one learner on the same tech path and at a similar level. Pick a recurring time, turn your cameras on, and do focused peer-to-peer “study with me” sessions each week.</p>
+           The lede lost the four keyword phrases it was carrying, for the same
+           reason: they are already in this page's meta description word for
+           word, and that is the text a search result actually shows. It was
+           paying two lines to repeat a field that had already said it.
+
+           Green, and the whole line rather than a coloured half — colouring one
+           phrase is what made the old headline look broken in two. The colour
+           has moved into home.css beside the other h1 rules, where the note
+           that used to sit here said it belonged. -->
+      <h1>Find your tech study partner.</h1>
+      <p class="lede">Match with one learner on the same path and level. Show up on camera each week and learn together.</p>
 
       <div class="cta-row">
         <a class="btn" href="signup.html">Find my partner</a>
