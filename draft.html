@@ -141,10 +141,73 @@ code{font-family:var(--mono);font-size:var(--t-xs);background:var(--band);
 .d-dark .b1:hover{background:var(--p2)}
 .d-dark .b2{background:transparent;border:1px solid var(--rm-line);color:var(--rm-soft)}
 .d-dark .b2:hover{border-color:var(--rm-faint);color:var(--rm-t)}
+/* The nav the shipped page keeps, and the reference keeps too: the ways out
+   are the site's own rather than the two buttons we happened to think of. */
+.d-nav{display:flex;align-items:center;gap:18px;text-align:left;
+  padding-bottom:22px;margin-bottom:8px;border-bottom:1px solid var(--rm-line)}
+.d-nav .k{margin:0}
+.d-nav-links{display:flex;gap:22px;font-size:15px;color:var(--rm-soft)}
+.d-nav-links a:hover{color:var(--rm-t)}
+.d-nav-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+.d-login{font-size:15px;font-weight:600;color:var(--rm-soft)}
+.d-login:hover{color:var(--rm-t)}
+.d-sm{padding:9px 16px;font-size:13.5px}
+/* Shown only when the resolver has something true to say, which is why the
+   panel above it reads exactly like the reference for an address that is
+   close to nothing. */
+.d-guess{display:inline-block;margin:20px 0 0;padding:11px 16px;border-radius:var(--r-pill);
+  background:rgba(29,158,117,.13);border:1px solid rgba(29,158,117,.32);
+  font-size:var(--t-sm);color:var(--p1)}
+.d-guess a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+@media (max-width:760px){ .d-nav-links{display:none} }
 
 /* ---------- two: the same field on the site's own ground ---------- */
 .opt-2 .page-hero{padding:34px 0 8px}
 .opt-2 .g404{margin-bottom:22px}
+
+/* ---------- two: the light card ----------
+   These rules used to live in auth.css and do not any more: shipping option
+   one replaced that file's not-found block with the dark page, and it took
+   .nf, .nf-list and the light .nf-guess with it. Option two went on rendering
+   its markup with none of them — a card with no card, and pale green guess
+   text on a pale green ground.
+
+   So the light version keeps its own copy here, scoped to .opt-2 so it beats
+   the dark rules auth.css now declares for the same class names. That is the
+   right place for it: this is a draft of a page that was not chosen, and the
+   shared stylesheet should not carry styles for a page that does not exist. */
+.opt-2 .nf{
+  max-width:620px;margin:30px auto 34px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
+  padding:28px 30px 26px;text-align:left;
+}
+.opt-2 .nf h2{font-size:var(--t-h3);font-weight:700;letter-spacing:-.015em;line-height:inherit;margin:0 0 14px}
+.opt-2 .nf-asked{margin:14px auto 0;color:var(--ink-faint);font-size:var(--t-sm);max-width:44em}
+.opt-2 .nf-asked code{
+  font-family:var(--mono);font-size:var(--t-xs);color:var(--ink-soft);
+  background:var(--band);border:1px solid var(--line-strong);border-radius:var(--r-mark);
+  padding:2px 6px;word-break:break-all;
+}
+.opt-2 .nf-guess{
+  background:var(--p0);border:0;border-radius:var(--r-control);
+  padding:12px 15px;margin:0 0 20px;
+  font-size:var(--t-sm);color:var(--p8);
+}
+.opt-2 .nf-guess a{color:var(--p8);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.opt-2 .nf-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.opt-2 .nf-list a{
+  display:block;padding:12px 14px;
+  border:1px solid var(--line-strong);border-radius:var(--r-control);
+  transition:border-color .15s ease,background .15s ease,transform .1s ease;
+}
+.opt-2 .nf-list a:hover{border-color:var(--p2);background:var(--p0);transform:translateY(-1px)}
+.opt-2 .nf-list b{display:block;font-weight:700;color:var(--ink);font-size:var(--t-body)}
+.opt-2 .nf-list span{display:block;margin-top:2px;color:var(--ink-faint);font-size:var(--t-xs);line-height:1.45}
+.opt-2 .nf-foot{
+  margin:20px 0 0;padding-top:16px;border-top:1px solid var(--line);
+  color:var(--ink-faint);font-size:var(--t-xs);line-height:1.6;
+}
+.opt-2 .nf-foot a{color:var(--p6);font-weight:600;text-decoration:underline;text-underline-offset:2px}
 
 /* ============================================================
    three — the empty room. The call page's palette, lifted from
@@ -250,10 +313,14 @@ code{font-family:var(--mono);font-size:var(--t-xs);background:var(--band);
     not waste the click. The footer stays off: the page fills the viewport, as the reference does.</p>
   <div class="frame">
     <div class="d-dark">
-      <span class="k">
-        <svg viewBox="0 0 173 171" fill="currentColor" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-        <span>peer<b>flow</b></span>
-      </span>
+      <div class="d-nav">
+        <span class="k">
+          <svg viewBox="0 0 173 171" fill="currentColor" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
+          <span>peer<b>flow</b></span>
+        </span>
+        <nav class="d-nav-links"><a href="/#how">How it works</a><a href="/#paths">Learning paths</a></nav>
+        <span class="d-nav-right"><a class="d-login" href="/login.html">Log in</a><a class="b1 d-sm" href="/signup.html">Sign up</a></span>
+      </div>
       <div class="g404 on-dark" role="img" aria-label="404">
 <i></i><i></i><i></i><i></i><i class="a"></i><i class="b"></i><i class="d"></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="b"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="c"></i><i class="c"></i><i></i>
 <i></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="c"></i><i></i><i></i><i class="c"></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="a"></i><i class="b"></i><i class="c"></i><i></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="a"></i><i></i>
@@ -265,12 +332,12 @@ code{font-family:var(--mono);font-size:var(--t-xs);background:var(--band);
 <i></i><i></i><i></i><i></i><i class="c"></i><i class="b"></i><i class="d"></i><i></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="c"></i><i></i><i></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i>
 <i></i><i></i><i></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="c"></i><i class="b"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i>
       </div>
-      <h1>That page isn't here</h1>
-      <p class="s">This address doesn't match a page on PeerFlow. It is most likely a typo, or a link written before the page moved.</p>
-      <p class="asked">You asked for <code>/random</code></p>
+      <h1>Page not found</h1>
+      <p class="s">This address doesn't match a page on PeerFlow. It was most likely a typo, or a link written before the page moved.</p>
+      <p class="asked">You asked for <code>/privcy</code></p>
+      <p class="d-guess">Did you mean <a href="/privacy.html">the privacy policy</a>?</p>
       <div class="acts">
         <a class="b1" href="/">Go to the home page</a>
-        <a class="b2" href="/login.html">Log in</a>
       </div>
     </div>
   </div>
