@@ -206,7 +206,11 @@ two things that are not SEO but decide whether any of it ships: that
 behind the value on `main` — it went backwards once, when a branch bumped it
 blind and wrote an older marker over a newer one, and a marker that names a
 build from before the fix is worse than no marker at all. Changing anything
-under `assets/` without moving it fails the same check. It derives the list
+under `assets/` without moving it fails the same check. And it resolves every
+`var()` against the stylesheets each page actually links — a custom property
+nobody declared does not warn and does not fall back, the whole declaration is
+just dropped, which is how the room button asked for a nonexistent `--p7` and
+had no hover colour for as long as the room had existed. It derives the list
 of public pages by reading the robots meta tag off every page rather than
 holding its own copy, because the copy it used to hold went stale — the three
 legal pages were never in it, so nothing noticed that they pointed their

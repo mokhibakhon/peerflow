@@ -328,6 +328,66 @@ if (fs.existsSync(path.join(root, '404.html'))) {
   }
 }
 
+// ── CSS custom properties ──────────────────────────────────────────────────
+// A var() naming a property nobody declared does not warn and does not fall
+// back — the whole declaration is dropped, so the rule silently does nothing.
+// call.css asked for --p7 for as long as the room has existed. There is no
+// --p7; the ramp is 0, 1, 2, 4, 6, 8. "Join the call" had no hover colour, and
+// nobody noticed because the lift and the shadow come from app.css and those
+// still fired: the button moved, it just never changed.
+//
+// This is not an SEO check. It is here because this is the one suite that runs
+// over the whole repository, and a second file nobody remembers to run would
+// have caught this exactly as often as no file at all.
+//
+// Resolution is per page, not per file, because that is how the cascade sees
+// it: seo.css uses --live-deep and does not declare it, which is fine, because
+// every page that links seo.css links home.css first and home.css does. Checking
+// files in isolation reports that as broken, and a check that cries wolf is one
+// people stop reading.
+{
+  // Comments come out first, and that is not a detail. The first draft of this
+  // check scanned them, so the comment two files over explaining that "there is
+  // no --p7:" declared --p7 by saying its name in front of a colon — the check
+  // passed on the exact defect it was written for. A codebase whose comments
+  // name custom properties this often cannot afford to read them as code.
+  const strip = (css) => css.replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const declared = (css) => new Set([...strip(css).matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
+  // var(--x, fallback) is not a bug even when --x is missing, so only count a
+  // reference that closes straight after the name.
+  const referenced = (css) => new Set(
+    [...strip(css).matchAll(/var\(\s*(--[\w-]+)\s*([,)])/g)].filter((m) => m[2] === ')').map((m) => m[1]));
+
+  const orphans = [];
+  for (const f of allPages) {
+    const html = read(f);
+    // Local stylesheets only: a Google Fonts URL declares nothing we can read.
+    const sheets = [...html.matchAll(/<link\b[^>]*>/g)].map((m) => m[0])
+      .filter((t) => /rel="stylesheet"/.test(t) && !/href="https?:/.test(t))
+      .map((t) => (t.match(/href="([^"]+)"/) || [])[1])
+      .filter(Boolean);
+    // Plus whatever the page declares itself, and anything a style attribute
+    // reaches for — index.html carried its headline colour that way for a while.
+    const inline = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n');
+    const attrs = [...html.matchAll(/\sstyle="([^"]*)"/g)].map((m) => m[1]).join(';');
+
+    let css = inline + '\n' + attrs;
+    let missingSheet = null;
+    for (const href of sheets) {
+      const at = path.join(root, href.replace(/^\//, ''));
+      if (!fs.existsSync(at)) { missingSheet = href; break; }
+      css += '\n' + fs.readFileSync(at, 'utf8');
+    }
+    if (missingSheet) { fail(`${f}: links a stylesheet that is not in the repo — ${missingSheet}`); continue; }
+
+    const have = declared(css);
+    const want = [...referenced(css)].filter((v) => !have.has(v));
+    if (want.length) orphans.push(`${f}: ${want.join(', ')}`);
+  }
+  check(orphans.length === 0,
+    `every var() resolves on the page that uses it${orphans.length ? ' — ' + orphans.join('; ') : ''}`);
+}
+
 if (failures) {
   console.error(`\n${failures} SEO check(s) failed.`);
   process.exit(1);

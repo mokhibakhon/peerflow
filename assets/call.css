@@ -57,7 +57,17 @@
    panel the ghost's ink border disappears into the background, so only the
    two colours change and every other property stays shared. */
 .callpage .btn{background:var(--p6);border-color:var(--p6);color:#fff}
-.callpage .btn:hover{background:var(--p7);border-color:var(--p7)}
+/* --p8, not --p7. There is no --p7: the ramp in tokens.css is 0, 1, 2, 4, 6, 8,
+   and a var() naming a property nobody declared resolves to nothing, so the
+   whole declaration was dropped and Join the call had no hover colour at all.
+   Nobody saw it, because the lift and the shadow come from app.css's .btn:hover
+   and those still fired — the button moved, it just never changed.
+
+   p8 is what the flattened gradient means: app.css's hover ends on var(--p8),
+   this is the same step without the two-stop face. It is a 1.52:1 darkening
+   against p6, which is subtle on its own and does not need to be more than that
+   next to the shared lift; the white label goes from 6.20:1 to 9.40:1. */
+.callpage .btn:hover{background:var(--p8);border-color:var(--p8)}
 .callpage .ghost{
   background:transparent;border-color:var(--rm-line);color:var(--rm-t);
 }
