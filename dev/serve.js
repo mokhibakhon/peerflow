@@ -54,7 +54,25 @@ http.createServer(function(req, res){
   if (file.indexOf(ROOT) !== 0){ res.writeHead(403); return res.end('no'); }
 
   fs.readFile(file, function(err, body){
-    if (err){ res.writeHead(404); return res.end('not found'); }
+    /* Vercel answers any path that matches no file and no rewrite with
+       404.html at the site root, under a real 404 status. Doing the same here
+       is not decoration: the point of this server is that a page behaves the
+       way it will in production, and a dev server that returns a bare 'not
+       found' string means the one page whose entire job is being reached by a
+       wrong URL cannot be reached by a wrong URL locally. dev/notfound-tests.js
+       drives it through here.
+       The status stays 404 — serving the page under a 200 is the soft-404 that
+       404.html's own comment warns about, and getting that wrong here is how
+       it would get copied into vercel.json. */
+    if (err){
+      var nf = null;
+      try { nf = fs.readFileSync(path.join(ROOT, '404.html')); } catch (e) {}
+      if (nf){
+        res.writeHead(404, { 'Content-Type':'text/html', 'Cache-Control':'no-store' });
+        return res.end(nf);
+      }
+      res.writeHead(404); return res.end('not found');
+    }
     res.writeHead(200, {
       'Content-Type': MIME[path.extname(file)] || 'application/octet-stream',
       'Cache-Control': 'no-store'

@@ -218,6 +218,47 @@ check((vercel.redirects || []).some((r) => r.source === '/index.html' && r.desti
 check(vercel.buildCommand === '' && vercel.installCommand === '',
   'vercel.json: build and install commands stay empty');
 
+// ── the not-found page ─────────────────────────────────────────────────────
+// Vercel serves 404.html from the output root for any path that matches no
+// file and no rewrite. Nothing in this repo names the file, so nothing else
+// would notice it being renamed or deleted: the site would silently go back to
+// the hosting platform's black error page and look broken rather than missing.
+check(fs.existsSync(path.join(root, '404.html')), '404.html: exists at the site root');
+
+if (fs.existsSync(path.join(root, '404.html'))) {
+  const nf = read('404.html');
+
+  // A catch-all rewrite is the other way to answer a missing page, and it is
+  // the wrong one: a rewrite serves the body under a 200, so every mistyped
+  // URL becomes an indexable duplicate of the not-found page instead of a
+  // 404. The file-based 404 keeps the status. Guard the rewrite from being
+  // added later by somebody who cannot see why it is absent.
+  const catchAll = (vercel.rewrites || []).filter((r) => /^\/[:*(]|\(\.\*\)|\/:path\*/.test(r.source || ''));
+  check(catchAll.length === 0,
+    `vercel.json: no catch-all rewrite, which would turn every 404 into a soft 200${catchAll.length ? ' — ' + JSON.stringify(catchAll) : ''}`);
+
+  // The "did you mean" list inside the page is hand-written, because a static
+  // site has no build step to generate it. That is fine as long as it cannot
+  // drift: every page it names has to exist, and every page a visitor could
+  // plausibly be aiming at has to be named. The second half is the one that
+  // rots — a ninth learning path would be a page the resolver never offers.
+  const listed = [...nf.matchAll(/\['([a-z0-9.-]+\.html)',/g)].map((m) => m[1]);
+  check(listed.length > 0, `404.html: the resolver's page list parses (found ${listed.length})`);
+  const ghosts = listed.filter((f) => !fs.existsSync(path.join(root, f)));
+  check(ghosts.length === 0, `404.html: every page it can suggest exists${ghosts.length ? ' — ' + ghosts.join(', ') : ''}`);
+  const uncovered = indexable.filter((f) => !listed.includes(f));
+  check(uncovered.length === 0,
+    `404.html: suggests every indexable page${uncovered.length ? ' — missing ' + uncovered.join(', ') : ''}`);
+
+  // Relative hrefs are correct on every other page here and wrong on this one:
+  // it is served AT the address that was asked for, so href="login.html" under
+  // /a/b/c resolves to /a/b/login.html. A page for recovering from a bad URL
+  // must not hand out more of them.
+  const relative = [...nf.matchAll(/href="(?!https?:|mailto:|data:|\/|#)([^"]+)"/g)].map((m) => m[1]);
+  check(relative.length === 0,
+    `404.html: every link is root-relative${relative.length ? ' — ' + relative.join(', ') : ''}`);
+}
+
 if (failures) {
   console.error(`\n${failures} SEO check(s) failed.`);
   process.exit(1);
