@@ -46,9 +46,7 @@ const srv=http.createServer((req,res)=>{
   });
 });
 
-const PAGES=['index.html','login.html','signup.html','reset.html','app.html','app-people.html',
-             'app-person.html','app-sessions.html','app-progress.html','app-profile.html',
-             'app-chat.html','app-settings.html','app-badges.html','call.html','draft.html'];
+const PAGES=fs.readdirSync(ROOT).filter(f=>f.endsWith('.html')).sort();
 
 srv.listen(9111, async ()=>{
   const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
