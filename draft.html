@@ -104,9 +104,9 @@ code{font-family:var(--mono);font-size:12.5px;background:#EAE9F0;border:1px soli
     <table class="counts">
       <thead><tr><th>Option</th><th>Headline</th><th>Lede</th><th>Lines in the column</th></tr></thead>
       <tbody>
-        <tr><td>A · live now</td><td>3 lines</td><td>4 lines</td><td>9</td></tr>
+        <tr><td>A · was live</td><td>3 lines</td><td>4 lines</td><td>9</td></tr>
         <tr><td>B</td><td>3 lines</td><td>2 lines</td><td>7</td></tr>
-        <tr class="rec"><td>C · recommended</td><td>2 lines</td><td>2 lines</td><td>6</td></tr>
+        <tr class="rec"><td>C · shipped</td><td>2 lines</td><td>2 lines</td><td>6</td></tr>
         <tr><td>D</td><td>2 lines</td><td>2 lines</td><td>6</td></tr>
       </tbody>
     </table>
@@ -116,7 +116,7 @@ code{font-family:var(--mono);font-size:12.5px;background:#EAE9F0;border:1px soli
 <section class="opt">
   <div class="opt-head">
     <h2>A · What is on the site</h2>
-    <span class="tag off">live now</span>
+    <span class="tag off">was live</span>
   </div>
   <p class="why">The control, so the others have something to be different from. <b>Three lines of 55px green, four lines of lede, nine stacked lines in the column.</b> Neither lever you would reach for first moves it: the headline stays at three lines all the way down to 44px, and widening the copy column from <code>1.08fr</code> to <code>1.3fr</code> changes nothing at all. The length of the copy is the whole of it.</p>
   <div class="frame">
@@ -224,9 +224,16 @@ code{font-family:var(--mono);font-size:12.5px;background:#EAE9F0;border:1px soli
 <section class="opt">
   <div class="opt-head">
     <h2>C · Move the second sentence down</h2>
-    <span class="tag on">recommended</span>
+    <span class="tag on">shipped</span>
   </div>
   <p class="why"><i>Show up and learn together</i> leaves the headline and joins the lede. <b>Two lines of green, two of lede — nine lines down to six.</b> The reason this is the one: <i>find your tech study partner</i> is the primary phrase in <code>SEO_ROADMAP.md</code> and it stays in the H1 untouched; <i>show up and learn together</i> carries none of the roadmap's phrases, so the third line of 55px green was buying nothing. It reads better one line down, where it is a promise rather than a heading. <b>Against:</b> the headline is shorter, and a shorter headline is a smaller claim.</p>
+  <p class="why"><b>One thing found on the way in, which this panel does not show.</b> Shortening the
+    headline flipped an answer that had been settled the other way. <code>text-wrap:balance</code> had
+    been taken off the h1 because the headline of the day balanced into three short lines where greedy
+    filling gave a clean break. On one short sentence greedy is the one that breaks badly — 608px over
+    a lone 233px, <i>Find your tech study</i> above <i>partner.</i> — where balance gives 425 and 416.
+    Two lines either way at every width, so it costs no height and only decides whether the second
+    line is a stub. It went back on, so the live hero now breaks more evenly than the panel below.</p>
   <div class="frame">
     <div class="wrap">
   <header class="hero">
