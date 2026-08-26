@@ -114,7 +114,7 @@ matches no file is a 404, served from `404.html`.
 | `/login.html` | public | Sign in; honours `?next=` |
 | `/reset.html` | recovery token | Set a new password |
 | `/conduct.html` | public | Code of conduct |
-| *anything else* | public | `404.html`, under a 404 status |
+| *anything else* | public | `404.html`, under a 404 status. The one dark public page |
 | `/app.html` | required | **Sessions** — the signed-in home |
 | `/app-sessions.html` | required | **Partner** |
 | `/app-people.html` | required | **People** |

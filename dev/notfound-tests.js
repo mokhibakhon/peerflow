@@ -71,14 +71,57 @@ async function guess(p){
   ok('the status is 404, not a soft 200: ' + status, status === 404);
   const h1 = await p.$$eval('h1', e => e.map(x => x.innerText.trim()));
   ok('exactly one <h1>, and it is the page: ' + JSON.stringify(h1),
-     h1.length === 1 && h1[0] === "That page isn't here");
-  ok('the shell is here: header, footer and the destination list',
-     (await p.$$('header .logo')).length === 1 && (await p.$$('footer')).length === 1
-     && (await p.$$('.nf-list a')).length === 4);
+     h1.length === 1 && h1[0] === 'Page not found');
+  ok('the shell is here: the site nav, and one way out under the sentence',
+     (await p.$$('header .logo')).length === 1 && (await p.$$('header .nav-right a')).length === 2
+     && (await p.$$('.nf-acts .btn')).length === 1);
+  /* The header used to run flush to the viewport edge on every page sharing
+     this shell — .nav's padding shorthand beats .wrap's at the same
+     specificity because it is declared later — which on a dark ground reads
+     as a broken page rather than a wide one. Fixed for this page only, so
+     assert the gutter is really there rather than trusting the rule to have
+     landed. */
+  const gutter = await p.evaluate(() => {
+    const cs = getComputedStyle(document.querySelector('header .wrap'));
+    return parseFloat(cs.paddingLeft);
+  });
+  ok('the header has its side gutter back (' + gutter + 'px)', gutter >= 20);
   ok('the address is printed back: "' + (await p.innerText('.nf-asked')) + '"',
      (await p.innerText('.nf-asked')).indexOf('/random') > -1);
   ok('and nothing is guessed at, because /random is nothing', (await guess(p)) === null);
   await p.close();
+
+  console.log('\n==> the number, which is 207 cells and no text');
+  /* The graphic is the page. It is also 207 elements that all look identical
+     in the markup, so the ways it breaks are geometric: a column count that
+     lets the digits wrap, a mask that never loaded and leaves 117 blank
+     squares, a cell that is not square. None of those show in the DOM. */
+  const fp = await open(b, '/random');
+  const field = await fp.p.evaluate(() => {
+    const el = document.querySelector('.nf-field');
+    const cells = [...el.querySelectorAll('i')];
+    const first = cells.find((c) => c.className);
+    const cs = getComputedStyle(first);
+    const r = first.getBoundingClientRect();
+    return {
+      cells: cells.length,
+      painted: cells.filter((c) => c.className).length,
+      rows: new Set(cells.map((c) => Math.round(c.getBoundingClientRect().top))).size,
+      cols: getComputedStyle(el).gridTemplateColumns.split(' ').length,
+      square: Math.abs(r.width - r.height) < 0.6,
+      masked: (cs.webkitMaskImage || cs.maskImage || '').indexOf('svg+xml') > -1,
+      text: el.textContent.trim().length,
+    };
+  });
+  ok('207 cells in 23 columns and 9 rows: ' + JSON.stringify(field),
+     field.cells === 207 && field.cols === 23 && field.rows === 9);
+  ok('117 of them are painted, and each is a square carrying the mark as a mask',
+     field.painted === 117 && field.square && field.masked, JSON.stringify(field));
+  ok('and none of them carries text, so nothing here is a font we do not ship',
+     field.text === 0);
+  ok('it is labelled for a screen reader, which sees 207 empty spans otherwise',
+     (await fp.p.getAttribute('.nf-field', 'aria-label')) === '404');
+  await fp.p.close();
 
   console.log('\n==> the near misses, which are why the resolver exists');
   /* Each of these is a real address somebody types. The first three are the
@@ -135,6 +178,14 @@ async function guess(p){
      + (bad.length ? ': ' + bad.join(', ') : ''), bad.length === 0, JSON.stringify(bad));
   ok('the stylesheet still loaded from /assets, so the page is styled',
      await t.p.evaluate(() => getComputedStyle(document.querySelector('h1')).fontWeight === '800'));
+  /* The mask is a data URI in auth.css, so it survives any depth of address —
+     but the stylesheet reaching the page at all is the thing at risk here, and
+     an unpainted field is 117 invisible squares rather than an error. */
+  ok('and the number is still painted at this depth',
+     await t.p.evaluate(() => {
+       const c = document.querySelector('.nf-field i[class]');
+       return getComputedStyle(c).backgroundColor !== 'rgba(0, 0, 0, 0)';
+     }));
   await t.p.close();
 
   console.log('\n==> the address is somebody else\'s text');

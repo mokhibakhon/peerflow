@@ -339,72 +339,138 @@ header{background:var(--paper)}
 .prose a{color:var(--p6);font-weight:600;text-decoration:underline;text-underline-offset:2px}
 
 /* ---------- not found ----------
-   404.html. It shares the conduct/privacy shell — same header, same hero, same
-   footer — because the whole point is that a mistyped address lands somewhere
-   that is obviously still PeerFlow rather than on the hosting platform's black
-   page with a stack of error codes on it.
+   404.html, and the one page on the public site that is dark.
 
-   What it does not share is .prose. That card is built for documents: 760px of
-   running text with headings in it. This page has one heading and four links,
-   and a document card around four links is mostly empty white with the links
-   pushed to the left edge of it. */
-.page-hero .mono{margin-bottom:10px}
+   That is a real cost and it was chosen with the cost in view: arriving here
+   changes the colour of the site under somebody who has just mistyped an
+   address. What it buys is the only thing a 404 can be good at besides being
+   correct — being a page people do not mind landing on. The number is built
+   out of the mark repeated, so the graphic is the site saying its own name at
+   a size the mark never reaches anywhere else.
 
-/* The address that was asked for, echoed back under the sub-heading. Quiet and
-   monospaced: it is evidence, not a heading, and the person is reading it to
-   spot their own typo, which is exactly what a proportional face makes hard —
-   rn against m, l against 1. break-all rather than a scroller because a long
-   path has no natural break points and a horizontal scrollbar on a 404 page is
-   one more thing to work out. */
-.nf-asked{margin:14px auto 0;color:var(--ink-faint);font-size:var(--t-sm);max-width:44em}
+   Everything is scoped to .nf-page on the body. The header, the logo, the nav
+   and the button are the same components every other page in this file uses;
+   only their colours are re-grounded, the way call.css re-grounds .btn for the
+   room. Nothing here can reach a page that does not carry the class.
+
+   The palette is the room's, verbatim, rather than a second dark theme picked
+   independently — two dark surfaces that disagree by a few points of grey is
+   the seam this stylesheet was written to remove in the first place. */
+.nf-page{
+  --rm-bg:#0E1018; --rm-panel:#171A24; --rm-line:#2A2F3E;
+  --rm-t:#F4F5F8; --rm-soft:#A2A7B8; --rm-faint:#767C90;
+  background:var(--rm-bg);color:var(--rm-t);
+  min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;
+}
+.nf-page header{background:transparent;border-bottom:1px solid var(--rm-line)}
+/* The header bar in this file has no side gutter, on every page that uses it:
+   .wrap declares padding:0 var(--gutter), .nav declares padding:26px 0 later
+   in the file at the same specificity, and the shorthand wins the tie — so a
+   `.wrap.nav` computes to zero horizontal padding and the logo sits against
+   the viewport edge. It is the source-order trap this codebase has been caught
+   by before, and it is a real bug on conduct, privacy, terms, login, signup
+   and reset too.
+
+   Fixed here only, deliberately. Repairing it in .nav would change the chrome
+   on six pages that are already live, which is the owner's call rather than a
+   side effect of adding a 404 page. It shows on this one more than on those:
+   the ground is dark, so a button bleeding off the right edge reads as broken
+   rather than as wide. */
+.nf-page .nav{padding:26px var(--gutter)}
+.nf-page .logo{color:var(--rm-t)}
+.nf-page .logo svg{color:var(--p2)}
+.nf-page .logo b{color:var(--p1)}
+.nf-page .nav-links{color:var(--rm-soft)}
+.nf-page .nav-links a:hover{color:var(--rm-t)}
+.nf-page .nav-right .login{color:var(--rm-soft)}
+.nf-page .nav-right .login:hover{color:var(--rm-t)}
+/* The dark-ink primary disappears on this ground, so the button takes the
+   app's green the way the room's does. Only the two colours change; every
+   other property of .btn stays shared. */
+.nf-page .btn{background:var(--p4);color:#08211B;box-shadow:none}
+.nf-page .btn:hover{background:var(--p2);box-shadow:0 4px 14px rgba(29,158,117,.24)}
+.nf-page :focus-visible{outline-color:var(--p2)}
+
+.nf-main{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:44px 20px 64px;
+}
+.nf-page h1{
+  margin:34px 0 0;color:var(--rm-t);
+  font-size:clamp(30px,5.2vw,46px);font-weight:800;letter-spacing:-.035em;line-height:1.1;
+}
+.nf-s{margin:14px auto 0;max-width:46ch;font-size:15.5px;line-height:1.6;color:var(--rm-soft)}
+
+/* Two quiet lines the reference does not have, and neither is decoration. The
+   echo is how somebody sees their own typo rather than being told abstractly
+   that something is wrong; the guess is the only part of this page that gets
+   anybody anywhere, because URLs here carry .html and the extensionless form
+   of every page on the site lands right here. Both are hidden until the script
+   has something true to put in them, so the page reads exactly like the
+   reference for an address that is not close to anything. */
+.nf-asked{margin:18px 0 0;font-size:var(--t-sm);color:var(--rm-faint)}
 .nf-asked code{
-  font-family:var(--mono);font-size:var(--t-xs);color:var(--ink-soft);
-  background:var(--band);border:1px solid var(--line-strong);border-radius:var(--r-mark);
-  padding:2px 6px;word-break:break-all;
+  font-family:var(--mono);font-size:var(--t-xs);color:var(--rm-soft);
+  background:var(--rm-panel);border:1px solid var(--rm-line);border-radius:var(--r-mark);
+  padding:3px 8px;word-break:break-all;
 }
-
-.nf{
-  max-width:620px;margin:30px auto 80px;
-  background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
-  padding:28px 30px 26px;
-}
-/* The h2 gets the h3 treatment for the same reason .prose h2 does: a bare h2 is
-   sized --t-h2 here, which is the h1 above it, and a card heading that matches
-   the page title reads as a second page rather than as part of this one. */
-.nf h2{font-size:var(--t-h3);font-weight:700;letter-spacing:-.015em;line-height:inherit;margin:0 0 14px}
-
-/* The guess sits above the heading, not inside the list, because when it is
-   there it is the answer and the list below it is the fallback. Green rather
-   than the amber this file uses for warnings: nothing has gone wrong at this
-   point in the page, something has been found. */
 .nf-guess{
-  background:var(--p0);border-radius:var(--r-control);
-  padding:12px 15px;margin:0 0 20px;
-  font-size:var(--t-sm);color:var(--p8);
+  margin:20px 0 0;padding:11px 16px;border-radius:var(--r-pill);
+  background:rgba(29,158,117,.13);border:1px solid rgba(29,158,117,.32);
+  font-size:var(--t-sm);color:var(--p1);
 }
-.nf-guess a{color:var(--p8);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.nf-guess a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.nf-acts{margin-top:30px}
 
-/* One column, not two. Four destinations in a 2x2 grid read as a menu to be
-   scanned and compared; in a column they read as an order of preference, which
-   is what they are — home first, sign up last. */
-.nf-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.nf-list a{
-  display:block;padding:12px 14px;
-  border:1px solid var(--line-strong);border-radius:var(--r-control);
-  transition:border-color .15s ease,background .15s ease,transform .1s ease;
-}
-.nf-list a:hover{border-color:var(--p2);background:var(--p0);transform:translateY(-1px)}
-.nf-list b{display:block;font-weight:700;color:var(--ink);font-size:var(--t-body)}
-.nf-list span{display:block;margin-top:2px;color:var(--ink-faint);font-size:var(--t-xs);line-height:1.45}
+/* ---------- the number ----------
+   Twenty-three cells by nine: three 7x9 digits with a column of air between
+   them. Every measurement comes off --c, so the field scales by changing one
+   value and cannot reflow into a different shape — the failure a grid like
+   this has on a phone is the digits wrapping, and a fixed column count cannot.
 
-.nf-foot{
-  margin:20px 0 0;padding-top:16px;border-top:1px solid var(--line);
-  color:var(--ink-faint);font-size:var(--t-xs);line-height:1.6;
+   The cells hold no text, and that is the whole reason this reads. Two earlier
+   versions filled them with characters — first a 5x7 font with one-cell
+   strokes, then 7x9 with the punctuation the eight learning paths have in
+   common — and neither resolved into a number. At one cell a stroke cannot be
+   told from the noise around it; and { } < > / ( ) [ ] = + * carry wildly
+   different amounts of ink, so every cell is a different weight and the eye
+   never joins a row of them into a bar. The reference gets away with it
+   because 0 and 1 are one width, one height, and nothing hangs off them.
+
+   So each cell is the mark itself, painted as a mask over the cell's own
+   colour: one dense shape, identical in all of them. dev/404-field.js
+   regenerates the markup from a seeded PRNG — run it when the mark changes or
+   the digits do, rather than editing 207 elements by hand. */
+.nf-field{
+  --mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 173 171'%3E%3Cg fill='%23000'%3E%3Crect x='79' y='0' width='13' height='15'/%3E%3Crect x='0' y='81' width='15' height='13'/%3E%3Crect x='158' y='81' width='14' height='13'/%3E%3Crect x='79' y='156' width='13' height='15'/%3E%3Cpath d='M52 24H116V39H99V56H83V70H67V39H52Z'/%3E%3Cpath d='M24 57H39V74H56V89H70V106H39V121H24Z'/%3E%3Cpath d='M134 53H149V118H134V101H117V85H103V69H134Z'/%3E%3Cpath d='M119 147H55V132H72V115H88V101H104V132H119Z'/%3E%3C/g%3E%3C/svg%3E");
+  --c:clamp(11px,2.4vw,26px);
+  display:grid;grid-template-columns:repeat(23,var(--c));justify-content:center;
+  -webkit-user-select:none;user-select:none;
 }
-.nf-foot a{color:var(--p6);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.nf-field i{width:var(--c);height:var(--c)}
+/* An unclassed cell is a hole in the number and stays empty; everything else
+   is the mark over the cell's own colour, so a cell's tone is one declaration
+   and the shape is shared by all 207 of them. */
+.nf-field i[class]{
+  background:currentColor;
+  -webkit-mask:var(--mark) center/86% 86% no-repeat;
+          mask:var(--mark) center/86% 86% no-repeat;
+}
+/* Three steps, weighted towards the middle one. Three greens at equal weight
+   is three brightnesses fighting and the stroke stops being a stroke; one
+   green flat is a stencil. --d is the thin scatter in the empty cells, which
+   is what stops the number reading as a logo somebody drew rather than as a
+   field with a number in it. */
+.nf-field .a{color:var(--p1)}
+.nf-field .b{color:var(--p2)}
+.nf-field .c{color:#35B189}
+.nf-field .d{color:#1B3229}
 
 @media (max-width:560px){
-  .nf{padding:22px 20px 20px;margin:20px auto 56px;border-radius:var(--r-control)}
+  .nf-main{padding:26px 18px 48px}
+  .nf-page h1{margin-top:26px}
+  .nf-page .nav{padding:18px 20px}
 }
 
 /* ---------- footer ----------
