@@ -124,18 +124,18 @@ async function guess(p){
   await fp.p.close();
 
   console.log('\n==> the near misses, which are why the resolver exists');
-  /* Each of these is a real address somebody types. The first three are the
-     shapes: an extensionless page, the short name of a long page, a spelling
-     slip. The last two are the parsing — a path with directories in front of
-     it is still a guess about its last segment, and an address that already
-     ends in .html is the same guess as one that does not. */
+  /* Each of these is a real address somebody types. /privacy and /app used to
+     head this list and do not any more: vercel.json now redirects the bare name
+     of every page to its file, so they never reach this page at all. The
+     exact-slug rule they used to prove is still worth having and still covered,
+     by the three at the bottom — a path with directories in front of it, one
+     that already ends in .html, and one in the wrong case — none of which match
+     a redirect source, all of which resolve on the last segment. */
   for (const [url, expect, href] of [
-    ['/privacy',           'the privacy policy',        '/privacy.html'],
     ['/frontend',          'frontend study partners',   '/frontend-study-partner.html'],
     ['/data',              'data science study partners', '/data-science-study-partner.html'],
     ['/singup',            'the sign-up page',          '/signup.html'],
     ['/tems',              'the terms',                 '/terms.html'],
-    ['/app',               'your sessions',             '/app.html'],
     ['/docs/privacy',      'the privacy policy',        '/privacy.html'],
     ['/privacy.html/',     'the privacy policy',        '/privacy.html'],
     ['/PRIVACY',           'the privacy policy',        '/privacy.html'],
@@ -144,6 +144,41 @@ async function guess(p){
     const g = await guess(t.p);
     ok(url + ' → ' + JSON.stringify(g), g && g.text === expect && g.href === href);
     await t.p.close();
+  }
+
+  console.log('\n==> the addresses that never get here any more');
+  /* The redirects are in vercel.json and dev/serve.js reads that file rather
+     than restating it, so this exercises the real table. Two things have to
+     hold and only one of them is obvious. The bare name has to move, and the
+     .html form has to stay exactly where it is — the whole reason for choosing
+     this direction over cleanUrls is that no canonical, sitemap entry or
+     internal link had to change, and a redirect pointing the other way would
+     quietly undo all of it. */
+  {
+    const req = (await b.newPage()).request;
+    for (const [url, status, to] of [
+      ['/privacy',      308, '/privacy.html'],
+      ['/login',        308, '/login.html'],
+      ['/app',          308, '/app.html'],
+      ['/terms',        308, '/terms.html'],
+      ['/index.html',   308, '/'],
+      ['/privacy.html', 200, null],
+      ['/draft',        200, null],
+      ['/404',          404, null],
+      ['/random',       404, null],
+      ['/assets/db.js', 200, null],
+    ]) {
+      const r = await req.get(BASE + url, { maxRedirects: 0 });
+      const loc = r.headers()['location'];
+      const where = loc ? loc.replace(BASE, '') : null;
+      ok(url + ' → ' + r.status() + (where ? ' ' + where : ''),
+         r.status() === status && (to === null ? !loc : where === to));
+    }
+    /* The query has to survive: call.html is reached as /call?s=<booking> and
+       arriving without it is a room with no session behind it. */
+    const q = await req.get(BASE + '/call?s=abc123', { maxRedirects: 0 });
+    ok('/call?s=abc123 keeps its query → ' + (q.headers()['location'] || '').replace(BASE, ''),
+       (q.headers()['location'] || '').endsWith('/call.html?s=abc123'));
   }
 
   console.log('\n==> and the guesses it declines to make');

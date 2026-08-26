@@ -35,12 +35,46 @@ const MIME = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript',
                '.webp':'image/webp', '.json':'application/json',
                '.woff2':'font/woff2', '.ico':'image/x-icon' };
 
+/* The routing table is vercel.json's, read at startup rather than restated
+   here. /draft used to be a hardcoded line with a note explaining that a
+   rewrite in production has to be a rewrite locally too, or the page 404s in
+   development and works in production. The extensionless redirects are two
+   dozen more of the same, and a second hand-maintained copy of them would
+   drift the first time somebody adds a page.
+
+   Exact matches only, because every source in that file is a literal path. If
+   one ever is not, this throws rather than quietly ignoring it — a dev server
+   that silently routes differently from production is worse than one that
+   refuses to start. */
+var VERCEL = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+var literal = function(list, what){
+  var out = {};
+  (list || []).forEach(function(r){
+    if (/[:*(\[]/.test(r.source)) {
+      throw new Error('dev/serve.js only understands literal ' + what + ' sources; vercel.json has "' + r.source + '"');
+    }
+    out[r.source] = r;
+  });
+  return out;
+};
+var REDIRECTS = literal(VERCEL.redirects, 'redirect');
+var REWRITES  = literal(VERCEL.rewrites,  'rewrite');
+
 http.createServer(function(req, res){
   var url = decodeURIComponent(req.url.split('?')[0]);
+  var query = req.url.slice(req.url.indexOf('?') + 1) === req.url ? '' : req.url.slice(req.url.indexOf('?'));
+
+  /* Redirects run before the filesystem, the way they do on Vercel, so
+     /privacy answers 308 rather than being looked up as a file and missed.
+     The query string is carried across: call.html is reached as /call?s=… and
+     dropping it would send somebody to a room with no booking. */
+  if (REDIRECTS[url]) {
+    res.writeHead(REDIRECTS[url].permanent ? 308 : 307,
+      { 'Location': REDIRECTS[url].destination + query, 'Cache-Control':'no-store' });
+    return res.end();
+  }
+  if (REWRITES[url]) url = REWRITES[url].destination;
   if (url === '/') url = '/index.html';
-  /* /draft is a rewrite in vercel.json, so it has to be one here too or the
-     preview page 404s locally and works in production. */
-  if (url === '/draft') url = '/draft.html';
 
   if (STUB && url === '/assets/db.js') url = '/dev/db-stub.js';
   /* The gate bounces you to login before the stub gets a chance to speak. */

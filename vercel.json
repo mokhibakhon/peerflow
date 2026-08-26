@@ -9,6 +9,126 @@
       "source": "/index.html",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/ai-machine-learning-study-partner",
+      "destination": "/ai-machine-learning-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/app-badges",
+      "destination": "/app-badges.html",
+      "permanent": true
+    },
+    {
+      "source": "/app-chat",
+      "destination": "/app-chat.html",
+      "permanent": true
+    },
+    {
+      "source": "/app-people",
+      "destination": "/app-people.html",
+      "permanent": true
+    },
+    {
+      "source": "/app-person",
+      "destination": "/app-person.html",
+      "permanent": true
+    },
+    {
+      "source": "/app-profile",
+      "destination": "/app-profile.html",
+      "permanent": true
+    },
+    {
+      "source": "/app-progress",
+      "destination": "/app-progress.html",
+      "permanent": true
+    },
+    {
+      "source": "/app-sessions",
+      "destination": "/app-sessions.html",
+      "permanent": true
+    },
+    {
+      "source": "/app-settings",
+      "destination": "/app-settings.html",
+      "permanent": true
+    },
+    {
+      "source": "/app",
+      "destination": "/app.html",
+      "permanent": true
+    },
+    {
+      "source": "/backend-study-partner",
+      "destination": "/backend-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/call",
+      "destination": "/call.html",
+      "permanent": true
+    },
+    {
+      "source": "/conduct",
+      "destination": "/conduct.html",
+      "permanent": true
+    },
+    {
+      "source": "/cybersecurity-study-partner",
+      "destination": "/cybersecurity-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/data-science-study-partner",
+      "destination": "/data-science-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/devops-cloud-study-partner",
+      "destination": "/devops-cloud-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/frontend-study-partner",
+      "destination": "/frontend-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/login",
+      "destination": "/login.html",
+      "permanent": true
+    },
+    {
+      "source": "/mobile-development-study-partner",
+      "destination": "/mobile-development-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html",
+      "permanent": true
+    },
+    {
+      "source": "/reset",
+      "destination": "/reset.html",
+      "permanent": true
+    },
+    {
+      "source": "/signup",
+      "destination": "/signup.html",
+      "permanent": true
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms.html",
+      "permanent": true
+    },
+    {
+      "source": "/ux-ui-design-study-partner",
+      "destination": "/ux-ui-design-study-partner.html",
+      "permanent": true
     }
   ],
   "rewrites": [

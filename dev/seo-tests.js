@@ -260,6 +260,56 @@ if (fs.existsSync(path.join(root, '404.html'))) {
     `404.html: every link is root-relative${relative.length ? ' — ' + relative.join(', ') : ''}`);
 }
 
+// ── extensionless addresses ────────────────────────────────────────────────
+// URLs here carry .html, so /privacy is not a page — it is a typo the site
+// makes easy to commit. Each root page redirects its bare name to its file, so
+// the address works and the .html form stays the single canonical one. The
+// other direction — cleanUrls, which also 308s /privacy.html to /privacy —
+// would point all 12 canonicals, 11 sitemap entries and 217 internal links at
+// redirecting URLs, so it is not a config flag but a rewrite of the whole URL
+// surface, and it is not what was chosen.
+//
+// The list is generated from the files rather than curated, because a curated
+// one goes stale exactly the way the hardcoded page list in this file's own
+// history did. Three pages are out, and each for a different reason worth
+// stating, since "why is this one missing" is the question a reader will have:
+//   index.html  is served at / and already redirects the other way
+//   draft.html  is a rewrite, not a redirect — /draft serves the page itself
+//   404.html    must never answer 200 at any address. A /404 that served it
+//               would be a soft 404, which is the thing that page's own
+//               comment exists to warn about.
+{
+  const SKIP = { 'index.html': 'served at /', 'draft.html': 'a rewrite, not a redirect',
+                 '404.html': 'must never answer 200' };
+  const want = new Map(allPages.filter((f) => !SKIP[f])
+    .map((f) => ['/' + f.replace(/\.html$/, ''), '/' + f]));
+
+  const got = new Map((vercel.redirects || []).map((r) => [r.source, r]));
+
+  const missing = [...want].filter(([src]) => !got.has(src)).map(([src]) => src);
+  check(missing.length === 0,
+    `vercel.json: every page has an extensionless redirect${missing.length ? ' — missing ' + missing.join(', ') : ` (${want.size})`}`);
+
+  const wrong = [...want].filter(([src, dest]) => got.has(src) &&
+    (got.get(src).destination !== dest || got.get(src).permanent !== true))
+    .map(([src, dest]) => `${src} should be a permanent redirect to ${dest}`);
+  check(wrong.length === 0, `vercel.json: each one is permanent and points at its own file${wrong.length ? ' — ' + wrong.join('; ') : ''}`);
+
+  // An extra redirect is not harmless: it either shadows a real file or sends
+  // somebody to one that is not there.
+  const extra = [...got.keys()].filter((src) => !want.has(src) && src !== '/index.html');
+  check(extra.length === 0, `vercel.json: no redirect that no page asked for${extra.length ? ' — ' + extra.join(', ') : ''}`);
+
+  for (const [f, why] of Object.entries(SKIP)) {
+    const src = '/' + f.replace(/\.html$/, '');
+    check(!got.has(src), `vercel.json: no redirect for ${src} — ${why}`);
+  }
+  // The one that would be silent if it broke: /draft has to stay a rewrite, so
+  // the preview page keeps its own address instead of bouncing to draft.html.
+  check((vercel.rewrites || []).some((r) => r.source === '/draft' && r.destination === '/draft.html'),
+    'vercel.json: /draft is still a rewrite');
+}
+
 // ── the build marker ───────────────────────────────────────────────────────
 // PF_BUILD answers "is it deployed?" from the browser console, and CLAUDE.md
 // leans on it: ask for the build before believing a bug report about behaviour

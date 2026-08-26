@@ -247,6 +247,25 @@ row of it into a bar. `node dev/404-field.js` regenerates the markup from a
 seeded PRNG — run it if the mark or the digits change, rather than editing 207
 elements by hand.
 
+**A typed address works, and the canonical stays where it is.** URLs here carry
+`.html`, so `/privacy` was a 404 that the not-found page rescued in one extra
+click. `vercel.json` now redirects the bare name of every root page to its file
+— 24 of them, generated from the files rather than curated, so a new page cannot
+be forgotten. Three are deliberately absent and `dev/seo-tests.js` asserts each
+one stays absent: `index.html` is served at `/` and already redirects the other
+way, `draft.html` is a rewrite so `/draft` keeps its own address, and
+`404.html` must never answer 200 anywhere — a `/404` that served it would be
+the soft 404 that page exists to avoid.
+
+The direction matters more than the feature. Vercel's `cleanUrls` would also
+308 `/privacy.html` to `/privacy`, which points all 12 canonicals, 11 sitemap
+entries and 217 internal links at redirecting URLs — a rewrite of the whole URL
+surface that has to land in one commit, not a config flag. Redirecting the other
+way costs 24 lines and moves nothing else. `dev/serve.js` reads the redirect and
+rewrite tables out of `vercel.json` rather than restating them, so development
+cannot route differently from production, and it throws rather than guessing if
+a source is ever something other than a literal path.
+
 `node dev/notfound-tests.js` (with `node dev/serve.js` running — no `PF_STUB`,
 there is no data layer on this page) covers what reads fine in the markup and is
 wrong in a browser: that the status is really 404 and not a soft 200; that the
