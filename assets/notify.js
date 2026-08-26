@@ -299,8 +299,14 @@
       state.proposals = res[1] || [];
       state.notes = res[2] || [];
       if (!r) { state.loaded = true; list.innerHTML = '<p class="bell-empty">Could not load notifications.</p>'; return; }
-      state.incoming = r.incoming;
-      state.outgoing = r.outgoing;
+      /* Defaulted, because the guard above only asks whether r exists. A
+         truthy object with no incoming key walked straight through it and
+         left state.incoming undefined, which needsYou() then filtered — an
+         uncaught TypeError with the bell half-painted. The db.js bug that
+         produced that shape is fixed, but the bell should degrade to "nothing
+         to show" rather than throw, whatever the data layer hands it. */
+      state.incoming = r.incoming || [];
+      state.outgoing = r.outgoing || [];
       state.loaded = true;
       paintBadge();
       paintList();
