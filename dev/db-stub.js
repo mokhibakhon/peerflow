@@ -268,8 +268,20 @@ window.pf = (function(){
     /* A real Supabase user always carries an address and a provider, and the
        Settings page reads both. Without them the Account card sat on two em
        dashes, which is a state no signed-in account is ever actually in. */
+    /* user_metadata carries a Google avatar, because that is the only way a
+       page ever asks for an image from a host outside this project — and it
+       is a host the CSP has to name. Without it, dev/csp-tests.js could not
+       see the img-src directive at all: removing lh3.googleusercontent.com
+       from the policy left the suite green, which is exactly how that origin
+       came to be missing from the first policy that shipped.
+    
+       __noAvatar drops back to the initial, which is what an email signup
+       gets and what the menu falls back to. */
     currentUser:function(){return P({id:'u1',email:'you@example.edu',
-      app_metadata:{provider:window.__provider||'email'}})},
+      app_metadata:{provider:window.__provider||'email'},
+      user_metadata:window.__noAvatar ? {} : {
+        avatar_url:'https://lh3.googleusercontent.com/a/pf-stub-avatar=s96-c'
+      }})},
     getProfile:function(){return P(PROFILE)},
     saveProfile:function(){note('saveProfile');return P({saved:true})},
     fetchPeers:function(){return P([
