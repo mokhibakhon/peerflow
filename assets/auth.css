@@ -1,5 +1,5 @@
 /* ============================================================
-   PeerFlow — log in, sign up, reset, conduct.
+   PeerFlow — log in, sign up, reset, conduct, not found.
 
    These four pages used to run on styles.css, a system that
    predated the landing-page and app redesigns: system-ui instead of
@@ -337,6 +337,75 @@ header{background:var(--paper)}
 .prose li:last-child{margin-bottom:0}
 .prose b{color:var(--ink);font-weight:700}
 .prose a{color:var(--p6);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+
+/* ---------- not found ----------
+   404.html. It shares the conduct/privacy shell — same header, same hero, same
+   footer — because the whole point is that a mistyped address lands somewhere
+   that is obviously still PeerFlow rather than on the hosting platform's black
+   page with a stack of error codes on it.
+
+   What it does not share is .prose. That card is built for documents: 760px of
+   running text with headings in it. This page has one heading and four links,
+   and a document card around four links is mostly empty white with the links
+   pushed to the left edge of it. */
+.page-hero .mono{margin-bottom:10px}
+
+/* The address that was asked for, echoed back under the sub-heading. Quiet and
+   monospaced: it is evidence, not a heading, and the person is reading it to
+   spot their own typo, which is exactly what a proportional face makes hard —
+   rn against m, l against 1. break-all rather than a scroller because a long
+   path has no natural break points and a horizontal scrollbar on a 404 page is
+   one more thing to work out. */
+.nf-asked{margin:14px auto 0;color:var(--ink-faint);font-size:var(--t-sm);max-width:44em}
+.nf-asked code{
+  font-family:var(--mono);font-size:var(--t-xs);color:var(--ink-soft);
+  background:var(--band);border:1px solid var(--line-strong);border-radius:var(--r-mark);
+  padding:2px 6px;word-break:break-all;
+}
+
+.nf{
+  max-width:620px;margin:30px auto 80px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
+  padding:28px 30px 26px;
+}
+/* The h2 gets the h3 treatment for the same reason .prose h2 does: a bare h2 is
+   sized --t-h2 here, which is the h1 above it, and a card heading that matches
+   the page title reads as a second page rather than as part of this one. */
+.nf h2{font-size:var(--t-h3);font-weight:700;letter-spacing:-.015em;line-height:inherit;margin:0 0 14px}
+
+/* The guess sits above the heading, not inside the list, because when it is
+   there it is the answer and the list below it is the fallback. Green rather
+   than the amber this file uses for warnings: nothing has gone wrong at this
+   point in the page, something has been found. */
+.nf-guess{
+  background:var(--p0);border-radius:var(--r-control);
+  padding:12px 15px;margin:0 0 20px;
+  font-size:var(--t-sm);color:var(--p8);
+}
+.nf-guess a{color:var(--p8);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+
+/* One column, not two. Four destinations in a 2x2 grid read as a menu to be
+   scanned and compared; in a column they read as an order of preference, which
+   is what they are — home first, sign up last. */
+.nf-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.nf-list a{
+  display:block;padding:12px 14px;
+  border:1px solid var(--line-strong);border-radius:var(--r-control);
+  transition:border-color .15s ease,background .15s ease,transform .1s ease;
+}
+.nf-list a:hover{border-color:var(--p2);background:var(--p0);transform:translateY(-1px)}
+.nf-list b{display:block;font-weight:700;color:var(--ink);font-size:var(--t-body)}
+.nf-list span{display:block;margin-top:2px;color:var(--ink-faint);font-size:var(--t-xs);line-height:1.45}
+
+.nf-foot{
+  margin:20px 0 0;padding-top:16px;border-top:1px solid var(--line);
+  color:var(--ink-faint);font-size:var(--t-xs);line-height:1.6;
+}
+.nf-foot a{color:var(--p6);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+
+@media (max-width:560px){
+  .nf{padding:22px 20px 20px;margin:20px auto 56px;border-radius:var(--r-control)}
+}
 
 /* ---------- footer ----------
    The landing page's closing band, so the site ends the same way

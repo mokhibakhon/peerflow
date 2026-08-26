@@ -18,6 +18,7 @@ static site with no build step.
 | `login.html` | Log-in page |
 | `reset.html` | Catches the password-reset link and sets a new password |
 | `conduct.html` | Code of conduct |
+| `404.html` | Served for any address that is not one of these, with a 404 status |
 | `app.html` | **Sessions** — the signed-in home. Proposals waiting on an answer, what's booked, and the form to propose a time |
 | `app-sessions.html` | **Partner** — who you're paired with, and what you have in common |
 | `app-people.html` | **People** — everyone signed up, closest match first, with *Send request* |
@@ -28,7 +29,8 @@ static site with no build step.
 
 `assets/tokens.css` holds every shared value — the ink and green ramps, the
 grounds, the corner radii, the type scale, the focus ring. `assets/app.css`
-(the signed-in app) and `assets/auth.css` (login, signup, reset, conduct)
+(the signed-in app) and `assets/auth.css` (login, signup, reset, conduct,
+not found)
 link it before their own sheet and are layout and components only.
 
 Three radii, and a fourth for glyph-scale graphics: `--r-control` (10px) for
@@ -210,6 +212,25 @@ is covered the moment it is committed.
 with `lastmod` taken from git rather than the filesystem, since a fresh clone
 stamps every file with the checkout time. Run it after changing page content;
 `dev/seo-tests.js` fails if the committed sitemap no longer matches.
+
+**A wrong address lands on PeerFlow, not on Vercel.** `404.html` at the repo
+root is what Vercel serves for any path matching no file and no rewrite, and it
+keeps the 404 status — a catch-all rewrite would answer 200 instead, which
+makes every mistyped URL an indexable duplicate of the not-found page, so
+`dev/seo-tests.js` fails if one is ever added. The page carries the same header
+and footer as the legal pages, prints the address back so the typo is visible,
+and offers the page the address looks like when there is one: `/privacy`,
+`/frontend` and `/singup` all resolve to a real page in one click rather than a
+dead end, which matters more here than on most sites because URLs carry `.html`
+and the extensionless form of every page is a 404.
+
+`node dev/notfound-tests.js` (with `node dev/serve.js` running — no `PF_STUB`,
+there is no data layer on this page) covers the three things about it that read
+fine in the markup and are wrong in a browser: that the status is really 404 and
+not a soft 200, that its links are root-relative — it is the one page served *at*
+whatever address was asked for, so a relative `href` under `/a/b/c` points back
+into a directory that does not exist — and that the address it prints, which is
+whoever-sent-the-link's text, goes in through `textContent` and stays inert.
 
 **Standing weekly sessions are joinable.** They were not, ever:
 `materialise_standing` gave every occurrence of a weekly slot the same
