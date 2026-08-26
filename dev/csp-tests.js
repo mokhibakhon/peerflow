@@ -55,8 +55,16 @@ srv.listen(9111, async ()=>{
     const p=await b.newPage({viewport:{width:1280,height:900}});
     const refused=[];
     p.on('console',m=>{ const t=m.text(); if(/Refused to |violates the following Content Security Policy/i.test(t)) refused.push(t.slice(0,150)); });
-    await p.goto('http://127.0.0.1:9111/'+pg,{waitUntil:'networkidle'}).catch(()=>{});
-    await p.waitForTimeout(900);
+    /* domcontentloaded, not networkidle. The policy is applied when a request
+       is made, not when it comes back, so every refusal this test looks for
+       has already been logged by the time the document is parsed and the
+       inline scripts have run. Waiting for the network to fall quiet only
+       waits for things that cannot arrive: this container reaches neither
+       Google Fonts nor jsdelivr, so each page sat out its full timeout and
+       twenty-six of them took five minutes. A test slow enough to be worth
+       skipping is a test that gets skipped. */
+    await p.goto('http://127.0.0.1:9111/'+pg,{waitUntil:'domcontentloaded'}).catch(()=>{});
+    await p.waitForTimeout(350);
     if(refused.length){ refusals+=refused.length; console.log('CSP REFUSALS on '+pg+':'); refused.forEach(r=>console.log('    '+r)); }
     else console.log('ok  '+pg);
     await p.close();
