@@ -361,10 +361,6 @@ main{max-width:var(--w);margin:0 auto;padding:24px var(--gutter) 46px;min-width:
 
 /* ---------- hero (marketing-shaped cards elsewhere) ---------- */
 .pair{display:flex;align-items:center;margin-bottom:16px}
-.a1{background:#EEEDFE;color:#3C3489}
-.a2{background:var(--p0);color:var(--p6);margin-left:-14px}
-.a2.pending{background:#F1F1F5;color:var(--faint);border-style:dashed;border-color:#D6D5DE}
-
 h1{font-size:var(--t-page);line-height:1.18;letter-spacing:-.025em;font-weight:800;margin:0 0 9px;text-wrap:balance}
 h1 .g{color:var(--p4)}
 .sub{font-size:var(--t-sm);color:var(--soft);margin:0 0 20px;max-width:46ch}
@@ -483,7 +479,7 @@ h1 .g{color:var(--p4)}
 .ch .kick{display:block;margin:0 0 3px}
 
 .ch h2,.ch h3,
-.rail h3,.card h2,.card h3,.bookp-h h2,.inbox-h b
+.rail h3,.card h2,.card h3,.inbox-h b
 {font-size:var(--t-card);font-weight:700;letter-spacing:-.02em;line-height:1.25}
 .n{font-size:var(--t-sm);color:var(--soft);margin:0;max-width:60ch}
 .n b{color:var(--ink);font-weight:600}
@@ -496,7 +492,6 @@ h1 .g{color:var(--p4)}
 .room .r:first-of-type{border-top:0}
 .room .a{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
   justify-content:center;font-size:var(--t-xs);font-weight:600;flex:0 0 auto}
-.room .b2{flex:1 1 200px;min-width:0}
 .room .nm{font-size:var(--t-sm);font-weight:600;margin:0;line-height:1.3}
 .room .mt{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint);margin:2px 0 0;
   letter-spacing:.04em;text-transform:uppercase}
@@ -505,9 +500,6 @@ h1 .g{color:var(--p4)}
   letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:var(--r-mark);margin-left:6px}
 
 /* ---------- next session ---------- */
-.nextup{display:flex;align-items:center;gap:12px;border-top:1px dashed var(--line);
-  margin-top:14px;padding-top:14px;flex-wrap:wrap}
-.nextup .no{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint)}
 .slot{display:flex;align-items:center;gap:14px;padding:12px 0;
   border-top:1px dashed var(--line);flex-wrap:wrap}
 .slot:first-child{border-top:0}
@@ -552,9 +544,6 @@ h1 .g{color:var(--p4)}
 }
 
 /* ---------- session calendar ---------- */
-.calhead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
-  flex-wrap:wrap;margin-bottom:16px}
-.calhead .big{font-size:var(--t-card);font-weight:700;letter-spacing:-.02em;margin:0}
 .months{display:grid;grid-template-columns:repeat(52,1fr);margin-left:26px;height:15px}
 .months span{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint);grid-row:1}
 .cal{display:flex;gap:5px;align-items:flex-start}
@@ -575,9 +564,6 @@ h1 .g{color:var(--p4)}
 .logs .m{font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint)}
 
 /* ---------- invite ---------- */
-.inv{border:1px dashed var(--line);background:#FAFAFB}
-.inv .row{display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
-
 .signedout{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:var(--r-card);
   padding:16px 18px;font-size:var(--t-sm);color:#7A4A12;margin-bottom:16px}
 .signedout a{border-bottom:1px solid #D9B98B;font-weight:600}
@@ -594,7 +580,6 @@ h1 .g{color:var(--p4)}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--p4);outline:none}
 /* Date, time and length belong on one line — they're one answer. */
 
-.yourline{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap}
 .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px}
 .choice{display:flex;padding:13px 15px;border:1px solid var(--line);border-radius:var(--r-control);
   background:#fff;text-align:left;font-family:inherit;font-size:var(--t-sm);color:var(--soft)}
@@ -929,8 +914,6 @@ html{scroll-behavior:smooth}
 .signedout-note{background:#FFF6EC;border:1px solid #F0DCC2;border-radius:var(--r-card);
   padding:16px 18px;font-size:var(--t-sm);color:#7A4A12;margin:0 0 16px}
 .signedout-note a{border-bottom:1px solid #D9B98B;font-weight:600}
-.form-note.ok{color:var(--p8)}
-.form-note.bad{color:#B4471F}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:14px 16px}
 .stat b{display:block;font-size:var(--t-num-sm);font-weight:700;letter-spacing:-.02em}
 .stat span{display:block;font-family:var(--mono);font-size:var(--t-tiny);color:var(--faint);
@@ -1054,8 +1037,6 @@ html{scroll-behavior:smooth}
 }
 
 /* ---------- people page ---------- */
-.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:12px;max-width:440px;margin:0 0 18px}
 .empty-hint{font-size:var(--t-sm);color:var(--soft);margin:0 0 20px;max-width:66ch;
   line-height:1.6}
 /* Figures ranged alongside a page title: smaller than the ones heading the
@@ -1115,11 +1096,6 @@ html{scroll-behavior:smooth}
    under your cursor. */
 .bookp{margin-top:16px;border-color:var(--p2);
   box-shadow:0 8px 24px -18px rgba(8,80,65,.5)}
-.bookp-h{display:flex;align-items:baseline;gap:11px;margin-bottom:14px;flex-wrap:wrap}
-.bookp-h h2{margin:0;flex:1}
-.bookp-h .mono{color:var(--p6)}
-.bookp-h .small{flex:0 0 auto;align-self:center}
-
 #bk-sent{margin:0;font-size:var(--t-card);line-height:1.95;font-weight:500;
   color:var(--soft);letter-spacing:-.012em}
 #bk-sent .pick{position:relative;display:inline-block}
@@ -1461,7 +1437,6 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
    you and your partner have both said you are free are washed, and clicking
    one proposes that time. Kept faint on purpose so it sits under the blocks
    rather than competing with them. */
-.cal-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
 .cal-nav{display:flex;align-items:center;gap:2px;margin-left:auto}
 /* Plain chevrons, no ring around them — the reference keeps the week controls
    quiet so the grid is the only thing with edges. */
@@ -1604,7 +1579,6 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 /* At 320 the week nav wanted 252px in a 212px card and pushed the page five
    pixels wide. Below 420 it drops to its own line and spreads across it. */
 @media (max-width:420px){
-  .cal-head{gap:10px}
   .cal-nav{margin-left:0;width:100%;justify-content:space-between}
   .cal-range{font-size:var(--t-sm);padding:0 2px;flex:1;text-align:center}
   /* A seven-day grid cannot fit a phone, so the goal is to show as much of it
@@ -1630,20 +1604,6 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
      and the half-column cut off at the right edge does the rest. */
   .cal-scroll{padding-bottom:2px}
 }
-
-/* ---------- the plan ---------- */
-.plan-rows{margin-top:4px}
-.plan-row.done .plan-n{color:var(--p4)}
-.plan-row.done .plan-t{color:var(--faint);text-decoration:line-through}
-/* The week you are on is lifted out of the list, not just bolded — it is the
-   one row you should find without reading the others. */
-.plan-row.now{background:var(--p0);margin:0 -12px;padding:12px;border-radius:var(--r-control);
-  border-bottom:0}
-.plan-row.now .plan-n{color:var(--p6)}
-.plan-row.now .plan-t{font-weight:700}
-/* Where the material comes from. This column is the whole idea: PeerFlow
-   holds the order, somebody else holds the lesson. */
-.plan-src{font-size:var(--t-xs);color:var(--p6);font-weight:600;flex:0 0 auto}
 
 @media (max-width:560px){
   .cal-range{font-size:var(--t-xs)}
@@ -1988,9 +1948,6 @@ a.pt-who:focus-visible{outline:2px solid var(--p4);outline-offset:1px}
 .ch-who span{display:block;font-size:var(--t-xs);color:var(--faint);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* The thing you are usually messaging about. */
-.ch-next{display:flex;align-items:center;gap:7px;flex:0 0 auto;background:var(--p0);
-  border-radius:var(--r-pill);padding:6px 13px;font-size:var(--t-xs);font-weight:600;color:var(--p8)}
-
 /* Plain ground. The bubbles carry the colour, so anything behind them fights
    them — and a tail is drawn by masking it against a known solid, which a
    gradient cannot provide. */
