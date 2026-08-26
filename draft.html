@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>A 404 worth landing on — PeerFlow draft</title>
+<title>Nine lines in the hero — PeerFlow draft</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,262 +11,79 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/tokens.css">
-<link rel="stylesheet" href="/assets/auth.css">
+<!-- home.css and nothing else, which is what index.html links. It carries its
+     own :root and does not read tokens.css, so every panel below is the real
+     component at the real sizes rather than an impression of one. -->
+<link rel="stylesheet" href="/assets/home.css">
 <style>
 /* Standalone draft, noindex, overwritten by whoever drafts next.
  *
- * The reference is TryHackMe's /not-found: a big 404 built out of characters
- * on a dark ground, a mascot sitting in the field, one sentence and one button.
- * What makes it work is that the characters are the site's own subject — ones
- * and zeroes on a site about hacking — so the graphic says where you are as
- * well as what went wrong. A mascot on its own would not have done that.
+ * The hero's left column is 424px of stacked text: three lines of 55px green,
+ * four lines of lede, a button and a fifth small line. The copy was lengthened
+ * for search and the type scale was never retuned under it — the comments in
+ * home.css still describe a five-word headline ("Learn IT together, not
+ * alone") that has not been on the page for some time.
  *
- * PeerFlow's subject is not ones and zeroes, and the first two attempts at an
- * equivalent both failed on the same point. Code punctuation — { } < > / ( ) —
- * is the one alphabet eight learning paths share, but those glyphs have wildly
- * different ink, and a field where every cell is a different weight never
- * resolves into a number. 0 and 1 work for TryHackMe because they are one
- * width, one height, no ascenders, no descenders.
+ * Measured at 1280, 1440, 1728 and 2000, because a wrap that only misbehaves
+ * at one width is the usual way this kind of thing hides:
  *
- * So the cells hold no text. Each is the PeerFlow mark, painted as a CSS mask
- * over the cell's own colour: one dense shape, identical everywhere, and the
- * number comes out of the site's own logo repeated about a hundred and twenty
- * times rather than out of an alphabet borrowed from somebody else's subject.
+ *   headline at 55px   3 lines at every width
+ *   headline at 48px   3 lines at every width
+ *   headline at 44px   3 lines at every width
+ *   headline at 40px   2 lines — but 40px is a limp hero
+ *   copy column 1.3fr  3 lines, unchanged
+ *   second sentence removed, still 55px   2 lines at every width
  *
- * The grid is static markup, not JavaScript. It is generated once by a seeded
- * script — dev/404-field.js, pasted in here — so the same field comes out
- * every time, the page needs no script to draw its own graphic, and nothing
- * moves after first paint. A cell is a class and nothing else, so the whole
- * field is 2.6KB and recolours by changing one `color` declaration.
+ * So neither the type scale nor the grid is the lever. The copy length is.
  *
- * The real decision is not the graphic, which is the same in one and two. It
- * is the ground. One is the reference: full-bleed dark, no site chrome, one
- * way out. Two is the same graphic on the site's own light shell, keeping the
- * header, the footer and the "did you mean" line. Three is the option that
- * came out of PeerFlow rather than out of the reference.
- *
- * All three keep the three properties the page exists for: a real 404 status,
- * root-relative links, and the address printed through textContent. */
+ * The panels are index.html's own hero markup with the copy swapped, so what
+ * differs between them is the words. The only thing changed for the page is
+ * .hero's vertical padding, trimmed from 82/92 to 34/38 so four heroes fit on
+ * one screen — that is padding above and below, and it cannot affect how any
+ * line wraps.
+ */
 body{background:var(--paper);padding:0 0 90px}
-.dhead{background:var(--card);border-bottom:1px solid var(--line);padding:34px 0 30px;margin-bottom:34px}
-.dh{margin:0 0 8px;font-size:var(--t-h2);letter-spacing:-.03em;font-weight:800}
-.dsub{margin:0;color:var(--ink-soft);max-width:70ch;line-height:1.6}
+.dhead{background:var(--card);border-bottom:1px solid var(--line);padding:34px 0 30px;margin-bottom:30px}
+.dhead .wrap{max-width:1320px}
+.mono-k{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px}
+.dh{margin:0 0 10px;font-size:34px;font-weight:800;letter-spacing:-.03em;color:var(--ink);line-height:1.1}
+.dsub{margin:0;color:var(--ink-soft);max-width:74ch;line-height:1.65;font-size:16px}
 .dsub + .dsub{margin-top:12px}
-code{font-family:var(--mono);font-size:var(--t-xs);background:var(--band);
-  border:1px solid var(--line-strong);border-radius:var(--r-mark);padding:2px 6px}
+code{font-family:var(--mono);font-size:12.5px;background:#EAE9F0;border:1px solid var(--line);border-radius:4px;padding:2px 6px}
 
-.opt{margin:0 auto 44px;max-width:var(--w)}
-.opt-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 4px;padding:0 var(--gutter)}
-.opt-head h2{font-size:var(--t-h3);margin:0}
-.tag{display:inline-block;font-family:var(--mono);font-size:var(--t-kicker);font-weight:600;
-  letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:var(--r-pill)}
-.tag.on{background:var(--p0);color:var(--p8)}
-.tag.off{background:var(--band);color:var(--ink-faint)}
-.why{margin:0 0 14px;padding:0 var(--gutter);color:var(--ink-soft);max-width:80ch;line-height:1.65;font-size:var(--t-sm)}
+/* The count is the argument, so it is a table and not a sentence. */
+.counts{width:100%;max-width:620px;margin:20px 0 0;border-collapse:collapse;font-size:14px}
+.counts th,.counts td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--line)}
+.counts th{font-weight:600;color:var(--ink-faint);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.counts td{color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.counts td:first-child{color:var(--ink);font-weight:600}
+.counts tr.rec td{color:var(--live-deep)}
+.counts tr.rec td:first-child{color:var(--live-deep)}
+
+.opt{margin:0 0 40px}
+.opt-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 4px;max-width:1320px;margin-inline:auto;padding:0 32px}
+.opt-head h2{font-size:19px;font-weight:700;letter-spacing:-.015em;margin:0;color:var(--ink)}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+.tag.on{background:var(--live-soft);color:var(--live-deep)}
+.tag.off{background:#EAE9F0;color:var(--ink-faint)}
+.why{margin:0 auto 14px;color:var(--ink-soft);max-width:1320px;padding:0 32px;line-height:1.65;font-size:14.5px}
 .why b{color:var(--ink);font-weight:700}
-.frame{border:1px solid var(--line-strong);border-radius:var(--r-card);margin:0 var(--gutter);overflow:hidden;background:var(--paper)}
-.frame .page-hero{padding:30px 0 0}
-.frame .nf{margin-bottom:34px}
+.frame{border:1px solid #D8D7E2;border-radius:16px;margin:0 32px;overflow:hidden;background:var(--paper)}
+.frame .hero{padding:34px 0 38px}
 
-/* ============================================================
-   The glyph field.
+/* D only: the headline in ink with the searched phrase in green. */
+.kw{color:var(--live-deep)}
 
-   Seventeen columns by seven rows: three 5x7 digits with a column of air
-   between them. A cell is square and holds one character, so the whole thing
-   scales by changing one font size and never reflows into a different shape —
-   the failure a field like this has on a phone is the digits wrapping, and a
-   grid with a fixed column count cannot.
+/* B, C and D: the line under the button is --ink-faint on paper, which is
+   3.23:1 — under the 4.5:1 floor at 13.5px, and the thing on this page that
+   actually is too faint rather than too much. --ink-soft is 7.30:1 and is the
+   colour the lede already uses. */
+.trust-fix{color:var(--ink-soft)}
 
-   The dim cells are not filler. The reference's field reads as a field and not
-   as a logo because there is texture around the strokes; without it the digits
-   float in black and the graphic looks like a font nobody has.
-   ============================================================ */
-.g404{
-  --mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 173 171'%3E%3Cg fill='%23000'%3E%3Crect x='79' y='0' width='13' height='15'/%3E%3Crect x='0' y='81' width='15' height='13'/%3E%3Crect x='158' y='81' width='14' height='13'/%3E%3Crect x='79' y='156' width='13' height='15'/%3E%3Cpath d='M52 24H116V39H99V56H83V70H67V39H52Z'/%3E%3Cpath d='M24 57H39V74H56V89H70V106H39V121H24Z'/%3E%3Cpath d='M134 53H149V118H134V101H117V85H103V69H134Z'/%3E%3Cpath d='M119 147H55V132H72V115H88V101H104V132H119Z'/%3E%3C/g%3E%3C/svg%3E");
-  /* One number, one knob. Every measurement below is this cell, so the field
-     scales by changing a single value and cannot reflow into a different
-     shape — the failure a grid like this has on a phone is the digits
-     wrapping, and a fixed column count cannot. */
-  --c:clamp(11px,2.4vw,26px);
-  display:grid;grid-template-columns:repeat(23,var(--c));justify-content:center;
-  margin:0 auto;
-  -webkit-user-select:none;user-select:none;
-}
-.g404 i{width:var(--c);height:var(--c)}
-/* An unclassed cell is a hole in the number and stays empty. Everything else
-   is the mark, painted as a mask over the cell's own colour, so a cell's tone
-   is one `color` declaration and the shape is shared by all 207 of them. */
-.g404 i[class]{
-  background:currentColor;
-  -webkit-mask:var(--mark) center/86% 86% no-repeat;
-          mask:var(--mark) center/86% 86% no-repeat;
-}
-
-/* Three greens rather than one, because a single colour at one size is a
-   stencil. The ramp gives the field depth without introducing a hue that is
-   not already on the site. */
-.on-dark .a{color:var(--p1)}
-.on-dark .b{color:var(--p2)}
-.on-dark .c{color:#35B189}
-.on-dark .d{color:#1B3229}
-.on-light .a{color:var(--p8)}
-.on-light .b{color:var(--p6)}
-.on-light .c{color:#158063}
-.on-light .d{color:#CFE4DB}
-
-/* ---------- one: the dark page ---------- */
-.d-dark{
-  --rm-bg:#0E1018; --rm-panel:#171A24; --rm-line:#2A2F3E;
-  --rm-t:#F4F5F8; --rm-soft:#A2A7B8; --rm-faint:#767C90;
-  background:var(--rm-bg);color:var(--rm-t);
-  padding:30px 20px 40px;text-align:center;
-}
-.d-dark .k{margin:0 0 26px;display:inline-flex;align-items:center;gap:11px;
-  font-size:18px;letter-spacing:-.015em;color:var(--rm-t)}
-.d-dark .k svg{width:23px;height:23px;color:var(--p2)}
-.d-dark .k b{color:var(--p1);font-weight:700}
-.d-dark h1{margin:30px 0 0;font-size:clamp(30px,5vw,44px);font-weight:800;
-  letter-spacing:-.035em;line-height:1.1;color:var(--rm-t)}
-.d-dark .s{margin:12px auto 0;max-width:48ch;font-size:15px;line-height:1.6;color:var(--rm-soft)}
-.d-dark .asked{margin:16px 0 0;font-size:var(--t-sm);color:var(--rm-faint)}
-.d-dark .asked code{background:var(--rm-panel);border-color:var(--rm-line);color:var(--rm-soft)}
-.d-dark .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
-.d-dark .b1,.d-dark .b2{
-  display:inline-flex;align-items:center;justify-content:center;
-  padding:12px 22px;border-radius:var(--r-control);font-size:14px;font-weight:700;
-  transition:background .15s,border-color .15s,color .15s;
-}
-.d-dark .b1{background:var(--p4);color:#08211B}
-.d-dark .b1:hover{background:var(--p2)}
-.d-dark .b2{background:transparent;border:1px solid var(--rm-line);color:var(--rm-soft)}
-.d-dark .b2:hover{border-color:var(--rm-faint);color:var(--rm-t)}
-/* The nav the shipped page keeps, and the reference keeps too: the ways out
-   are the site's own rather than the two buttons we happened to think of. */
-.d-nav{display:flex;align-items:center;gap:18px;text-align:left;
-  padding-bottom:22px;margin-bottom:8px;border-bottom:1px solid var(--rm-line)}
-.d-nav .k{margin:0}
-.d-nav-links{display:flex;gap:22px;font-size:15px;color:var(--rm-soft)}
-.d-nav-links a:hover{color:var(--rm-t)}
-.d-nav-right{margin-left:auto;display:flex;align-items:center;gap:16px}
-.d-login{font-size:15px;font-weight:600;color:var(--rm-soft)}
-.d-login:hover{color:var(--rm-t)}
-.d-sm{padding:9px 16px;font-size:13.5px}
-/* Shown only when the resolver has something true to say, which is why the
-   panel above it reads exactly like the reference for an address that is
-   close to nothing. */
-.d-guess{display:inline-block;margin:20px 0 0;padding:11px 16px;border-radius:var(--r-pill);
-  background:rgba(29,158,117,.13);border:1px solid rgba(29,158,117,.32);
-  font-size:var(--t-sm);color:var(--p1)}
-.d-guess a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
-@media (max-width:760px){ .d-nav-links{display:none} }
-
-/* ---------- two: the same field on the site's own ground ---------- */
-.opt-2 .page-hero{padding:34px 0 8px}
-.opt-2 .g404{margin-bottom:22px}
-
-/* ---------- two: the light card ----------
-   These rules used to live in auth.css and do not any more: shipping option
-   one replaced that file's not-found block with the dark page, and it took
-   .nf, .nf-list and the light .nf-guess with it. Option two went on rendering
-   its markup with none of them — a card with no card, and pale green guess
-   text on a pale green ground.
-
-   So the light version keeps its own copy here, scoped to .opt-2 so it beats
-   the dark rules auth.css now declares for the same class names. That is the
-   right place for it: this is a draft of a page that was not chosen, and the
-   shared stylesheet should not carry styles for a page that does not exist. */
-.opt-2 .nf{
-  max-width:620px;margin:30px auto 34px;
-  background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
-  padding:28px 30px 26px;text-align:left;
-}
-.opt-2 .nf h2{font-size:var(--t-h3);font-weight:700;letter-spacing:-.015em;line-height:inherit;margin:0 0 14px}
-.opt-2 .nf-asked{margin:14px auto 0;color:var(--ink-faint);font-size:var(--t-sm);max-width:44em}
-.opt-2 .nf-asked code{
-  font-family:var(--mono);font-size:var(--t-xs);color:var(--ink-soft);
-  background:var(--band);border:1px solid var(--line-strong);border-radius:var(--r-mark);
-  padding:2px 6px;word-break:break-all;
-}
-.opt-2 .nf-guess{
-  background:var(--p0);border:0;border-radius:var(--r-control);
-  padding:12px 15px;margin:0 0 20px;
-  font-size:var(--t-sm);color:var(--p8);
-}
-.opt-2 .nf-guess a{color:var(--p8);font-weight:700;text-decoration:underline;text-underline-offset:2px}
-.opt-2 .nf-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.opt-2 .nf-list a{
-  display:block;padding:12px 14px;
-  border:1px solid var(--line-strong);border-radius:var(--r-control);
-  transition:border-color .15s ease,background .15s ease,transform .1s ease;
-}
-.opt-2 .nf-list a:hover{border-color:var(--p2);background:var(--p0);transform:translateY(-1px)}
-.opt-2 .nf-list b{display:block;font-weight:700;color:var(--ink);font-size:var(--t-body)}
-.opt-2 .nf-list span{display:block;margin-top:2px;color:var(--ink-faint);font-size:var(--t-xs);line-height:1.45}
-.opt-2 .nf-foot{
-  margin:20px 0 0;padding-top:16px;border-top:1px solid var(--line);
-  color:var(--ink-faint);font-size:var(--t-xs);line-height:1.6;
-}
-.opt-2 .nf-foot a{color:var(--p6);font-weight:600;text-decoration:underline;text-underline-offset:2px}
-
-/* ============================================================
-   three — the empty room. The call page's palette, lifted from
-   assets/call.css rather than re-picked.
-   ============================================================ */
-.d-room{
-  --rm-bg:#0E1018; --rm-panel:#171A24; --rm-tile:#1E2230;
-  --rm-line:#2A2F3E; --rm-t:#F4F5F8; --rm-soft:#A2A7B8; --rm-faint:#767C90;
-  background:var(--rm-bg);color:var(--rm-t);display:flex;flex-direction:column;min-height:520px;
-}
-.d-room .r-top{display:flex;align-items:center;gap:12px;padding:15px 20px;border-bottom:1px solid var(--rm-line)}
-.d-room .r-top .logo{color:var(--rm-t);font-size:18px}
-.d-room .r-top .logo svg{color:var(--p2);width:23px;height:23px}
-.d-room .r-top .logo b{color:var(--p1)}
-.d-room .r-top .r-k{margin-left:auto;font-family:var(--mono);font-size:var(--t-kicker);
-  letter-spacing:.09em;text-transform:uppercase;color:var(--rm-faint)}
-.d-room .r-stage{flex:1;display:grid;padding:16px}
-.d-room .r-tile{
-  position:relative;background:var(--rm-tile);border:1px solid var(--rm-line);
-  border-radius:var(--r-card);overflow:hidden;min-height:290px;
-  display:flex;align-items:center;justify-content:center;
-}
-/* The call page's own picture of waiting, which is the honest picture of a
-   404: something was asked for and nothing answered. Slow on purpose — a 404
-   that pulses at you is a 404 nobody reads the sentence on. */
-.d-room .r-ring{position:absolute;width:96px;height:96px;border-radius:50%;
-  border:1px solid var(--p4);opacity:0;animation:d-ping 3.6s ease-out infinite}
-.d-room .r-ring:nth-child(2){animation-delay:1.2s}
-.d-room .r-ring:nth-child(3){animation-delay:2.4s}
-@keyframes d-ping{
-  0%   {transform:scale(.55);opacity:0}
-  18%  {opacity:.42}
-  100% {transform:scale(3.1);opacity:0}
-}
-.d-room .r-mid{position:relative;text-align:center;padding:24px;max-width:44ch}
-.d-room .r-mid .r-kk{margin:0 0 10px;font-family:var(--mono);font-size:var(--t-kicker);
-  letter-spacing:.11em;text-transform:uppercase;color:var(--rm-faint)}
-.d-room .r-mid h1{margin:0;font-size:25px;font-weight:800;letter-spacing:-.028em;line-height:1.2;color:var(--rm-t)}
-.d-room .r-mid p{margin:11px 0 0;font-size:14.5px;line-height:1.6;color:var(--rm-soft)}
-.d-room .r-name{
-  position:absolute;left:13px;bottom:11px;margin:0;padding:5px 11px;border-radius:var(--r-pill);
-  background:rgba(14,16,24,.7);font-family:var(--mono);font-size:11.5px;color:#fff;
-  max-width:calc(100% - 26px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.d-room .r-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 20px 20px}
-.d-room .r-b{
-  display:inline-flex;align-items:center;justify-content:center;
-  min-width:104px;padding:10px 16px;border-radius:var(--r-control);
-  background:var(--rm-panel);border:1px solid var(--rm-line);color:var(--rm-soft);
-  font-size:13px;font-weight:600;transition:background .15s,color .15s,border-color .15s;
-}
-.d-room .r-b:hover{background:#1E2230;color:var(--rm-t);border-color:var(--rm-faint)}
-.d-room .r-b.go{background:var(--p6);border-color:var(--p6);color:#fff}
-.d-room .r-b.go:hover{background:var(--p4);border-color:var(--p4);color:#fff}
-
-@media (max-width:560px){
+@media (max-width:760px){
   .opt-head,.why{padding:0 20px}
   .frame{margin:0 20px}
-  .d-room .r-b{min-width:0;flex:1 1 40%}
 }
 </style>
 </head>
@@ -274,163 +91,240 @@ code{font-family:var(--mono);font-size:var(--t-xs);background:var(--band);
 
 <div class="dhead">
   <div class="wrap">
-    <p class="mono">Draft</p>
-    <h1 class="dh">A 404 worth landing on</h1>
-    <p class="dsub">Taking the TryHackMe page as the reference. What makes it work is not the size of
-      the number — it is that the characters it is built from are <b>the site's own subject</b>.
-      Ones and zeroes on a hacking site say where you are as well as what went wrong.</p>
-    <p class="dsub">PeerFlow's version is the mark. The number is built out of about a hundred and
-      twenty copies of the PeerFlow logo, one per cell — no mascot to own and draw forever, and
-      nothing borrowed. I tried code punctuation first, on the theory that <code>{ } &lt; &gt; / ( )</code>
-      is the one alphabet eight learning paths share; it did not read, because those glyphs all carry
-      different amounts of ink and the eye never joins them into a stroke. 0 and 1 work for
-      TryHackMe because they are one width, one height, and nothing hangs off them.</p>
-    <p class="dsub">The graphic is the same in <b>one</b> and <b>two</b>. The decision is the ground
-      it sits on: full-bleed dark with no site chrome, like the reference, or the site's own light
-      shell keeping the header, the footer and the <i>did you mean</i> line. <b>Three</b> is the
-      option that came out of PeerFlow rather than out of the reference.</p>
+    <p class="mono-k">Draft</p>
+    <h1 class="dh">Nine lines in the hero</h1>
+    <p class="dsub">The headline is three lines of 55px green and the lede is four more, which is 424px
+      of stacked text before the button. Shrinking the type does not fix it — the headline holds three
+      lines all the way down to 44px, and widening the copy column does nothing. <b>The copy length is
+      the lever</b>, so all four panels below change words rather than sizes.</p>
+    <p class="dsub">Nothing here costs a ranking word. The primary phrase from
+      <code>SEO_ROADMAP.md</code> — <i>tech study partner</i> — stays in the H1 in every option. The
+      lede's keywords are already in the page's meta description, verbatim, and that is the text a
+      search result actually shows.</p>
+    <table class="counts">
+      <thead><tr><th>Option</th><th>Headline</th><th>Lede</th><th>Lines in the column</th></tr></thead>
+      <tbody>
+        <tr><td>A · live now</td><td>3 lines</td><td>4 lines</td><td>9</td></tr>
+        <tr><td>B</td><td>3 lines</td><td>2 lines</td><td>7</td></tr>
+        <tr class="rec"><td>C · recommended</td><td>2 lines</td><td>2 lines</td><td>6</td></tr>
+        <tr><td>D</td><td>2 lines</td><td>2 lines</td><td>6</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<!-- ─────────────────────────────────────────────────────────── 1 ── -->
 <section class="opt">
   <div class="opt-head">
-    <h2>1 · The field, dark and full-bleed</h2>
-    <span class="tag on">shipped, with two changes</span>
+    <h2>A · What is on the site</h2>
+    <span class="tag off">live now</span>
   </div>
-  <p class="why">The reference read straight across: no header, no footer, the number filling the
-    screen, one sentence and two ways out. <b>For:</b> the version with impact — the whole viewport
-    is the graphic, and the mark reads at this size in a way it never does at 26px in a nav bar.
-    <b>Against:</b> it would be the only dark page on the public site, so the site changes colour
-    under somebody who has just mistyped an address; dropping the header drops the nav, so the only
-    ways out are the two we thought of; and there is nowhere on it for the <i>did you mean</i> line,
-    which is the part that actually rescues the people who typed <code>/privacy</code>.</p>
-  <p class="why"><b>What shipped:</b> this, with the two objections answered rather than accepted.
-    The reference keeps its own site nav at the top of the page, so 404.html keeps PeerFlow's — the
-    ways out are the site's, not two we picked. And the <i>did you mean</i> line sits above the
-    button, hidden until the resolver has something true to put there, so an address that is close
-    to nothing reads exactly like the panel below and an address that is close to something does
-    not waste the click. The footer stays off: the page fills the viewport, as the reference does.</p>
+  <p class="why">The control, so the others have something to be different from. <b>Three lines of 55px green, four lines of lede, nine stacked lines in the column.</b> Neither lever you would reach for first moves it: the headline stays at three lines all the way down to 44px, and widening the copy column from <code>1.08fr</code> to <code>1.3fr</code> changes nothing at all. The length of the copy is the whole of it.</p>
   <div class="frame">
-    <div class="d-dark">
-      <div class="d-nav">
-        <span class="k">
-          <svg viewBox="0 0 173 171" fill="currentColor" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-          <span>peer<b>flow</b></span>
-        </span>
-        <nav class="d-nav-links"><a href="/#how">How it works</a><a href="/#paths">Learning paths</a></nav>
-        <span class="d-nav-right"><a class="d-login" href="/login.html">Log in</a><a class="b1 d-sm" href="/signup.html">Sign up</a></span>
+    <div class="wrap">
+  <header class="hero">
+    <div class="hero-copy">
+      <h1 style="color:var(--live-deep)">Find your tech study partner. Show up and learn together.</h1>
+      <p class="lede">Match with one learner on the same tech path and at a similar level. Pick a recurring time, turn your cameras on, and do focused peer-to-peer &ldquo;study with me&rdquo; sessions each week.</p>
+      <div class="cta-row">
+        <a class="btn" href="signup.html">Find my partner</a>
       </div>
-      <div class="g404 on-dark" role="img" aria-label="404">
-<i></i><i></i><i></i><i></i><i class="a"></i><i class="b"></i><i class="d"></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="b"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="c"></i><i class="c"></i><i></i>
-<i></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="c"></i><i></i><i></i><i class="c"></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="a"></i><i class="b"></i><i class="c"></i><i></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="a"></i><i></i>
-<i></i><i></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i><i></i><i></i><i class="c"></i><i class="c"></i><i></i><i></i><i></i><i class="a"></i><i class="b"></i><i class="c"></i><i class="b"></i><i></i>
-<i></i><i class="c"></i><i class="b"></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i></i><i class="b"></i><i class="a"></i><i></i><i></i><i class="c"></i><i class="c"></i><i></i><i class="b"></i><i class="b"></i><i></i>
-<i class="b"></i><i class="c"></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i><i></i><i class="c"></i><i class="b"></i><i></i><i></i><i></i><i class="c"></i><i class="b"></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i class="a"></i><i class="a"></i><i></i>
-<i class="c"></i><i class="b"></i><i class="c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i><i class="b"></i><i class="c"></i><i class="a"></i><i class="b"></i><i class="c"></i><i class="a"></i><i class="c"></i>
-<i class="b"></i><i class="c"></i><i class="c"></i><i class="b"></i><i class="c"></i><i class="b"></i><i class="b"></i><i></i><i class="b"></i><i class="c"></i><i></i><i></i><i class="d"></i><i class="b"></i><i class="b"></i><i></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="c"></i><i class="b"></i><i class="b"></i><i class="c"></i>
-<i></i><i></i><i></i><i></i><i class="c"></i><i class="b"></i><i class="d"></i><i></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="c"></i><i></i><i></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i>
-<i></i><i></i><i></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="c"></i><i class="b"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i>
+      <p class="trust">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
+    </div>
+    <aside class="session" aria-hidden="true">
+      <div class="session-head">
+        <span class="live"><b></b>In session</span>
+        <span class="mono">cameras on</span>
       </div>
-      <h1>Page not found</h1>
-      <p class="s">This address doesn't match a page on PeerFlow. It was most likely a typo, or a link written before the page moved.</p>
-      <p class="asked">You asked for <code>/privcy</code></p>
-      <p class="d-guess">Did you mean <a href="/privacy.html">the privacy policy</a>?</p>
-      <div class="acts">
-        <a class="b1" href="/">Go to the home page</a>
+      <div class="tiles">
+        <div class="tile">
+          <span class="tav" style="background:#534AB7">AM</span>
+          <span class="tname">Amir</span>
+        </div>
+        <div class="tile you">
+          <span class="tav" style="background:#0FA36B">YOU</span>
+          <span class="tname">You</span>
+        </div>
       </div>
+      <div class="rows">
+        <div class="row"><span>Both learning</span><b>Frontend</b></div>
+        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
+      </div>
+      <div class="pom">
+        <div class="pom-ring">
+          <svg viewBox="0 0 100 100">
+            <circle class="pom-track" cx="50" cy="50" r="43"/>
+            <circle class="pom-arc" cx="50" cy="50" r="43"/>
+          </svg>
+        </div>
+        <div class="pom-txt">
+          <b>25:00</b>
+          <span>left in this pomodoro</span>
+        </div>
+      </div>
+    </aside>
+  </header>
     </div>
   </div>
 </section>
 
-<!-- ─────────────────────────────────────────────────────────── 2 ── -->
-<section class="opt opt-2">
+<section class="opt">
   <div class="opt-head">
-    <h2>2 · The same field, on the site's own ground</h2>
-    <span class="tag off">not shipped</span>
+    <h2>B · Leave the headline, cut the lede</h2>
+    <span class="tag off">option</span>
   </div>
-  <p class="why">The same field, three steps down the green ramp so it holds on paper, sitting in the
-    shell every other public page uses. <b>For:</b> it keeps the header and the footer, so the ways
-    out are the site's own rather than two we picked; it keeps the <i>did you mean</i> line and the
-    four destinations under it; and nothing about the site changes under somebody who has just
-    mistyped an address. <b>Against:</b> a graphic inside a normal page is a smaller moment than a
-    graphic that <i>is</i> the page — this reads as a good 404 rather than as one worth sending to
-    somebody, which is the whole reason for asking.</p>
+  <p class="why">The smallest change that helps: the headline is untouched, and the supporting line drops the four keyword phrases it was carrying. <b>Four lines to two.</b> Those phrases are not lost — they are already in the page's meta description, word for word, and that is the text Google actually shows in a result. <b>For:</b> nothing about the headline is up for debate. <b>Against:</b> three lines of 55px green is still most of what you see, and that was the thing that prompted this.</p>
   <div class="frame">
-    <main>
-      <div class="page-hero">
-        <div class="wrap">
-          <div class="g404 on-light" role="img" aria-label="404">
-<i></i><i></i><i></i><i></i><i class="a"></i><i class="b"></i><i class="d"></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="b"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="c"></i><i class="c"></i><i></i>
-<i></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="c"></i><i></i><i></i><i class="c"></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="a"></i><i class="b"></i><i class="c"></i><i></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="a"></i><i></i>
-<i></i><i></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i><i></i><i></i><i class="c"></i><i class="c"></i><i></i><i></i><i></i><i class="a"></i><i class="b"></i><i class="c"></i><i class="b"></i><i></i>
-<i></i><i class="c"></i><i class="b"></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i></i><i class="b"></i><i class="a"></i><i></i><i></i><i class="c"></i><i class="c"></i><i></i><i class="b"></i><i class="b"></i><i></i>
-<i class="b"></i><i class="c"></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i><i></i><i class="c"></i><i class="b"></i><i></i><i></i><i></i><i class="c"></i><i class="b"></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i class="a"></i><i class="a"></i><i></i>
-<i class="c"></i><i class="b"></i><i class="c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i><i class="b"></i><i class="c"></i><i class="a"></i><i class="b"></i><i class="c"></i><i class="a"></i><i class="c"></i>
-<i class="b"></i><i class="c"></i><i class="c"></i><i class="b"></i><i class="c"></i><i class="b"></i><i class="b"></i><i></i><i class="b"></i><i class="c"></i><i></i><i></i><i class="d"></i><i class="b"></i><i class="b"></i><i></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="c"></i><i class="b"></i><i class="b"></i><i class="c"></i>
-<i></i><i></i><i></i><i></i><i class="c"></i><i class="b"></i><i class="d"></i><i></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="c"></i><i></i><i></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i>
-<i></i><i></i><i></i><i></i><i class="a"></i><i class="b"></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="c"></i><i class="b"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="b"></i><i class="b"></i><i></i>
-          </div>
-          <h1>That page isn't here</h1>
-          <p class="sub">This address doesn't match a page on PeerFlow. It is most likely a typo, or a link written before the page moved.</p>
-          <p class="nf-asked">You asked for <code>/privcy</code></p>
+    <div class="wrap">
+  <header class="hero">
+    <div class="hero-copy">
+      <h1 style="color:var(--live-deep)">Find your tech study partner. Show up and learn together.</h1>
+      <p class="lede">Match with one learner on the same tech path and at a similar level.</p>
+      <div class="cta-row">
+        <a class="btn" href="signup.html">Find my partner</a>
+      </div>
+      <p class="trust trust-fix">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
+    </div>
+    <aside class="session" aria-hidden="true">
+      <div class="session-head">
+        <span class="live"><b></b>In session</span>
+        <span class="mono">cameras on</span>
+      </div>
+      <div class="tiles">
+        <div class="tile">
+          <span class="tav" style="background:#534AB7">AM</span>
+          <span class="tname">Amir</span>
+        </div>
+        <div class="tile you">
+          <span class="tav" style="background:#0FA36B">YOU</span>
+          <span class="tname">You</span>
         </div>
       </div>
-      <div class="wrap">
-        <div class="nf">
-          <p class="nf-guess">Did you mean <a href="/privacy.html">the privacy policy</a>?</p>
-          <h2>Somewhere to go instead</h2>
-          <ul class="nf-list">
-            <li><a href="/"><b>Home</b><span>What PeerFlow is, and how one session runs</span></a></li>
-            <li><a href="/#paths"><b>Learning paths</b><span>The eight tracks you can be matched on</span></a></li>
-            <li><a href="/login.html"><b>Log in</b><span>Your sessions, your partner, your streak</span></a></li>
-            <li><a href="/signup.html"><b>Sign up</b><span>Find one person to learn with</span></a></li>
-          </ul>
-          <p class="nf-foot">If a link on PeerFlow sent you here, tell us at <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a> and we will fix it.</p>
+      <div class="rows">
+        <div class="row"><span>Both learning</span><b>Frontend</b></div>
+        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
+      </div>
+      <div class="pom">
+        <div class="pom-ring">
+          <svg viewBox="0 0 100 100">
+            <circle class="pom-track" cx="50" cy="50" r="43"/>
+            <circle class="pom-arc" cx="50" cy="50" r="43"/>
+          </svg>
+        </div>
+        <div class="pom-txt">
+          <b>25:00</b>
+          <span>left in this pomodoro</span>
         </div>
       </div>
-    </main>
+    </aside>
+  </header>
+    </div>
   </div>
 </section>
 
-<!-- ─────────────────────────────────────────────────────────── 3 ── -->
 <section class="opt">
   <div class="opt-head">
-    <h2>3 · The empty room</h2>
-    <span class="tag off">not shipped</span>
+    <h2>C · Move the second sentence down</h2>
+    <span class="tag on">recommended</span>
   </div>
-  <p class="why">Not from the reference. The 404 rendered as a call nobody joined: the room's own
-    palette, a waiting tile with the address on the name pill where a partner's name goes, and the
-    call bar underneath with the ways out where the mic and camera controls sit. <b>For:</b> it is
-    the only one of the three that could belong to no other product — a field of marks is a shape any
-    site with a logo could make, an empty study room is not. <b>Against:</b> the joke lands once, it is
-    dark for the same reason one is, and it has nowhere quiet to put the <i>did you mean</i> line.</p>
+  <p class="why"><i>Show up and learn together</i> leaves the headline and joins the lede. <b>Two lines of green, two of lede — nine lines down to six.</b> The reason this is the one: <i>find your tech study partner</i> is the primary phrase in <code>SEO_ROADMAP.md</code> and it stays in the H1 untouched; <i>show up and learn together</i> carries none of the roadmap's phrases, so the third line of 55px green was buying nothing. It reads better one line down, where it is a promise rather than a heading. <b>Against:</b> the headline is shorter, and a shorter headline is a smaller claim.</p>
   <div class="frame">
-    <div class="d-room">
-      <div class="r-top">
-        <span class="logo">
-          <svg width="23" height="23" viewBox="0 0 173 171" fill="currentColor" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-          <span>peer<b>flow</b></span>
-        </span>
-        <span class="r-k">Error 404</span>
+    <div class="wrap">
+  <header class="hero">
+    <div class="hero-copy">
+      <h1 style="color:var(--live-deep)">Find your tech study partner.</h1>
+      <p class="lede">Match with one learner on the same path and level. Show up on camera each week and learn together.</p>
+      <div class="cta-row">
+        <a class="btn" href="signup.html">Find my partner</a>
       </div>
-      <div class="r-stage">
-        <div class="r-tile">
-          <span class="r-ring"></span><span class="r-ring"></span><span class="r-ring"></span>
-          <div class="r-mid">
-            <p class="r-kk">Nobody joined</p>
-            <h1>There is no page at this address</h1>
-            <p>Most likely a typo, or a link written before the page moved. The ways out are below.</p>
-          </div>
-          <p class="r-name">/random</p>
+      <p class="trust trust-fix">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
+    </div>
+    <aside class="session" aria-hidden="true">
+      <div class="session-head">
+        <span class="live"><b></b>In session</span>
+        <span class="mono">cameras on</span>
+      </div>
+      <div class="tiles">
+        <div class="tile">
+          <span class="tav" style="background:#534AB7">AM</span>
+          <span class="tname">Amir</span>
+        </div>
+        <div class="tile you">
+          <span class="tav" style="background:#0FA36B">YOU</span>
+          <span class="tname">You</span>
         </div>
       </div>
-      <div class="r-bar">
-        <a class="r-b go" href="/">Home</a>
-        <a class="r-b" href="/#how">How it works</a>
-        <a class="r-b" href="/login.html">Log in</a>
-        <a class="r-b" href="/signup.html">Sign up</a>
+      <div class="rows">
+        <div class="row"><span>Both learning</span><b>Frontend</b></div>
+        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
       </div>
+      <div class="pom">
+        <div class="pom-ring">
+          <svg viewBox="0 0 100 100">
+            <circle class="pom-track" cx="50" cy="50" r="43"/>
+            <circle class="pom-arc" cx="50" cy="50" r="43"/>
+          </svg>
+        </div>
+        <div class="pom-txt">
+          <b>25:00</b>
+          <span>left in this pomodoro</span>
+        </div>
+      </div>
+    </aside>
+  </header>
+    </div>
+  </div>
+</section>
+
+<section class="opt">
+  <div class="opt-head">
+    <h2>D · C, with the green on the phrase that earns it</h2>
+    <span class="tag off">option</span>
+  </div>
+  <p class="why">Same as C, with <i>Find your</i> in ink and only <i>tech study partner</i> in green. This was tried once and rejected — the markup still carries the note, <i>&ldquo;colouring one phrase is what made the old headline look broken in two&rdquo;</i> — but that was against the old two-sentence headline, where the colour break fell in the middle of a thought. Here the headline is one sentence and the break falls between the verb and the thing being looked for, which is also the phrase people are searching. <b>Against:</b> it was rejected once for a reason, and two colours in six words can read as fussy.</p>
+  <div class="frame">
+    <div class="wrap">
+  <header class="hero">
+    <div class="hero-copy">
+      <h1 style="color:var(--ink)">Find your <span class="kw">tech study partner</span>.</h1>
+      <p class="lede">Match with one learner on the same path and level. Show up on camera each week and learn together.</p>
+      <div class="cta-row">
+        <a class="btn" href="signup.html">Find my partner</a>
+      </div>
+      <p class="trust trust-fix">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
+    </div>
+    <aside class="session" aria-hidden="true">
+      <div class="session-head">
+        <span class="live"><b></b>In session</span>
+        <span class="mono">cameras on</span>
+      </div>
+      <div class="tiles">
+        <div class="tile">
+          <span class="tav" style="background:#534AB7">AM</span>
+          <span class="tname">Amir</span>
+        </div>
+        <div class="tile you">
+          <span class="tav" style="background:#0FA36B">YOU</span>
+          <span class="tname">You</span>
+        </div>
+      </div>
+      <div class="rows">
+        <div class="row"><span>Both learning</span><b>Frontend</b></div>
+        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
+      </div>
+      <div class="pom">
+        <div class="pom-ring">
+          <svg viewBox="0 0 100 100">
+            <circle class="pom-track" cx="50" cy="50" r="43"/>
+            <circle class="pom-arc" cx="50" cy="50" r="43"/>
+          </svg>
+        </div>
+        <div class="pom-txt">
+          <b>25:00</b>
+          <span>left in this pomodoro</span>
+        </div>
+      </div>
+    </aside>
+  </header>
     </div>
   </div>
 </section>
