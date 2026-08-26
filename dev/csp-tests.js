@@ -27,6 +27,9 @@ const { chromium }=require('/opt/node22/lib/node_modules/playwright');
 
 const vc=JSON.parse(fs.readFileSync(ROOT + '/vercel.json','utf8'));
 const hdrs=vc.headers.find(h=>h.source==='/(.*)').headers;
+const cspKey=hdrs.some(h=>h.key==='Content-Security-Policy')
+  ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only';
+console.log('policy under test: '+cspKey+'\n');
 const TYPES={'.html':'text/html','.css':'text/css','.js':'application/javascript',
              '.json':'application/json','.xml':'application/xml','.txt':'text/plain'};
 
@@ -53,7 +56,7 @@ srv.listen(9111, async ()=>{
   for(const pg of PAGES){
     const p=await b.newPage({viewport:{width:1280,height:900}});
     const refused=[];
-    p.on('console',m=>{ const t=m.text(); if(/^Refused to|Content Security Policy/i.test(t)) refused.push(t.slice(0,150)); });
+    p.on('console',m=>{ const t=m.text(); if(/Refused to |violates the following Content Security Policy/i.test(t)) refused.push(t.slice(0,150)); });
     await p.goto('http://127.0.0.1:9111/'+pg,{waitUntil:'networkidle'}).catch(()=>{});
     await p.waitForTimeout(900);
     if(refused.length){ refusals+=refused.length; console.log('CSP REFUSALS on '+pg+':'); refused.forEach(r=>console.log('    '+r)); }
