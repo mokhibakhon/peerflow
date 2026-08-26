@@ -42,6 +42,21 @@ const before = fs.readFileSync(paste, 'utf8');
    section. */
 const re = /(^-- BEGIN (\S+)\n-- =+\n)([\s\S]*?)(^-- -+ END \2 -+\n)/gm;
 
+/* Every folded migration opens with a SUPERSEDED banner telling a reader not
+   to run that file, because its contents are already in the combined paste.
+   That banner is true of the standalone copy and nonsense inside the paste
+   itself: copied through verbatim it puts fourteen "do not run this file"
+   notices into the one file everybody is told to run, and it makes --check
+   report drift for ever, since the sources carry something the paste can
+   never contain.
+   
+   So the banner is stripped on the way in. It is metadata about the file, not
+   part of the migration, and the paste is the one place it must not appear. */
+function stripBanner(text) {
+  const m = text.match(/^-- =+\n-- SUPERSEDED[\s\S]*?\n-- =+\n+/);
+  return m ? text.slice(m[0].length) : text;
+}
+
 const seen = [];
 const after = before.replace(re, (whole, head, name, body, tail) => {
   const src = path.join(root, 'supabase', name);
@@ -50,7 +65,7 @@ const after = before.replace(re, (whole, head, name, body, tail) => {
     process.exit(2);
   }
   seen.push(name);
-  return head + '\n' + fs.readFileSync(src, 'utf8').trim() + '\n\n' + tail;
+  return head + '\n' + stripBanner(fs.readFileSync(src, 'utf8')).trim() + '\n\n' + tail;
 });
 
 if (!seen.length) {
