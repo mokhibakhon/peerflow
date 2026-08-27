@@ -180,9 +180,29 @@ window.pfUserMenu = (function(){
          previous person's name until that cache happened to be rewritten.
          Cache is now only a fallback, and gets corrected from the session. */
       var meta = user.user_metadata || {};
-      var cached = '';
-      try { cached = localStorage.getItem('pf_name') || ''; } catch(e){}
-      var nm = meta.name || meta.full_name || cached || (user.email || '').split('@')[0];
+      var cached = '', cachedFor = '';
+      try {
+        cached    = localStorage.getItem('pf_name') || '';
+        cachedFor = localStorage.getItem('pf_uid')  || '';
+      } catch(e){}
+
+      /* Whose cache is it? db.js stamps pf_uid with the signed-in account and
+         throws pf_name away the moment that id changes, which is what stops
+         the previous person's name surviving a switch. That guard is async
+         though, so this checks the stamp itself rather than racing it.
+
+         The check earns its keep by letting the cache go FIRST. It used to sit
+         behind meta.name, and that ordering caused a visible fault: build()
+         paints the cached name synchronously, then this line repainted it with
+         the signup metadata — the stale one — and the profile corrected it a
+         second later. So every navigation flashed the old name, on a page that
+         had already drawn the right one. Trusting a cache that is provably
+         this account's removes the middle step; a cache belonging to anybody
+         else is ignored exactly as before. */
+      var mine = cached && cachedFor && user.id && cachedFor === user.id;
+      var nm = (mine ? cached : '') ||
+               meta.name || meta.full_name || cached ||
+               (user.email || '').split('@')[0];
       var avatar = meta.avatar_url || meta.picture || '';
       setUser(nm, user.email, avatar);
       try {
