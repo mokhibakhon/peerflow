@@ -70,20 +70,24 @@ congratulating the user.
   the agent proxy 403s them on CONNECT and curl returns an empty body. An empty
   body is not evidence the site is stale. Do not tell the user something isn't
   live based on a curl.
-- **Two Vercel projects exist; only one of them matters.** `peerflow` is
-  production: it holds `www.peerflow.dev`, builds `main` of this repository,
-  and `peerflow.dev` redirects to it. The other is `peer-flow-9fvn`, wired to
-  `mokhibakhon/peer_flow` — the repository name from before the rename — and
-  it last built in August 2025, because nothing pushes there any more.
+- **One Vercel project, and it is `peerflow`.** It holds `www.peerflow.dev`,
+  builds `main` of this repository, and `peerflow.dev` sits on the same project
+  and 308s to www.
 
-  This entry used to name the second project `peerflow-apfq` and describe it as
-  a duplicate that double-deploys every push. Neither was still true when it was
-  checked: no project by that name is in the account, and one watching a
-  repository nobody pushes to cannot double-deploy anything. Deleting
-  `peer-flow-9fvn` is pending with the owner, and the only thing to confirm
-  first is that the apex `peerflow.dev` is attached to `peerflow` rather than
-  to it — `curl -sI https://peerflow.dev` answering 308 to www is what that
-  looks like from outside.
+  There was a second, and this entry was wrong about it in both halves for a
+  long time: it named the project `peerflow-apfq` and called it a duplicate that
+  double-deployed every push. Neither survived a look at the account. The real
+  one was `peer-flow-9fvn`, wired to `mokhibakhon/peer_flow` — the repository
+  name from before the rename — and it had not built since August 2025, because
+  nothing pushed there any more. It was deleted in August 2026, once the apex
+  had been confirmed to be attached to `peerflow` and not to it.
+
+  The durable lesson is about the entry rather than the project. This file
+  exists for the things you cannot read off the code, which is exactly what
+  makes a stale line in it expensive — two sentences here were wrong for months
+  and nothing could contradict them. `dev/live-check.sh` answers most of what
+  this section claims from outside, in one command, and is worth running before
+  believing any of it.
 - **Postgres `CHECK` constraints cannot contain subqueries.** Use `jsonb_path_exists`.
   In jsonpath, use `strict` — `lax` flattens nested arrays and lets bad shapes
   through — and remember `like_regex` is XQuery, so `.` skips newlines without
