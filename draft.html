@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>What should peerflow.dev/privacy do? — PeerFlow draft</title>
+<title>What should a PeerFlow article look like? — PeerFlow draft</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,222 +11,312 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/tokens.css">
+<link rel="stylesheet" href="/assets/home.css">
+<link rel="stylesheet" href="/assets/seo.css">
 <style>
-/* Standalone draft, noindex, overwritten by whoever drafts next.
+/* THE DRAFT: an article page, which is a page type this site does not have yet.
  *
- * Not a design draft. URLs on this site carry .html, so the extensionless form
- * of every page — /privacy, /login, /frontend — is a 404. The 404 page names
- * the page you meant and offers the link, which is a rescue and not a fix.
+ * Phase 3 of SEO_ROADMAP.md names five of these. Before any of them ships there
+ * has to be an answer to "what does an article on peerflow.dev look like", and
+ * that answer is a design decision rather than a writing one — which is why the
+ * whole of the first article is rendered below rather than described.
  *
- * There is nothing to look at here, so this page is tables rather than
- * components: for each option, what the server actually does with a handful of
- * real addresses, and what the option costs to adopt. The column marked
- * MEASURED was run against dev/serve.js just now. The rest are read off
- * Vercel's documented behaviour for cleanUrls, rewrites and redirects — I
- * cannot reach vercel.com from this container to try them, and I would rather
- * label that than let four columns look equally verified.
+ * Everything here reuses home.css and seo.css: the nav, the footer, .btn, .wrap
+ * and .seo-cta are the landing pages' own. The rules below are only the parts an
+ * article needs that a landing page never did — a measured prose column, the
+ * standfirst, the summary box, the timeline, and the pull-out. They live in this
+ * page while it is a draft so that nothing in assets/ moves before the layout is
+ * agreed; on approval they lift into seo.css and PF_BUILD gets bumped.
  *
- * The costs are counted, not estimated: 82 absolute .html URLs across
- * canonicals, og:url and JSON-LD; 217 internal links; 11 sitemap entries; 25
- * files; plus urlFor() in dev/sitemap-build.js and every assertion in
- * dev/seo-tests.js that derives from it. */
-:root{--ok:#0F6E56;--warn:#93641A;--bad:#C0392B}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--paper);color:var(--ink);font-family:var(--body);
-  font-size:var(--t-body);line-height:1.6;-webkit-font-smoothing:antialiased}
-a{color:var(--p6);text-decoration:underline;text-underline-offset:2px}
-.wrap{max-width:1000px;margin:0 auto;padding:0 32px}
-.dhead{background:var(--card);border-bottom:1px solid var(--line);padding:36px 0 32px;margin-bottom:34px}
-.k{font-family:var(--mono);font-size:var(--t-kicker);letter-spacing:.08em;
-  text-transform:uppercase;color:var(--ink-faint);margin-bottom:10px}
-h1{font-size:var(--t-h2);font-weight:800;letter-spacing:-.03em;line-height:1.12;margin-bottom:12px;text-wrap:balance}
-.sub{color:var(--ink-soft);max-width:72ch;line-height:1.65}
-.sub + .sub{margin-top:12px}
-code{font-family:var(--mono);font-size:var(--t-xs);background:var(--band);
-  border:1px solid var(--line-strong);border-radius:var(--r-mark);padding:2px 6px}
+ * The one element worth a real look is .tl, the session timeline. It is the only
+ * thing on the page that could not appear in a generic study-tips post: the
+ * blocks are read off assets/phases.js, so 25/5/25 is what a fifty-minute
+ * PeerFlow booking actually does, and the article is describing the product's
+ * own behaviour rather than a productivity technique it borrowed.
+ */
 
-.opt{margin-bottom:38px}
-.opt-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-h2{font-size:var(--t-h3);font-weight:700;letter-spacing:-.015em}
-.tag{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;
-  text-transform:uppercase;padding:3px 9px;border-radius:var(--r-pill)}
-.tag.rec{background:var(--p0);color:var(--p8)}
-.tag.now{background:var(--band);color:var(--ink-faint)}
-.tag.no{background:var(--bad-bg);color:var(--bad-ink)}
-.why{color:var(--ink-soft);font-size:var(--t-sm);line-height:1.65;max-width:80ch;margin-bottom:14px}
-.why b{color:var(--ink);font-weight:700}
+/* ---------- the column ----------
+   65-70 characters. The landing pages are built out of cards and bands and can
+   run the full width; an article cannot, and this is the single biggest
+   difference between the two page types. */
+.art{max-width:44rem;margin:0 auto}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
-  padding:6px 20px 16px;overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:var(--t-sm);min-width:520px}
-th,td{text-align:left;padding:9px 14px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}
-tr:last-child td{border-bottom:0}
-td:first-child{font-family:var(--mono);font-size:var(--t-xs);color:var(--ink);white-space:nowrap}
-.s{font-family:var(--mono);font-size:var(--t-xs);font-weight:700;font-variant-numeric:tabular-nums}
-.s-200{color:var(--ok)} .s-30x{color:var(--warn)} .s-404{color:var(--bad)}
-.note{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
-  font-size:var(--t-xs);color:var(--ink-faint);line-height:1.6}
-.note b{color:var(--ink)}
+.art-head{padding:14px 0 0}
+.art-kick{
+  display:inline-block;font-size:12px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--live-deep);background:var(--live-soft);
+  padding:5px 11px;border-radius:999px;margin:0 0 18px;
+}
+.art h1{font-size:clamp(30px,4.6vw,44px);line-height:1.13;letter-spacing:-.022em;margin:0 0 20px;text-wrap:balance}
+.art-lede{font-size:19px;line-height:1.62;color:var(--ink-soft);margin:0 0 22px}
+.art-meta{
+  display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13.5px;
+  color:var(--ink-faint);border-top:1px solid var(--line);padding-top:16px;margin:0 0 40px;
+}
+.art-meta b{color:var(--ink-soft);font-weight:600}
 
-.cost{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-.pill{font-size:var(--t-xs);padding:5px 11px;border-radius:var(--r-pill);
-  background:var(--band);color:var(--ink-soft)}
-.pill.hot{background:var(--bad-bg);color:var(--bad-ink)}
-.pill.cool{background:var(--p0);color:var(--p8)}
+/* ---------- prose ---------- */
+.art h2{font-size:25px;line-height:1.25;letter-spacing:-.016em;margin:44px 0 14px;text-wrap:balance}
+.art h3{font-size:18px;line-height:1.35;margin:28px 0 8px}
+.art p{font-size:17px;line-height:1.72;margin:0 0 18px;color:var(--ink)}
+.art p.small{font-size:15px;color:var(--ink-soft)}
+.art ul,.art ol{margin:0 0 20px;padding-left:22px}
+.art li{font-size:17px;line-height:1.7;margin:0 0 9px}
+.art li::marker{color:var(--live)}
+.art strong{font-weight:700}
+.art a{color:var(--live-deep);text-decoration:underline;text-underline-offset:2px}
 
-@media (max-width:560px){ .wrap{padding:0 20px} }
+/* ---------- the summary box ----------
+   An article that wants links has to be quotable by somebody who read the first
+   screen and nothing else. */
+.art-tldr{
+  background:var(--live-soft);border-radius:16px;
+  padding:20px 22px;margin:0 0 34px;
+}
+.art-tldr h2{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--live-deep);margin:0 0 12px}
+.art-tldr ol{margin:0;padding-left:20px}
+.art-tldr li{font-size:16px;line-height:1.6;margin:0 0 7px;color:var(--ink)}
+.art-tldr li:last-child{margin-bottom:0}
+
+/* ---------- the timeline ---------- */
+.tl{margin:0 0 26px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card)}
+.tl-bar{display:flex;height:12px}
+.tl-bar i{display:block}
+.tl-bar i.f{background:var(--live)}
+.tl-bar i.b{background:#CFEADD;background:color-mix(in srgb, var(--live) 28%, #fff)}
+.tl-rows{padding:6px 0}
+.tl-row{display:grid;grid-template-columns:78px 1fr;gap:14px;padding:11px 18px;align-items:baseline}
+.tl-row + .tl-row{border-top:1px solid var(--line)}
+.tl-t{
+  font-size:12.5px;font-weight:700;letter-spacing:.04em;color:var(--live-deep);
+  font-variant-numeric:tabular-nums;
+}
+.tl-row.rest .tl-t{color:var(--ink-faint)}
+.tl-d b{display:block;font-size:15.5px;margin-bottom:2px}
+.tl-d span{display:block;font-size:14.5px;line-height:1.55;color:var(--ink-soft)}
+.tl-note{font-size:13.5px;color:var(--ink-faint);margin:0 0 34px;line-height:1.55}
+
+/* ---------- the pull-out ---------- */
+.art-note{
+  border-left:3px solid var(--live);padding:2px 0 2px 20px;margin:0 0 26px;
+}
+.art-note p{font-size:17px;line-height:1.65;color:var(--ink-soft);margin:0}
+.art-note p b{color:var(--ink)}
+
+/* ---------- what goes wrong ---------- */
+.art-bad{display:flex;flex-direction:column;gap:0;margin:0 0 26px}
+.art-bad div{padding:15px 0;border-bottom:1px solid var(--line)}
+.art-bad div:first-child{border-top:1px solid var(--line)}
+.art-bad b{display:block;font-size:16.5px;margin-bottom:4px}
+.art-bad span{display:block;font-size:15.5px;line-height:1.62;color:var(--ink-soft)}
+
+/* ---------- related ---------- */
+.art-rel{margin:44px 0 0;padding-top:26px;border-top:1px solid var(--line)}
+.art-rel h2{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 14px}
+.art-rel a{display:block;font-size:17px;font-weight:600;color:var(--ink);text-decoration:none;padding:9px 0}
+.art-rel a:hover{color:var(--live-deep)}
+.art-rel a span{display:block;font-size:14.5px;font-weight:400;color:var(--ink-soft);margin-top:2px}
+
+/* the banner that says this is a draft, not part of the design */
+.dnote{
+  background:#12352C;color:#D6ECE2;padding:13px 0;font-size:14px;line-height:1.5;
+}
+.dnote .wrap{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
+.dnote b{color:#7FE3BC}
 </style>
 </head>
 <body>
 
-<div class="dhead">
-  <div class="wrap">
-    <p class="k">Draft</p>
-    <h1>What should peerflow.dev/privacy do?</h1>
-    <p class="sub">URLs here carry <code>.html</code>, so the extensionless form of every page is a
-      404 — <code>/privacy</code>, <code>/login</code>, <code>/terms</code>, all of them. The 404 page
-      names the page you meant and offers the link, which is a rescue, not a fix. Four ways to make
-      the address itself work, and they are not equally cheap.</p>
-    <p class="sub">Today's column is <b>measured</b>, against <code>dev/serve.js</code>. The other
-      three are read off Vercel's documented behaviour: I cannot reach vercel.com from this container
-      to try them, and I would rather say so than let four columns look equally verified.</p>
-  </div>
-</div>
+<div class="dnote"><div class="wrap"><b>/draft</b><span>Proposed article layout, rendered with the whole of the first Phase&nbsp;3 article. Nothing in <code>assets/</code> has changed. Not linked, not indexed.</span></div></div>
 
 <div class="wrap">
-
-<!-- ─────────────────────────────────────────────────────── A ── -->
-<section class="opt">
-  <div class="opt-head"><h2>A · Leave it</h2><span class="tag now">was · measured</span></div>
-  <p class="why">Everyone who types a bare path lands on the 404, reads the suggestion and clicks
-    once more. <b>For:</b> costs nothing and risks nothing; the resolver already turns the common
-    cases into one click. <b>Against:</b> the address a person typed is still wrong, and a shared
-    link like <code>peerflow.dev/privacy</code> looks broken to whoever receives it.</p>
-  <div class="card">
-    <table>
-      <thead><tr><th>Address</th><th>Status</th><th>Ends at</th></tr></thead>
-      <tbody>
-        <tr><td>/privacy</td><td class="s s-404">404</td><td>the 404 page, offering the privacy policy</td></tr>
-        <tr><td>/privacy.html</td><td class="s s-200">200</td><td>the page</td></tr>
-        <tr><td>/login</td><td class="s s-404">404</td><td>the 404 page, offering the login page</td></tr>
-        <tr><td>/frontend</td><td class="s s-404">404</td><td>the 404 page, offering frontend study partners</td></tr>
-        <tr><td>/random</td><td class="s s-404">404</td><td>the 404 page, no suggestion</td></tr>
-        <tr><td>/assets/db.js</td><td class="s s-200">200</td><td>the file</td></tr>
-      </tbody>
-    </table>
-    <div class="cost"><span class="pill cool">nothing to change</span></div>
-  </div>
-</section>
-
-<!-- ─────────────────────────────────────────────────────── B ── -->
-<section class="opt">
-  <div class="opt-head"><h2>B · <code>cleanUrls: true</code></h2><span class="tag no">a sweep, not a flag</span></div>
-  <p class="why">One line in <code>vercel.json</code>, and it does two things — serves
-    <code>/privacy</code>, <b>and permanently redirects <code>/privacy.html</code> to it</b>. That
-    second half is the whole story. Every canonical on this site currently names the
-    <code>.html</code> form, so the moment this ships, all 12 of them point at a URL that redirects,
-    the sitemap advertises 11 more, and all 217 internal links spend a hop. <code>dev/seo-tests.js</code>
-    already fails a page for linking to the redirecting <code>/index.html</code> — this would make
-    that true of everything. <b>For:</b> the cleanest end state of the four, one URL per page and no
-    duplicates. <b>Against:</b> it is not a config change, it is a coordinated rewrite of the site's
-    entire URL surface, and half-done it is worse than not started.</p>
-  <div class="card">
-    <table>
-      <thead><tr><th>Address</th><th>Status</th><th>Ends at</th></tr></thead>
-      <tbody>
-        <tr><td>/privacy</td><td class="s s-200">200</td><td>the page</td></tr>
-        <tr><td>/privacy.html</td><td class="s s-30x">308</td><td>/privacy — and this is what breaks the canonicals</td></tr>
-        <tr><td>/login</td><td class="s s-200">200</td><td>the page</td></tr>
-        <tr><td>/frontend</td><td class="s s-404">404</td><td>still nothing; it is not a page's name</td></tr>
-        <tr><td>/random</td><td class="s s-404">404</td><td>the 404 page</td></tr>
-        <tr><td>/assets/db.js</td><td class="s s-200">200</td><td>the file</td></tr>
-      </tbody>
-    </table>
-    <div class="cost">
-      <span class="pill hot">82 absolute URLs</span>
-      <span class="pill hot">217 internal links</span>
-      <span class="pill hot">11 sitemap entries</span>
-      <span class="pill hot">25 files</span>
-      <span class="pill hot">urlFor() + its assertions</span>
+  <nav class="nav" aria-label="Main navigation">
+    <a class="logo" href="/" aria-label="PeerFlow home"><svg width="26" height="26" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg><span>peer<b>flow</b></span></a>
+    <div class="seo-nav-links">
+      <a href="/#how">How it works</a>
+      <a href="/#paths">8 paths</a>
+      <a class="btn btn-sm" href="/signup.html">Find my partner</a>
     </div>
-    <p class="note"><b>All of it in one commit.</b> A canonical pointing at a redirect is the
-      self-inflicted crawl error this repository already has a test against, so there is no safe
-      order in which to do half of this.</p>
-  </div>
-</section>
+  </nav>
 
-<!-- ─────────────────────────────────────────────────────── C ── -->
-<section class="opt">
-  <div class="opt-head"><h2>C · Rewrite <code>/privacy</code> to <code>privacy.html</code></h2><span class="tag no">not recommended</span></div>
-  <p class="why">About fifteen <code>rewrites</code> entries. Both forms then answer 200 and nothing
-    else changes. <b>For:</b> purely additive — no canonical, link or sitemap entry moves.
-    <b>Against:</b> it leaves <b>two live URLs serving identical content, permanently</b>. The
-    canonical tag does tell Google which one counts, so this is survivable rather than harmful — but
-    it buys exactly what D buys while doubling the URL surface, and anyone who shares
-    <code>/privacy</code> passes their signal through a canonical hop instead of a redirect. There is
-    no case where this beats D.</p>
-  <div class="card">
-    <table>
-      <thead><tr><th>Address</th><th>Status</th><th>Ends at</th></tr></thead>
-      <tbody>
-        <tr><td>/privacy</td><td class="s s-200">200</td><td>the page — at a second, non-canonical URL</td></tr>
-        <tr><td>/privacy.html</td><td class="s s-200">200</td><td>the page, still canonical</td></tr>
-        <tr><td>/login</td><td class="s s-200">200</td><td>the page</td></tr>
-        <tr><td>/frontend</td><td class="s s-404">404</td><td>the 404 page, unless aliased</td></tr>
-        <tr><td>/random</td><td class="s s-404">404</td><td>the 404 page</td></tr>
-        <tr><td>/assets/db.js</td><td class="s s-200">200</td><td>the file</td></tr>
-      </tbody>
-    </table>
-    <div class="cost">
-      <span class="pill">~15 rewrite entries</span>
-      <span class="pill cool">nothing else changes</span>
-      <span class="pill hot">two URLs per page, forever</span>
+  <main>
+  <article class="art">
+
+    <header class="art-head">
+      <span class="art-kick">Guide</span>
+      <h1>How to run a productive 1-on-1 study-with-me session</h1>
+      <p class="art-lede">Most study sessions fail in the first three minutes and the last three, not
+      in the middle. Here is the shape of a session that produces work, and the four habits that
+      decide whether the partnership survives past week two.</p>
+      <div class="art-meta">
+        <b>8 min read</b><span>For anyone meeting a study partner live, on PeerFlow or anywhere else</span>
+      </div>
+    </header>
+
+    <div class="art-tldr">
+      <h2>The short version</h2>
+      <ol>
+        <li>Decide your one goal <b>before</b> you join, not after you have said hello.</li>
+        <li>Say it out loud in the first two minutes. That sentence is the entire accountability mechanism.</li>
+        <li>Work in <b>parallel</b>, not together. Cameras on, microphones off, no narration.</li>
+        <li>Take the break. It is where you say where you are stuck, and it is the part people skip.</li>
+        <li>Spend the last three minutes naming what you will have done before you next meet.</li>
+      </ol>
     </div>
-  </div>
-</section>
 
-<!-- ─────────────────────────────────────────────────────── D ── -->
-<section class="opt">
-  <div class="opt-head"><h2>D · Redirect <code>/privacy</code> to <code>/privacy.html</code></h2><span class="tag rec">shipped</span></div>
-  <p class="why">The same fifteen entries, as <code>redirects</code> instead of rewrites, pointing
-    the other way. <b>For:</b> it fixes the thing that is actually wrong — a typed address failing —
-    and touches nothing else. Zero canonicals move, zero internal links, zero sitemap entries, and
-    no page gains a second URL. The redirect hop is paid by somebody who typed the form the site
-    does not use, which is what redirects are for. <b>Against:</b> it settles <code>.html</code> as
-    this site's URL shape for good, which is the less fashionable choice; if you ever want the bare
-    form to be canonical, that is option B and this does not move you toward it.</p>
-  <div class="card">
-    <table>
-      <thead><tr><th>Address</th><th>Status</th><th>Ends at</th></tr></thead>
-      <tbody>
-        <tr><td>/privacy</td><td class="s s-30x">308</td><td>/privacy.html, then the page</td></tr>
-        <tr><td>/privacy.html</td><td class="s s-200">200</td><td>the page, canonical, untouched</td></tr>
-        <tr><td>/login</td><td class="s s-30x">308</td><td>/login.html, then the page</td></tr>
-        <tr><td>/frontend</td><td class="s s-404">404</td><td>the 404 page, still offering the link</td></tr>
-        <tr><td>/random</td><td class="s s-404">404</td><td>the 404 page</td></tr>
-        <tr><td>/assets/db.js</td><td class="s s-200">200</td><td>the file</td></tr>
-      </tbody>
-    </table>
-    <div class="cost">
-      <span class="pill">~15 redirect entries</span>
-      <span class="pill cool">no canonical moves</span>
-      <span class="pill cool">no second URL</span>
-      <span class="pill cool">no sweep</span>
+    <p>A study-with-me session is not a lesson, a pairing session, or a call with a friend who
+    happens to be working. It is a block of time in which two people who are not working on the
+    same thing agree to be visibly working at the same time. That sounds thin, and it is the whole
+    mechanism: the reason you open the editor at 19:00 on a Tuesday is that somebody else is
+    about to watch you not open it.</p>
+
+    <p>Which means almost everything that makes a session productive happens around the edges of
+    it. The middle takes care of itself.</p>
+
+    <h2>Before: the ten minutes that decide the session</h2>
+
+    <p>Turn up with one goal, written down, small enough to finish. Not <em>“work on the React
+    project”</em> — that is a topic, and a topic will still be a topic in fifty minutes. Something
+    closer to <em>“get the login form validating and showing errors”</em>. You should be able to
+    tell, at the end, whether you did it.</p>
+
+    <p>The test for a good session goal is that it can fail. If there is no outcome that would
+    count as not having done it, it will not focus anything.</p>
+
+    <div class="art-note">
+      <p><b>On PeerFlow this is a field, not advice.</b> The goal you set on a booking is shown to
+      both of you inside the room, in the corner, for the whole session. It is there so that at
+      minute forty you can see what you said you were doing at minute two.</p>
     </div>
-    <p class="note"><b>The list has to be written out, not patterned.</b> A blanket
-      <code>/(.*)</code> to <code>/$1.html</code> would catch <code>/assets/…</code>,
-      <code>/robots.txt</code>, <code>/sitemap.xml</code>, the IndexNow key file and
-      <code>/draft</code>, and would loop on anything already ending in <code>.html</code>. Fifteen
-      explicit entries, with a check in <code>dev/seo-tests.js</code> asserting the list covers every
-      page — the same shape as the check that keeps the 404 page's suggestions honest.</p>
-    <p class="note"><b>What it does not do:</b> <code>/frontend</code> stays a 404. That is a short
-      alias for <code>frontend-study-partner.html</code>, not an extensionless form of it, and it is
-      a separate decision. The 404 page already offers it in one click.</p>
-  </div>
-</section>
 
+    <p>Have the thing open before you join. Repository cloned, terminal running, the tab with the
+    docs already there. Five minutes of setup inside the session is five minutes your partner
+    spends watching you type <code>npm install</code>, and it sets the tone that this is a call
+    where getting ready happens.</p>
+
+    <h2>The first two minutes: say what you are doing</h2>
+
+    <p>Both of you, out loud, one sentence each. What you are working on and what would count as
+    done. Then stop talking.</p>
+
+    <p>This is short enough that it feels like it cannot matter, and it is the single highest-value
+    part of the session. A goal in your head is a hope. A goal you have said to a specific person
+    who will still be there in fifty minutes is a commitment with a witness. It also gives them the
+    one piece of context they need to be useful at the break — they now know what you were trying
+    to do, so <em>“I am stuck”</em> becomes answerable.</p>
+
+    <p>Resist the version where this becomes catching up. It is the most natural failure mode
+    there is, particularly once you have met the same person eight times and actually like them.
+    Fifteen minutes into a fifty-minute session, both of you have had a nice conversation and
+    neither of you has worked.</p>
+
+    <h2>The focus block: work in parallel, not together</h2>
+
+    <p>Cameras on. Microphones off, or as good as. No narrating what you are doing, no
+    “how's it going”, no reacting to each other's screens. You are not pairing — you are two people
+    working separately in the same room, and the room happens to be a video call.</p>
+
+    <p>Cameras on is the part people push back on, and it is the part that does the work. A muted
+    microphone and a black tile is a browser tab; a muted microphone and a face is a person who
+    will notice. You do not have to look at each other. You have to be visible.</p>
+
+    <h3>The shape of a 50-minute session</h3>
+
+    <div class="tl">
+      <div class="tl-bar" aria-hidden="true">
+        <i class="f" style="flex:25"></i><i class="b" style="flex:5"></i><i class="f" style="flex:20"></i>
+      </div>
+      <div class="tl-rows">
+        <div class="tl-row"><span class="tl-t">00–02</span><span class="tl-d"><b>Say the goal</b><span>One sentence each. Then silence.</span></span></div>
+        <div class="tl-row"><span class="tl-t">02–25</span><span class="tl-d"><b>Focus 1</b><span>Heads down. The hardest thing first, while the session is still new.</span></span></div>
+        <div class="tl-row rest"><span class="tl-t">25–30</span><span class="tl-d"><b>Break</b><span>Stand up. Then say, in one line, where you actually are.</span></span></div>
+        <div class="tl-row"><span class="tl-t">30–47</span><span class="tl-d"><b>Focus 2</b><span>Change the approach if the first block did not move. Do not repeat it harder.</span></span></div>
+        <div class="tl-row rest"><span class="tl-t">47–50</span><span class="tl-d"><b>Name the next thing</b><span>What you will have done before you meet again.</span></span></div>
+      </div>
+    </div>
+
+    <p class="tl-note">PeerFlow runs this for you rather than asking you to keep time: a 50-minute
+    booking is two focus blocks around a five-minute break, and the pill in the corner of the room
+    says which one you are in. A 25-minute booking is a single sitting — below thirty minutes,
+    splitting it interrupts more than it rests.</p>
+
+    <h2>The break is not optional, and it is not a gap</h2>
+
+    <p>Five minutes, and it has one job beyond resting your eyes: each of you says, in a sentence,
+    where you actually are. Not a status update for its own sake — the specific thing you are stuck
+    on, or the thing that turned out easier than expected.</p>
+
+    <p>Two useful things happen. Saying a problem out loud to somebody who cannot see your screen
+    forces you to state it precisely, and a surprising share of bugs do not survive being stated
+    precisely. And your partner occasionally just knows the answer, which is a bonus rather than the
+    point.</p>
+
+    <p>The failure mode here is skipping it because the first block was going well. It goes well
+    right up until minute forty, when you have been staring at the same function for twelve
+    minutes and have stopped noticing.</p>
+
+    <h2>The second block: change something</h2>
+
+    <p>If the first twenty-five minutes moved, keep going. If they did not, do not spend the second
+    twenty-five doing the same thing with more determination. Narrow the goal, look up the thing you
+    have been guessing at, or write the smallest test that would tell you which half is broken.</p>
+
+    <p>The most common shape of an unproductive session is not distraction. It is fifty minutes of
+    real concentration pointed at an approach that was wrong at minute three.</p>
+
+    <h2>The last three minutes: name the next thing</h2>
+
+    <p>Before either of you leaves: what will you have done by the time you meet again? One
+    sentence, specific, out loud, same as the start.</p>
+
+    <p>This is what turns a good session into a partnership. Without it, each session is an
+    isolated block of work and the next one starts from nothing. With it, the first two minutes of
+    the next session already have a subject — <em>“last week I said I would finish the validation;
+    I did”</em> — and you have quietly built the thing that actually produces progress, which is a
+    chain rather than a series of good days.</p>
+
+    <div class="art-note">
+      <p><b>Book the next one before you leave.</b> A partnership that relies on somebody
+      remembering to message during the week does not last a month. A recurring slot both of you
+      have already agreed to does.</p>
+    </div>
+
+    <h2>What actually goes wrong</h2>
+
+    <div class="art-bad">
+      <div><b>The goal was a topic</b><span>“Study Python” cannot be finished, so nothing is finished. Every unproductive session traces back to this more often than to anything else.</span></div>
+      <div><b>It became a chat</b><span>Especially with a partner you like. The fix is structural, not a matter of willpower: say the goal, then stop talking, and let the break carry the conversation.</span></div>
+      <div><b>The camera went off</b><span>Once one of you is a black rectangle, the session is two people on mute, and there is nothing left holding either of you there.</span></div>
+      <div><b>Silent no-shows</b><span>Missing one is fine and happens. Missing one without saying anything is what ends partnerships, because the other person spent the evening waiting. Send the message even when it is late and awkward.</span></div>
+      <div><b>Mismatched intensity</b><span>One of you wants fifty focused minutes and the other wants company while doing light reading. Neither is wrong; they do not work together, and it is worth saying so in week one rather than quietly drifting apart in week five.</span></div>
+    </div>
+
+    <h2>How many, and how often</h2>
+
+    <p>Two a week, same slot, with the same person, beats five ad-hoc sessions with whoever is
+    available. The value compounds through the person: somebody who knows what you were stuck on
+    last Tuesday can ask about it, and being asked about it is most of why the system works.</p>
+
+    <p>Start with fifty minutes. Twenty-five is a good length for a first session with somebody new
+    — short enough that neither of you has committed much if the match is wrong.</p>
+
+    <section class="seo-cta">
+      <div><h2>Find someone to run these with.</h2><p>Match with one learner on your path, at a similar level, with a weekly time you can both keep.</p></div>
+      <a class="btn" href="/signup.html">Find my partner</a>
+    </section>
+
+    <div class="art-rel">
+      <h2>Related</h2>
+      <a href="#">Study-partner compatibility checklist
+        <span>The eight things worth checking before you commit to a recurring slot with somebody.</span></a>
+      <a href="/frontend-study-partner.html">Find a frontend study partner
+        <span>Or pick one of the other seven learning paths.</span></a>
+    </div>
+
+  </article>
+  </main>
+
+  <footer><span>peerflow — peer-to-peer study with me for tech learners</span><span><a href="/">Home</a> · <a href="/conduct.html">Code of conduct</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a></span></footer>
 </div>
 </body>
 </html>
