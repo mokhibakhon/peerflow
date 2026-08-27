@@ -96,6 +96,11 @@
       "permanent": true
     },
     {
+      "source": "/how-to-run-a-study-with-me-session",
+      "destination": "/how-to-run-a-study-with-me-session.html",
+      "permanent": true
+    },
+    {
       "source": "/login",
       "destination": "/login.html",
       "permanent": true
@@ -118,6 +123,11 @@
     {
       "source": "/signup",
       "destination": "/signup.html",
+      "permanent": true
+    },
+    {
+      "source": "/study-partner-compatibility-checklist",
+      "destination": "/study-partner-compatibility-checklist.html",
       "permanent": true
     },
     {
