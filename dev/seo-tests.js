@@ -284,11 +284,23 @@ if (fs.existsSync(path.join(root, '404.html'))) {
   const want = new Map(allPages.filter((f) => !SKIP[f])
     .map((f) => ['/' + f.replace(/\.html$/, ''), '/' + f]));
 
+  // The eight learning paths also answer to a nickname, and the nickname is
+  // not chosen here: every landing page links signup.html?path=<name>, and that
+  // is the product's own word for the track. Deriving it from the page is what
+  // keeps /frontend and the signup form from ever meaning different things —
+  // and it is why these eight are defensible where eight invented ones would
+  // not have been. A page naming two paths, or none, is a defect in the page.
+  for (const f of allPages.filter((f) => f.endsWith('-study-partner.html'))) {
+    const names = [...new Set([...read(f).matchAll(/signup\.html\?path=([a-z]+)/g)].map((m) => m[1]))];
+    check(names.length === 1, `${f}: names exactly one learning path${names.length === 1 ? ` (${names[0]})` : ` — found ${names.length}: ${names.join(', ')}`}`);
+    if (names.length === 1) want.set('/' + names[0], '/' + f);
+  }
+
   const got = new Map((vercel.redirects || []).map((r) => [r.source, r]));
 
   const missing = [...want].filter(([src]) => !got.has(src)).map(([src]) => src);
   check(missing.length === 0,
-    `vercel.json: every page has an extensionless redirect${missing.length ? ' — missing ' + missing.join(', ') : ` (${want.size})`}`);
+    `vercel.json: every page has an extensionless address, and every path its nickname${missing.length ? ' — missing ' + missing.join(', ') : ` (${want.size})`}`);
 
   const wrong = [...want].filter(([src, dest]) => got.has(src) &&
     (got.get(src).destination !== dest || got.get(src).permanent !== true))

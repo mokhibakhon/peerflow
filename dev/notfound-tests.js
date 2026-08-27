@@ -127,13 +127,18 @@ async function guess(p){
   /* Each of these is a real address somebody types. /privacy and /app used to
      head this list and do not any more: vercel.json now redirects the bare name
      of every page to its file, so they never reach this page at all. The
-     exact-slug rule they used to prove is still worth having and still covered,
-     by the three at the bottom — a path with directories in front of it, one
+     The prefix rule went the same way when the eight paths gained nicknames:
+     /frontend and /data are redirects now too, so the two cases proving that
+     rule are addresses no redirect claims — a path with a directory in front of
+     it, and a partial name nobody would alias.
+
+     The exact-slug rule is still worth having and still covered, by the three at
+     the bottom — a path with directories in front of it, one
      that already ends in .html, and one in the wrong case — none of which match
      a redirect source, all of which resolve on the last segment. */
   for (const [url, expect, href] of [
-    ['/frontend',          'frontend study partners',   '/frontend-study-partner.html'],
-    ['/data',              'data science study partners', '/data-science-study-partner.html'],
+    ['/docs/frontend',     'frontend study partners',   '/frontend-study-partner.html'],
+    ['/backend-study',     'backend study partners',    '/backend-study-partner.html'],
     ['/singup',            'the sign-up page',          '/signup.html'],
     ['/tems',              'the terms',                 '/terms.html'],
     ['/docs/privacy',      'the privacy policy',        '/privacy.html'],
@@ -147,6 +152,8 @@ async function guess(p){
   }
 
   console.log('\n==> the addresses that never get here any more');
+  /* Two kinds now: the extensionless form of a page's own name, and the eight
+     nicknames the learning paths already had in signup.html?path=. */
   /* The redirects are in vercel.json and dev/serve.js reads that file rather
      than restating it, so this exercises the real table. Two things have to
      hold and only one of them is obvious. The bare name has to move, and the
@@ -162,6 +169,8 @@ async function guess(p){
       ['/app',          308, '/app.html'],
       ['/terms',        308, '/terms.html'],
       ['/index.html',   308, '/'],
+      ['/frontend',     308, '/frontend-study-partner.html'],
+      ['/design',       308, '/ux-ui-design-study-partner.html'],
       ['/privacy.html', 200, null],
       ['/draft',        200, null],
       ['/404',          404, null],

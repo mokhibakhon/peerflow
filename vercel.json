@@ -129,6 +129,46 @@
       "source": "/ux-ui-design-study-partner",
       "destination": "/ux-ui-design-study-partner.html",
       "permanent": true
+    },
+    {
+      "source": "/aiml",
+      "destination": "/ai-machine-learning-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/backend",
+      "destination": "/backend-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/cybersecurity",
+      "destination": "/cybersecurity-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/data",
+      "destination": "/data-science-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/devops",
+      "destination": "/devops-cloud-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/frontend",
+      "destination": "/frontend-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/mobile",
+      "destination": "/mobile-development-study-partner.html",
+      "permanent": true
+    },
+    {
+      "source": "/design",
+      "destination": "/ux-ui-design-study-partner.html",
+      "permanent": true
     }
   ],
   "rewrites": [

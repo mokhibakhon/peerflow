@@ -266,6 +266,22 @@ rewrite tables out of `vercel.json` rather than restating them, so development
 cannot route differently from production, and it throws rather than guessing if
 a source is ever something other than a literal path.
 
+The eight learning paths also answer to the nickname they already had. Every
+landing page links `signup.html?path=frontend`, so `/frontend` redirects to
+`frontend-study-partner.html` and the other seven likewise — the alias is read
+off the page rather than invented, which is what stops the URL and the signup
+form ever meaning different things.
+
+`dev/live-check.sh` asks whether production matches this checkout: the IndexNow
+key returns its own key, `PF_BUILD` is the one in your working tree, every URL
+in the sitemap answers 200, the typed addresses redirect and — the one that
+matters most — the `.html` addresses still answer **directly**. If one of those
+ever redirects, the redirects have been pointed the wrong way and the site is
+advertising URLs that bounce. It is curl and nothing else, because it has to run
+on a laptop: the agent container cannot reach `www.peerflow.dev` at all. Pass an
+origin to point it somewhere else — `dev/live-check.sh http://127.0.0.1:9000` is
+how the script itself gets tested.
+
 `node dev/notfound-tests.js` (with `node dev/serve.js` running — no `PF_STUB`,
 there is no data layer on this page) covers what reads fine in the markup and is
 wrong in a browser: that the status is really 404 and not a soft 200; that the
