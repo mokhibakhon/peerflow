@@ -3,159 +3,113 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>What should a PeerFlow article look like? — PeerFlow draft</title>
-<meta name="robots" content="noindex,nofollow">
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%231D9E75%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
+<title>How to Run a Study-With-Me Session That Produces Work | PeerFlow</title>
+<meta name="description" content="The three sentences that decide whether a study-with-me session produces work, the shape of a 50-minute session, and the two things people hesitate about.">
+<link rel="canonical" href="https://www.peerflow.dev/how-to-run-a-study-with-me-session.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="PeerFlow">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="How to Run a Study-With-Me Session That Produces Work | PeerFlow">
+<meta property="og:description" content="The three sentences that decide whether a study-with-me session produces work, the shape of a 50-minute session, and the two things people hesitate about.">
+<meta property="og:url" content="https://www.peerflow.dev/how-to-run-a-study-with-me-session.html">
+<meta property="og:image" content="https://www.peerflow.dev/assets/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="PeerFlow — peer-to-peer study with me for tech learners">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to Run a Study-With-Me Session That Produces Work | PeerFlow">
+<meta name="twitter:description" content="The three sentences that decide whether a study-with-me session produces work, the shape of a 50-minute session, and the two things people hesitate about.">
+<meta name="twitter:image" content="https://www.peerflow.dev/assets/social.png">
+<meta name="twitter:image:alt" content="PeerFlow — peer-to-peer study with me for tech learners">
+<meta name="theme-color" content="#0b8f66">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20173%20171%22%20fill%3D%22%230b8f66%22%3E%3Crect%20x%3D%2279%22%20y%3D%220%22%20width%3D%2213%22%20height%3D%2215%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
-      onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
-<link rel="stylesheet" href="/assets/home.css">
-<link rel="stylesheet" href="/assets/seo.css">
-<style>
-/* THE DRAFT: an article page, which is a page type this site does not have yet.
- *
- * Phase 3 of SEO_ROADMAP.md names five of these. Before any of them ships there
- * has to be an answer to "what does an article on peerflow.dev look like", and
- * that answer is a design decision rather than a writing one — which is why the
- * whole of the first article is rendered below rather than described.
- *
- * Everything here reuses home.css and seo.css: the nav, the footer, .btn, .wrap
- * and .seo-cta are the landing pages' own. The rules below are only the parts an
- * article needs that a landing page never did — a measured prose column, the
- * standfirst, the script, the timeline, the objections and the mid-article call
- * to action. They live in this page while it is a draft so that nothing in
- * assets/ moves before the layout is agreed; on approval they lift into seo.css
- * and PF_BUILD gets bumped with them.
- *
- * Two elements carry the strategy rather than the styling.
- *
- * .script is the takeaway — three literal sentences somebody can use without
- * reading the rest of the page, placed high because content earns links from
- * people who did not finish reading. Prose alone gives them nothing to take.
- *
- * .tl is the session timeline, and it is the only thing here that could not
- * appear in a generic study-tips post: the blocks are read off assets/phases.js,
- * so a fifty-minute PeerFlow booking really is 25 focus, 5 break, 20 focus, and
- * a booking under thirty minutes really does stay one sitting. The article is
- * describing the product's own behaviour rather than recommending a technique
- * it borrowed from somewhere else.
- */
-
-/* ---------- the column ----------
-   65-70 characters. The landing pages are built out of cards and bands and can
-   run the full width; an article cannot, and this is the single biggest
-   difference between the two page types. */
-.art{max-width:44rem;margin:0 auto}
-
-.art-head{padding:14px 0 0}
-.art-kick{
-  display:inline-block;font-size:12px;font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--live-deep);background:var(--live-soft);
-  padding:5px 11px;border-radius:999px;margin:0 0 18px;
+<link rel="stylesheet" href="assets/home.css">
+<link rel="stylesheet" href="assets/seo.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://www.peerflow.dev/how-to-run-a-study-with-me-session.html#webpage",
+      "name": "How to Run a Study-With-Me Session That Produces Work | PeerFlow",
+      "url": "https://www.peerflow.dev/how-to-run-a-study-with-me-session.html",
+      "description": "The three sentences that decide whether a study-with-me session produces work, the shape of a 50-minute session, and the two things people hesitate about.",
+      "isPartOf": {
+        "@id": "https://www.peerflow.dev/#website"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://www.peerflow.dev/assets/social.png",
+        "width": 1200,
+        "height": 630
+      },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "Article",
+      "@id": "https://www.peerflow.dev/how-to-run-a-study-with-me-session.html#article",
+      "headline": "How to run a study-with-me session that produces work",
+      "description": "The three sentences that decide whether a study-with-me session produces work, the shape of a 50-minute session, and the two things people hesitate about.",
+      "mainEntityOfPage": {
+        "@id": "https://www.peerflow.dev/how-to-run-a-study-with-me-session.html#webpage"
+      },
+      "author": {
+        "@id": "https://www.peerflow.dev/#organization"
+      },
+      "publisher": {
+        "@id": "https://www.peerflow.dev/#organization"
+      },
+      "datePublished": "2026-08-27",
+      "dateModified": "2026-08-27",
+      "image": "https://www.peerflow.dev/assets/social.png",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.peerflow.dev/#website",
+      "url": "https://www.peerflow.dev/",
+      "name": "PeerFlow",
+      "publisher": {
+        "@id": "https://www.peerflow.dev/#organization"
+      },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.peerflow.dev/#organization",
+      "name": "PeerFlow",
+      "url": "https://www.peerflow.dev/",
+      "logo": "https://www.peerflow.dev/assets/logo.svg",
+      "email": "hello@peerflow.dev"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.peerflow.dev/how-to-run-a-study-with-me-session.html#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "PeerFlow",
+          "item": "https://www.peerflow.dev/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Running a study-with-me session",
+          "item": "https://www.peerflow.dev/how-to-run-a-study-with-me-session.html"
+        }
+      ]
+    }
+  ]
 }
-.art h1{font-size:clamp(30px,4.6vw,44px);line-height:1.13;letter-spacing:-.022em;margin:0 0 20px;text-wrap:balance}
-.art-lede{font-size:19px;line-height:1.62;color:var(--ink-soft);margin:0 0 22px}
-.art-meta{
-  display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13.5px;
-  color:var(--ink-faint);border-top:1px solid var(--line);padding-top:16px;margin:0 0 40px;
-}
-.art-meta b{color:var(--ink-soft);font-weight:600}
-
-/* ---------- prose ---------- */
-.art h2{font-size:25px;line-height:1.25;letter-spacing:-.016em;margin:44px 0 14px;text-wrap:balance}
-.art h3{font-size:18px;line-height:1.35;margin:28px 0 8px}
-.art p{font-size:17px;line-height:1.72;margin:0 0 18px;color:var(--ink)}
-.art p.small{font-size:15px;color:var(--ink-soft)}
-.art ul,.art ol{margin:0 0 20px;padding-left:22px}
-.art li{font-size:17px;line-height:1.7;margin:0 0 9px}
-.art li::marker{color:var(--live)}
-.art strong{font-weight:700}
-.art a:not(.btn){color:var(--live-deep);text-decoration:underline;text-underline-offset:2px}
-
-/* ---------- the timeline ---------- */
-.tl{margin:0 0 26px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card)}
-.tl-bar{display:flex;height:12px}
-.tl-bar i{display:block}
-.tl-bar i.f{background:var(--live)}
-.tl-bar i.b{background:#CFEADD;background:color-mix(in srgb, var(--live) 28%, #fff)}
-.tl-rows{padding:6px 0}
-.tl-row{display:grid;grid-template-columns:78px 1fr;gap:14px;padding:11px 18px;align-items:baseline}
-.tl-row + .tl-row{border-top:1px solid var(--line)}
-.tl-t{
-  font-size:12.5px;font-weight:700;letter-spacing:.04em;color:var(--live-deep);
-  font-variant-numeric:tabular-nums;
-}
-.tl-row.rest .tl-t{color:var(--ink-faint)}
-.tl-d b{display:block;font-size:15.5px;margin-bottom:2px}
-.tl-d span{display:block;font-size:14.5px;line-height:1.55;color:var(--ink-soft)}
-.tl-note{font-size:13.5px;color:var(--ink-faint);margin:0 0 34px;line-height:1.55}
-
-/* ---------- the pull-out ---------- */
-.art-note{
-  border-left:3px solid var(--live);padding:2px 0 2px 20px;margin:0 0 26px;
-}
-.art-note p{font-size:17px;line-height:1.65;color:var(--ink-soft);margin:0}
-.art-note p b{color:var(--ink)}
-
-/* ---------- what goes wrong ---------- */
-.art-bad{display:flex;flex-direction:column;gap:0;margin:0 0 26px}
-.art-bad div{padding:15px 0;border-bottom:1px solid var(--line)}
-.art-bad div:first-child{border-top:1px solid var(--line)}
-.art-bad b{display:block;font-size:16.5px;margin-bottom:4px}
-.art-bad span{display:block;font-size:15.5px;line-height:1.62;color:var(--ink-soft)}
-
-/* ---------- related ---------- */
-.art-rel{margin:44px 0 0;padding-top:26px;border-top:1px solid var(--line)}
-.art-rel h2{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 14px}
-.art-rel a{display:block;font-size:17px;font-weight:600;color:var(--ink);text-decoration:none;padding:9px 0}
-.art-rel a:hover{color:var(--live-deep)}
-.art-rel a span{display:block;font-size:14.5px;font-weight:400;color:var(--ink-soft);margin-top:2px}
-
-
-/* ---------- the takeaway ----------
-   The one element on the page somebody can use without reading the rest, and
-   therefore the one they screenshot. It is placed high on purpose: content that
-   earns links earns them from people who did not finish reading. */
-.script{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:6px 0;margin:0 0 12px}
-.script > div{padding:16px 22px}
-.script > div + div{border-top:1px solid var(--line)}
-.script .w{display:block;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--live-deep);margin-bottom:8px}
-.script q{display:block;font-size:17.5px;line-height:1.6;quotes:none}
-.script q b{font-weight:700;background:var(--live-soft);padding:1px 5px;margin:0 -2px;border-radius:4px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
-
-/* ---------- objections ---------- */
-.obj{margin:0 0 26px}
-.obj > div{padding:18px 0;border-bottom:1px solid var(--line)}
-.obj > div:first-child{border-top:1px solid var(--line)}
-.obj h3{margin:0 0 7px;font-size:17.5px}
-.obj p{font-size:16px;margin:0 0 10px}
-.obj p:last-child{margin-bottom:0}
-
-/* ---------- the mid-article call to action ----------
-   Quieter than .seo-cta, because it interrupts rather than closes. */
-.mid{
-  display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-  background:var(--deep);color:#fff;border-radius:16px;padding:20px 24px;margin:0 0 30px;
-}
-.mid p{margin:0;color:#CFE7DD;font-size:16px;line-height:1.55;max-width:38ch}
-.mid p b{color:#fff}
-/* .btn is built for a light ground; on the dark band it needs inverting. */
-.mid .btn{background:#fff;color:var(--deep)}
-.mid .btn:hover{background:#CFE7DD}
-
-/* the banner that says this is a draft, not part of the design */
-.dnote{
-  background:#12352C;color:#D6ECE2;padding:13px 0;font-size:14px;line-height:1.5;
-}
-.dnote .wrap{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
-.dnote b{color:#7FE3BC}
-</style>
+</script>
 </head>
 <body>
-
-<div class="dnote"><div class="wrap"><b>/draft</b><span>Proposed article layout, rendered with the whole of the first Phase&nbsp;3 article. Nothing in <code>assets/</code> has changed. Not linked, not indexed.</span></div></div>
 
 <div class="wrap">
   <nav class="nav" aria-label="Main navigation">
@@ -355,7 +309,7 @@
 
     <div class="art-rel">
       <h2>Related</h2>
-      <a href="#">Study-partner compatibility checklist
+      <a href="/study-partner-compatibility-checklist.html">Study-partner compatibility checklist
         <span>The eight things worth checking before you commit to a recurring slot with somebody.</span></a>
       <p class="small" style="margin:14px 0 0">Or start from your path:
         <a href="/frontend-study-partner.html">Frontend</a> ·
@@ -368,7 +322,7 @@
         <a href="/ux-ui-design-study-partner.html">UX/UI Design</a></p>
     </div>
 
-  </article>
+    </article>
   </main>
 
   <footer><span>peerflow — peer-to-peer study with me for tech learners</span><span><a href="/">Home</a> · <a href="/conduct.html">Code of conduct</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a></span></footer>

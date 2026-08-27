@@ -715,3 +715,16 @@ footer a{color:#CFE7DD}
    at this width was `a:not(.btn)` and could be read as catching it. The mobile
    rule is `.nav-right > a` now, which only ever matches links, so the chip —
    a div — survives on its own and sits beside the Menu button. */
+
+/* Two guides, linked from the homepage. An indexable page that nothing links
+   to is one search engines discount — dev/seo-tests.js asserts every one of
+   them has at least one linker — and separately, somebody still deciding
+   whether to sign up is exactly the person these two are written for. */
+.guides{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.guides a{
+  display:block;padding:20px 22px;border:1px solid var(--line);border-radius:14px;
+  background:var(--card);text-decoration:none;color:var(--ink);
+}
+.guides a:hover{border-color:var(--live)}
+.guides b{display:block;font-size:17px;font-weight:700;line-height:1.35;margin-bottom:6px}
+.guides span{display:block;font-size:15px;line-height:1.6;color:var(--ink-soft)}
