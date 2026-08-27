@@ -70,9 +70,20 @@ congratulating the user.
   the agent proxy 403s them on CONNECT and curl returns an empty body. An empty
   body is not evidence the site is stale. Do not tell the user something isn't
   live based on a curl.
-- **Two Vercel projects are connected**: `peerflow` (production,
-  www.peerflow.dev) and `peerflow-apfq` (a duplicate that double-deploys every
-  push). Deleting `peerflow-apfq` is pending with the user.
+- **Two Vercel projects exist; only one of them matters.** `peerflow` is
+  production: it holds `www.peerflow.dev`, builds `main` of this repository,
+  and `peerflow.dev` redirects to it. The other is `peer-flow-9fvn`, wired to
+  `mokhibakhon/peer_flow` — the repository name from before the rename — and
+  it last built in August 2025, because nothing pushes there any more.
+
+  This entry used to name the second project `peerflow-apfq` and describe it as
+  a duplicate that double-deploys every push. Neither was still true when it was
+  checked: no project by that name is in the account, and one watching a
+  repository nobody pushes to cannot double-deploy anything. Deleting
+  `peer-flow-9fvn` is pending with the owner, and the only thing to confirm
+  first is that the apex `peerflow.dev` is attached to `peerflow` rather than
+  to it — `curl -sI https://peerflow.dev` answering 308 to www is what that
+  looks like from outside.
 - **Postgres `CHECK` constraints cannot contain subqueries.** Use `jsonb_path_exists`.
   In jsonpath, use `strict` — `lax` flattens nested arrays and lets bad shapes
   through — and remember `like_regex` is XQuery, so `.` skips newlines without
