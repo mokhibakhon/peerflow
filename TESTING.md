@@ -11,11 +11,20 @@ the console line, not the sentence — the sentence is deliberately vague.
 
 ## 0. Before you start
 
-- [ ] **Re-run the schema.** Open
-      https://raw.githubusercontent.com/mokhibakhon/peerflow/main/supabase/schema.sql
-      → select all → copy → Supabase → SQL Editor → paste → Run.
-      Before running, check the pasted text contains **`answer_session`**.
-      Without it, accept, decline and cancel move only one side.
+- [ ] **Bring the database up to date.** Open
+      https://raw.githubusercontent.com/mokhibakhon/peerflow/main/supabase/migrate-2026-08.sql
+      → select all → copy → Supabase → SQL Editor → paste → Run. It should say
+      *"Success. No rows returned"*. Safe to run twice: every statement in it is
+      guarded, so if you have already run some of these separately this changes
+      nothing that is already correct.
+
+      This line used to point at `schema.sql` and tell you to check the paste
+      contained `answer_session`. That was right when it was written and has
+      been wrong for a year: `schema.sql` is the beginning, and the goal, the
+      plan, attendance, reschedule, dormancy, notifications and the move off
+      Jitsi all landed as separate migrations afterwards. Running it alone
+      leaves every one of those out, and each fails quietly rather than loudly —
+      which is exactly the kind of thing this script is supposed to catch.
 - [ ] **Two separate browser profiles.** One normal window, one incognito — or
       two different browsers. **Not two tabs.** Supabase keeps the session in
       localStorage, which tabs share, so two tabs are one account wearing two
@@ -141,7 +150,77 @@ side that didn't click.
 - [ ] Switch partner → the day and time jump to a window *that* partner
       shares.
 
-## 5. Things that should NOT happen
+## 5. The call
+
+This is the section that was missing, and it is the one worth doing first if
+you only do one. Everything above it can pass on a site where nobody can
+actually meet — the steps in section 4 check that Join is correctly *absent*
+until fifteen minutes before, and then stop. Video needs a LiveKit project and
+two deployed functions (**[docs/VIDEO.md](docs/VIDEO.md)**), none of which this
+repository can do for you and none of which anything else here would notice
+were missing.
+
+- [ ] **The tell.** If Join says *"Calls are not set up on this site yet"*,
+      stop — LiveKit is not configured, and the rest of this section cannot
+      pass. Nothing is broken in the code; steps 2 to 5 of `docs/VIDEO.md`
+      have not been done.
+- [ ] Book a session for **fifteen minutes from now** (section 4a), so you are
+      not waiting on the clock.
+- [ ] **M:** Join from Today → the lobby, with your own camera in the preview.
+      The preview is mirrored, on purpose.
+- [ ] Mic and Camera toggles both read *on*. Turn the camera off → the preview
+      goes to *Camera off*, not to a frozen frame or a black rectangle.
+- [ ] Camera and Microphone pickers list your real devices.
+- [ ] **M:** Join the call → the room. Your partner's tile says
+      *Waiting for Munisa…*, yours sits in the corner.
+- [ ] **N:** Join from the other window → **each of you sees the other**. This
+      is the whole product; if it fails, nothing above it matters.
+- [ ] The bar carries Mic, Camera, Share and Sound. Share your screen → the
+      other window shows it and the tile switches to fitting the whole screen
+      rather than filling the tile.
+- [ ] Report is there. The code of conduct promises report and block *"whether
+      or not you're still on the call"*, so it has to be reachable from inside
+      one.
+- [ ] **Both:** Leave.
+- [ ] Attendance was recorded — this is the webhook, and it fails silently:
+
+      ```sql
+      select user_id, attended, joined_at, left_at, status
+        from public.sessions
+       where room_name is not null
+       order by starts_at desc limit 4;
+      ```
+
+      `attended` still null after a call you both joined means LiveKit's
+      webhook is not arriving. `docs/VIDEO.md` steps 4 and 5, in that order.
+      Everything on screen will have looked perfect.
+
+## 6. Email
+
+The bell is **not** evidence. `supabase/migration-notify.sql` says it outright
+— *"In-app works with no email set up at all"* — so a working bell tells you
+nothing about whether anybody who is not currently looking at the app ever
+hears from it. That is the whole point of email here: the partner who proposed
+a time is not sitting in the tab waiting.
+
+- [ ] **M:** propose a time to N (section 4).
+- [ ] **N:** the bell rings **immediately**. That much works with no email set
+      up at all, so do not stop here.
+- [ ] **N:** an email arrives shortly after, to the address on the account.
+- [ ] If the bell rang and no email came, this says which half is missing:
+
+      ```sql
+      select title, created_at, emailed_at from public.notifications
+       order by created_at desc limit 5;
+      ```
+
+      `emailed_at` **null** → the dispatch trigger never fired: `pg_net` is not
+      installed, or step 2 of `docs/EMAIL.md` was missed. `emailed_at`
+      **set** → the function ran and something downstream refused it; the
+      function's logs are in the Supabase dashboard and Resend's dashboard
+      shows what it rejected.
+
+## 7. Things that should NOT happen
 
 - [ ] No **Start the call** button on the Partner page at any point.
 - [ ] The Partner page has **no** booking form — only who your partner is, and
@@ -153,7 +232,7 @@ side that didn't click.
 - [ ] **People page:** *Asked*, *Partners*, *Declined*, *Waiting on you* and
       *Send request* are all the same size and weight in the table.
 
-## 6. Speed
+## 8. Speed
 
 - [ ] Hard-refresh Sessions (Ctrl/Cmd+Shift+R). Text should appear almost at
       once, then the cards fill in. If text itself is slow, tell me.
