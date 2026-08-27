@@ -145,9 +145,17 @@ window.pfUserMenu = (function(){
     return true;
   }
 
+  /* The avatar the chip is currently wearing. A caller that knows the name and
+     nothing else — app-profile.html, the moment a save returns — would
+     otherwise pass undefined and repaint a Google account's photo as its
+     initial, which reads as the save having broken something. */
+  var lastAvatar = '';
+
   /* Pages call this once they know the real name/email from the profile. */
   function setUser(name, email, avatarUrl){
     if (!btn) return;
+    if (avatarUrl === undefined || avatarUrl === null) avatarUrl = lastAvatar;
+    else lastAvatar = avatarUrl;
     if (name) {
       var f = document.getElementById('um-face');
       var bf = document.getElementById('um-bigface');
@@ -175,11 +183,41 @@ window.pfUserMenu = (function(){
       var cached = '';
       try { cached = localStorage.getItem('pf_name') || ''; } catch(e){}
       var nm = meta.name || meta.full_name || cached || (user.email || '').split('@')[0];
-      setUser(nm, user.email, meta.avatar_url || meta.picture || '');
+      var avatar = meta.avatar_url || meta.picture || '';
+      setUser(nm, user.email, avatar);
       try {
         if (nm && nm !== cached) localStorage.setItem('pf_name', nm);
         if (user.email) localStorage.setItem('pf_email', user.email);
       } catch(e){}
+
+      /* ...and then correct it from the profile, which is the only copy of
+         the name the person can actually edit.
+
+         user_metadata.name is written once, at signup, and nothing updates it
+         afterwards. So changing your name on app-profile.html wrote
+         first_name and last_name to public.profiles and left this chip
+         showing whatever you had typed on the way in — through a save,
+         through a refresh, permanently. The save was even writing pf_name
+         correctly; the cache then lost to meta.name on every subsequent load,
+         which is exactly why it looked like the save had not happened.
+
+         Two things about the ordering are deliberate. The session paints
+         first, so the chip is never blank while a second request is in
+         flight. And this is a read of the signed-in user's own row rather
+         than of localStorage, so it cannot reintroduce the bug the comment
+         above describes, where the previous person's cached name survived
+         signing in as somebody else. */
+      if (!pf.getProfile) return;
+      pf.getProfile().then(function(p){
+        /* null is no row yet, false is a read that failed. Neither is a name,
+           and neither should disturb what the session already painted. */
+        if (!p) return;
+        var full = [p.first_name, p.last_name].filter(Boolean).join(' ').trim()
+                || String(p.name || '').trim();
+        if (!full || full === nm) return;
+        setUser(full, user.email, avatar);
+        try { localStorage.setItem('pf_name', full); } catch(e){}
+      }).catch(function(){});
     });
   }
 

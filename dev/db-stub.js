@@ -33,6 +33,10 @@
                    same minute at once, or when the partner is already busy
      __provider    'google' to see the Settings page treat this as an OAuth
                    account, which has no PeerFlow password to change
+     __authName    a name on the auth record's user_metadata, which signup
+                   writes once and nothing updates afterwards. The header chip
+                   preferred it over the profile, so a name changed on
+                   app-profile.html never reached the corner of the screen
      __blocks      rows for the blocked list in Settings, as
                    [{id, at, name}] — name is usually null in real life,
                    because blocking hides their profile from you
@@ -199,7 +203,12 @@ window.pf = (function(){
     return out;
   }
 
-  var PROFILE={id:'u1',name:'Mohibaxon Omonhonova',track_id:'cybersecurity',topic:'Cybersecurity',
+  var PROFILE={id:'u1',name:'Mohibaxon Omonhonova',
+    /* The split columns a real row has carried since schema.sql. The fixture
+       predated them, so nothing local could show the header chip reading the
+       profile rather than the signup metadata. */
+    first_name:'Mohibaxon',last_name:'Omonhonova',
+    track_id:'cybersecurity',topic:'Cybersecurity',
     level:'tutorials',timezone:'Asia/Tashkent',availability:MY_AVAIL,stage_index:3,pref_minutes:50,
     created_at:'2026-06-01T00:00:00Z',
     get sessions_per_week(){ return window.__goalCol===null?undefined:(window.__goalCol||3); },
@@ -279,9 +288,11 @@ window.pf = (function(){
        gets and what the menu falls back to. */
     currentUser:function(){return P({id:'u1',email:'you@example.edu',
       app_metadata:{provider:window.__provider||'email'},
-      user_metadata:window.__noAvatar ? {} : {
-        avatar_url:'https://lh3.googleusercontent.com/a/pf-stub-avatar=s96-c'
-      }})},
+      user_metadata:Object.assign(
+        window.__authName ? {name:window.__authName} : {},
+        window.__noAvatar ? {} : {
+          avatar_url:'https://lh3.googleusercontent.com/a/pf-stub-avatar=s96-c'
+        })})},
     getProfile:function(){return P(PROFILE)},
     saveProfile:function(){note('saveProfile');return P({saved:true})},
     fetchPeers:function(){return P([
