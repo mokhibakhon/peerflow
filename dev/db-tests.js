@@ -197,6 +197,23 @@ const THEM = '22222222-2222-4222-8222-222222222222';
     ok('four concurrent fetchSessions() callers make one request → ' + sessionReads,
        sessionReads === 1, 'each caller paid its own round trip');
 
+    /* myRequests() is reached through two doors: notify.js calls it for the
+       bell, and the page calls acceptedPartners(), which calls it. Each read
+       costs two queries — partner_requests, then the profiles join — so two
+       callers made four rows for one question. */
+    const reqClient = fakeClient(state => {
+      if (state.table === 'partner_requests') {
+        return { data: [{ id: 'r1', from_user: THEM, to_user: ME, status: 'accepted',
+                          created_at: '2026-08-01T00:00:00Z' }], error: null };
+      }
+      return { data: [{ id: THEM, name: 'Amir Karimov' }], error: null };
+    }, ME);
+    const pf3 = loadDb(reqClient);
+    await Promise.all([pf3.myRequests(), pf3.acceptedPartners()]);
+    const reqReads = reqClient.__calls.filter(c => c.table === 'partner_requests' && !c.write).length;
+    ok('myRequests() and acceptedPartners() together read partner_requests once → ' + reqReads,
+       reqReads === 1, 'acceptedPartners went round myRequests and asked again');
+
     /* And what is deliberately NOT cached. A caller arriving after the burst
        has settled gets a fresh read, because the cache holds a promise only
        while it is in flight. That is the whole safety argument: a settled
