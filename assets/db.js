@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-27d';
+window.PF_BUILD = '2026-08-28a';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -1892,14 +1892,45 @@ window.pf = (function(){
      null and zero mean different things, so the caller can tell them apart. */
   function trackCounts(){
     if (!client) return Promise.resolve(null);
-    return client.from('profiles').select('track_id').not('track_id', 'is', null).then(function(r){
-      if (r.error) return null;
+    /* track_counts(), not a select on profiles. This runs on the landing page
+       with no session, and profiles is no longer readable without one — the
+       old version downloaded a track_id for every account on the platform to
+       produce eight numbers, and the same request with select=* handed over
+       names, timezones and availability to anybody holding the publishable
+       key. The function returns the eight numbers and has no way to be asked
+       about a person.
+
+       Falling back to the old query when the function is missing is the same
+       courtesy every other reader in this file extends to a database that has
+       not had the migration pasted in yet. It returns null on any other
+       error, and null and zero mean different things here: the caller says
+       nothing at all rather than "be the first" to eight tracks that may be
+       full. */
+    function tally(rows){
       var out = {};
       Object.keys(trackNames).forEach(function(id){ out[id] = 0; });
-      (r.data || []).forEach(function(row){
-        if (row.track_id && out.hasOwnProperty(row.track_id)) out[row.track_id]++;
+      /* Two row shapes reach this: the function's one row per track with a
+         count, and the fallback's one row per person with no count at all. A
+         row with no learners column is a person, so it is worth one. Anything
+         else is coerced rather than type-tested, because PostgREST is free to
+         send a bigint as a JSON string and a typeof check against 'number'
+         would quietly score a track of forty as one. */
+      (rows || []).forEach(function(row){
+        if (!row.track_id || !out.hasOwnProperty(row.track_id)) return;
+        if (row.learners === undefined || row.learners === null) { out[row.track_id] += 1; return; }
+        var n = Number(row.learners);
+        out[row.track_id] += (isFinite(n) ? n : 0);
       });
       return out;
+    }
+    return client.rpc('track_counts').then(function(r){
+      if (!r.error) return tally(r.data);
+      if (r.error.code === 'PGRST202' ||
+          /function .* does not exist/i.test(String(r.error.message || ''))) {
+        return client.from('profiles').select('track_id').not('track_id', 'is', null)
+          .then(function(f){ return f.error ? null : tally(f.data); });
+      }
+      return null;
     }).catch(function(){ return null; });
   }
 
