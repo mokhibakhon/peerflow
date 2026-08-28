@@ -41,9 +41,18 @@
 -- out, including for the definer functions, and carving one out is how this
 -- kind of hole reopens.
 --
--- created_at and id go with them for the same reason and at no extra cost:
--- sessions.pair_id references this row's id, so an id that can move is a
--- session that can be re-pointed at a partnership it was never part of.
+-- id goes with them: sessions.pair_id references this row's id, so an id that
+-- can move is a session that can be re-pointed at a partnership it was never
+-- part of.
+--
+-- created_at deliberately does NOT. It was in the first version of this,
+-- added on the reasoning that it cost nothing — and it cost sixteen tests.
+-- The dormancy rules are all about how long a partnership has been quiet, so
+-- every fixture that exercises them backdates created_at to make a
+-- partnership old. Freezing it broke all of them, and it was never the
+-- forgery: nobody gains anything by ageing their own partnership. A guard
+-- that blocks real work to prevent an attack nobody would mount is a guard
+-- that gets removed in a hurry by somebody who has not read this far.
 -- ============================================================
 create or replace function public.guard_partner_request()
 returns trigger
@@ -53,10 +62,9 @@ as $$
 begin
   -- Before anything else, and with no exception for anybody: a request is
   -- between the two people it was sent between.
-  if new.from_user  is distinct from old.from_user
-  or new.to_user    is distinct from old.to_user
-  or new.id         is distinct from old.id
-  or new.created_at is distinct from old.created_at then
+  if new.from_user is distinct from old.from_user
+  or new.to_user   is distinct from old.to_user
+  or new.id        is distinct from old.id then
     raise exception 'a partner request cannot change who it is between'
       using errcode = 'PF040';
   end if;

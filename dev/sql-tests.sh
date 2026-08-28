@@ -103,7 +103,12 @@ SQL
 # arrangement nobody has — worse, it would keep passing if the fold were
 # broken, because the standalone files would quietly supply what the paste had
 # failed to.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql"
+# migration-forgery.sql is on the end because a real database needs it on the
+# end: it is a migration people run after the consolidated one, not a rewrite
+# of it. Leaving it out of this list is how its three cases passed for the
+# wrong reason the first time they were written — the trigger they test was
+# never in the database, so the forgery simply succeeded and raised nothing.
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
