@@ -39,9 +39,22 @@ function fakeClient(answer, signedInAs) {
       or() { return self; },
       in() { return self; },
       eq() { return self; },
+      is() { return self; },
+      gte() { return self; },
+      lte() { return self; },
+      limit() { return self; },
       order() { return self; },
+      /* getProfile() ends its chain on maybeSingle(), and saveProfile() on
+         upsert(). Neither existed here, so both fell over as "not a function"
+         — which is why a suite written to cover this file's own logic was
+         still not exercising the two calls every page makes first. */
+      maybeSingle() { state.one = true; return self; },
+      single() { state.one = true; return self; },
+      upsert(row) { state.write = 'upsert'; state.row = row; return self; },
+      update(row) { state.write = 'update'; state.row = row; return self; },
+      insert(row) { state.write = 'insert'; state.row = row; return self; },
       then(res, rej) {
-        calls.push({ table: state.table, cols: state.cols });
+        calls.push({ table: state.table, cols: state.cols, write: state.write || null });
         return Promise.resolve(answer(state)).then(res, rej);
       }
     };
@@ -140,6 +153,92 @@ const THEM = '22222222-2222-4222-8222-222222222222';
        !!b && Array.isArray(b.incoming), 'got ' + JSON.stringify(b && Object.keys(b)));
     ok('  without re-asking for the column it already knows is missing',
        asked <= 3, 'partner_requests reads: ' + asked);
+  }
+
+
+  console.log('\n==> the readers a page asks for from several places at once');
+  /* The measurement this was written from: on app-sessions.html the network
+     panel showed profiles?select=*&id=eq.<me> four times — 412ms, 787ms,
+     1.19s, 1.59s — because appshell.js, usermenu.js, the page itself and
+     db.js internals each asked independently and the four queued behind each
+     other. Nothing in this file deduplicated anything, so every caller paid a
+     full round trip for an answer another caller already had in flight.
+
+     Counting is the only way to see it. A test that awaits getProfile() and
+     checks the value passes identically whether one request was made or four,
+     which is exactly why this went unnoticed for so long. */
+  {
+    const client = fakeClient(state => {
+      if (state.table === 'profiles') {
+        return { data: { id: ME, name: 'Mohibaxon Omonhonova' }, error: null };
+      }
+      return { data: [], error: null };
+    }, ME);
+    const pf = loadDb(client);
+    const reads = t => client.__calls.filter(c => c.table === t && !c.write).length;
+
+    /* Concurrently, the way a page does it — not awaited one after another. */
+    const all = await Promise.all([
+      pf.getProfile(), pf.getProfile(), pf.getProfile(), pf.getProfile(),
+    ]);
+    ok('four concurrent getProfile() callers make one request → ' + reads('profiles'),
+       reads('profiles') === 1, 'each caller paid its own round trip');
+    ok('  and every one of them still gets the profile',
+       all.every(p => p && p.id === ME), 'got ' + JSON.stringify(all));
+
+    /* fetchSessions() showed the same four in the panel, from the page twice
+       and notify.js once with db.js calling it again internally. */
+    const sessionsClient = fakeClient(() => ({ data: [], error: null }), ME);
+    const pf2 = loadDb(sessionsClient);
+    await Promise.all([
+      pf2.fetchSessions(), pf2.fetchSessions(), pf2.fetchSessions(), pf2.fetchSessions(),
+    ]);
+    const sessionReads = sessionsClient.__calls.filter(c => c.table === 'sessions' && !c.write).length;
+    ok('four concurrent fetchSessions() callers make one request → ' + sessionReads,
+       sessionReads === 1, 'each caller paid its own round trip');
+
+    /* And what is deliberately NOT cached. A caller arriving after the burst
+       has settled gets a fresh read, because the cache holds a promise only
+       while it is in flight. That is the whole safety argument: a settled
+       value is never handed out, so no write anywhere in this file can leave
+       this reader serving a stale row — at the cost of a later read still
+       paying for itself, which is what it cost before anyway. */
+    const later = await pf.getProfile();
+    ok('  but a caller after they settle reads again → ' + reads('profiles'),
+       reads('profiles') === 2 && later && later.id === ME,
+       'the cache outlived the burst, which is how stale rows get served');
+  }
+
+  console.log('\n==> and nothing survives long enough to go stale');
+  /* The half that makes memoising safe rather than a new bug. A result cache
+     would need every writer in db.js — saveProfile, saveGoal, the two that
+     write plan_weeks, and the rest — to remember to drop it, and the one that
+     forgot would serve the row from before the save. Holding the promise only
+     while it is in flight means there is no such writer to forget. */
+  {
+    let name = 'Before';
+    const client = fakeClient(state => {
+      if (state.table === 'profiles') return { data: { id: ME, name: name }, error: null };
+      return { data: [], error: null };
+    }, ME);
+    const pf = loadDb(client);
+
+    const before = await pf.getProfile();
+    ok('the first read sees the row as it is', before && before.name === 'Before');
+
+    name = 'After';
+    /* No write at all, and the next read still sees the change: there is no
+       settled value anywhere to serve instead. */
+    const next = await pf.getProfile();
+    ok('  the next read sees a row that changed underneath it → ' + JSON.stringify(next && next.name),
+       next && next.name === 'After',
+       'a settled value was served, so a stale row is now reachable');
+
+    await pf.saveProfile({ name: 'Third' });
+    name = 'Third';
+    const after = await pf.getProfile();
+    ok('  and a read after saveProfile() sees the new row → ' + JSON.stringify(after && after.name),
+       after && after.name === 'Third');
   }
 
   console.log('\n' + '='.repeat(51));

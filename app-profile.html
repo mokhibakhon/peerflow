@@ -327,6 +327,12 @@
              your path here leaves the old one in the header for good. */
           if (trackSel.value) localStorage.setItem('pf_track', trackSel.value);
         } catch(err) {}
+        /* The header chip is built once, on page load, so without this your
+           new name only appeared on the next navigation. usermenu.js reads the
+           profile now, so a refresh corrects it too — but a save you have to
+           refresh to believe is not one anybody trusts. Name only: the avatar
+           is deliberately left out and setUser keeps the one it is wearing. */
+        if (nm && window.pfUserMenu) pfUserMenu.setUser(nm);
       } else if (res && res.demo) {
         note.style.color = '#c0392b';
         note.textContent = 'You’re not signed in — log in and this will save.';

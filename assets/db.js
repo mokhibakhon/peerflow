@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-26g';
+window.PF_BUILD = '2026-08-27d';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -284,6 +284,48 @@ window.pf = (function(){
 
   /* ---------- profile ---------- */
 
+  /* ---------- one request per burst ----------
+
+     Several modules ask the same question at the same moment as a page loads.
+     On app-sessions.html, appshell.js, usermenu.js and the page itself each
+     call getProfile(), and db.js calls it again from inside two of its own
+     readers. The network panel showed profiles?select=*&id=eq.<me> four times
+     over, at 412ms, 787ms, 1.19s and finally 1.59s — not because the query got
+     slower, but because four identical requests queued behind one another. The
+     same happened to fetchSessions(). That escalating tail was most of a
+     three-second page.
+
+     None of those callers wants a different answer, so only one of them needs
+     to travel. This holds the promise while it is in flight and hands the same
+     one to everybody who asks meanwhile.
+
+     WHAT THIS DELIBERATELY DOES NOT DO. It drops the promise the moment it
+     settles, so a caller arriving later still pays for its own read. A result
+     cache would be faster and is the obvious next thought — and it would need
+     every writer in this file to remember to drop it: saveProfile, saveGoal,
+     both of the ones that write plan_weeks, the session inserts, the RPCs.
+     The one that forgot would serve the row from before the save, on a page
+     that had just written it, which is a bug this codebase has already shipped
+     once in almost this exact place — see the note in myRequests() and the
+     header of dev/db-tests.js, which exists because of it.
+
+     Holding only what is in flight means there is no writer to forget: nothing
+     settled is ever handed out, so no sequence of writes can make this serve a
+     stale row. It fixes the duplication that was measured and takes on no new
+     way to be wrong. */
+  var inFlight = {};
+  function once(key, make){
+    if (inFlight[key]) return inFlight[key];
+    var p = make();
+    inFlight[key] = p;
+    /* Cleared on rejection as well as on success, or one failed read would
+       pin a rejected promise in the table and every later caller on the page
+       would get the same failure back without ever retrying. */
+    function drop(){ if (inFlight[key] === p) delete inFlight[key]; }
+    p.then(drop, drop);
+    return p;
+  }
+
   /* The signed-in user's profile row.
        row   — found it
        null  — signed out, or signed in with no row yet
@@ -292,11 +334,13 @@ window.pf = (function(){
      request into "you never signed up". Every use is falsy-safe either way. */
   function getProfile(){
     if (!client) return Promise.resolve(null);
-    return currentUser().then(function(user){
-      if (!user) return null;
-      return client.from('profiles').select('*').eq('id', user.id).maybeSingle()
-        .then(function(r){ return r.error ? false : (r.data || null); });
-    }).catch(function(){ return false; });
+    return once('profile', function(){
+      return currentUser().then(function(user){
+        if (!user) return null;
+        return client.from('profiles').select('*').eq('id', user.id).maybeSingle()
+          .then(function(r){ return r.error ? false : (r.data || null); });
+      }).catch(function(){ return false; });
+    });
   }
 
   /* Save the signed-in user's profile. Called from onboarding (track +
@@ -360,8 +404,18 @@ window.pf = (function(){
 
   /* Every session booked for the signed-in user, soonest first. Rows are
      created when two partners agree a time; nothing is generated. */
+  /* The same burst as getProfile above, and measured the same way: on
+     app-sessions.html the page reads sessions twice and notify.js reads them
+     again for the bell, so the identical select went out four times. Split in
+     two rather than wrapped in place, because the body below is 150 lines of
+     column ladder and re-indenting all of it to gain one level would bury a
+     six-line change in a diff nobody could review. */
   function fetchSessions(){
     if (!client) return Promise.resolve(null);
+    return once('sessions', readSessions);
+  }
+
+  function readSessions(){
     return currentUid().then(function(uid){
       if (!uid) return null;
       /* Newer columns arrive with later migrations, and asking for one the

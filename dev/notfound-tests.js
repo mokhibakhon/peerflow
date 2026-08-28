@@ -202,10 +202,26 @@ async function guess(p){
   }
 
   console.log('\n==> the offer has to be a real page');
-  let t = await open(b, '/frontend');
+  /* The probe has to be an address that still reaches this page, and /frontend
+     stopped being one in the very commit that added the section above: it is a
+     308 to frontend-study-partner.html now, so this block was opening the real
+     landing page, finding no guess line on a page that has none, and dying on
+     `g.href` of null — a TypeError that says nothing about redirects and left
+     the whole suite red on a clean checkout.
+     /front is a prefix of exactly one slug and is not one of the eight
+     nicknames. The 404 and the guess are each asserted before the link is
+     followed, so the next redirect to swallow this probe fails here saying
+     which of the two went wrong instead of throwing. */
+  let t = await open(b, '/front');
+  ok('/front still reaches this page → ' + t.status, t.status === 404,
+     'a redirect now swallows the probe; pick a path that still 404s');
   const g = await guess(t.p);
-  const followed = await t.p.request.get(BASE + g.href);
-  ok('the suggested link resolves: ' + g.href + ' → ' + followed.status(), followed.status() === 200);
+  ok('/front is offered a guess', g !== null,
+     'no guess line on the page — prefix matching, or the probe, has moved');
+  if (g) {
+    const followed = await t.p.request.get(BASE + g.href);
+    ok('the suggested link resolves: ' + g.href + ' → ' + followed.status(), followed.status() === 200);
+  }
   await t.p.close();
 
   console.log('\n==> a path deep enough to break relative links');
