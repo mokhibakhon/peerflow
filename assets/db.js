@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-28a';
+window.PF_BUILD = '2026-08-28b';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -932,8 +932,22 @@ window.pf = (function(){
      to clear. */
   var reqCols = null;
 
+  /* The same burst again, reached through two different doors. notify.js asks
+     for myRequests() to build the bell; the page asks for acceptedPartners(),
+     which calls myRequests() itself a few lines below. Neither knows about the
+     other, so after the getProfile and fetchSessions work landed the panel
+     still showed partner_requests twice and the profiles join that follows it
+     twice — four rows for one question.
+
+     Split for the same reason readSessions is: the body is a column ladder
+     with a long note in the middle of it, and re-indenting the whole thing to
+     gain one level would hide four lines inside a diff of eighty. */
   function myRequests(){
     if (!client) return Promise.resolve(null);
+    return once('requests', readRequests);
+  }
+
+  function readRequests(){
     return currentUid().then(function(uid){
       if (!uid) return null;
       function read(cols){
