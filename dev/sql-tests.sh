@@ -108,7 +108,7 @@ SQL
 # of it. Leaving it out of this list is how its three cases passed for the
 # wrong reason the first time they were written — the trigger they test was
 # never in the database, so the forgery simply succeeded and raised nothing.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql"
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
@@ -483,19 +483,29 @@ check "your own profile is never hidden from you" ok "
       raise exception 'A cannot see A'; end if;
   end \$\$;"
 
-# This is the case that found the real rule. The policy was first written as
-# a CASE whose first arm was `auth.uid() is null then true`, on the theory
-# that ordering would keep a signed-out reader away from a function anon
-# cannot execute. It did not: this failed with "permission denied for function
+# This is the case that found the real rule, and it is still about the grant
+# rather than about what anon may read. The policy was first written as a CASE
+# whose first arm was `auth.uid() is null then true`, on the theory that
+# ordering would keep a signed-out reader away from a function anon cannot
+# execute. It did not: it failed with "permission denied for function
 # blocked_with" while sitting on that arm, because EXECUTE is checked when the
 # expression is prepared rather than when an arm is taken. The fix was the
 # grant, not the ordering. Take the grant back out of migration-safety.sql and
-# this is the case that goes red.
-check "signed-out reads of profiles still work" ok "
+# this case goes red.
+#
+# What it asserts changed with migration-profiles-private.sql. It used to
+# require that anon saw rows, because the policy then read as `true` for a
+# caller with no identity. Anon now sees none — that is the point of that
+# migration — but the hazard this case exists for is unchanged, because
+# `auth.uid() is not null and (... or not blocked_with(id))` is still one
+# expression that anon prepares. So the assertion is now the harder one:
+# zero rows AND no error. A permission failure here would surface to the
+# landing page as a broken request rather than an empty answer.
+check "a signed-out reader is refused cleanly, not with a permission error" ok "
   set local role anon;
   do \$\$ declare n int; begin
     select count(*) into n from public.profiles;
-    if n < 2 then raise exception 'anon saw % profiles', n; end if;
+    if n <> 0 then raise exception 'anon saw % profiles', n; end if;
   end \$\$;"
 
 check "the blocked party cannot read the row that names them" ok "
@@ -618,6 +628,68 @@ check "you cannot block yourself" "PF011" "$(wrap "
 check "block_person refuses a caller with no identity" "PF010" "$(wrap "
   set local role authenticated;
   perform public.block_person('$B');")"
+
+echo
+echo "==> profiles need somebody to be asking"
+# The policy used to read `id = auth.uid() or not blocked_with(id)`, which for
+# a caller with no identity evaluates to true for every row — so the
+# publishable key, which ships in a public repository by design, could read
+# every name, timezone and availability grid on the platform. app-people.html
+# bouncing a signed-out visitor to login is correct and is not what protects
+# this: nobody reading your users would load the page.
+check "a signed-out caller reads no profiles at all" ok "$(wrap "
+  insert into public.profiles (id, name, track_id) values ('$A','Ann','frontend')
+    on conflict (id) do update set track_id='frontend';
+  set local role anon;
+  if exists (select 1 from public.profiles) then
+    raise exception 'a signed-out caller could still read profiles';
+  end if;")"
+
+check "and a signed-in one still can" ok "$(wrap "
+  insert into public.profiles (id, name, track_id) values ('$A','Ann','frontend')
+    on conflict (id) do update set track_id='frontend';
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  if not exists (select 1 from public.profiles where id = '$A') then
+    raise exception 'a signed-in caller lost access to profiles';
+  end if;")"
+
+# The landing page needs eight numbers and never needed the rows. This is the
+# whole reason the policy above could be tightened without blanking the
+# "3 waiting" labels on the path cards.
+check "but the landing page can still count them without a session" ok "$(wrap "
+  insert into public.profiles (id, name, track_id) values ('$A','Ann','frontend')
+    on conflict (id) do update set track_id='frontend';
+  insert into public.profiles (id, name, track_id) values ('$B','Bob','frontend')
+    on conflict (id) do update set track_id='frontend';
+  set local role anon;
+  if (select learners from public.track_counts() where track_id='frontend') <> 2 then
+    raise exception 'the anonymous track count is wrong or unavailable';
+  end if;")"
+
+check "and it counts the same people the browser used to count" ok "$(wrap "
+  insert into public.profiles (id, name, track_id) values ('$A','Ann','frontend')
+    on conflict (id) do update set track_id='frontend';
+  insert into public.profiles (id, name, track_id) values ('$C','Cal', null)
+    on conflict (id) do update set track_id=null;
+  set local role anon;
+  if exists (select 1 from public.track_counts() where track_id is null) then
+    raise exception 'somebody who has not finished signing up was counted';
+  end if;")"
+
+# It answers about tracks, not about people: no argument, no filter, and the
+# only columns it can return are a track id and a total. Asking for the
+# one-argument form and expecting 42883 would pass just as happily against a
+# database where no track_counts exists at all, so this reads the catalogue
+# instead: exactly one such function, and it takes nothing.
+check "and it cannot be asked about a person" ok "$(wrap "
+  if (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public' and p.proname = 'track_counts') <> 1 then
+    raise exception 'track_counts is missing, or there is more than one of it';
+  end if;
+  if (select pronargs from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public' and p.proname = 'track_counts') <> 0 then
+    raise exception 'track_counts takes an argument, so it can be asked about a person';
+  end if;")"
 
 echo
 echo "==> a session moves only where its own participants may move it"
