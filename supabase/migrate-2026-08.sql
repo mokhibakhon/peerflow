@@ -699,7 +699,7 @@ begin
 
   select p.name into my_name from public.profiles p where p.id = me;
 
-  return query select true, 'ok', s.room_name, me,
+  return query select true, 'ok', room_id, me,
                       coalesce(nullif(my_name, ''), 'A partner'),
                       s.partner_name, s.topic, s.goal,
                       s.starts_at, closes;

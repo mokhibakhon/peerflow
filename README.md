@@ -166,6 +166,19 @@ other, and the second acceptance is what gets refused. The same migration
 stops the standing weekly slot booking on top of sessions you had already
 agreed to, which it had been doing quietly on every page load.
 
+**Two forgeries, closed.** `supabase/migration-forgery.sql` — **run it by
+hand; nothing in CI applies these files, and until it is run both problems
+below are live.** `guard_partner_request` stopped the sender answering their
+own request but never stopped anybody changing *who the request was from*: the
+update policy passes as long as the caller is on one side, and the recipient
+always is, so a recipient could accept a request while swapping the sender for
+somebody who never asked. The participant columns, the id and `created_at` are
+now immutable after insert, for everybody including the definer functions,
+because carving out an exception is how this reopens. Riding along is a
+one-word bug in `session_for_call`: it repaired a missing room name into a
+local variable, wrote it back to the table, and returned the null it had read
+beforehand — so the repair worked and Join still said "no room".
+
 `dev/sql-tests.sh` runs the whole schema against a throwaway PostgreSQL 16 and
 asserts on it; `PF_WITHOUT_FIX=1 dev/sql-tests.sh` re-runs it against the
 schema as it was before that migration, so the cases can be seen to fail.

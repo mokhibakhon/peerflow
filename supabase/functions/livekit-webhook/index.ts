@@ -71,16 +71,32 @@ Deno.serve(async (req) => {
      update simply matches no rows. */
   const identity = evt?.participant?.identity as string | undefined;
 
+  /* supabase-js RESOLVES with { error } — it does not throw on a database
+     error. So awaiting an rpc and not reading the result is the same as not
+     checking at all: every write below used to fall straight through to the
+     200 at the end, and LiveKit, told the event was handled, never retried.
+     The attendance was simply gone, with nothing on screen and nothing in the
+     logs to say so — which is the worst shape a bug can have in the one table
+     the reliability score is built on.
+
+     Throwing puts a failed write onto the path that already existed for one:
+     the catch below returns 500 and LiveKit redelivers. Both writes are
+     idempotent, which is what makes that safe. */
+  async function call(fn: string, args: Record<string, unknown>) {
+    const { error } = await db.rpc(fn, args);
+    if (error) throw new Error(fn + ": " + error.message);
+  }
+
   try {
     if (evt.event === "participant_joined" && identity) {
-      await db.rpc("record_presence", {
+      await call("record_presence", {
         p_room: room,
         p_user: identity,
         p_joined: at(evt.participant?.joinedAt) ?? new Date().toISOString(),
         p_left: null,
       });
     } else if (evt.event === "participant_left" && identity) {
-      await db.rpc("record_presence", {
+      await call("record_presence", {
         p_room: room,
         p_user: identity,
         p_joined: at(evt.participant?.joinedAt),
@@ -90,7 +106,7 @@ Deno.serve(async (req) => {
       /* Everybody who was going to arrive has arrived. A row still holding
          null attended is a no-show — observed rather than assumed, which is
          the whole difference between this and asking people. */
-      await db.rpc("close_room", { p_room: room });
+      await call("close_room", { p_room: room });
     }
   } catch (e) {
     console.error("livekit-webhook: write failed", e);

@@ -568,6 +568,44 @@ check "the blocked party cannot revive the request by updating it" "42501" "$(wr
   update public.partner_requests set status='pending' where to_user='$B';
   if not found then raise exception 'no row was updated' using errcode='42501'; end if;")"
 
+# ---------- a request is between the two people it was sent between ----------
+# The guard has always stopped the sender answering their own request. Until
+# migration-forgery.sql it never stopped anybody changing WHO the request was
+# from: the update policy passes as long as the caller is still on one side,
+# and the recipient always is. So B could accept A's request while quietly
+# swapping A out for C, and end up partnered with somebody who never asked.
+check "the recipient cannot rewrite who sent the request" "PF040" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  update public.partner_requests
+     set status='declined', from_user='$C'
+   where from_user='$A' and to_user='$B';")"
+
+check "nor swap themselves out of it" "PF040" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  update public.partner_requests set to_user='$C' where to_user='$B';")"
+
+# sessions.pair_id points at this row, so an id that can move is a session that
+# can be re-pointed at a partnership it was never part of.
+check "nor move the row's id out from under a session" "PF040" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  update public.partner_requests
+     set id = gen_random_uuid() where to_user='$B';")"
+
+# The rule the guard already had, still there afterwards.
+check "and the sender still cannot answer their own request" "P0001" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  update public.partner_requests
+     set status='declined' where from_user='$A' and to_user='$B';")"
+
+# Answering normally has to keep working — the point of the guard is that it
+# blocks the participants moving, not the answer. The fixture row arrives
+# already accepted, so this moves it somewhere it is not, or it proves nothing.
+check "the recipient can still answer, untouched" ok "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  update public.partner_requests
+     set status='declined' where from_user='$A' and to_user='$B';
+  if not found then raise exception 'the answer did not land'; end if;")"
+
 check "you cannot block yourself" "PF011" "$(wrap "
   set local role authenticated; set local request.jwt.claim.sub = '$A';
   perform public.block_person('$A');")"
@@ -575,6 +613,46 @@ check "you cannot block yourself" "PF011" "$(wrap "
 check "block_person refuses a caller with no identity" "PF010" "$(wrap "
   set local role authenticated;
   perform public.block_person('$B');")"
+
+echo
+echo "==> the room you get back is the room that was repaired"
+# session_for_call reads the row into `s`, repairs a missing room_name into a
+# local `room_id`, writes it back — and used to return s.room_name, the value
+# it read BEFORE the repair. So the repair landed, the table was right
+# afterwards, and the person pressing Join was told there was no room. They
+# would get in on a second attempt, which is the shape of bug nobody reports.
+#
+# Starts from exactly that state: no room_name, a room_url ending in a uuid,
+# and nobody else sharing the url.
+check "a repaired booking returns the room, not the null it started with" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min, room_url, status)
+  values ('$A','B', now() + interval '5 minutes', 50,
+          'https://meet.jit.si/8f14e45f-ceea-467a-9dbb-7f5a2b1c3d4e', 'confirmed');
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  if (select room from public.session_for_call(
+        (select id from public.sessions
+          where user_id = '$A' and room_name is null
+          order by starts_at desc limit 1))) is null then
+    raise exception 'the repair ran and the room still came back null';
+  end if;")"
+
+# And the repair is written back, not only returned — the webhook finds its
+# rows by room_name, so a room that existed only in the return value would let
+# people into a call whose attendance could never be recorded.
+check "and the repaired name is persisted for the webhook to find" ok "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min, room_url, status)
+  values ('$A','B', now() + interval '5 minutes', 50,
+          'https://meet.jit.si/1c2d3e4f-aaaa-4bbb-8ccc-9d0e1f2a3b4c', 'confirmed');
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.session_for_call(
+    (select id from public.sessions
+      where user_id = '$A' and room_name is null
+      order by starts_at desc limit 1));
+  reset role;
+  if exists (select 1 from public.sessions
+              where room_url like '%1c2d3e4f%' and room_name is null) then
+    raise exception 'the derived room name was never written back';
+  end if;")"
 
 echo
 echo "==> reports"
