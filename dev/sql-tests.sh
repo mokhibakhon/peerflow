@@ -108,7 +108,7 @@ SQL
 # of it. Leaving it out of this list is how its three cases passed for the
 # wrong reason the first time they were written — the trigger they test was
 # never in the database, so the forgery simply succeeded and raised nothing.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql"
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
@@ -618,6 +618,97 @@ check "you cannot block yourself" "PF011" "$(wrap "
 check "block_person refuses a caller with no identity" "PF010" "$(wrap "
   set local role authenticated;
   perform public.block_person('$B');")"
+
+echo
+echo "==> a session moves only where its own participants may move it"
+# sessions_truth_guard stops a page writing status or attendance directly, and
+# it is tested above. It cannot help here: the definer RPCs run as the owner,
+# so the guard waves them through by design and every actor rule has to live
+# inside the RPC. answer_session had none beyond "you own a row of this".
+PROPOSAL="
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min, room_url, status, proposed_by)
+  values ('$A','B', now() + interval '2 days', 50, 'pf:ans', 'proposed', '$A'),
+         ('$B','A', now() + interval '2 days', 50, 'pf:ans', 'proposed', '$A');"
+
+check "the proposer cannot accept their own proposal" "PF041" "$(wrap "
+  $PROPOSAL
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.answer_session(now() + interval '2 days', 'pf:ans', 'confirmed');")"
+
+check "nor decline it on the other person's behalf" "PF041" "$(wrap "
+  $PROPOSAL
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.answer_session(now() + interval '2 days', 'pf:ans', 'declined');")"
+
+check "the person it was sent to can accept it" ok "$(wrap "
+  $PROPOSAL
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  if public.answer_session(now() + interval '2 days', 'pf:ans', 'confirmed') <> 2 then
+    raise exception 'both copies did not move';
+  end if;")"
+
+# 'completed' is what the session count and the streak read; 'no_show' is read
+# by reliability_of as a zero, on the OTHER person's record. Neither has ever
+# been sent by a page — assets/db.js sends confirmed, declined and cancelled.
+check "nobody can mark a session completed to inflate their own count" "PF041" "$(wrap "
+  $PROPOSAL
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  perform public.answer_session(now() + interval '2 days', 'pf:ans', 'completed');")"
+
+check "nor mark one a no-show to damage the other person's record" "PF041" "$(wrap "
+  $PROPOSAL
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  perform public.answer_session(now() + interval '2 days', 'pf:ans', 'no_show');")"
+
+check "an answered proposal cannot be answered a second time" "PF042" "$(wrap "
+  $PROPOSAL
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  perform public.answer_session(now() + interval '2 days', 'pf:ans', 'confirmed');
+  perform public.answer_session(now() + interval '2 days', 'pf:ans', 'declined');")"
+
+# Cancelling is either party's — that is the difference between it and
+# declining — and it still has to work for both of them.
+check "either party may still cancel what they agreed to" ok "$(wrap "
+  $PROPOSAL
+  set local role authenticated; set local request.jwt.claim.sub = '$B';
+  perform public.answer_session(now() + interval '2 days', 'pf:ans', 'confirmed');
+  set local request.jwt.claim.sub = '$A';
+  if public.answer_session(now() + interval '2 days', 'pf:ans', 'cancelled') <> 2 then
+    raise exception 'the cancel did not move both copies';
+  end if;")"
+
+echo
+echo "==> a booking you both agreed to is cancelled, not deleted"
+# drop_session's own comment in assets/db.js says it is for withdrawing a
+# proposal nobody answered and clearing a decline you have read. It never
+# enforced that, so a completed session — and the attendance record
+# reliability_of is computed from — could simply be deleted.
+check "a completed session cannot be deleted" "PF042" "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min, room_url, status)
+  values ('$A','B', now() - interval '2 days', 50, 'pf:done', 'confirmed'),
+         ('$B','A', now() - interval '2 days', 50, 'pf:done', 'confirmed');
+  update public.sessions set status='completed' where room_url='pf:done';
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.drop_session(now() - interval '2 days', 'pf:done');")"
+
+check "nor one that is merely agreed" "PF042" "$(wrap "
+  insert into public.sessions (user_id, partner_name, starts_at, duration_min, room_url, status)
+  values ('$A','B', now() + interval '2 days', 50, 'pf:agreed', 'confirmed'),
+         ('$B','A', now() + interval '2 days', 50, 'pf:agreed', 'confirmed');
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.drop_session(now() + interval '2 days', 'pf:agreed');")"
+
+# The thing it is actually for still has to work.
+check "but withdrawing an unanswered proposal still does" ok "$(wrap "
+  $PROPOSAL
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  if public.drop_session(now() + interval '2 days', 'pf:ans') <> 2 then
+    raise exception 'the withdrawal did not remove both copies';
+  end if;")"
+
+check "finish_session is no longer callable from a page" "42501" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  perform public.finish_session(now() - interval '2 days', 'pf:x', true);")"
 
 echo
 echo "==> the room you get back is the room that was repaired"

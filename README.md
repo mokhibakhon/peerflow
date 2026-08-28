@@ -166,6 +166,24 @@ other, and the second acceptance is what gets refused. The same migration
 stops the standing weekly slot booking on top of sessions you had already
 agreed to, which it had been doing quietly on every page load.
 
+**Who may move a session, and to where.** `supabase/migration-actor-rules.sql`
+— **run it by hand, after migration-forgery.sql.** `sessions_truth_guard` stops
+a browser writing status or attendance directly and is well made, but it has a
+structural blind spot that is not a flaw in it: the definer RPCs run as the
+owner, so the guard waves them through by design, and every rule about *who*
+may do *what* has to live inside each RPC. `answer_session` had almost none —
+it checked the caller owned a row of the session and nothing else. So the
+person who proposed a time could accept it themselves; anyone could pass
+`completed`, which the session count and streak read; and anyone could pass
+`no_show`, which `reliability_of` reads as a zero on the *other* person's
+record. The app has only ever sent `confirmed`, `declined` and `cancelled`, so
+dropping the other two costs nothing. `drop_session` now refuses a session both
+people agreed to — its own comment always said it was for withdrawing an
+unanswered proposal — and `finish_session`, which nothing calls, is revoked.
+
+Run `dev/sql-tests.sh` without that file in its `FILES` list and eight cases
+fail; that is the exploit, and it is the reason the file exists.
+
 **Two forgeries, closed.** `supabase/migration-forgery.sql` — **run it by
 hand; nothing in CI applies these files, and until it is run both problems
 below are live.** `guard_partner_request` stopped the sender answering their
