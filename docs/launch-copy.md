@@ -116,19 +116,33 @@ people.
 |---|---|---|
 | Logo, square | yes, 180×180 | `apple-touch-icon.png` — for anything larger, `icon.svg` scales |
 | Social / OG card, 1200×630 | yes | `assets/social.png`, already the og:image |
-| Gallery images, 1270×760 (PH) | **no** | needs making — see below |
+| Gallery images, 1270×760 (PH) | yes, 4 | `docs/launch/` |
 
-Product Hunt gallery images are the gap. Three or four is normal, and screenshots
-of the real product beat mockups. The obvious set:
+The four in `docs/launch/`, in the order they should be uploaded:
 
-1. The landing hero — path cards with live counts
-2. The partner match / people view
-3. Booking a session
-4. A session in progress, or the streak
+1. `1-landing.png` — the hero, with the in-session card
+2. `2-people.png` — the match, showing what it matches on: same path, hours you
+   are both free, stage, timezone
+3. `3-sessions.png` — a partnership with four sessions behind it
+4. `4-progress.png` — the streak and the twelve-week plan
 
-Take them at 1270×760 or wider on a desktop viewport. Sign in first — a signed-out
-capture of the app pages is the "Loading your sessions…" state, which is not a
-screenshot of anything.
+Shot at 2540×1520, which is 1270×760 at 2×. Product Hunt scales down, and a
+1270-wide upload looks soft next to everyone else's.
+
+**They are stub data, not real users.** `PF_STUB=1 node dev/serve.js` renders the
+app fully signed in with the fixtures from `dev/db-stub.js`, which is the only way
+to photograph a signed-in page — a signed-out capture is the "Loading your
+sessions…" state. Demo data in a product screenshot is ordinary and nobody expects
+a gallery image to be a live database.
+
+One thing to decide rather than not notice: `2-people.png` shows two named people
+who do not exist, and the page copy in that same shot reads "Nobody here is made
+up." That sentence is true of the real page and false of the screenshot. It is a
+judgement call, not a rule — if it sits badly, use the other three and drop that
+one. To regenerate any of them:
+
+    PF_STUB=1 PORT=9000 node dev/serve.js
+    # then screenshot at 1270x760, deviceScaleFactor 2
 
 ---
 
