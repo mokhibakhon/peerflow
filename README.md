@@ -64,6 +64,29 @@ Auth, profiles, partner requests and sessions all live in Supabase. Everything
 degrades gracefully: if Supabase is unreachable (offline, file://, schema not
 created yet), pages fall back to a safe state rather than breaking.
 
+### What is actually applied, as of 2026-08-29
+
+Nothing in CI applies `supabase/*.sql`, so "run it by hand" below is a real
+instruction and a merged migration is dormant until somebody pastes it. That
+makes the run state a fact you cannot read off the code, which is why it is
+written here. **Anything added after this date is not covered by this list —
+ask the owner rather than assuming.**
+
+| Applied | How it was confirmed |
+|---|---|
+| `schema.sql`, `migration-mvp.sql`, `migrate-2026-08.sql` | the site works; these predate this list |
+| `migration-forgery.sql` | owner ran it and reported the expected `true true false` |
+| `migration-actor-rules.sql` | same run, same report |
+| `migration-profiles-private.sql` | verified against production: an anonymous `select` on `profiles` with the publishable key returns `[]`, and `rpc/track_counts` still returns per-track rows |
+
+Also deployed on that date: `supabase functions deploy livekit-webhook`, which
+is the version whose `call()` helper throws on a failed RPC instead of
+discarding the error.
+
+The container cannot reach the Supabase REST host — the agent proxy 403s it on
+CONNECT — so none of this is checkable from a session. The two curls that
+confirmed the last row have to be run by the owner; `CLAUDE.md` has them.
+
 - `supabase/schema.sql` ([raw file](https://raw.githubusercontent.com/mokhibakhon/peerflow/main/supabase/schema.sql)) — the only schema file;
   always use the version on `main`. Paste into Supabase → SQL Editor → Run.
   It is the first of three pastes, not the whole story — **SETUP_GUIDE.md has
