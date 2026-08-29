@@ -66,10 +66,24 @@ congratulating the user.
 - **`vercel.json` must keep `installCommand` and `buildCommand` empty.** There
   is nothing to build. A build command here once broke *every* production
   deploy for days while the merges looked fine on GitHub.
-- **You cannot reach `www.peerflow.dev` or `vercel.com` from the container** —
-  the agent proxy 403s them on CONNECT and curl returns an empty body. An empty
-  body is not evidence the site is stale. Do not tell the user something isn't
-  live based on a curl.
+- **You cannot reach `www.peerflow.dev`, `vercel.com`, or the Supabase REST
+  host from the container** — the agent proxy 403s them on CONNECT and curl
+  returns an empty body. An empty body is not evidence the site is stale. Do
+  not tell the user something isn't live based on a curl.
+
+  The Supabase host is listed here because the entry named only the first two
+  and a session went looking for the third anyway. Having finished a fix that
+  made `profiles` unreadable without a session, the obvious verification is an
+  anonymous read against `<project>.supabase.co/rest/v1/` with the publishable
+  key — exactly the position the finding described. That is the right check and
+  it is worth asking the user to run it; it is simply not runnable from here.
+  `curl: (56) CONNECT tunnel failed, response 403` is the proxy, not the
+  database.
+
+  So a migration cannot be confirmed from inside the container at all. Hand
+  the user the two curls — the read that should now return `[]`, and the RPC
+  that should still return rows — and read their output. Nothing in the
+  container can substitute for that.
 - **One Vercel project, and it is `peerflow`.** It holds `www.peerflow.dev`,
   builds `main` of this repository, and `peerflow.dev` sits on the same project
   and 308s to www.
