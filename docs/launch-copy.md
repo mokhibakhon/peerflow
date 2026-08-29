@@ -149,15 +149,100 @@ one. To regenerate any of them:
 ## Order and pacing
 
 Do not do these all in one day. Spread them out; a burst of identical submissions
-across five sites in an hour looks like what it looks like.
+across five sites in an hour looks like what it looks like. Roughly one a day, in
+this order, easiest first.
 
-1. **Indie Hackers** — lowest stakes, real audience, no launch mechanics. Start here.
-2. **AlternativeTo** and **SaaSHub** — directory listings, permanent links, no timing pressure.
-3. **BetaList** — has a queue, so submit early and it surfaces when it surfaces.
-4. **Product Hunt** — last, and only once the gallery images exist. A PH launch
-   without screenshots wastes the one day of attention it gives you.
+### Before you start, once
 
-A note on what these are worth: the links are real and permanent, which is the
-point, but none of these is a traffic event on its own. The article and the
-directories are the same bet — give Google reasons to trust the domain — and
-that bet pays over weeks.
+    git pull origin main
+
+That brings down `docs/launch/` — the four gallery images — so they are on the
+machine you are uploading from. Keep this file open beside the forms.
+
+Every site below wants some subset of the same six things, and they are all
+above: name, URL, tagline, short description, long description, categories.
+Nothing here needs writing from scratch.
+
+### Day 1 — Indie Hackers
+
+The lowest-stakes one, which is why it is first: no launch mechanics, no timing,
+and a real audience of people building the same kind of thing.
+
+1. indiehackers.com, sign up (GitHub or email).
+2. Find **Products** in the nav, then the button to add one. It asks for a name,
+   a URL, a tagline and a description.
+3. Name, URL and **tagline** from above; **long description** in the description
+   box.
+4. Fill in your own profile before you leave — a product attached to an empty
+   profile reads as a drive-by.
+
+Optional and worth more than the listing itself: post in a relevant group about
+something you actually learned building it. The RLS article is exactly that, and
+linking it there is not self-promotion, it is the thing the group is for.
+
+### Day 2 — AlternativeTo
+
+A permanent directory link, and the one place the "alternative to" list matters.
+
+1. alternativeto.net, create an account.
+2. Look for **Add application** (it may be under a menu rather than a button).
+3. Name, URL, **short description**.
+4. Platform: **Online / Web**. Licence: **Free**.
+5. Categories: Education, Online Services.
+6. Then add the alternatives from the list above — Focusmate is the one that
+   matters, because it is the closest real comparison and people search it.
+
+### Day 3 — SaaSHub
+
+Same shape, ten minutes.
+
+1. saashub.com, create an account, find **Submit a product**.
+2. Name, URL, **tagline**, **short description**.
+3. Categories: Education, Productivity, Video Conferencing.
+4. Alternatives: Focusmate, Study Together.
+
+### Day 4 — BetaList
+
+1. betalist.com, find the submit page.
+2. Name, URL, **tagline**, **long description**, one screenshot —
+   `docs/launch/1-landing.png`.
+
+Be aware of what you are agreeing to: BetaList has a free queue and a paid
+fast-track. The free queue is slow and does not guarantee publication at all. Do
+not pay for it. Submit, forget about it, and treat anything that comes of it as a
+bonus.
+
+### Day 5 or later — Product Hunt
+
+Last on purpose. It gives you one day of attention and you cannot have it twice,
+so it goes after the gallery images exist and after your account is not brand
+new.
+
+1. **Create the account a few days before you launch.** Follow some people,
+   upvote things you actually like, comment once or twice. A launch from an
+   account registered that morning gets less distribution.
+2. When ready: **Submit a product**. Fill in name, URL, **tagline** (this is the
+   60-character one), and the **long description**.
+3. Topics: Education, Productivity, Remote Work.
+4. Gallery: upload all four from `docs/launch/`, in numbered order. The first is
+   the one most people see.
+5. **Schedule it rather than launching immediately.** Launches go live at 12:01am
+   Pacific and run 24 hours. That is **noon in Tashkent**, which is unusually
+   convenient — you can be awake and answering comments for your whole launch
+   day, which matters more than the listing.
+6. The moment it is live, post the **maker's first comment** from above as the
+   first comment.
+7. Then stay near your phone. Answering every comment quickly is most of what
+   separates a launch that goes somewhere from one that does not. Do not ask
+   people to upvote you — Product Hunt detects vote solicitation and penalises
+   it.
+
+### What to expect
+
+The links are real and permanent, which is the point. But none of these is a
+traffic event on its own, and Product Hunt in particular has a long tail of
+people who launch, get forty upvotes and no users. That is the normal outcome and
+it is not a failure — the listing and the link keep working afterwards.
+
+The article and the directories are the same bet: give Google reasons to trust a
+domain that currently has none. That bet pays over weeks, not on launch day.
