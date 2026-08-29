@@ -199,6 +199,63 @@ check(/User-agent:\s*\*/i.test(robots), 'robots.txt: has a wildcard user-agent g
 // meta tag, so nothing here may be disallowed.
 check(!/^\s*Disallow:\s*\S/mi.test(robots), 'robots.txt: no Disallow that would mask a noindex tag');
 
+// ---------- the icon Google actually fetches ----------
+// Every page used to declare its favicon as a data: URI with the SVG inlined in
+// the href. That paints a browser tab correctly, which is why it never looked
+// broken from the inside — but Google fetches a favicon as its own URL, and a
+// data: URI is not one. There was nothing to fetch, so the search result showed
+// the generic globe next to a competitor with a real icon.
+//
+// It had also drifted three ways while nobody could see it: seventeen pages
+// carried the mark in #1D9E75, nine in #0b8f66 (one of the greens tokens.css was
+// written to retire), and the two newest guides carried a truncated copy with
+// one of the eight shapes left in — a single small rectangle. Nothing could
+// catch that, because a favicon is the one asset no page renders visibly.
+const ICON_FILES = ['favicon.ico', 'icon.svg', 'apple-touch-icon.png'];
+for (const f of ICON_FILES) {
+  check(fs.existsSync(path.join(root, f)), `${f}: exists at the site root`);
+}
+
+// A favicon is fetched from the root of whatever host is asked, and 404.html is
+// served AT the address that was missing — so a relative href on that page
+// resolves against the bad path. Root-relative is the only form that survives.
+const ICON_LINKS = [
+  [/<link rel="icon" href="\/favicon.ico" sizes="32x32">/, 'links /favicon.ico'],
+  [/<link rel="icon" href="\/icon.svg" type="image\/svg\+xml">/, 'links /icon.svg'],
+  [/<link rel="apple-touch-icon" href="\/apple-touch-icon.png">/, 'links /apple-touch-icon.png'],
+];
+let iconOk = 0;
+for (const f of allPages) {
+  const html = read(f);
+  if (/<link rel="icon"[^>]*href="data:/.test(html)) {
+    fail(`${f}: favicon is a data: URI, which Google cannot fetch`);
+    continue;
+  }
+  const missing = ICON_LINKS.filter(([re]) => !re.test(html)).map(([, name]) => name);
+  if (missing.length) fail(`${f}: ${missing.join(', ')} — missing or not root-relative`);
+  else iconOk++;
+}
+check(iconOk === allPages.length,
+      `every page links the same three icon files, root-relative (${iconOk}/${allPages.length})`);
+
+// The ICO has to be a real multi-frame ICO rather than a PNG that was renamed,
+// which is the easy way to produce a file that looks right in a listing and
+// fails in a browser. Header: reserved 0, type 1, then the frame count.
+const ico = fs.readFileSync(path.join(root, 'favicon.ico'));
+check(ico.readUInt16LE(0) === 0 && ico.readUInt16LE(2) === 1,
+      'favicon.ico: is an ICO, not a renamed PNG');
+check(ico.readUInt16LE(4) >= 3,
+      `favicon.ico: carries at least 3 frames (${ico.readUInt16LE(4)})`);
+
+// The mark is knocked out of a filled tile on purpose: on a transparent ground
+// the four thin arrows scatter into specks at the 16px a search result uses.
+// A tile also has to be one of the ramp's greens, which is what the three-way
+// drift above got wrong.
+const iconSvg = read('icon.svg');
+check(/<rect[^>]*width="512"[^>]*height="512"[^>]*fill="#1D9E75"/.test(iconSvg),
+      'icon.svg: the mark sits on a filled tile in the ramp accent, not transparent');
+check(!/#0b8f66/i.test(iconSvg), 'icon.svg: does not use a retired green');
+
 // ── IndexNow ───────────────────────────────────────────────────────────────
 // IndexNow only verifies ownership if the key file is reachable at
 // /<key>.txt and contains that same key. The file was committed as
