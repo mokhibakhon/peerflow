@@ -108,7 +108,7 @@ SQL
 # of it. Leaving it out of this list is how its three cases passed for the
 # wrong reason the first time they were written — the trigger they test was
 # never in the database, so the forgery simply succeeded and raised nothing.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql"
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql supabase/migration-funnel.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
@@ -2340,6 +2340,140 @@ check "  the sweep's evidence is not readable by a signed-in account" ok "$(wrap
 check "  but the entry point they do call is still theirs to call" ok "$(wrap "
   if not has_function_privilege('authenticated', 'public.nudge_dormant()', 'execute')
     then raise exception 'nudge_dormant is no longer callable from the app'; end if;")"
+
+echo
+echo "==> the funnel counts people, and only for the owner"
+
+# The funnel is aggregate-only and names nobody, so these cases are about two
+# things: that the numbers count PEOPLE rather than rows, and that a member who
+# guesses the function name gets nothing out of it.
+#
+# They are plain checks rather than wrap() ones because every assertion here is
+# a success case. wrap() exists to turn a raised error into a matchable
+# SQLSTATE and emits its own `do $$ ... $$` to do it, so putting $AS_A — which
+# carries a `do $$ ... $$` of its own — inside one nests the dollar quoting and
+# the whole block fails to parse. That is not a subtle failure, but it is an
+# indistinguishable one: the case goes red with a syntax error whether or not
+# the thing it tests works.
+
+check "a signed-in account that is not an admin gets no row at all" ok "
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.funnel_counts()) <> 0
+      then raise exception 'funnel_counts answered a member'; end if;
+  end \$\$;"
+
+check "  naming them an admin is what makes it answer" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.funnel_counts()) <> 1
+      then raise exception 'funnel_counts did not answer its admin'; end if;
+  end \$\$;"
+
+check "  and the same holds for the daily series" ok "
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.funnel_daily()) <> 0
+      then raise exception 'funnel_daily answered a member'; end if;
+  end \$\$;"
+
+check "  which returns thirty days once they are named, empty ones included" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.funnel_daily()) <> 30
+      then raise exception 'expected a row per day, gaps included'; end if;
+  end \$\$;"
+
+check "  anon cannot execute it whatever it would have returned" ok "$(wrap "
+  if has_function_privilege('anon', 'public.funnel_counts()', 'execute')
+    then raise exception 'anon can read the business numbers'; end if;")"
+
+# The admin list is protected by RLS with no policies, not by a revoke. The
+# revoke is in the migration and is worth having, but it is not what this
+# asserts: Supabase grants on the public schema broadly, and this harness
+# re-grants select to anon after loading the files, so a privilege check here
+# would be testing the harness. Row-level security survives both, which is why
+# the table leans on it — with RLS on and no policy at all, every ordinary
+# caller sees an empty table whatever their grants say.
+check "  the admin list is empty to a member however they are granted" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.app_admins) <> 0
+      then raise exception 'a member can enumerate the admins'; end if;
+  end \$\$;"
+
+# The reason the funnel counts distinct user_id rather than rows. A session is
+# two rows, one per person, so count(*) reports two where there is one meeting
+# between two people — and reports two for a proposal nobody answered as
+# readily as for a session both of them attended.
+check "  a session's two rows are two people, not four" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  insert into public.sessions (user_id, partner_name, starts_at, status)
+    values ('$A','B', now() + interval '2 days', 'confirmed'),
+           ('$B','A', now() + interval '2 days', 'confirmed');
+  $AS_A
+  do \$\$ begin
+    if (select session_booked from public.funnel_counts()) <> 2
+      then raise exception 'session_booked counted rows, not people'; end if;
+  end \$\$;"
+
+check "  and one person's three sessions are still one person" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  insert into public.sessions (user_id, partner_name, starts_at, status)
+    values ('$A','B', now() + interval '2 days', 'confirmed'),
+           ('$A','B', now() + interval '9 days', 'confirmed'),
+           ('$A','B', now() + interval '16 days','confirmed');
+  $AS_A
+  do \$\$ begin
+    if (select session_booked from public.funnel_counts()) <> 1
+      then raise exception 'one person with three bookings counted more than once'; end if;
+  end \$\$;"
+
+# profile_complete is the step the whole funnel exists to measure: it is where
+# signup step 2 is either finished or abandoned, and a half-filled profile
+# cannot be matched however complete the row looks. availability is the field
+# worth a case of its own, because it is empty rather than null — the column
+# defaults to '[]', so an `is not null` test would count it as filled in.
+check "  a profile whose availability is empty has not finished signing up" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  update public.profiles set track_id='frontend', topic='React', level='new',
+         timezone='Europe/London', availability='[\"mon-18\"]'::jsonb where id='$A';
+  update public.profiles set track_id='frontend', topic='React', level='new',
+         timezone='Europe/London', availability='[]'::jsonb where id='$B';
+  $AS_A
+  do \$\$ begin
+    if (select profile_complete from public.funnel_counts()) <> 1
+      then raise exception 'an empty availability counted as finished signing up'; end if;
+  end \$\$;"
+
+check "  both sides of an accepted request are partnered" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select partnered from public.funnel_counts()) <> 2
+      then raise exception 'only one side of the partnership was counted'; end if;
+  end \$\$;"
+
+# Two mechanisms have written attendance, and both are evidence of turning up.
+# attendance is what LiveKit's webhook fills; attended is the older boolean
+# from the MVP migration, still true on rows settled before the webhook
+# existed. Reading only the new column would report that everybody from before
+# the video work never came, which is a worse answer than no answer.
+check "  attendance from either mechanism counts as turning up" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  insert into public.sessions (user_id, partner_name, starts_at, status, attendance)
+    values ('$A','B', now() - interval '2 days', 'completed', 'attended');
+  insert into public.sessions (user_id, partner_name, starts_at, status, attended)
+    values ('$B','A', now() - interval '9 days', 'completed', true);
+  $AS_A
+  do \$\$ begin
+    if (select session_attended from public.funnel_counts()) <> 2
+      then raise exception 'the older attended boolean was ignored'; end if;
+  end \$\$;"
+
 
 echo
 echo "==================================================="

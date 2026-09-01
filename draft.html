@@ -3,141 +3,271 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Which favicon? — PeerFlow draft</title>
+<title>Which funnel? — PeerFlow draft</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/tokens.css">
 <style>
-/* THE DRAFT: which mark goes in the search result.
+/* THE DRAFT: how app-metrics.html should draw the funnel.
  *
- * Two separate problems got found together and only one of them is a design
- * question, so this page is only about the second.
+ * The page itself is not in question. It reads funnel_counts(), it is owner
+ * only, it collects nothing, and it exists so a launch teaches you something
+ * instead of producing a spike you cannot explain. What is in question is the
+ * form, and the reason it is worth asking rather than assuming is scale.
  *
- * The bug is that every page ships its favicon as a data: URI. That paints a
- * browser tab correctly, which is why it has never looked broken to anybody
- * here, but Google fetches a favicon as its own URL and a data: URI is not one.
- * There is nothing to fetch, so the search result gets the generic globe. That
- * part has one right answer and needs no options: write real files and link to
- * them.
+ * A funnel chart is drawn proportionally by default: each bar as wide as its
+ * share of the top step. That is the right answer at a thousand accounts and
+ * it is a bad one at eleven, because six of the seven bars collapse into
+ * slivers that cannot be told apart — and eleven is where PeerFlow actually
+ * is. So both options below are drawn TWICE, at today's numbers and at the
+ * numbers a launch might produce. The question is not which looks better on
+ * one of them. It is which one still works on both.
  *
- * The question worth asking is what those files should contain, and it is not
- * obvious from looking at the mark at full size. A favicon is decided at 16
- * pixels on white, next to a competitor already doing the confident thing. So
- * every option below is rendered at the real sizes and dropped into a mock
- * result row, rather than described. The 16px column is the one that decides. */
+ * One thing was decided by measurement rather than taste, and it is worth
+ * writing down because it looks like a colour preference and is not. The
+ * obvious scheme for an ordered funnel is the green ramp, light at the top
+ * step and dark at the bottom. It cannot be done with the tokens this site
+ * declares: --p0 sits at 1.11:1 against a white card and --p1 at 1.45:1, both
+ * under the 2:1 floor where a fill stops being visible at all, so the ramp
+ * only really starts at --p2 and there are four usable steps for a seven step
+ * funnel. Every bar below is therefore the single accent green, which clears
+ * every check on its own, and the emphasis is carried by weight and position
+ * instead of by hue. */
+
 body{margin:0;background:var(--paper);color:var(--ink);
      font:400 15px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,sans-serif}
-.wrap{max-width:760px;margin:0 auto;padding:48px 24px 80px}
+.wrap{max-width:920px;margin:0 auto;padding:48px 24px 90px}
 h1{font-size:30px;line-height:1.2;margin:0 0 8px;letter-spacing:-.02em}
-.lede{color:var(--ink-soft);margin:0 0 14px;max-width:62ch}
-.bug{background:var(--card);border:1px solid var(--line-strong,#DEDDE6);
-     border-radius:12px;padding:16px 18px;margin:0 0 40px}
-.bug h3{margin:0 0 6px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-faint)}
-.bug p{margin:0 0 8px} .bug p:last-child{margin:0}
-code{font-family:ui-monospace,Menlo,monospace;font-size:.9em;
-     background:var(--band);padding:1px 5px;border-radius:4px}
-.opt{background:var(--card);border:1px solid var(--line-strong,#DEDDE6);
-     border-radius:14px;padding:22px 24px;margin:0 0 26px}
-.opt h2{font-size:19px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
-.tag{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;
-     background:var(--p0);color:var(--p8);font-size:13px;font-weight:700}
-.note{color:var(--ink-soft);margin:0 0 18px;font-size:14px}
-.sizes{display:flex;align-items:flex-end;gap:26px;padding:16px 18px;background:var(--band);
-     border-radius:10px;margin:0 0 16px}
-.sizes figure{margin:0;display:grid;justify-items:center;gap:7px}
-.sizes img{display:block;image-rendering:auto}
-.sizes figcaption{font-size:11px;color:var(--ink-faint)}
-.ctx{display:grid;gap:10px}
-.sr{background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #e6e5ec}
-.sr.d{background:#1f1f1f;border-color:#333}
-.sr-head{display:flex;align-items:center;gap:8px;margin-bottom:3px}
-.sr-host{font-size:12px;color:#4d5156} .sr.d .sr-host{color:#bdc1c6}
-.sr-title{color:#1a0dab;font-size:16px;line-height:1.3}
-.sr.d .sr-title{color:#8ab4f8}
-.sr-desc{font-size:12.5px;color:#4d5156;margin-top:2px}
-.sr.d .sr-desc{color:#bdc1c6}
-.verdict{margin:16px 0 0;font-size:14px;color:var(--ink);border-left:3px solid var(--p2);padding-left:12px}
+.lede{color:var(--ink-soft);margin:0 0 28px;max-width:66ch}
+.note{background:var(--card);border:1px solid var(--line-strong);
+      border-radius:var(--r-card);padding:16px 18px;margin:0 0 34px}
+.note p{margin:0 0 9px}.note p:last-child{margin:0}
+.note b{font-weight:700}
+
+.opt{margin:0 0 12px}
+.opt-h{display:flex;align-items:baseline;gap:10px;margin:0 0 4px}
+.opt-k{font:600 var(--t-kicker)/1 var(--mono);letter-spacing:.08em;
+       text-transform:uppercase;color:var(--p6)}
+.opt-t{font-size:21px;font-weight:700;margin:0;letter-spacing:-.01em}
+.opt-d{color:var(--ink-soft);margin:0 0 16px;max-width:64ch;font-size:14.5px}
+
+/* Two scales side by side, so neither option can be judged on the flattering
+   one alone. They stack under 760px rather than shrinking, because the whole
+   point is reading the bars against each other. */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 40px}
+@media (max-width:760px){.pair{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);
+       border-radius:var(--r-card);padding:18px 18px 20px}
+.panel-h{font:600 var(--t-kicker)/1 var(--mono);letter-spacing:.08em;
+         text-transform:uppercase;color:var(--ink-faint);margin:0 0 16px}
+
+/* ---------- option A: proportional ---------- */
+/* Bars scaled to the top step, which is what "funnel chart" means everywhere
+   else. 4px rounded ends and a 2px gap between rows are the house mark specs;
+   the label sits outside the bar because inside it is unreadable the moment a
+   bar is narrower than its own number. */
+.fa-row{display:grid;grid-template-columns:104px 1fr auto;align-items:center;
+        gap:10px;margin:0 0 2px;padding:3px 0}
+.fa-k{font-size:var(--t-xs);color:var(--ink-soft);text-align:right;line-height:1.25}
+/* Both are display:block on purpose. They are spans, and an inline element
+   ignores width and height outright — the first version of this drew seven
+   bars of exactly 0px, with markup that inspected perfectly. The grid
+   blockifies .fa-track because it is a grid item, but .fa-bar is a child of
+   that item rather than of the grid, so nothing blockifies it for us. */
+.fa-track{display:block;height:20px;position:relative}
+.fa-bar{display:block;height:20px;background:var(--p4);
+        border-radius:0 4px 4px 0;min-width:2px;transition:width .2s}
+.fa-n{font-size:var(--t-sm);font-weight:700;font-variant-numeric:tabular-nums;
+      min-width:34px;text-align:right}
+
+/* ---------- option B: the ladder ---------- */
+/* Every step gets the same room, so the seventh is as readable as the first,
+   and the proportion moves into a bar inside the row rather than into the
+   row's own width. The drop between two steps gets its own line, which is the
+   number the page exists to show — a funnel's content is its gaps, and a
+   proportional chart draws the gaps as the absence of something. */
+.fb-step{display:grid;grid-template-columns:1fr auto;align-items:center;
+         gap:12px;padding:9px 0}
+.fb-k{font-size:var(--t-sm);color:var(--ink);margin:0 0 5px;font-weight:600}
+.fb-track{height:8px;background:var(--band);border-radius:4px;overflow:hidden}
+.fb-fill{height:8px;background:var(--p4);border-radius:0 4px 4px 0;min-width:2px}
+.fb-n{font-size:var(--t-num-sm);font-weight:700;line-height:1;
+      min-width:44px;text-align:right}
+.fb-gap{display:flex;align-items:center;gap:7px;padding:0 0 0 2px;
+        font-size:var(--t-xs);color:var(--ink-faint)}
+.fb-gap i{display:block;width:1px;height:13px;background:var(--line-strong);
+          margin-left:5px;flex:none}
+/* The worst drop is the actionable one, so it is the only line that is not
+   grey. Weight and ink, never a second hue: the bars carry the one colour on
+   the page and text that borrows it stops reading as text. */
+.fb-gap.worst{color:var(--bad-ink);font-weight:700}
+.fb-gap.worst i{background:var(--bad-line)}
+
+.verdict{background:var(--deep);color:#fff;border-radius:var(--r-card);
+         padding:20px 22px;margin:36px 0 0}
+.verdict h2{font-size:17px;margin:0 0 9px;color:#fff}
+.verdict p{margin:0 0 9px;color:#D6E6DF;font-size:14.5px;max-width:66ch}
+.verdict p:last-child{margin:0}
+.verdict b{color:#fff}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>Which mark goes in the search result</h1>
-<p class="lede">Rendered at the sizes that decide it, and dropped into a result row
-next to the description Google is already showing. Everything reads fine at 48, so the 16px column is the
-question — and between B and C it is really the two rows below it, because they
-split: one wins on white, the other on dark.</p>
 
-<div class="bug">
-  <h3>The part that is not a choice</h3>
-  <p>All 29 pages ship the icon as <code>data:image/svg+xml,…</code> inlined in the
-  <code>href</code>. That paints a browser tab correctly, which is why it has never
-  looked broken. But Google fetches a favicon as its own URL, and a <code>data:</code>
-  URI is not one — so there is nothing to fetch and the result gets the generic globe.</p>
-  <p>The fix is real files at real paths, regardless of which option wins below.</p>
+<h1>Which funnel?</h1>
+<p class="lede">Both options show the same seven numbers from
+<code>funnel_counts()</code>. Each is drawn at today's scale and at the scale a
+launch might produce, because the honest test is whether it survives both — and
+today's scale is the one the page has to work at first.</p>
+
+<div class="note">
+  <p><b>Nothing here is analytics.</b> There is no script, no beacon, no
+  page-view and no third party, and none is being added.
+  <code>privacy.html</code> promises exactly that and the promise is worth more
+  than a chart. Every number below is counted from rows PeerFlow already holds
+  and already says it holds: the account you made, the profile you filled in,
+  the sessions you booked.</p>
+  <p><b>It counts people, not events.</b> A session is two rows, one per
+  person, so counting rows would report two people for every meeting between
+  two — and report two for a proposal nobody answered as readily as for a
+  session both attended. Each step is the number of distinct people who ever
+  reached it, so every step is a subset of the one above and the gaps are real
+  drop-off.</p>
 </div>
 
-<section class="opt">
-  <h2><span class="tag">A</span> What ships today</h2>
-  <p class="note">The mark on a transparent ground, in #0b8f66 — one of the three greens tokens.css was written to retire. It is not in the ramp any more.</p>
-  <div class="sizes"><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABnUlEQVR4nIxTv0/CQBS+d4UI6J9Boi4acSAxMUFdDZsODg4KTdTEQA0xYXJRt9bJxFIxTo4uzsawSDRhcWLUSVgctAS03PPxo1BIabjkLvfuvnvv+77XcuYxQlrydlKVM14Yn9clAjwIgIoXBoYPJtTdsI9xwwX5aqZzmbEZUPVFyj7V3iO+wLgM7BFS5RIAW2jtLbBmGql82Q3Hew80+TKoykeO1EhrocnESkN8f/QTJw2az24SIlTR70igC4FfdcV4CqiJZa7Jax1tLEJ39R6MKh9YTDyScTekJ9o6/EM296vobw45WUp+asfkSdEC3PEziHKKtn0ohZ26iFY+oMpbdlxT9DMGYn4AQ29I4yY4PCjaDLp1stS28+CFfAhCvANnRUS+RxLiLQm1tL40YGJHHjPMtA7taUnXAS0RA8RjBhA3U0aFHp0QqkSswc3E/abAHzsISs1VzvhdR3O/3TUll3AWdf0OSM49dXGarme7CT4pLptKLjaMHf0vIKvSUh1ZxYuBPcjADWJfqaeuCqMw3CsBGbguCYx6Yf4BAAD//4QbPlcAAAAGSURBVAMAFvCaq7x+CA0AAAAASUVORK5CYII=" width="16" height="16" alt=""><figcaption>16px</figcaption></figure><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC1UlEQVR4nNRXTUhUURQ+574njTPZoshFuSoXZiCMGzcFrVqWq2xhtFAniqiZiaiF4LiWxoEg62m2sYiioJ3UKogoqYR+RDctAhcVkTK9mTF893TudYqc3+ebcdQP3rvnXs5557x7fu65JniEfzjUiUCDirb3LrTDiYcOeIAJXkFyF6Bo0/TMdwSP8GwAglgmgrSetO4m8AjPllcLrnbAf60nCMI4Di5Bkp6mL42+dMPrzgVCBHmrBsAlUMAvHqpowDrCnQFSTpMwdMoBwTFECObxEN0nxDlNSnd/r7DmIPTH+8YQsSdfv+xMRceewBqx+VywLd7TzH/YpOjMb/kWrowniwlz8j/m4YOiHSFnC/HUJ0IdguBVdpqwI1akpAEmiPPsmYtauI46uNJMQRFIgkeZqHUPKsDmzgIut+2+4V6/ojPL5gxcvvnNEc4QkpjQaw6v/Qc+oJIc1dtXfYQqMQBxxMgmis90ujMAd5fC4yrV5qBKMAPx0KcVbTRtR0a7oQYIDPdNAGGQEGYF/2CreghwXykhjuQWdscRXyJ0qBhPKmI1cJSjI/FUqW9pXayT+4lmk4CuZxc/lxJid/SzO/o59FVa7oAKwGHxgN9vuKLOm6nI6AWoAIFEb5tDsFPRmSUxDVetRcNwvoLE51oZYgNHUXtWtVTvdMRK/JU3y1j6DomSOWv2qrkUQwbCUUX7fHCYA/WFHR57xlP16EKE/woRn5M5KG0AOWdT0dtTsI7wVIjqE2e6eGcOZKf7oQIUMEBMcmAurNB184WEWPlJ9msnuEA6bL2GEqdungF29NYkD5NQI7juB7gPOMe52KiFCLpYsiWXh7vkO7z+RdGpsDXIdNlu2bUBgXjfRzbgoFt+e3GPAbGYLMe3RXpC0Pl/g4dGt/wwECOIlWfbGheTQuBT9DTvyoiiU00/G2p+OSWQJqKo15ONuJxyWf/BZrzXdAWX0z8AAAD//9yXQnUAAAAGSURBVAMANfjopI1cX4AAAAAASUVORK5CYII=" width="32" height="32" alt=""><figcaption>32px</figcaption></figure><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAC4klEQVR4nOyYP2gTcRTHv++XS2ySonTQTYRCHUTFqY7WpYOTi9DFSZuCaGlSrG52rB2SoQombXVR/LOULg5FqhVcrAjSQSha8E8cHApKL4lp7n6+YC+5xFwSmlwuofcZ7nfv3fv9+L0f773f4xTYwVToQMCHZ4ZIoCdqJP4ANqDADgLbPtK8g4aoS/keNmGPAy3EdaAiua0tnXrCBZm0VdgEocPZuyEUiA7PENFVNIpOp9Tx+AfsEjeJnabjHWhaFeKcuMI5cbeqEcmb6tjsbTQRN4ScxnWgAJGsoH0NKQt6XeIL6iAYC63xcLwwj2goPRZ/WsnW0gF/dHhIED0uKCTW1EjipJU9b5Tb/tKaoHr2DWJ05g9sxA0hp2miAzLJYbZSotpc08qt/NFL/USec6i6FA6V3FC6Lq1M63aAIzzYFbs8UKrUv2Yi9zfyr6nI3CIPizUXInGa93aruk2ZLITlhVu3A7xCrwfipVnH1WGahxtwEKX8VDMB8RYjiRTakXgo0JXS+w3RQ9hUyk/Vl9KPZYGPsAuJ7/xYKYrUy9X3cI1J+s7ejpj3y9qlllehdGR2gYcFQ/ZHQ9McnterzyJh9aUhBwRogm/NCUPmWnEtHUncQQtRNJ0umhVZbzqJNiXrSSfFdndxv0L7oWTG4w/RKYw++p0BSvZrew74Y6ExIeX5ooa+cU9VOEWJ3D0N4rl5joCYz5ftouZfElei/otMSpUXfVfD7L/w4zlHuck7Y1rnk/n7zkW4YdZxXpWV8SYkMbeaG3xyA2gz3GauhMkBJbi/74VZJSH7zM0Nv+loIpYOSJI/zd0lN3OfUZODwhzvecq7MJnP0Rqo4cQJ1ImlA5nw3DIPy2hz3Bxwmob+zAWjoWVe4SwaRP217sXkqxx2gRtCTuP+nXYaN4QqEr3g91PPSFGhrabD829gA/Y4oHR3Cw0xQ9SlZ4qHDnKghbgOVCTlzUoflgyRW9R12MRfAAAA///duNPTAAAABklEQVQDAGCZ0/v//KJaAAAAAElFTkSuQmCC" width="48" height="48" alt=""><figcaption>48px</figcaption></figure></div>
-  <div class="ctx">
-    <div class="sr">
-      <div class="sr-head"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABnUlEQVR4nIxTv0/CQBS+d4UI6J9Boi4acSAxMUFdDZsODg4KTdTEQA0xYXJRt9bJxFIxTo4uzsawSDRhcWLUSVgctAS03PPxo1BIabjkLvfuvnvv+77XcuYxQlrydlKVM14Yn9clAjwIgIoXBoYPJtTdsI9xwwX5aqZzmbEZUPVFyj7V3iO+wLgM7BFS5RIAW2jtLbBmGql82Q3Hew80+TKoykeO1EhrocnESkN8f/QTJw2az24SIlTR70igC4FfdcV4CqiJZa7Jax1tLEJ39R6MKh9YTDyScTekJ9o6/EM296vobw45WUp+asfkSdEC3PEziHKKtn0ohZ26iFY+oMpbdlxT9DMGYn4AQ29I4yY4PCjaDLp1stS28+CFfAhCvANnRUS+RxLiLQm1tL40YGJHHjPMtA7taUnXAS0RA8RjBhA3U0aFHp0QqkSswc3E/abAHzsISs1VzvhdR3O/3TUll3AWdf0OSM49dXGarme7CT4pLptKLjaMHf0vIKvSUh1ZxYuBPcjADWJfqaeuCqMw3CsBGbguCYx6Yf4BAAD//4QbPlcAAAAGSURBVAMAFvCaq7x+CA0AAAAASUVORK5CYII=" width="16" height="16" alt=""><span class="sr-host">peerflow.dev</span></div>
-      <div class="sr-title">PeerFlow: Find a Tech Study Partner for Live Study Sessions</div>
-      <div class="sr-desc">Find a tech study partner across 8 learning paths for recurring 1-on-1 camera-on study sessions.</div>
-    </div>
-    <div class="sr d">
-      <div class="sr-head"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABnUlEQVR4nIxTv0/CQBS+d4UI6J9Boi4acSAxMUFdDZsODg4KTdTEQA0xYXJRt9bJxFIxTo4uzsawSDRhcWLUSVgctAS03PPxo1BIabjkLvfuvnvv+77XcuYxQlrydlKVM14Yn9clAjwIgIoXBoYPJtTdsI9xwwX5aqZzmbEZUPVFyj7V3iO+wLgM7BFS5RIAW2jtLbBmGql82Q3Hew80+TKoykeO1EhrocnESkN8f/QTJw2az24SIlTR70igC4FfdcV4CqiJZa7Jax1tLEJ39R6MKh9YTDyScTekJ9o6/EM296vobw45WUp+asfkSdEC3PEziHKKtn0ohZ26iFY+oMpbdlxT9DMGYn4AQ29I4yY4PCjaDLp1stS28+CFfAhCvANnRUS+RxLiLQm1tL40YGJHHjPMtA7taUnXAS0RA8RjBhA3U0aFHp0QqkSswc3E/abAHzsISs1VzvhdR3O/3TUll3AWdf0OSM49dXGarme7CT4pLptKLjaMHf0vIKvSUh1ZxYuBPcjADWJfqaeuCqMw3CsBGbguCYx6Yf4BAAD//4QbPlcAAAAGSURBVAMAFvCaq7x+CA0AAAAASUVORK5CYII=" width="16" height="16" alt=""><span class="sr-host">peerflow.dev</span></div>
-      <div class="sr-title">PeerFlow: Find a Tech Study Partner for Live Study Sessions</div>
-      <div class="sr-desc">Find a tech study partner across 8 learning paths for recurring 1-on-1 camera-on study sessions.</div>
-    </div>
-  </div>
-  <p class="verdict">At 16px the four arrows separate into loose specks and the thin cardinal blocks all but vanish. On the dark row it nearly disappears. This is the control, not a candidate.</p>
-</section>
-
-<section class="opt">
-  <h2><span class="tag">B</span> Knocked out of deep green</h2>
-  <p class="note">The mark reversed out of a filled tile in --p8 (#085041), the darkest step of the ramp.</p>
-  <div class="sizes"><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABt0lEQVR4nJyTSUibQRTHf/N9H0kDoSVdRFJDUkvEgm1Ful1S7C7tQWkPLYXSpidbKFQUBHFBUPDmTQUPKl5yEdGDioiIJxERkQgqLkTcEFxAXKKGcczJJd93yB9m3mPeez/mzfAMQNjzc/8iKFRuhgAbFpJwpPZZ5TRFu4YahL0g979A1JOEJLJIQ4pCkpWq1ZTxmcVfZmXz6N59CwI+QwjsiSJP/Q9wOhw4bDb2o1HmVpev5JzVamboQNZjOspqqQv+we9OM0vjCiA73c8TfybNfd2sb29RE2qjd2yE/BcB3uc8swZkpnnjxeXffuJNSeVzbRkj02EOOgcJlVbjuZ2ibuMxB2Tc9WDoOh9yntNeUkFkYx33zTvkVRYzv7aCrmmkp7ovAMS1glfy/MGvtx/Vw9lp7Okk+O4TVd9/4wt+ibdwcBSlf3z0AsDgkloHeuL2a+BNvBWX08mP13m0D/aRSAYmCkcW+NdUTywWY2170yzNHDC1tMit6zfY2dtlcnHeEhBRy5soOByewEpSMqN+QbaSpISQIf3koW/MiKFLhAshXWoydasiNYHHaoimBbLl0EbdKQAAAP//eBj3JwAAAAZJREFUAwBbZHo1ZtPVbgAAAABJRU5ErkJggg==" width="16" height="16" alt=""><figcaption>16px</figcaption></figure><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADgklEQVR4nMSXeUgUURzHv292dG1LO9Si1KxMMzqk204qQqNLLawgMsMozCjsv+ggii6KirCDjj9CiiLootOuLbvUCgWtNTVd1PVeXdP1QH29GdnRRc2dUdcPzMyb996833d+85vfe49He4KCBjpqGmMJJXMJoVMB4olegRZQijRK8LXR7HgOCQm1lhZiKahDlwYR0Kus6I0+heax09b6h1qtJEAdsiSYELyAHWlqwYKmx+8+EaxcMNTJgc9gWkbCjlAgp8HsEMAz4yH2Ni7AXO/jpGkM51l5MfoJFpiBHKUkEAqZ5TsRfh5eUAwhgRy7jIFC4nbuxe414VAMhT/Pol8NhRyKv46KvyYoRbDNy3wGp7ZGY5qPX6dt0RfPIKeoEHKQLSBg7HgsnBTQaZvzAA3kQpxCl1DIxMttOH5fuyPdR549hruJb6AE2R4QoLRVc3GlEVmGfJSYjFbt0SvCYG6sx83Xz7sdyyYB2pNxcHV2wZSYCPGekNYpJOFHEnbEne7QP2bVWpRVV/WegBbaAie1GosmB6C82oRsQyGCD8aiyNj65kIuiIveK/Uf5eqGUlOlLUN3LWCy9zisnj0ft7QJ4AgHT1d3vDx6Dk+SPyP8xAF8SE+T+g7WDOoQmIKXRruPwKbFQbj9/hX0pcWd2uG6EjDRyxsxq9fBgxmmaItT4W0PbNyCUcPcpLqUrF8YELYUT1M+W40hPCuMIQQt5Hrg3sd34iG+TduyQRSwf8MWvPieBIOxHDPGTwCvUiEp8yfS9blw0QzETF9/MVC/6NLhGRGK/2FzDBRUlCHq/HGpTpevF6839uyDs0YDn6j1OHzrhliXfileCtTusElA2p9s5JYUWX134VcLm7cIXu7DUVlTY9X/4pP74m/YawJir13oUOfr4SkFXlWttYDLzx7AVjjIZPvyENQ9eCt6wIIQkELd4U1RkIvsTGgwliExI63TttwSA+SiaC6wEDx9jjgdf8vSQSmyP0F7jmzehshlK9ATeJZjSthvPgIK2HXpLEzmGiiG2eZZlktliSYYChAyYE8QbHMsXaSinxBsc+x8hSmpgp0Rbaq4yxzbo+VRQiJhbyiNqL//Vq8Sys26vEyVv3cyc8l85pgh6Fv0FGRDwyOtuFpRWWqbdfrsptF+1zmH5jrmnzo2l7AVJnFBryBuzxPZ9jy+wey4ufnpaylx/AMAAP//c3KaJQAAAAZJREFUAwAHojAIINRkGAAAAABJRU5ErkJggg==" width="32" height="32" alt=""><figcaption>32px</figcaption></figure><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAEuUlEQVR4nOyZf0yUdRzH389zP/3FD1HAQiAcm5LEGdrWxBSwIEeCTpNGiesPrbVKnT/Lsk1rOcutrQVrjaRVYrRCTMtVdsok02xWQoCCAwNEOEAs4H7x7fv90p2cd6cPxz1wz+Zru937vt/vc8/nfd+fn+fU8IImZ5FBALIEghQIQjzVcRhFCNAAQi7S9woi4Ii1zHjeUzvBrWT5oii9HXtp0LkILA70D1g2ofxUy9BCFwPa7AUJoqA6RoujEIgQcoUIYqq57Hi9o0h0CE1OarIgqCsDNniGIEwXQCo1Tyyc5ygaNLDy4XFUfEi7IxiBT7hKJRawmNkHbkBv0e2kwT8I5ZDMYmZCQNb8aL1a2wiFQQjpN1txn6hTa5ZDgQiCoNdpkSvSBTcDSoXGrqZOZkGhsNhFQhAJGTDExaOhqBSV7xRCLljstAeggwxo1WpMCw1jkw1ywWJXQyZaO03Y93UJenr/hZwI+pxU+X6iUcBvPVDwwiasWbzkju3OXapFyubn4S9kG0Kjhd8MfHOmEs2mdkwNDsHazGy3+rdLP4V9wE7bdMCf+H0OJETH4tx7RW7lIU9mwGy1wt+M6RAKnTgJibGDid7Zuhr0WcwYLj4ZiJ4agY9e3sb1to8L8Ft9ncd2Hxz5CodOV3Btsdnc6ufGz0T563u4Nry4BrV/N2G4+GRgvE6PBfcncT15UpDXdvWtLTh54XfIid+HUPv1brx5sJjrs3V/Ocvnz0rEzrxnXdqyIeTA1x3bJwMEN2/2Vv46bFmRx3XWG1u4gd0lxW7XTKGrk6PXPEEPZvAFSQbYkCndvovrfWUH0dzR7qxLjJ3h1CpRxEhIN8zFxpxVMN3owep3d0m6RpIBjVqFtKRkrktO/uBiYChbVz4Nm92GLyqOo675iksdm8zjlqXxH8NUctTj9fdMDuP3ae0yQSqSDPSazVj3/l6uT1X/SU+aGo/ttv4/lP64XO9mQArsu9l9+sz9kq+RZMBKl8BPfvzW+XlmVAyk8kxaJmLCI9DRcx2FR8vocmp1TvK4yHvx1MLFXLNJ3HC1hb+Gw4gn8fb9hXQfqHWpr2q87NSr0zORkvAA7xFmwGa3Oyf5o3PmOQ3IOolvRRjyQO9CY4PbWh8eHIpHZg+uOMHjJ0BOfDLQS8doRdVg0J10xbiVdEMyita/csfv+fViDTJe28B107U2+IJPBpra2/DYjg0YKV3/3BjxTu23nTiIDpWXlq7genaM+5P4sKBg7MjN5/pz4/fDnqze8JuBkAkT8eqqfK/1YfTM5Kj/pbY68AyMFXeTem9MnxKO55bk8Mcqe778DHIxstPXbZhGzzUbl+Vi7ePZkBPZeoBlYOxQ1tbVCTkR9NmpV+nGGgFl0igSgZyGQqFnsvNsDhihXIwiseM7KBQWu2g5bKyhshiKgxSz2PkySgawmyYUNigEFiuByJNmbsBcbrxEBgQDldKT0bHDRGBPcvxb79zILId/quon9jlUnkHgcoLFaDlUUe0oULlU1zb22CJj96u0aKUp3kO0RN50SjrXCAY2m7uxHsdOdA+t8J6I0r/ytRbdUtogjyasCfR9BkYResKsp4O9mu5TBywaSxlKf+7z1O4/AAAA//9fJjC5AAAABklEQVQDAHaOoqK3dL4LAAAAAElFTkSuQmCC" width="48" height="48" alt=""><figcaption>48px</figcaption></figure></div>
-  <div class="ctx">
-    <div class="sr">
-      <div class="sr-head"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABt0lEQVR4nJyTSUibQRTHf/N9H0kDoSVdRFJDUkvEgm1Ful1S7C7tQWkPLYXSpidbKFQUBHFBUPDmTQUPKl5yEdGDioiIJxERkQgqLkTcEFxAXKKGcczJJd93yB9m3mPeez/mzfAMQNjzc/8iKFRuhgAbFpJwpPZZ5TRFu4YahL0g979A1JOEJLJIQ4pCkpWq1ZTxmcVfZmXz6N59CwI+QwjsiSJP/Q9wOhw4bDb2o1HmVpev5JzVamboQNZjOspqqQv+we9OM0vjCiA73c8TfybNfd2sb29RE2qjd2yE/BcB3uc8swZkpnnjxeXffuJNSeVzbRkj02EOOgcJlVbjuZ2ibuMxB2Tc9WDoOh9yntNeUkFkYx33zTvkVRYzv7aCrmmkp7ovAMS1glfy/MGvtx/Vw9lp7Okk+O4TVd9/4wt+ibdwcBSlf3z0AsDgkloHeuL2a+BNvBWX08mP13m0D/aRSAYmCkcW+NdUTywWY2170yzNHDC1tMit6zfY2dtlcnHeEhBRy5soOByewEpSMqN+QbaSpISQIf3koW/MiKFLhAshXWoydasiNYHHaoimBbLl0EbdKQAAAP//eBj3JwAAAAZJREFUAwBbZHo1ZtPVbgAAAABJRU5ErkJggg==" width="16" height="16" alt=""><span class="sr-host">peerflow.dev</span></div>
-      <div class="sr-title">PeerFlow: Find a Tech Study Partner for Live Study Sessions</div>
-      <div class="sr-desc">Find a tech study partner across 8 learning paths for recurring 1-on-1 camera-on study sessions.</div>
-    </div>
-    <div class="sr d">
-      <div class="sr-head"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABt0lEQVR4nJyTSUibQRTHf/N9H0kDoSVdRFJDUkvEgm1Ful1S7C7tQWkPLYXSpidbKFQUBHFBUPDmTQUPKl5yEdGDioiIJxERkQgqLkTcEFxAXKKGcczJJd93yB9m3mPeez/mzfAMQNjzc/8iKFRuhgAbFpJwpPZZ5TRFu4YahL0g979A1JOEJLJIQ4pCkpWq1ZTxmcVfZmXz6N59CwI+QwjsiSJP/Q9wOhw4bDb2o1HmVpev5JzVamboQNZjOspqqQv+we9OM0vjCiA73c8TfybNfd2sb29RE2qjd2yE/BcB3uc8swZkpnnjxeXffuJNSeVzbRkj02EOOgcJlVbjuZ2ibuMxB2Tc9WDoOh9yntNeUkFkYx33zTvkVRYzv7aCrmmkp7ovAMS1glfy/MGvtx/Vw9lp7Okk+O4TVd9/4wt+ibdwcBSlf3z0AsDgkloHeuL2a+BNvBWX08mP13m0D/aRSAYmCkcW+NdUTywWY2170yzNHDC1tMit6zfY2dtlcnHeEhBRy5soOByewEpSMqN+QbaSpISQIf3koW/MiKFLhAshXWoydasiNYHHaoimBbLl0EbdKQAAAP//eBj3JwAAAAZJREFUAwBbZHo1ZtPVbgAAAABJRU5ErkJggg==" width="16" height="16" alt=""><span class="sr-host">peerflow.dev</span></div>
-      <div class="sr-title">PeerFlow: Find a Tech Study Partner for Live Study Sessions</div>
-      <div class="sr-desc">Find a tech study partner across 8 learning paths for recurring 1-on-1 camera-on study sessions.</div>
-    </div>
-  </div>
-  <p class="verdict">Holds its shape at 16px because the silhouette carries it, not the strokes — the same thing peerflow.io gets right. Strongest of the three on the white row. On the dark row the tile is close enough to the background that its edge softens, so the mark reads but the tile stops being a shape.</p>
-</section>
-
-<section class="opt">
-  <h2><span class="tag">C</span> Knocked out of the accent</h2>
-  <p class="note">The same tile in --p4 (#1D9E75), the accent green the rest of the site already uses.</p>
-  <div class="sizes"><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABpklEQVR4nJyTTyiDYRzHv8/7vvPKGMMks6bJn6TMn8QN+XdQbqKk5iQnxEG5uYiDE6GMg8NS7iLlgtLKjY3ELJoly8jY2M+znYy972Hfy/P0PN/f53l+v+f3SCAwk31qFKARMFYOIA3qCoPoEmAr3uGFZWZcnxwTGFtECooSjUsMbAQpKhYrMFCJkqG5sBRVuUUqACqReN5ysk2rwQStJg3pogYhXRg3wackBCYLSvQmfrq93YaZxh5Ysg1KNvwDVOcZUZNvwpbrBP7QKxbP9nDgvUC3uRotxgp1QFlOAaw8eKK2A8WZetj27XD6PbizzWOtbQjGzBxYdAZlQOyqoiCgtbgSSy2D8L4FUKjVoX93Fbe8BgITYNblJQBiTUS/F/rLG+OF27w4wgCfT9Z1od4xG0/h4yuCw3t3AkDCHzkuT+Njr8XKU+lEtpyBvrIGbF85kUwSFOQK+DB9vIPvKOExFFSyKQPcHJAra/ESDuH8+UEZQEQexpg52eaJ7xpqIoI79gqbSFnkEOVBq1MMa0T+MfQcqeftKarHUIR7XATa+Mx6n/sBAAD//0k162gAAAAGSURBVAMALIl8ydNQFwkAAAAASUVORK5CYII=" width="16" height="16" alt=""><figcaption>16px</figcaption></figure><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADS0lEQVR4nMSXWUhUURjH/+c2LmimluJuoiGWuIQkmmX1oJYUEZL4kqj50EMRkpoEQg9FlkZBD0mQSZBhJWk9JEVikiGUog+akMvoiPs+LsM0M6dzr83NwTHnXsfxBzP3nmXO953zbXMUWIXX83xnex3Jo0A8KCIJgT+sAKUYYt8dhJAWrYI+GMssWzSOEeNLwNOCZAr6hE3ai61FSQnNHsouaxQVCKi4lgJw9bAheg5HhrNKm0ngiyJ3qtF1ghAf2JZeZo4oTq/Rn90G4Twhit/kPMcRehzbBJMdx1FK4iCTaM8AhLh6Qi4sOuI4AhoEmZQcTkNueCLkwiIgTMHs7wCZ3G2tx7RmEbJhshWQSHHsGUTs8TM7Vtj8Bsr5SUhBsgLhu30R5x1sdmynnfTDJAEVBRQS8XV2Q0v6DbF95UsV6vraIQfJJ8DDUrbwHF9Wo29uApPLCybjWfsTsKzTovrX9w3XskiB2tOX4e7ghGM194Q2+VtCGoe6kf/19Zr5OQcSMMWc02oKGKgBjjvsBNvPsIX7maOlfyjH+JJaGOdzwR0Wkka8nV0xqVmwZOn1FQhz90ZyYDhqelpZxuLgwxZ9deoSPg52IfdzJVpG+8S5LvaOaxyTPyU/5itp+2LwtrcNqoUZs3K49RQIdfPCxfCjTLAby1j//JTfbd7BJHg57RL72idUCHxWiE+qLpM1+N8a14DUE3jX3yF8hN0QYqpAdBIaVN0YW5pHpIc/FOyE2iYG0T09Chc7RyFF8476Y1yJqKqb+B8W+8DI4hyuNr0U+3pmx4Xnw8QMQeih6lsobVv5S9GUVig66kZYpEDn1DAG1dMmdudDLTUogtnZHXPaJZP5FV3NQhhaTYHilto1fcGuHqLjzWtNd1v5sxmWIjkTXgiLx+34c2bHHnU0iGawFMmZcGxpzsQUqxlUT0EqsmqBkRP+YUI57phUQS4cNsH1mJPICI3FZlCwcB1jEeMFGRR9q4Faq4FsmGyOXRLk1VGsZMBeVg1ly2eyeRPIVsAKtHM6oihnuszC5tBZvYE+5kazS5SslQUboyfIHMm9PyBEgSqnrI5SQyp7VWKLYZV1gDlfynB22Xu+bZJDxes5peyyQqJscT3/AwAA//+GeVulAAAABklEQVQDAICzOlY7grekAAAAAElFTkSuQmCC" width="32" height="32" alt=""><figcaption>32px</figcaption></figure><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAEr0lEQVR4nOyabUwcRRjH/7N30ONVqFVeDojY0JamtdBKo1WobVP9YNNEYwhGa6gl0Q81hgD1gyZixA8WG2L7pQYtEmOa1KRptE3bEJXGShqI5VoU2xRQOIrHW4HyduVud5wZvOPg7tLl2KW3ib/kkudmZm+e/87L88zemhEEa11FjkSxh4I+S0CyWNHjWF66WN+3CPCLQsi52/urbYEakYUF1tpDaZKkVIOQIoQRFDhJKCm3Hzjc51s+T0DyibL1ZipdJARpCEPYiNiJRHbYi6s7PWWSx0j5umxLBJWawtV5DpvK6VShTel1ZXlzZYy0U6VRZMJ8mZmbYQjobzRWzu8trJmeHYEJ04cwjPMcsuU/n0FS69/LMMlKN4yH00mQKRG3/DKMiSVSoUVmtjBegEHhvrM1QLNhWGi2xLahZOjAhoetaCn6AOf2vgu94L6bWcRdAR2IkExIiooXIVQ3mO9m6ET/1F0cb2vEuMsJPSHpJyr0vEe6o9kIHH7mFRSt2XrfdteHerHnh6PQCt2m0HKhmYCGnnb8MzWGVZZY7Fv3tF/9sWs/wk0VOCbHoCXaCbC3i8/ahKSAAo4yAfdkN7TmgU6hhyKjkL0yRdi2QTucsguLJSQB1pgE1BTMHtiqms/i+nBvwHZ17b/ifHebsGdk2a8+55EMfPP8AWHvPP0ZOsYGsFhCEhAdEYmnkmePyAmW6KDt/h4fwhVHF/RE8yk05JxAja1B2K2DPd7yrUmZKN88P29MWDEnnoYYskMSQH36ej/vRRx8YqewX79Yi2HnJGpaG/yuWWmJ8Y5aIIj/8wVVqBIQZY7Al7uKhf1F2yW2XY5667ITU7y2RPgBT0aoFKSuwVsbt2Pk3hQONn6r6hpVAnhilp+aJewzna3zBPjyzqZdbK+X8X2XDZ1jg/PqLnT/joy6Q+Jm3Nz3ScDrk6LjRT/903ehFlUCpt0ulF/+TtjN/X8h0mRCYAGzU6n9Tp+fADXw3+b9ON0zqq9RJcClyDh1q8X7PSvhUailMOtJWGMTcYetjfo/m+Bi26lnkT8Wtwovrc4VNl/E3ePD4rMYlryIq1rOigTNl5sjDswJyBM7EB8RLoCnE55Fvt261itA10W8EOLT1w3m7MK9nudDnh0nLtICPQlJwJRrxuv0qHPKrz7fmoXPC1697+/YWJwoPH9c2L0TIwiFkATcnhz1drwUxmamlxypNYvEcREWlGzIF7ZvbPDAA1lp7m5hn+64uujFGgzNBMSzuV6asztofSJLGzz1Vwd6wk/Ag+L/Q30wUtmZoTh7m3iscuzaT9ALCTrB85q3Nz6HN9Ztg57oNgI8/eBJ2cD0OPSEpH9V4WBRPAkGhFLaLYHQKzAoLKWxSQpFIwwK912iEr0Ag8J9l/r2H7nBzHoYDlrPfRfbKFXkKpbja//YTCeErxL5mNtCQG9JTYfbJOWwkKxNgqIj3Ec3UTZ5/q33BjJH8ad/KJBzmbpmhCnM+UvcR8ebR9o9Zf7nuJ8rzdau8RJCyEfsmKf+8Ksj7Lw8wHyptGfG1GJH5bypHvQgyl8/UCbMe02gr7Fm61nRaiwvbIpQdqfJSRrrPsNfKwjU6F8AAAD//1aeJOYAAAAGSURBVAMAIo+s10w15PQAAAAASUVORK5CYII=" width="48" height="48" alt=""><figcaption>48px</figcaption></figure></div>
-  <div class="ctx">
-    <div class="sr">
-      <div class="sr-head"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABpklEQVR4nJyTTyiDYRzHv8/7vvPKGMMks6bJn6TMn8QN+XdQbqKk5iQnxEG5uYiDE6GMg8NS7iLlgtLKjY3ELJoly8jY2M+znYy972Hfy/P0PN/f53l+v+f3SCAwk31qFKARMFYOIA3qCoPoEmAr3uGFZWZcnxwTGFtECooSjUsMbAQpKhYrMFCJkqG5sBRVuUUqACqReN5ysk2rwQStJg3pogYhXRg3wackBCYLSvQmfrq93YaZxh5Ysg1KNvwDVOcZUZNvwpbrBP7QKxbP9nDgvUC3uRotxgp1QFlOAaw8eKK2A8WZetj27XD6PbizzWOtbQjGzBxYdAZlQOyqoiCgtbgSSy2D8L4FUKjVoX93Fbe8BgITYNblJQBiTUS/F/rLG+OF27w4wgCfT9Z1od4xG0/h4yuCw3t3AkDCHzkuT+Njr8XKU+lEtpyBvrIGbF85kUwSFOQK+DB9vIPvKOExFFSyKQPcHJAra/ESDuH8+UEZQEQexpg52eaJ7xpqIoI79gqbSFnkEOVBq1MMa0T+MfQcqeftKarHUIR7XATa+Mx6n/sBAAD//0k162gAAAAGSURBVAMALIl8ydNQFwkAAAAASUVORK5CYII=" width="16" height="16" alt=""><span class="sr-host">peerflow.dev</span></div>
-      <div class="sr-title">PeerFlow: Find a Tech Study Partner for Live Study Sessions</div>
-      <div class="sr-desc">Find a tech study partner across 8 learning paths for recurring 1-on-1 camera-on study sessions.</div>
-    </div>
-    <div class="sr d">
-      <div class="sr-head"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABpklEQVR4nJyTTyiDYRzHv8/7vvPKGMMks6bJn6TMn8QN+XdQbqKk5iQnxEG5uYiDE6GMg8NS7iLlgtLKjY3ELJoly8jY2M+znYy972Hfy/P0PN/f53l+v+f3SCAwk31qFKARMFYOIA3qCoPoEmAr3uGFZWZcnxwTGFtECooSjUsMbAQpKhYrMFCJkqG5sBRVuUUqACqReN5ysk2rwQStJg3pogYhXRg3wackBCYLSvQmfrq93YaZxh5Ysg1KNvwDVOcZUZNvwpbrBP7QKxbP9nDgvUC3uRotxgp1QFlOAaw8eKK2A8WZetj27XD6PbizzWOtbQjGzBxYdAZlQOyqoiCgtbgSSy2D8L4FUKjVoX93Fbe8BgITYNblJQBiTUS/F/rLG+OF27w4wgCfT9Z1od4xG0/h4yuCw3t3AkDCHzkuT+Njr8XKU+lEtpyBvrIGbF85kUwSFOQK+DB9vIPvKOExFFSyKQPcHJAra/ESDuH8+UEZQEQexpg52eaJ7xpqIoI79gqbSFnkEOVBq1MMa0T+MfQcqeftKarHUIR7XATa+Mx6n/sBAAD//0k162gAAAAGSURBVAMALIl8ydNQFwkAAAAASUVORK5CYII=" width="16" height="16" alt=""><span class="sr-host">peerflow.dev</span></div>
-      <div class="sr-title">PeerFlow: Find a Tech Study Partner for Live Study Sessions</div>
-      <div class="sr-desc">Find a tech study partner across 8 learning paths for recurring 1-on-1 camera-on study sessions.</div>
-    </div>
-  </div>
-  <p class="verdict">The honest opposite of B rather than a worse version of it. Slightly less contrast than B on the white row, clearly better on the dark one, and it is the green the rest of the site already uses. If the icon has to work in one place it is white; if it has to work in both without thinking about it, this is the safer pick.</p>
-</section>
-
-<p class="lede" style="margin-top:34px">Whichever wins, it ships as
-<code>/favicon.ico</code> plus an SVG and a 180px apple-touch icon, linked from all
-29 pages, and Google picks it up on its next crawl of the homepage.</p>
+<!-- ============ option A ============ -->
+<div class="opt">
+  <div class="opt-h"><span class="opt-k">Option A</span></div>
+  <h2 class="opt-t">The proportional funnel</h2>
 </div>
+<p class="opt-d">What a funnel chart normally means: each bar as wide as its
+share of the top step. The shape carries the story and needs no reading.</p>
+
+<div class="pair">
+  <div class="panel">
+    <p class="panel-h">Today — 11 accounts</p>
+    <div id="a-now"></div>
+  </div>
+  <div class="panel">
+    <p class="panel-h">After a launch — 340 accounts</p>
+    <div id="a-launch"></div>
+  </div>
+</div>
+
+<!-- ============ option B ============ -->
+<div class="opt">
+  <div class="opt-h"><span class="opt-k">Option B</span></div>
+  <h2 class="opt-t">The ladder</h2>
+</div>
+<p class="opt-d">Every step gets the same room and its own number, the
+proportion moves into a bar inside the row, and the drop between two steps is
+printed rather than implied. The worst one is called out, because it is the only
+line on the page you can act on.</p>
+
+<div class="pair">
+  <div class="panel">
+    <p class="panel-h">Today — 11 accounts</p>
+    <div id="b-now"></div>
+  </div>
+  <div class="panel">
+    <p class="panel-h">After a launch — 340 accounts</p>
+    <div id="b-launch"></div>
+  </div>
+</div>
+
+<div class="verdict">
+  <h2>What I would ship, and why</h2>
+  <p><b>Option B.</b> Look at A's left-hand panel: below the second step every
+  bar is a sliver. <i>Sent a request</i>, <i>Has a partner</i> and <i>Proposed a
+  session</i> are the same 46px bar three times, and <i>Booked one</i> and
+  <i>Turned up</i> are the same 23px bar twice — five of the seven steps are
+  indistinguishable in pairs, so the only thing the shape communicates is that
+  the first drop was large. The form needs a big top number to have anything to
+  be proportional to, and PeerFlow does not have one yet — which is the entire
+  reason for building this page now rather than after the launch.</p>
+  <p>B reads the same at 11 and at 340, and it puts the number you actually
+  want — the size of each drop — into words instead of leaving it as the space
+  where a bar is not. A funnel's content is its gaps, and A draws the gaps as
+  absence.</p>
+  <p>Say the word and this becomes <code>app-metrics.html</code>, with the
+  thirty-day daily series under it. If you would rather have A, or both, that is
+  a five-minute change.</p>
+</div>
+
+</div>
+
+<script>
+/* The two scales. Today's are what a platform this age plausibly looks like;
+   the launch column is a Product Hunt day that converted normally. Neither is
+   read from the database — this page is a design decision, not a dashboard. */
+var STEPS = [
+  ['Accounts',          'accounts'],
+  ['Finished signing up','profile_complete'],
+  ['Sent a request',    'request_sent'],
+  ['Has a partner',     'partnered'],
+  ['Proposed a session','session_proposed'],
+  ['Booked one',        'session_booked'],
+  ['Turned up',         'session_attended']
+];
+var NOW    = {accounts:11, profile_complete:4, request_sent:2, partnered:2,
+              session_proposed:2, session_booked:1, session_attended:1};
+var LAUNCH = {accounts:340, profile_complete:96, request_sent:41, partnered:28,
+              session_proposed:22, session_booked:14, session_attended:9};
+
+function rows(d){ return STEPS.map(function(s){ return {k:s[0], n:d[s[1]]}; }); }
+
+/* Option A. The width is the share of the top step, floored at 2px so a step
+   somebody did reach never disappears completely — which is itself a small
+   argument against the form: the floor is there because the honest width is
+   sometimes less than a pixel. */
+function drawA(el, d){
+  var r = rows(d), top = r[0].n || 1;
+  el.innerHTML = r.map(function(x){
+    var pct = Math.max((x.n / top) * 100, 0.6);
+    return '<div class="fa-row">' +
+      '<span class="fa-k">' + x.k + '</span>' +
+      '<span class="fa-track"><span class="fa-bar" style="width:' + pct + '%" ' +
+        'title="' + x.k + ': ' + x.n + '"></span></span>' +
+      '<span class="fa-n">' + x.n + '</span></div>';
+  }).join('');
+}
+
+/* Option B. Same widths inside each row's own track, plus the drop between
+   consecutive steps as its own line. The worst drop is found first so it can
+   be marked; ties go to the earlier step, which is the one further up the
+   funnel and therefore the one worth fixing. */
+function drawB(el, d){
+  var r = rows(d), top = r[0].n || 1;
+  var worst = -1, worstLoss = -1;
+  for (var i = 1; i < r.length; i++){
+    var loss = r[i-1].n - r[i].n;
+    if (loss > worstLoss){ worstLoss = loss; worst = i; }
+  }
+  var out = '';
+  r.forEach(function(x, i){
+    if (i > 0){
+      var lost = r[i-1].n - x.n;
+      var pct  = r[i-1].n ? Math.round((lost / r[i-1].n) * 100) : 0;
+      var txt  = lost === 0 ? 'no one lost'
+                            : lost + (lost === 1 ? ' person' : ' people') + ' lost, ' + pct + '%';
+      out += '<div class="fb-gap' + (i === worst && lost > 0 ? ' worst' : '') + '">' +
+             '<i></i>' + txt + '</div>';
+    }
+    var w = Math.max((x.n / top) * 100, 1);
+    out += '<div class="fb-step"><div>' +
+             '<p class="fb-k">' + x.k + '</p>' +
+             '<div class="fb-track"><div class="fb-fill" style="width:' + w + '%"></div></div>' +
+           '</div><span class="fb-n">' + x.n + '</span></div>';
+  });
+  el.innerHTML = out;
+}
+
+drawA(document.getElementById('a-now'), NOW);
+drawA(document.getElementById('a-launch'), LAUNCH);
+drawB(document.getElementById('b-now'), NOW);
+drawB(document.getElementById('b-launch'), LAUNCH);
+</script>
 </body>
 </html>

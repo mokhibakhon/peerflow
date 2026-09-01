@@ -335,6 +335,98 @@ const THEM = '22222222-2222-4222-8222-222222222222';
        counts === null, 'got ' + JSON.stringify(counts));
   }
 
+  console.log('\n==> the funnel answers its owner, and nobody else');
+  {
+    /* funnel_counts() returns one row to an admin. Every field arrives as a
+       bigint, which PostgREST is entitled to send as a string — and this is
+       the reader where that matters most, because the page subtracts adjacent
+       steps to show the drop between them. Left as strings, 11 - 4 happens to
+       coerce and work, while the first thing that adds two of them gives
+       '114'. */
+    const client = fakeClient(state => {
+      if (state.rpc === 'funnel_counts') {
+        return { data: [{ accounts: '11', profile_complete: 4, request_sent: '2',
+                          partnered: 2, session_proposed: 2, session_booked: '1',
+                          session_attended: 1, accounts_7d: '3',
+                          accounts_prev_7d: 0 }], error: null };
+      }
+      return { data: [], error: null };
+    }, null);
+    const pf = loadDb(client);
+    const f = await pf.funnelCounts();
+
+    ok('the row comes back as numbers, not as the strings it arrived in',
+       f && f.accounts === 11 && f.request_sent === 2 && f.accounts_7d === 3,
+       JSON.stringify(f));
+    ok('  so a drop between two steps is arithmetic and not concatenation',
+       f && (f.accounts - f.profile_complete) === 7,
+       'got ' + (f && (f.accounts - f.profile_complete)));
+    ok('  a genuine zero survives as zero rather than becoming null',
+       f && f.accounts_prev_7d === 0, 'got ' + (f && f.accounts_prev_7d));
+  }
+
+  console.log('\n==> and says nothing at all to everybody else');
+  {
+    /* The ordinary case for every account but one. funnel_counts() has a
+       WHERE that no non-admin satisfies, so PostgREST returns an empty array
+       and not an error — which is deliberate, because db.js turns an error
+       into a sentence on screen and "permission denied" shown to a member who
+       guessed the URL is noise. Empty has to read as null here so the page can
+       say whose page it is instead. */
+    const client = fakeClient(state => {
+      if (state.rpc === 'funnel_counts') return { data: [], error: null };
+      return { data: [], error: null };
+    }, null);
+    const pf = loadDb(client);
+    ok('no rows reads as null, the same as no page',
+       (await pf.funnelCounts()) === null, 'expected null');
+  }
+
+  console.log('\n==> and the same when the migration has not been pasted in yet');
+  {
+    /* Every reader in db.js extends this courtesy, and here it collapses into
+       the case above on purpose: there is no older query to fall back to the
+       way trackCounts has one, and nothing about this page works partially.
+       A missing function and a member are the same outcome. */
+    const client = fakeClient(() => ({
+      data: null, error: { code: 'PGRST202', message: 'Could not find the function' }
+    }), null);
+    const pf = loadDb(client);
+    ok('a missing function is null, not a thrown error',
+       (await pf.funnelCounts()) === null, 'expected null');
+    ok('  and the daily series answers the same way',
+       (await pf.funnelDaily()) === null, 'expected null');
+  }
+
+  console.log('\n==> the daily series keeps its zeroes');
+  {
+    /* The days come from generate_series in the database, so a day nobody
+       signed up arrives as a zero rather than as a missing row. It has to stay
+       a zero all the way to the chart: dropping it would let a line join the
+       two days either side, drawing a quiet week as a gentle slope between two
+       busy ones. */
+    const client = fakeClient(state => {
+      if (state.rpc === 'funnel_daily') {
+        return { data: [
+          { day: '2026-08-30T00:00:00+00:00', accounts: '2', profile_complete: '1' },
+          { day: '2026-08-31', accounts: 0, profile_complete: 0 },
+          { day: '2026-09-01', accounts: '5', profile_complete: 2 }
+        ], error: null };
+      }
+      return { data: [], error: null };
+    }, null);
+    const pf = loadDb(client);
+    const d = await pf.funnelDaily();
+
+    ok('every day arrives, the empty one included',
+       Array.isArray(d) && d.length === 3, 'got ' + (d && d.length));
+    ok('  a timestamp is cut back to the day the chart plots',
+       d && d[0].day === '2026-08-30', 'got ' + (d && d[0].day));
+    ok('  and the counts are numbers on every row',
+       d && d[0].accounts === 2 && d[1].accounts === 0 && d[2].accounts === 5,
+       JSON.stringify(d && d.map(x => x.accounts)));
+  }
+
   console.log('\n' + '='.repeat(51));
   console.log(fails ? fails + ' failed' : 'all checks pass');
   process.exit(fails ? 1 : 0);
