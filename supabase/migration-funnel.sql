@@ -99,7 +99,15 @@ returns table (
 language sql
 security definer
 stable
-set search_path = public
+-- pg_temp named explicitly, and last. It is searched FIRST for relations
+-- whether or not it appears here, so `set search_path = public` does not
+-- exclude it — naming it last is the documented way to push it behind the
+-- real schema. Nothing today depends on that: every table reference in both
+-- functions is schema-qualified, and dev/sql-tests.sh has a case proving a
+-- temp table called app_admins does not become the admin list. The pin is for
+-- the edit after this one, which will add an unqualified reference to a
+-- SECURITY DEFINER body without anybody noticing.
+set search_path = public, pg_temp
 as $$
   select
     (select count(*) from public.profiles),
@@ -169,7 +177,7 @@ returns table (day date, accounts bigint, profile_complete bigint)
 language sql
 security definer
 stable
-set search_path = public
+set search_path = public, pg_temp   -- same reasoning as funnel_counts() above
 as $$
   select d::date,
          (select count(*) from public.profiles p

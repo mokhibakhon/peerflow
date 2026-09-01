@@ -2476,6 +2476,112 @@ check "  attendance from either mechanism counts as turning up" ok "
 
 
 echo
+echo "==> and the funnel cannot be prised open"
+
+# The cases above prove the funnel counts correctly. These prove it cannot be
+# read or joined by somebody who should not be, and they run under a harness
+# that is deliberately MORE permissive than production: line 145 grants
+# authenticated select, insert, update and delete on every table in public,
+# which real Supabase does not. Anything that holds here holds there, and it
+# holds because of row-level security rather than because of a revoke — which
+# is the point, since a grant can be handed back by any later migration and
+# RLS cannot be undone by accident.
+
+check "a member cannot read the admin list even holding select on it" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if has_table_privilege('authenticated','public.app_admins','select') is not true
+      then raise exception 'the harness did not grant select — this case would pass vacuously'; end if;
+    if (select count(*) from public.app_admins) <> 0
+      then raise exception 'RLS did not hide the admin list'; end if;
+  end \$\$;"
+
+# The escalation. Everything else on this page rests on it: if a member can
+# write their own id into app_admins then every guard above is decoration.
+check "  and cannot write themselves into it" "42501" "$(wrap "
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  insert into public.app_admins (user_id) values ('$A');")"
+
+check "  nor promote themselves by updating somebody else's row" ok "
+  insert into public.app_admins (user_id) values ('$B');
+  $AS_A
+  do \$\$ begin
+    update public.app_admins set user_id = '$A' where user_id = '$B';
+    if found then raise exception 'a member rewrote the admin list'; end if;
+  end \$\$;"
+
+check "  nor remove an admin who is in their way" ok "
+  insert into public.app_admins (user_id) values ('$B');
+  $AS_A
+  do \$\$ begin
+    delete from public.app_admins where user_id = '$B';
+    if found then raise exception 'a member deleted an admin'; end if;
+  end \$\$;"
+
+# The classic attack on a SECURITY DEFINER function: create an object in a
+# schema that is searched before the intended one, and the definer runs your
+# object with the owner's rights. pg_temp is searched FIRST for relations
+# whether or not it appears in search_path, so `set search_path = public` does
+# not exclude it — what defeats this is that every table reference inside both
+# functions is schema-qualified. This case is here because that qualification
+# looks like a style choice and is not one.
+check "  a temp table of the same name does not become the admin list" ok "
+  $AS_A
+  create temp table app_admins (user_id uuid, added_at timestamptz);
+  insert into app_admins (user_id) values ('$A');
+  do \$\$ begin
+    if (select count(*) from public.funnel_counts()) <> 0
+      then raise exception 'pg_temp shadowed public.app_admins'; end if;
+  end \$\$;"
+
+# A caller with the authenticated role but no JWT — an expired or absent token
+# reaching PostgREST. auth.uid() is NULL, and the guard compares user_id to it.
+# NULL = NULL is NULL rather than true, so the EXISTS finds nothing; and no row
+# can carry a NULL user_id to match it anyway, the column being a primary key.
+check "  a session-less caller in the authenticated role gets nothing" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  set local role authenticated;
+  do \$\$ begin
+    if auth.uid() is not null
+      then raise exception 'this case needs auth.uid() to be NULL to mean anything'; end if;
+    if (select count(*) from public.funnel_counts()) <> 0
+      then raise exception 'a caller with no session read the funnel'; end if;
+    if (select count(*) from public.funnel_daily()) <> 0
+      then raise exception 'a caller with no session read the daily series'; end if;
+  end \$\$;"
+
+check "  and access ends the moment the row does" ok "
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.funnel_counts()) <> 1
+      then raise exception 'the admin could not read it to begin with'; end if;
+  end \$\$;
+  reset role;
+  delete from public.app_admins where user_id = '$A';
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.funnel_counts()) <> 0
+      then raise exception 'a removed admin still reads the funnel'; end if;
+  end \$\$;"
+
+check "  anon may not execute the daily series either" ok "$(wrap "
+  if has_function_privilege('anon', 'public.funnel_daily()', 'execute')
+    then raise exception 'anon can execute funnel_daily'; end if;")"
+
+# Neither function takes an argument, which is what makes "aggregates only" a
+# property of the interface rather than a promise about the body. There is no
+# filter to pass and no person to name.
+check "  neither function can be asked about a person" ok "$(wrap "
+  if (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+       where n.nspname = 'public'
+         and p.proname in ('funnel_counts','funnel_daily')
+         and p.pronargs <> 0) > 0
+    then raise exception 'a funnel function takes an argument'; end if;")"
+
+
+echo
 echo "==================================================="
 printf 'passed %d, failed %d\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
