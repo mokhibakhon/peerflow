@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Metrics — PeerFlow</title>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/app.css">
+<script src="assets/authgate.js"></script>
+<style>
+/* This page's styles live here rather than in app.css on purpose. Every
+   signed-in page loads app.css, and one person will ever open this one — there
+   is no reason for the other five pages to carry its stylesheet. seo-tests.js
+   resolves var() against the sheets a page actually links, so an inline block
+   is checked exactly as a shared one would be. */
+
+.mhead{max-width:70ch;margin:0 0 26px}
+.mhead h1{font-size:var(--t-page);margin:0 0 8px;letter-spacing:-.01em}
+.mhead p{color:var(--ink-soft);margin:0;font-size:var(--t-sm)}
+
+/* The three numbers worth seeing before any chart. A KPI row rather than one
+   hero figure, because no single one of them is the page's headline — the
+   funnel underneath is. */
+.mkpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 22px}
+@media (max-width:640px){.mkpi{grid-template-columns:1fr}}
+.mkpi-c{background:var(--card);border:1px solid var(--line);
+        border-radius:var(--r-card);padding:16px 18px}
+.mkpi-k{font:600 var(--t-kicker)/1 var(--mono);letter-spacing:.08em;
+        text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px}
+/* Proportional figures, not tabular: these are three standalone numbers in
+   separate cards with nothing to line up against, and tabular-nums gives every
+   digit the width of a zero, which makes a number like 11 look gappy at 32px. */
+.mkpi-n{font-size:var(--t-num);font-weight:800;line-height:1;margin:0}
+.mkpi-s{font-size:var(--t-xs);color:var(--ink-soft);margin:6px 0 0}
+.mkpi-s b{color:var(--ink);font-weight:700}
+
+.mcard{background:var(--card);border:1px solid var(--line);
+       border-radius:var(--r-card);padding:20px 20px 22px;margin:0 0 18px}
+.mcard-h{display:flex;align-items:baseline;justify-content:space-between;
+         gap:12px;margin:0 0 4px;flex-wrap:wrap}
+.mcard-t{font-size:var(--t-card);font-weight:700;margin:0}
+.mcard-d{color:var(--ink-soft);font-size:var(--t-xs);margin:0 0 18px;max-width:64ch}
+
+/* ---------- the funnel ----------
+   Bars proportional to the top step, which is what a funnel chart means. The
+   count sits outside the bar rather than inside it: below about 40px a bar is
+   narrower than its own number, and at PeerFlow's current size most of them
+   are. The share of the step above sits next to it, because with a top step in
+   double figures the tail bars are only a few pixels apart and the percentage
+   is the only thing separating them.
+
+   4px rounded ends on the free end and square against the baseline, a 2px gap
+   between rows: the house mark specs, same as everywhere else. */
+.fun-row{display:grid;grid-template-columns:120px 1fr 40px 52px;align-items:center;
+         gap:10px;margin:0 0 2px;padding:4px 0;border-radius:6px}
+.fun-row:hover{background:var(--band)}
+.fun-k{font-size:var(--t-xs);color:var(--ink-soft);text-align:right;line-height:1.25}
+/* display:block on both, and it is not decoration. They are spans, and an
+   inline element ignores width outright — the first version of this drew seven
+   bars of exactly 0px with markup that inspected perfectly. */
+.fun-track{display:block;height:22px}
+.fun-bar{display:block;height:22px;background:var(--p4);
+         border-radius:0 4px 4px 0;min-width:2px}
+.fun-n{font-size:var(--t-sm);font-weight:700;text-align:right;
+       font-variant-numeric:tabular-nums}
+.fun-p{font-size:var(--t-xs);color:var(--ink-faint);text-align:right;
+       font-variant-numeric:tabular-nums}
+@media (max-width:560px){
+  .fun-row{grid-template-columns:96px 1fr 34px 46px;gap:7px}
+  .fun-k{font-size:var(--t-tiny)}
+}
+
+/* ---------- thirty days ----------
+   Columns rather than a line: these are counts of whole people on separate
+   days, and a line between two of them draws a value for the afternoon in
+   between that nobody had. The green is the part that finished signing up and
+   the grey above it is the part that did not, so the column's height is the
+   day's signups and the green is what came of them. One hue and a recessive
+   grey, not two hues: the question is how much of each day converted, and the
+   remainder is context rather than a second thing to compare. */
+.days{display:flex;align-items:flex-end;gap:2px;height:104px;margin:0 0 6px}
+.day{flex:1 1 0;min-width:0;display:flex;flex-direction:column;
+     justify-content:flex-end;height:100%;position:relative;border-radius:3px}
+.day:hover{background:var(--band)}
+.day i{display:block;border-radius:2px 2px 0 0}
+.day .d-rest{background:var(--line-strong)}
+/* 2px of surface between the two segments, so they read as two parts and not
+   as one bar with a colour change. */
+.day .d-done{background:var(--p4);border-radius:0;margin-top:2px}
+.day .d-done:only-child{border-radius:2px 2px 0 0;margin-top:0}
+.days-x{display:flex;justify-content:space-between;font-size:var(--t-tiny);
+        color:var(--ink-faint);margin:0 0 14px;font-variant-numeric:tabular-nums}
+.leg{display:flex;gap:16px;flex-wrap:wrap;font-size:var(--t-xs);color:var(--ink-soft)}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.leg i{width:10px;height:10px;border-radius:var(--r-mark);display:block}
+
+.mnote{background:var(--band);border-radius:var(--r-card);padding:14px 16px;
+       font-size:var(--t-xs);color:var(--ink-soft);margin:0 0 18px}
+.mnote b{color:var(--ink)}
+.mempty{background:var(--card);border:1px solid var(--line);
+        border-radius:var(--r-card);padding:26px 22px;max-width:62ch}
+.mempty h2{font-size:var(--t-card);margin:0 0 8px}
+.mempty p{color:var(--ink-soft);margin:0 0 9px;font-size:var(--t-sm)}
+.mempty p:last-child{margin:0}
+.mempty code{font-family:var(--mono);font-size:12.5px;background:var(--band);
+             padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<main>
+  <div class="mhead">
+    <h1>Metrics</h1>
+    <p>How far people get, counted from rows PeerFlow already holds. There is no
+      analytics on this site and none is being added — no script, no beacon, no
+      third party. Every number here is the account somebody made, the profile
+      they filled in and the sessions they booked, which is what the privacy
+      page already says the platform holds.</p>
+  </div>
+
+  <p class="signedout-note" id="signedout" hidden>
+    You're not signed in. <a href="login.html">Log in</a> to see this.
+  </p>
+
+  <!-- Shown to a signed-in account that is not named in app_admins, and to
+       everybody if the migration has not been pasted in yet. The two are
+       deliberately the same screen: funnel_counts() returns no rows rather
+       than raising in the first case, and db.js reads a missing function as
+       null in the second, so there is nothing to tell apart and nothing worth
+       telling apart on screen. -->
+  <div class="mempty" id="notyours" hidden>
+    <h2>This page is for the site owner</h2>
+    <p>It shows totals about the platform rather than anything about you, so it
+      is not part of your account. Nothing is missing from the rest of PeerFlow.</p>
+    <p id="ny-owner" hidden>If this is your site and you are seeing this, the
+      migration has not been run yet, or your account has not been named in it.
+      <code>supabase/migration-funnel.sql</code> has both steps in its header.</p>
+  </div>
+
+  <div id="data" hidden>
+    <div class="mkpi">
+      <div class="mkpi-c">
+        <p class="mkpi-k">Accounts</p>
+        <p class="mkpi-n" id="k-accounts">0</p>
+        <p class="mkpi-s" id="k-accounts-s"></p>
+      </div>
+      <div class="mkpi-c">
+        <p class="mkpi-k">Finished signing up</p>
+        <p class="mkpi-n" id="k-complete">0</p>
+        <p class="mkpi-s" id="k-complete-s"></p>
+      </div>
+      <div class="mkpi-c">
+        <p class="mkpi-k">Turned up to a session</p>
+        <p class="mkpi-n" id="k-attended">0</p>
+        <p class="mkpi-s" id="k-attended-s"></p>
+      </div>
+    </div>
+
+    <div class="mcard">
+      <div class="mcard-h"><h2 class="mcard-t">Where people get to</h2></div>
+      <p class="mcard-d">Each step is the number of people who ever reached it,
+        so every one is a subset of the step above and the gaps are real
+        drop-off. It counts people rather than sessions on purpose: a session is
+        two rows, one per person, so counting rows would report two people for
+        every meeting between two.</p>
+      <div id="funnel"></div>
+    </div>
+
+    <div class="mcard">
+      <div class="mcard-h"><h2 class="mcard-t">The last thirty days</h2></div>
+      <p class="mcard-d">Each column is one day. Its height is how many accounts
+        were made; the green is how many of those went on to finish signing up.
+        A launch shows up here as one tall column, and whether it was worth
+        doing shows up as how much of that column is green.</p>
+      <div class="days" id="days"></div>
+      <div class="days-x"><span id="d-from"></span><span id="d-to"></span></div>
+      <div class="leg">
+        <span><i style="background:var(--p4)"></i> Finished signing up</span>
+        <span><i style="background:var(--line-strong)"></i> Stopped at the account</span>
+      </div>
+    </div>
+
+    <p class="mnote"><b>Nobody is named anywhere on this page.</b> Both database
+      functions return totals and have no argument, so there is no way to ask
+      either of them about a person.</p>
+  </div>
+</main>
+
+<div class="mfoot">
+  <a href="conduct.html">Code of conduct</a>
+  <a href="privacy.html">Privacy</a>
+  <a href="app-profile.html">Your profile</a>
+  <span>peerflow</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/dist/umd/supabase.js"
+        integrity="sha384-ysv13JVP3fufiEXfjML9OdCa/rRbMJvUBOWyor82wfuK8INNZAvmbxHgKIHi+oqz"
+        crossorigin="anonymous"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/appshell.js"></script>
+<script>
+(function(){
+  var STEPS = [
+    ['Accounts',            'accounts'],
+    ['Finished signing up', 'profile_complete'],
+    ['Sent a request',      'request_sent'],
+    ['Has a partner',       'partnered'],
+    ['Proposed a session',  'session_proposed'],
+    ['Booked one',          'session_booked'],
+    ['Turned up',           'session_attended']
+  ];
+
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  pf.currentUser().then(function(user){
+    if (!user) { el('signedout').hidden = false; return; }
+    return Promise.all([pf.funnelCounts(), pf.funnelDaily()]).then(function(r){
+      var f = r[0], daily = r[1];
+      /* No row and no function are the same screen, for the reason in the
+         markup above. The extra line naming the migration is shown to
+         everybody who gets here, because the only person who can act on it is
+         the only person who should ever be on this page. */
+      if (!f) { el('notyours').hidden = false; el('ny-owner').hidden = false; return; }
+      el('data').hidden = false;
+      drawKpi(f);
+      drawFunnel(f);
+      drawDays(daily);
+    });
+  });
+
+  function pct(n, of){ return of > 0 ? Math.round((n / of) * 100) : 0; }
+
+  function drawKpi(f){
+    el('k-accounts').textContent  = f.accounts;
+    el('k-complete').textContent  = f.profile_complete;
+    el('k-attended').textContent  = f.session_attended;
+
+    /* Last seven days against the seven before them. "New" rather than an
+       arrow and a percentage: at these counts a move from 1 to 3 is 200%,
+       which is a true number and a useless one. */
+    var d = f.accounts_7d - f.accounts_prev_7d;
+    var move = d === 0 ? 'the same as the week before'
+             : d > 0   ? d + ' more than the week before'
+                       : (-d) + ' fewer than the week before';
+    el('k-accounts-s').innerHTML = '<b>' + f.accounts_7d + '</b> in the last 7 days — ' + esc(move);
+
+    el('k-complete-s').innerHTML = '<b>' + pct(f.profile_complete, f.accounts) +
+      '%</b> of accounts — the rest cannot be matched yet';
+
+    el('k-attended-s').innerHTML = f.session_booked > 0
+      ? '<b>' + pct(f.session_attended, f.session_booked) + '%</b> of the people who booked one'
+      : 'nobody has booked one yet';
+  }
+
+  function drawFunnel(f){
+    var top = f.accounts || 0;
+    var prev = null;
+    el('funnel').innerHTML = STEPS.map(function(s){
+      var n = f[s[1]] || 0;
+      /* The width is the share of the top step, floored at 2px so a step
+         somebody did reach never vanishes entirely. The floor is a real cost
+         of this form and worth knowing about: below roughly 1% of the top
+         step, two different counts draw the same bar and only the numbers
+         beside it tell them apart. */
+      var w = top > 0 ? Math.max((n / top) * 100, 0.6) : 0;
+      var share = prev === null ? '' : pct(n, prev) + '%';
+      var title = s[0] + ': ' + n + (prev === null ? '' : ' (' + pct(n, prev) + '% of the step above)');
+      prev = n;
+      /* A step nobody has reached gets no bar element at all, rather than one
+         of width zero. The min-width floor above is what makes the difference
+         and it cannot be written as a width: it exists so that a step somebody
+         DID reach never rounds away to nothing, and it applies just as happily
+         to a genuine zero. On a platform where nothing has happened yet that
+         drew seven small bars — a chart saying something had, on a page whose
+         only job is saying what has. */
+      var bar = n > 0 ? '<span class="fun-bar" style="width:' + w + '%"></span>' : '';
+      return '<div class="fun-row" title="' + esc(title) + '">' +
+        '<span class="fun-k">' + esc(s[0]) + '</span>' +
+        '<span class="fun-track">' + bar + '</span>' +
+        '<span class="fun-n">' + n + '</span>' +
+        '<span class="fun-p">' + share + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  function drawDays(daily){
+    if (!daily || !daily.length) return;
+    /* The tallest day sets the scale, with a floor of 1 so a month in which
+       nothing happened draws a flat empty row rather than dividing by zero. */
+    var max = daily.reduce(function(m, d){ return Math.max(m, d.accounts); }, 0) || 1;
+    el('days').innerHTML = daily.map(function(d){
+      var done = Math.min(d.profile_complete, d.accounts);
+      var rest = d.accounts - done;
+      var title = d.day + ': ' + d.accounts +
+        (d.accounts === 1 ? ' account' : ' accounts') + ', ' + done + ' finished';
+      return '<span class="day" title="' + esc(title) + '">' +
+        (rest > 0 ? '<i class="d-rest" style="height:' + (rest / max * 100) + '%"></i>' : '') +
+        (done > 0 ? '<i class="d-done" style="height:' + (done / max * 100) + '%"></i>' : '') +
+      '</span>';
+    }).join('');
+    el('d-from').textContent = daily[0].day;
+    el('d-to').textContent   = daily[daily.length - 1].day;
+  }
+})();
+</script>
+<script src="assets/usermenu.js"></script>
+<script src="assets/notify.js"></script>
+</body>
+</html>
