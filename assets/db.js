@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-08-28b';
+window.PF_BUILD = '2026-09-01a';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -1949,6 +1949,73 @@ window.pf = (function(){
   }
 
   /* ================================================================
+     The owner's funnel.
+
+     app-metrics.html is the only caller and it is not linked from anywhere,
+     because these are numbers about the business rather than about a member.
+     There is no analytics here and there is not going to be: privacy.html
+     promises none in plain terms and that promise is worth more than a chart.
+     Nothing below collects anything. Both functions count rows PeerFlow
+     already holds and already says it holds — accounts, profiles, sessions —
+     and return totals with no way to be asked about a person.
+     ================================================================ */
+
+  /* The funnel, as one object, or null.
+
+     null covers three different situations on purpose, because the page says
+     the same thing for all three and there is nothing to gain by telling them
+     apart on screen: no client, the migration has not been pasted in yet, or
+     the caller is not named in app_admins. The last is the ordinary case for
+     everybody except one person, and it is not an error — funnel_counts()
+     returns no rows rather than raising, so a member who guesses the URL gets
+     a page that says it is not theirs instead of a red sentence about
+     permissions.
+
+     PostgREST sends bigint as a JSON string, so every field is coerced.
+     Reading them as they arrive gives you '11' + '4' = '114' the first time
+     anything adds two of them together. */
+  function funnelCounts(){
+    if (!client) return Promise.resolve(null);
+    var fields = ['accounts', 'profile_complete', 'request_sent', 'partnered',
+                  'session_proposed', 'session_booked', 'session_attended',
+                  'accounts_7d', 'accounts_prev_7d'];
+    return client.rpc('funnel_counts').then(function(r){
+      if (r.error) return null;
+      var row = (r.data && r.data.length) ? r.data[0] : null;
+      if (!row) return null;
+      var out = {};
+      fields.forEach(function(k){
+        var n = Number(row[k]);
+        out[k] = isFinite(n) ? n : 0;
+      });
+      return out;
+    }).catch(function(){ return null; });
+  }
+
+  /* Thirty days of daily signups and daily finished signups, oldest first, or
+     null on the same three conditions as above.
+
+     The days come back from the database rather than being filled in here,
+     including the ones where nothing happened. A day with no signups has to be
+     a zero and not a gap: a chart drawn from gaps joins the two days either
+     side with a straight line, which is exactly the shape a quiet week should
+     not have. */
+  function funnelDaily(){
+    if (!client) return Promise.resolve(null);
+    return client.rpc('funnel_daily').then(function(r){
+      if (r.error || !r.data || !r.data.length) return null;
+      return r.data.map(function(row){
+        var a = Number(row.accounts), c = Number(row.profile_complete);
+        return {
+          day: String(row.day || '').slice(0, 10),
+          accounts: isFinite(a) ? a : 0,
+          profile_complete: isFinite(c) ? c : 0
+        };
+      });
+    }).catch(function(){ return null; });
+  }
+
+  /* ================================================================
      Progress page support.
 
      app-progress.html is the one page kept from the MVP rebuild, so these
@@ -2673,6 +2740,8 @@ window.pf = (function(){
     fetchPeers: fetchPeers,
     learnerStats: learnerStats,
     trackCounts: trackCounts,
+    funnelCounts: funnelCounts,
+    funnelDaily: funnelDaily,
     trackNames: trackNames,
 
     /* Progress page */

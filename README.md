@@ -438,12 +438,38 @@ migration schedules it properly and the page-load path finds nothing to do.
 
 Early, and live at [peerflow.dev](https://peerflow.dev). Email and Google
 sign-in work, as do password resets. The GitHub button stays hidden until that
-OAuth app is configured. Nothing notifies anyone by email yet — proposals,
-accepts, cancellations, reminders and missed sessions only show up in the app.
+OAuth app is configured.
 
-Attendance needs `supabase/migration-attendance.sql` run, and it needs the
-video side actually deployed (`docs/VIDEO.md`) to have anything to observe.
-Without LiveKit reporting joins, no session is ever settled, the reliability
-score stays blank for everybody, and the check-in's "did they show up" can
-confirm somebody but never accuse them — which is the correct behaviour with
-no evidence, and the reason the number is worth trusting when it does appear.
+**Notifications leave the building.** A proposal, accept, decline or
+cancellation raises a row in `public.notifications`, and the
+`dispatch_note_email` trigger hands that row to the `notify-email` edge
+function, which sends it through Resend. Confirmed against production on
+2026-09-01: the trigger is on the table, and `net._http_response` holds a 200
+for the send. What is still missing is listed at the end of `docs/EMAIL.md` —
+no reminder mail before a session, and no batching, so four things happening in
+one minute send four emails.
+
+This section said the exact opposite — *"nothing notifies anyone by email
+yet"* — and went on saying it after the trigger was deployed and working. It is
+the failure `CLAUDE.md` spends its longest entry on: a claim about the world
+outside the repository cannot be contradicted by anything inside it, so it
+stays wrong until a person goes and looks. The dated confirmation above is
+there so the next reader knows when somebody last did.
+
+**The video side is deployed, and a real call has connected.** That was the
+thing attendance was waiting on: LiveKit's webhook fills `sessions.attended`,
+`joined_at` and `left_at`, so `reliability_of()` has something to score.
+
+The instruction that used to stand here — run `supabase/migration-attendance.sql`
+— was wrong on its own terms, whatever the video side was doing. That file
+carries a SUPERSEDED banner telling you not to run it, because it is folded
+into `migrate-2026-08.sql`, which has been applied since before the list above
+was written. Running it separately would have been the `create or replace`
+hazard that banner exists to prevent: an older paste silently winning over a
+newer one.
+
+The reliability score still reads **New partner** for everybody, and that is
+the design rather than a fault. It needs three graded outcomes before it shows
+a percentage, a session neither person joined is deliberately left ungraded,
+and there has not yet been enough real usage to clear either bar. The number
+starts moving when people start turning up.
