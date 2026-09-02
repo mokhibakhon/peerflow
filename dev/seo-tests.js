@@ -258,6 +258,16 @@ const iconSvg = read('icon.svg');
 check(!/#0b8f66/i.test(iconSvg), 'icon.svg: does not use a retired green');
 check(/fill="#1D9E75"/.test(iconSvg), 'icon.svg: uses the ramp accent');
 
+// Google's favicon documentation asks for a square icon, and the mark is
+// 173x171. Shipping the mark's own viewBox meant shipping a non-square favicon,
+// and rendering it into square ICO frames squashed it about 1%. It now sits
+// centred on a square 192 canvas — 192 because it is 4x48 and 48 is the size
+// Google names. Asserted because "the logo, as it is" is a design decision and
+// "square" is a spec, and the second one is easy to lose while honouring the
+// first.
+const vb = iconSvg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+check(!!vb && vb[1] === vb[2], `icon.svg: square viewBox (${vb ? vb[1] + 'x' + vb[2] : 'missing'})`);
+
 // Eight shapes, because the favicon's worst historical failure was silent: two
 // pages shipped a copy with seven of them deleted, which renders as a single
 // small rectangle, and nothing caught it because no page draws its own favicon.
