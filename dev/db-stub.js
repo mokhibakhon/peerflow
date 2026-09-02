@@ -106,6 +106,11 @@
                    because a month of zeroes cannot show whether the columns
                    are drawn the right way up
 
+     __peers       the People directory, overriding the fixture outright. []
+                   is the state worth having it for: the first person to finish
+                   signing up on a path sees it, and so does everyone arriving
+                   before a second one does. The fixture has four people in it
+                   and always has, so that screen had never been rendered
      __latency     milliseconds to hold every answer for, so that two reads of
                    the same row can actually be in flight at once. Off by
                    default, and the default is why it exists: a stub that
@@ -334,7 +339,14 @@ window.pf = (function(){
         })})},
     getProfile:function(){return P(PROFILE)},
     saveProfile:function(){note('saveProfile');return P({saved:true})},
-    fetchPeers:function(){return P([
+    fetchPeers:function(){
+      /* window.__peers overrides the directory outright, and [] is the state
+         worth having a dial for: the first person to finish signing up on a
+         path sees it, and so does everybody who arrives before a second one
+         does. The fixture has always had four people in it, so this screen has
+         never been looked at. */
+      if (window.__peers) return P(window.__peers);
+      return P([
       {id:'m1',name:'Amir Karimov',track_id:'cybersecurity',topic:'SOC analyst',level:'tutorials',
        timezone:'Asia/Tashkent',availability:THEIR_AVAIL},
       {id:'m2',name:'Dilnoza Rahimova',track_id:'cybersecurity',topic:'Pentesting',level:'tutorials',
