@@ -25,6 +25,10 @@ static site with no build step.
 | `app-profile.html` | Your name, topic, stage, timezone and free times |
 | `app-settings.html` | Password, account, sign out |
 | `app-badges.html` | What you've done so far |
+| `app-progress.html` | **Progress** — the streak ring, the record, and the twelve-week plan |
+| `app-chat.html` | Messages with a partner |
+| `app-person.html` | One person's profile, as somebody else sees it |
+| `app-metrics.html` | **Metrics** — how far people get, for the site owner only. Linked from nowhere: `appshell.js` builds the nav from a fixed tab list, so it does not appear in it, and `funnel_counts()` answers nobody who is not named in `app_admins`. Reach it by typing the address |
 | `assets/` | Shared stylesheets and scripts |
 
 `assets/tokens.css` holds every shared value — the ink and green ramps, the
@@ -64,13 +68,16 @@ Auth, profiles, partner requests and sessions all live in Supabase. Everything
 degrades gracefully: if Supabase is unreachable (offline, file://, schema not
 created yet), pages fall back to a safe state rather than breaking.
 
-### What is actually applied, as of 2026-08-29
+### What is actually applied, as of 2026-09-02
 
 Nothing in CI applies `supabase/*.sql`, so "run it by hand" below is a real
 instruction and a merged migration is dormant until somebody pastes it. That
 makes the run state a fact you cannot read off the code, which is why it is
 written here. **Anything added after this date is not covered by this list —
-ask the owner rather than assuming.**
+ask the owner rather than assuming.** A migration that has been merged but not
+run belongs in the table too, marked as such: the gap between merging and
+pasting is exactly where this file stops being able to tell you the truth, and
+leaving the row out reads as "no such migration" rather than "not yet run".
 
 | Applied | How it was confirmed |
 |---|---|
@@ -78,6 +85,7 @@ ask the owner rather than assuming.**
 | `migration-forgery.sql` | owner ran it and reported the expected `true true false` |
 | `migration-actor-rules.sql` | same run, same report |
 | `migration-profiles-private.sql` | verified against production: an anonymous `select` on `profiles` with the publishable key returns `[]`, and `rpc/track_counts` still returns per-track rows |
+| **`migration-funnel.sql` — NOT applied** | merged 2026-09-01 and never pasted in. Until it is, `funnel_counts()` and `funnel_daily()` do not exist, both readers in `db.js` return null, and `app-metrics.html` shows its owner-only screen to everybody including the owner. That is the designed degraded state rather than a fault, which is why merging it ahead of the migration carried no risk — but the page is inert until somebody runs it. It also needs the one-line `app_admins` insert in its own header, naming the owner by email; the insert is silent when the email matches no row in `auth.users`, so `select count(*) from public.app_admins` is the check that it took |
 
 Also deployed on that date: `supabase functions deploy livekit-webhook`, which
 is the version whose `call()` helper throws on a failed RPC instead of
@@ -433,6 +441,81 @@ a static site, so the sweep runs from whoever opens the app — for both people
 in a session, which is what makes it useful: your partner opening PeerFlow at
 lunchtime is what reminds you about this evening. With `pg_cron` installed the
 migration schedules it properly and the page-load path finds nothing to do.
+
+## Counting your own funnel without tracking anybody
+
+There is no analytics on this site and none is being added. `privacy.html`
+promises it in unusually plain terms — "not Google Analytics, not a self-hosted
+substitute, nothing" — and nothing here weakens it: no script, no beacon, no
+page-view, no third party, not one byte of new data collected.
+
+What `app-metrics.html` does is count rows the database already holds and that
+`privacy.html` already names as what the platform holds: the account somebody
+made, the profile they filled in, the sessions they booked. Reading your own
+database is not surveillance, and the difference it makes is between a launch
+that teaches you something and a launch that produces a spike nobody can
+explain.
+
+It counts **people, not events**, and the reason is structural rather than a
+preference. A session is two rows, one per person, so counting rows reports two
+people for every meeting between two — and reports two for a proposal nobody
+answered exactly as readily as for a session both attended. Counting distinct
+`user_id` at each step sidesteps that, and every step is a subset of the one
+above it, so the gaps are real drop-off.
+
+`app_admins` has row-level security on and deliberately **no policies at all**,
+which is what protects it rather than the revoke beside it: with RLS enabled and
+no policy every ordinary caller sees an empty table whatever their grants say,
+and Supabase grants on the public schema broadly enough that a revoke alone
+would not have been doing the work. There is no "you can see yourself" policy
+either, because that answers "am I an admin" for anybody who asks it. The
+owner's account id is not in the repository — `supabase/migration-funnel.sql`
+carries the one-line insert to run once.
+
+`dev/sql-tests.sh` has nine cases that try to prise it open, and they run under
+a harness deliberately more permissive than production: the suite grants
+`authenticated` select, insert, update and delete on every table in `public`,
+which real Supabase does not. So what they demonstrate is that a member cannot
+write themselves into `app_admins` even holding an explicit INSERT grant, cannot
+read it holding SELECT, and cannot shadow it with a temp table — `pg_temp` is
+searched first for relations whether or not `search_path` names it, and what
+defeats that is every table reference in both functions being schema-qualified.
+
+## Two suites that measure rectangles
+
+Some bugs here are invisible in the DOM, and two of them cost real time before
+they got suites of their own.
+
+`node dev/nav-tests.js` measures the top bar at twenty widths. `.tabs` is
+`overflow-x:auto` with the scrollbar hidden, so when the five tabs are wider
+than the room left for them nothing breaks and nothing warns: the markup stays
+perfect, every link is present and focusable, and the last tab is cut off
+mid-word with no affordance saying it can be scrolled to. Progress was invisible
+on any laptop under about 1150px and on a phone, and the only symptom was a
+screenshot. A test asserting "five links exist" would have passed throughout. It
+also asserts that nothing was lost making things fit, because a nav that fits
+because Progress is gone is not fixed and the overflow check alone would call
+that a pass.
+
+`node dev/people-tests.js` pins the three answers the People directory can give,
+two of which used to look identical. "Nobody else has signed up" and "the
+directory could not be read" are different facts, and both figures at the top of
+that page said the same thing about each: an em-dash. That is right for the
+second and wrong for the first, where the true answer is 1 and 0 — so the first
+account on the platform got two dashes above a paragraph telling them they were
+first, which is what a broken page looks like. An ordinary directory is pinned
+too, so that fixing the empty case by printing zeros unconditionally cannot
+pass: that would be the same bug reversed, a failed read claiming the platform
+is empty.
+
+`node dev/metrics-tests.js` covers the funnel page on the same principle —
+nineteen cases, all geometry, including that a step nobody has reached draws no
+bar at all rather than one of width zero. `.fun-bar` carries a `min-width` so
+that a step somebody did reach never rounds away, and `min-width` applies just
+as happily to a genuine zero; on a platform where nothing has happened yet that
+drew seven small bars, a chart reporting activity on a page whose only job is
+reporting what there has been.
+
 
 ## Status
 
