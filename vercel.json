@@ -26,6 +26,11 @@
       "permanent": true
     },
     {
+      "source": "/app-metrics",
+      "destination": "/app-metrics.html",
+      "permanent": true
+    },
+    {
       "source": "/app-people",
       "destination": "/app-people.html",
       "permanent": true

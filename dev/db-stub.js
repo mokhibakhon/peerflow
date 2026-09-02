@@ -93,6 +93,18 @@
      __attendanceMissing  true to act as though migration-attendance.sql has
                    not been run: settling, check-ins and the cooldown all go
                    quiet and the pages fall back to what they said before
+     __funnel      the seven funnel totals plus the two weekly ones, merged
+                   over the fixture — {accounts, profile_complete, request_sent,
+                   partnered, session_proposed, session_booked,
+                   session_attended, accounts_7d, accounts_prev_7d}. null acts
+                   as though the caller is not named in app_admins, which is
+                   also what a missing migration-funnel.sql looks like: the two
+                   are the same screen and there is nothing to tell apart
+     __funnelDays  thirty days as [{day, accounts, profile_complete}], oldest
+                   first, or null for the same not-yours state. Left undefined
+                   it is generated from the fixture with one busy day in it,
+                   because a month of zeroes cannot show whether the columns
+                   are drawn the right way up
 
    Add a dial rather than editing a fixture in place: the fixtures are shared
    by every test, and quietly changing one moves the ground under the others. */
@@ -650,6 +662,36 @@ window.pf = (function(){
       if(window.__deleteFail) return P({error:window.__deleteFail});
       return P({saved:true})},
 
+    funnelCounts:function(){
+      if (window.__funnel === null) return P(null);
+      var base = {accounts:11, profile_complete:4, request_sent:2, partnered:2,
+                  session_proposed:2, session_booked:1, session_attended:1,
+                  accounts_7d:3, accounts_prev_7d:1};
+      var over = window.__funnel || {}, out = {};
+      Object.keys(base).forEach(function(k){
+        out[k] = (over[k] === undefined ? base[k] : over[k]);
+      });
+      return P(out);
+    },
+    funnelDaily:function(){
+      if (window.__funnelDays === null) return P(null);
+      if (window.__funnelDays) return P(window.__funnelDays);
+      /* Thirty days ending today. Mostly empty, which is honest, with one day
+         that is not: a month of zeroes draws a flat row and a flat row cannot
+         show whether the segments stack the right way up or whether the tallest
+         day sets the scale. The busy day sits six days back rather than on the
+         last column, so an off-by-one at either end of the row is visible. */
+      var out = [], today = new Date();
+      for (var i = 29; i >= 0; i--) {
+        var d = new Date(today.getTime() - i * 86400000);
+        var n = 0, done = 0;
+        if (i === 6)  { n = 9; done = 3; }
+        else if (i === 20) { n = 2; done = 2; }
+        else if (i === 2)  { n = 1; done = 0; }
+        out.push({day:d.toISOString().slice(0,10), accounts:n, profile_complete:done});
+      }
+      return P(out);
+    },
     signOut:function(){return P()},
     trackNames:{frontend:'Frontend',backend:'Backend',cybersecurity:'Cybersecurity',
       data:'Data Science',mobile:'Mobile',devops:'DevOps & Cloud',aiml:'AI & ML',design:'UX/UI Design'}
