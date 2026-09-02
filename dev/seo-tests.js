@@ -247,14 +247,29 @@ check(ico.readUInt16LE(0) === 0 && ico.readUInt16LE(2) === 1,
 check(ico.readUInt16LE(4) >= 3,
       `favicon.ico: carries at least 3 frames (${ico.readUInt16LE(4)})`);
 
-// The mark is knocked out of a filled tile on purpose: on a transparent ground
-// the four thin arrows scatter into specks at the 16px a search result uses.
-// A tile also has to be one of the ramp's greens, which is what the three-way
-// drift above got wrong.
+// icon.svg is the bare mark on a transparent ground, in the ramp accent. It was
+// briefly a white mark knocked out of a green tile, because a tile is what
+// survives being shrunk to the 16px a search result uses and the four thin
+// arrows do scatter at that size — but the owner looked at both live and chose
+// the plain mark, which is the brand as it appears everywhere else on the site.
+// That is a taste decision and it is theirs; what is asserted here is only that
+// it stays a ramp green and stays whole.
 const iconSvg = read('icon.svg');
-check(/<rect[^>]*width="512"[^>]*height="512"[^>]*fill="#1D9E75"/.test(iconSvg),
-      'icon.svg: the mark sits on a filled tile in the ramp accent, not transparent');
 check(!/#0b8f66/i.test(iconSvg), 'icon.svg: does not use a retired green');
+check(/fill="#1D9E75"/.test(iconSvg), 'icon.svg: uses the ramp accent');
+
+// Eight shapes, because the favicon's worst historical failure was silent: two
+// pages shipped a copy with seven of them deleted, which renders as a single
+// small rectangle, and nothing caught it because no page draws its own favicon.
+const shapes = (iconSvg.match(/<(rect|path)\b/g) || []).length;
+check(shapes === 8, `icon.svg: the mark is whole (${shapes} of 8 shapes)`);
+
+// The one icon that deliberately does NOT follow the transparent decision. iOS
+// composites a transparent touch icon onto black, which would turn the green
+// mark into a black square with a green scribble on it, so this one keeps an
+// opaque ground. It is the home-screen icon only and is not what Google shows.
+check(fs.statSync(path.join(root, 'apple-touch-icon.png')).size > 0,
+      'apple-touch-icon.png: present (opaque on purpose — iOS has no transparency)');
 
 // ── IndexNow ───────────────────────────────────────────────────────────────
 // IndexNow only verifies ownership if the key file is reachable at
