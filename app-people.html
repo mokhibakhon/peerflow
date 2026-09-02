@@ -544,15 +544,27 @@
       list.innerHTML = '<div class="b"><p class="n">Could not load people — check your connection and refresh.</p></div>';
       return;
     }
+    /* Both figures are set before the empty branch below returns, and that
+       ordering is the whole point. They start as an em-dash, which is the
+       right thing to show when the directory could not be read — the branch
+       above this one. An empty directory is not that: it is a true answer, and
+       one the person is entitled to. Returning first left the first account on
+       the platform looking at two dashes over a paragraph telling them they
+       are first, which is the same screen a failed load produces. A dash there
+       reads as "this is broken", not as "nobody yet".
+
+       people.length + 1 counts the reader, who is not in their own directory.
+       So the first person sees 1 and 0, which is exactly what is true. */
+    document.getElementById('st-total').textContent = people.length + 1;
+    document.getElementById('st-same').textContent =
+      me.track ? people.filter(function(p){ return p.track_id === me.track; }).length : 0;
+
     if (!people.length) {
       list.innerHTML = '<div class="b"><p class="n">' +
         'No one else has finished signing up yet — you’re first. That’s genuinely useful to know: ' +
         'share PeerFlow with one person learning the same thing and you’ve got your pair.</p></div>';
       return;
     }
-    document.getElementById('st-total').textContent = people.length + 1;
-    document.getElementById('st-same').textContent =
-      me.track ? people.filter(function(p){ return p.track_id === me.track; }).length : 0;
 
     /* Whether new partner requests are paused for this account, and why.
        Independent of the directory below it and never blocking it: the list
