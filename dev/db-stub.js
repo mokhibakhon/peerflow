@@ -106,6 +106,19 @@
                    because a month of zeroes cannot show whether the columns
                    are drawn the right way up
 
+     __peers       the People directory, overriding the fixture outright. Two
+                   values matter and the page must not confuse them: [] is the
+                   first person to finish signing up, null is a directory that
+                   could not be read. The fixture has four people in it and
+                   always has, so neither screen had ever been rendered
+     __latency     milliseconds to hold every answer for, so that two reads of
+                   the same row can actually be in flight at once. Off by
+                   default, and the default is why it exists: a stub that
+                   answers instantly can never show whether db.js's in-flight
+                   dedupe is doing anything, because there is never anything in
+                   flight. Set it to something like 120 to measure a page the
+                   way a browser on a real connection sees it
+
    Add a dial rather than editing a fixture in place: the fixtures are shared
    by every test, and quietly changing one moves the ground under the others. */
 window.pf = (function(){
@@ -281,7 +294,26 @@ window.pf = (function(){
     });
   }
 
-  var P=function(v){return Promise.resolve(v)};
+  /* Every stubbed reader resolves through here. It was Promise.resolve, which
+     settles on the next microtask — near enough to instant that two callers
+     asking the same question a few milliseconds apart never overlap, because
+     the first has already finished. That is not how the real db.js behaves,
+     and it hid the one thing worth watching: db.js dedupes concurrent reads by
+     handing every caller the same in-flight promise, and against an instant
+     stub there is never an in-flight promise to hand out. So a page that fires
+     four reads of the same row measured as four calls and one request here,
+     and as four calls and four requests in a browser talking to Supabase —
+     which is what the owner's network panel had been showing all along.
+
+     window.__latency puts a delay in front of every answer so that overlap can
+     happen and be measured. It is off by default: every existing test asserts
+     on what is on screen after the data arrives, and adding milliseconds to a
+     few hundred stubbed calls would only make those suites slower. */
+  var P=function(v){
+    var ms = window.__latency;
+    if (!ms) return Promise.resolve(v);
+    return new Promise(function(res){ setTimeout(function(){ res(v); }, ms); });
+  };
   function note(k){ try{ var a=JSON.parse(sessionStorage.getItem('__calls')||'[]');
     a.push(k); sessionStorage.setItem('__calls',JSON.stringify(a)); }catch(e){} }
   return {
@@ -307,7 +339,19 @@ window.pf = (function(){
         })})},
     getProfile:function(){return P(PROFILE)},
     saveProfile:function(){note('saveProfile');return P({saved:true})},
-    fetchPeers:function(){return P([
+    fetchPeers:function(){
+      /* window.__peers overrides the directory outright, and the two states
+         worth having a dial for are the two the page must not confuse: [] is
+         the first person to finish signing up, and null is a directory that
+         could not be read. The fixture has always had four people in it, so
+         neither screen had ever been looked at.
+
+         Tested against undefined rather than for truthiness, because null is
+         one of the two values being set deliberately — `if (window.__peers)`
+         would have sent it to the fixture and quietly answered the failure
+         case with four people. */
+      if (window.__peers !== undefined) return P(window.__peers);
+      return P([
       {id:'m1',name:'Amir Karimov',track_id:'cybersecurity',topic:'SOC analyst',level:'tutorials',
        timezone:'Asia/Tashkent',availability:THEIR_AVAIL},
       {id:'m2',name:'Dilnoza Rahimova',track_id:'cybersecurity',topic:'Pentesting',level:'tutorials',

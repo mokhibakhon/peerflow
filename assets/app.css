@@ -757,11 +757,47 @@ h1 .g{color:var(--p4)}
   .dash-rail{position:static;order:-1;
     grid-template-columns:repeat(auto-fit,minmax(232px,1fr));grid-auto-flow:column dense}
 }
+/* The top bar stops fitting long before it stops looking like it fits.
+   .tabs is overflow-x:auto with the scrollbar hidden, so when the five tabs
+   are wider than the room left for them nothing breaks and nothing warns —
+   the strip simply scrolls, and the last tab is cut off mid-word with no
+   affordance saying so. Progress was invisible on any laptop under about
+   1150px, which is most of them, and it read as a rendering fault rather than
+   as something to scroll.
+
+   Measured rather than guessed, on the rendered bar: the five tabs need 567px
+   with their icons and 442px without, and the room left for them is whatever
+   the brand, the path chip, the streak chip and the account menu have not
+   taken. That put the overflow at 9px at 1160 and 189px at its worst, at
+   980 — worst in the middle because the path chip only disappears at 960.
+
+   So the icons and the chip go first, together, at the width where the full
+   bar stops fitting. The icons are the right thing to lose: every tab keeps
+   its label, and the label is what carries the meaning — the ≤640 rules below
+   have always dropped them for the same reason. */
+@media (max-width:1180px){
+  .pathchip{display:none}
+  .tabs a svg{display:none}
+}
 @media (max-width:960px){
   .tb{padding:0 20px;gap:12px}
-  .pathchip{display:none}
   main{padding:18px 20px 40px}
   .mfoot{padding:0 20px 40px}
+}
+/* Below this even the slimmed strip runs out of room — 442px of tabs against
+   419px of bar at 840 — so they take a row of their own, which is what the
+   ≤640 rules already did and this only starts doing sooner. 880 rather than
+   the 870 the measurement gives, because the account menu drops the name at
+   about 830 and the band between is the one place the arithmetic is tightest.
+   The name itself cannot widen it: .um-name is capped at 170px with an
+   ellipsis, so a long one costs nothing here. */
+@media (max-width:880px){
+  .tb{height:auto;flex-wrap:wrap;padding:12px 16px;gap:10px}
+  .tabs{order:3;width:100%;flex:1 0 100%}
+  /* The tabs have wrapped to their own row, so nothing is left growing on the
+     first one — without this the chip and the menu bunch up against the brand. */
+  .firechip{margin-left:auto}
+  .tabs a{padding:7px 11px;font-size:var(--t-sm)}
 }
 @media (max-width:760px){
   /* One column wide, the rail drops back below the calendar. Stacked above
@@ -776,13 +812,9 @@ h1 .g{color:var(--p4)}
   .now-cl{margin-top:0}
 }
 @media (max-width:640px){
-  .tb{height:auto;flex-wrap:wrap;padding:12px 16px;gap:10px}
-  .tabs{order:3;width:100%;flex:1 0 100%}
-  /* The tabs have wrapped to their own row, so nothing is left growing on the
-     first one — without this the chip and the menu bunch up against the brand. */
-  .firechip{margin-left:auto}
-  .tabs a{padding:7px 11px;font-size:var(--t-sm)}
-  .tabs a svg{display:none}
+  /* The bar's own rules for this width now live in the ≤880 and ≤1180 blocks
+     above, which reach here too: by the time a viewport is this narrow the
+     tabs have had their own row and lost their icons for 300px already. */
   .slot .when{width:100%}
   .avail-grid{grid-template-columns:36px repeat(4,minmax(0,1fr));gap:4px}
   .avail-grid button{height:42px}
@@ -796,6 +828,23 @@ h1 .g{color:var(--p4)}
    nothing happened. */
 html{scroll-behavior:smooth}
 #sess-card,#book-card{scroll-margin-top:80px}
+/* Phones, where the strip had the same problem and kept it after the fix
+   above: 422px of tabs against 358px of bar at 390, which is an iPhone 15.
+   This is older than the desktop overflow and was never introduced by it —
+   the pre-fix code measured +64 here too — but it is the same five tabs
+   running off the same edge, so it is fixed in the same place.
+
+   Padding and type only, no more hiding: there is nothing left to hide, the
+   icons having gone at 1180. It clears 430 and 390, and leaves 360 and below
+   scrolling by a few pixels, which is where this stops. A tab strip that
+   scrolls under a thumb is a pattern people already know; the desktop case
+   was worth fixing because a mouse gets no such hint, not because scrolling
+   is wrong in itself. Squeezing the last 16px would cost tap target width to
+   buy back something touch already handles. */
+@media (max-width:480px){
+  .tabs a{padding:7px 6px;font-size:var(--t-xs)}
+}
+
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important}
   html{scroll-behavior:auto}

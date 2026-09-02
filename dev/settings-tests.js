@@ -113,7 +113,38 @@ async function main() {
     const p = await open();
     await p.click('#s-del-start');
     await p.fill('#s-del-word', 'DELETE');
-    await Promise.all([p.waitForURL(/index\.html$/), p.click('#s-del-go')]);
+    /* The page sets location.href = 'index.html', and vercel.json answers that
+       with a 308 to '/' — index.html is served at the root, and the .html form
+       is one of the redirects pointing the other way, which dev/serve.js reads
+       out of that same table rather than restating. So the URL this settles on
+       is the origin itself, and waiting for /index\.html$/ waited the full
+       thirty seconds for a spelling the redirect had already replaced.
+
+       It failed as "deleting ... leaves for the home page", which is the one
+       reading the evidence ruled out: Playwright's own log said `navigated to
+       "http://127.0.0.1:9000/"` underneath the timeout. Delete had been
+       working the whole time. Either form is accepted below, because what is
+       being asserted is that it left for the home page and not which of that
+       page's two addresses it came to rest on. */
+    await Promise.all([
+      p.waitForURL((u) => {
+        const path = new URL(u).pathname;
+        return path === '/' || path === '/index.html';
+      }),
+      p.click('#s-del-go'),
+    ]);
+
+    /* And the half of this case's own name that nothing was checking. Leaving
+       for the home page is not the same as having deleted anything, and a
+       button that only navigated would have passed here for as long as the
+       case existed. The stub records every call it is handed in
+       sessionStorage, which survives the redirect because it is the same
+       origin. */
+    const calls = await p.evaluate(() => {
+      try { return JSON.parse(sessionStorage.getItem('__calls') || '[]'); }
+      catch (e) { return []; }
+    });
+    eq(calls.includes('deleteAccount'), true, 'deleteAccount was called:');
     await p.close();
   });
 
