@@ -9,6 +9,15 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<!-- supabase-js is fetched from here, and it blocks: db.js cannot create a
+     client until it lands, and authgate.js keeps the page invisible until
+     that happens. Without this line the browser only discovers it needs a
+     connection to jsdelivr when it reaches the tag at the bottom of the
+     body, and then pays DNS, TCP and TLS to a third origin before the
+     download can even start. The other three origins on the page were
+     already preconnected; this was the one on the critical path that was
+     not. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Loaded without blocking the first paint: text appears immediately in the
@@ -521,8 +530,22 @@
     });
   });
 
-  Promise.all([pf.myRequests(), pf.getProfile()]).then(function(r){
-    var reqs = r[0], profile = r[1];
+  /* All three at once, the same way Today sends its opening reads together.
+
+     The directory used to be asked for from inside this callback, so the page
+     spent two round trips end to end where it needed one: the requests and
+     the profile went out, and only once they were both back did anybody ask
+     for the people. Nothing about the fetchPeers query depends on either of
+     them — it reads the same rows whoever you are — so waiting was buying
+     nothing. Measured on the page: the first pair landed at t+61ms and the
+     directory did not leave until t+192ms.
+
+     What DOES depend on the profile is the scoring, not the fetching: score()
+     reads me.track, me.topic, me.avail and me.tz. That still happens below,
+     after all three have arrived, so the ranking is unchanged — this only
+     stops the query waiting its turn. */
+  Promise.all([pf.myRequests(), pf.getProfile(), pf.fetchPeers(60)]).then(function(r){
+    var reqs = r[0], profile = r[1], people = r[2];
     if (reqs) {
       reqs.outgoing.forEach(function(x){ reqByUser[x.to_user]   = { status: x.status, direction: 'out' }; });
       reqs.incoming.forEach(function(x){ reqByUser[x.from_user] = { status: x.status, direction: 'in'  }; });
@@ -538,7 +561,7 @@
       me.avail = profile.availability || [];
       me.tz = profile.timezone || '';
     }
-    return pf.fetchPeers(60);
+    return people;
   }).then(function(people){
     if (people === null) {
       list.innerHTML = '<div class="b"><p class="n">Could not load people — check your connection and refresh.</p></div>';

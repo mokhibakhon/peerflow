@@ -9,6 +9,15 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<!-- supabase-js is fetched from here, and it blocks: db.js cannot create a
+     client until it lands, and authgate.js keeps the page invisible until
+     that happens. Without this line the browser only discovers it needs a
+     connection to jsdelivr when it reaches the tag at the bottom of the
+     body, and then pays DNS, TCP and TLS to a third origin before the
+     download can even start. The other three origins on the page were
+     already preconnected; this was the one on the critical path that was
+     not. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
