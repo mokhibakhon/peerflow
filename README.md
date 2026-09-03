@@ -509,6 +509,22 @@ too, so that fixing the empty case by printing zeros unconditionally cannot
 pass: that would be the same bug reversed, a failed read claiming the platform
 is empty.
 
+`node dev/prerender-tests.js` covers the one thing speculation rules can break.
+`assets/appshell.js` asks Chrome to prerender the five nav tabs on hover, so a
+click lands on a document that has already fetched its data. That is a good
+trade for reads and a bad one for writes, and four things happen on load that
+are writes about what a person has looked at: settling finished sessions,
+marking partner requests seen, marking a chat thread read, and unlocking a
+badge. Hovering People on the way to Chat would otherwise mark that inbox seen.
+`pf.whenActive()` in `db.js` holds them until activation, and this suite is the
+only thing that says so — every one of those writes is invisible in the
+rendered page, so a regression would look exactly like working software. It
+also checks the page still renders while prerendering, because a guard that
+held the reads back too would make the click no faster and leave the suite
+green. Chrome disables prerendering under automation, so no browser in a
+container will really prerender at any eagerness; `window.__prerendering` in
+`dev/db-stub.js` reaches the same branch deterministically.
+
 `node dev/metrics-tests.js` covers the funnel page on the same principle —
 nineteen cases, all geometry, including that a step nobody has reached draws no
 bar at all rather than one of width zero. `.fun-bar` carries a `min-width` so

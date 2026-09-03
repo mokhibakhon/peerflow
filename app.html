@@ -2937,7 +2937,11 @@
     function runHousekeeping(){
       if (runHousekeeping.done) return;   /* the page can settle more than once */
       runHousekeeping.done = true;
-      var go = function(){
+      /* whenActive, not a bare call: a prerendered Today must not settle
+         anybody's sessions or send their reminders. See the note above it in
+         db.js. */
+      var go = function(){ pf.whenActive(housekeep); };
+      function housekeep(){
         if (pf.settleAttendance) pf.settleAttendance();
         if (pf.sendReminders) pf.sendReminders();
         /* And the third thing that happens because somebody opened the page.

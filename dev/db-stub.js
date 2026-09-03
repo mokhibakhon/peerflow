@@ -330,6 +330,21 @@ window.pf = (function(){
     
        __noAvatar drops back to the initial, which is what an email signup
        gets and what the menu falls back to. */
+    /* Same shape as the real one in db.js, and it has to be here or every
+       page that guards a write with it breaks under PF_STUB — which is the
+       one way anybody looks at the signed-in pages without an account.
+
+       The stub does not prerender, so this is the plain-call branch: run it.
+       __prerendering makes the other branch reachable, so a test can check
+       that a write really is held back rather than only that the page did not
+       crash. */
+    whenActive:function(fn){
+      if (window.__prerendering) {
+        document.addEventListener('pf-stub-activate', function(){ fn(); }, { once: true });
+        return;
+      }
+      fn();
+    },
     currentUser:function(){return P({id:'u1',email:'you@example.edu',
       app_metadata:{provider:window.__provider||'email'},
       user_metadata:Object.assign(
