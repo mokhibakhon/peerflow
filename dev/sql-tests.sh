@@ -108,7 +108,7 @@ SQL
 # of it. Leaving it out of this list is how its three cases passed for the
 # wrong reason the first time they were written — the trigger they test was
 # never in the database, so the forgery simply succeeded and raised nothing.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql supabase/migration-funnel.sql"
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql supabase/migration-funnel.sql supabase/migration-blocked-ids.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
@@ -651,6 +651,43 @@ check "and a signed-in one still can" ok "$(wrap "
   set local role authenticated; set local request.jwt.claim.sub = '$B';
   if not exists (select 1 from public.profiles where id = '$A') then
     raise exception 'a signed-in caller lost access to profiles';
+  end if;")"
+
+# Everything above is about what the policy ALLOWS, and every one of those
+# cases passes just as well against the version that asks per row. This is the
+# one that does not.
+#
+# The policy used to call blocked_with(id), which takes the row's id and so is
+# invoked once per row scanned — measured at 1999 calls for a 2000-row read,
+# against a real PostgreSQL with track_functions=all. It is SECURITY DEFINER,
+# which is exactly why it costs: the planner cannot inline it, so each call is
+# a real invocation running its own exists() against public.blocks.
+# migration-blocked-ids.sql replaces it with a set gathered once.
+#
+# Nothing about the behaviour changed, which is the problem: reverting the
+# migration would leave every assertion above green and quietly put the per-row
+# call back. So this asserts the shape rather than the outcome. It is a weaker
+# kind of test on purpose — the timing itself is not stable enough to assert in
+# a suite that runs on whatever machine is to hand.
+check "the profiles policy asks about blocks once, not once per row" ok "$(wrap "
+  if exists (select 1 from pg_policies
+              where schemaname='public' and tablename='profiles'
+                and cmd='SELECT' and qual like '%blocked_with%') then
+    raise exception 'the profiles policy still calls blocked_with, which runs per row';
+  end if;
+  if not exists (select 1 from pg_policies
+                  where schemaname='public' and tablename='profiles'
+                    and cmd='SELECT' and qual like '%blocked_ids%') then
+    raise exception 'the profiles SELECT policy does not use blocked_ids';
+  end if;")"
+
+# blocked_with itself must stay. Three other policies still call it — the
+# partner_requests insert and update, and the messages insert — and each checks
+# one named row rather than scanning, so there is nothing to fix there and
+# dropping it would take those three with it.
+check "and blocked_with still exists for the single-row checks" ok "$(wrap "
+  if not exists (select 1 from pg_proc where proname='blocked_with') then
+    raise exception 'blocked_with was dropped; the request and message policies need it';
   end if;")"
 
 # The landing page needs eight numbers and never needed the rows. This is the
