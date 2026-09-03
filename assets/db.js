@@ -11,7 +11,7 @@
  * happen. This exists to prove it: one line in the console on every load,
  * which turns "is it deployed?" into something you read rather than argue
  * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-09-03a';
+window.PF_BUILD = '2026-09-03b';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -1576,12 +1576,40 @@ window.pf = (function(){
      signup order. Returns null when signed out or unreachable. */
   function badgeStats(){
     if (!client) return Promise.resolve(null);
+    /* The sessions and the partnerships are asked for HERE, before the
+       profile is waited on, because neither of them has anything to do with
+       the profile.
+
+       All three reads used to sit inside the getProfile() callback, which put
+       them a full round trip behind it for no reason: fetchSessions reads
+       your own sessions and acceptedPartners reads your own requests, and
+       neither consults the profile row to do it. Only `rank` genuinely
+       depends on it — it counts the accounts created before yours, so it
+       cannot be built until created_at is known — and that one still waits,
+       below, where it has to.
+
+       The cost was not only the waiting. app-progress.html asks for the
+       sessions itself, in the same Promise.all that calls this function, and
+       db.js shares a read only while it is IN FLIGHT (see the note above
+       once()). Landing here one round trip late meant the page's copy had
+       already settled, so the identical sessions select went out twice on
+       every load of the page. Starting it in the same tick puts it back
+       inside that window and the second request disappears — without any of
+       the staleness a result cache would introduce.
+
+       The catches matter on the path where there is no profile row yet: both
+       reads have already been issued by then, and the early return below
+       would otherwise leave them unhandled. Both already answer null on
+       failure rather than rejecting; this only makes that true at the point
+       of use as well. */
+    var sessionsRead = fetchSessions().catch(function(){ return null; });
+    var partnersRead = acceptedPartners().catch(function(){ return null; });
     return getProfile().then(function(profile){
       if (!profile) return null;
       var rank = client.from('profiles')
         .select('id', { count: 'exact', head: true })
         .lt('created_at', profile.created_at);
-      return Promise.all([fetchSessions(), acceptedPartners(), rank]).then(function(r){
+      return Promise.all([sessionsRead, partnersRead, rank]).then(function(r){
         var sessions = r[0] || [];
         var partners = r[1] || [];
         var earlier  = (r[2] && r[2].count) || 0;
