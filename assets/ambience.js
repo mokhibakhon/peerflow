@@ -15,10 +15,11 @@
  * WHY IT IS GENERATED AND NOT DOWNLOADED
  *
  * A convincing rain loop is megabytes, and nothing in assets/ is
- * content-hashed — vercel.json sends must-revalidate on everything — so every
- * file is a request on every load. Filtered noise costs nothing, never has to
- * be fetched, and has no loop seam because the buffer is crossfaded into
- * itself.
+ * content-hashed — vercel.json caches assets/ for only five minutes, and did
+ * not cache them at all before that — so a file that big is a real download
+ * on any load that falls outside the window. Filtered noise costs nothing,
+ * never has to be fetched at all, and has no loop seam because the buffer is
+ * crossfaded into itself.
  *
  * The limit is worth being honest about: noise-based synthesis does rain,
  * water and deep noise convincingly, because those really are broadband noise

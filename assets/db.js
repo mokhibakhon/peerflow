@@ -7,11 +7,25 @@
  * fresh app.html against a week-old db.js, which behaves like neither
  * version and matches no description of the bug.
  *
- * vercel.json now sends must-revalidate on everything, so this should not
- * happen. This exists to prove it: one line in the console on every load,
- * which turns "is it deployed?" into something you read rather than argue
- * about. Bump it when you change anything in assets/. */
-window.PF_BUILD = '2026-09-03b';
+ * vercel.json used to send must-revalidate on everything to stop that, and it
+ * worked — at the price of a conditional request for every file on every
+ * navigation. Measured on a warm cache: nine to eleven of them per page
+ * switch, every one answered 304, not one served from cache. Switching tabs
+ * was paying, over and over, to be told nothing had changed.
+ *
+ * So assets/ now gets max-age=300 and pages keep must-revalidate. A page is
+ * the entry point and names which build to load, so it has to be fresh; the
+ * files it names can be held for five minutes. That reopens the failure above
+ * inside a five-minute window after a deploy, deliberately and with the window
+ * bounded — there is no stale-while-revalidate, which would have let a browser
+ * serve a day-old asset on the first load after any gap.
+ *
+ * Which is exactly why this line matters more than it did: it is how you tell,
+ * in one look, whether the browser in front of you is inside that window or
+ * genuinely running what you shipped. Bump it when you change anything in
+ * assets/, and ask for it before believing a bug report about behaviour you
+ * have already fixed. */
+window.PF_BUILD = '2026-09-03c';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
