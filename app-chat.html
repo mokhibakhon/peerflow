@@ -268,11 +268,15 @@
       renderLog(msgs);
       /* Reading it is what marks it read, so the badge and the page cannot
          disagree about what you have seen. */
+      /* Reading is the person's act, not the browser's: a thread opened in a
+         prerendered page has not been read by anybody yet. */
       if (who && who.unread) {
+        pf.whenActive(function(){
         pf.markThreadRead(id).then(function(){
           who.unread = 0;
           renderList();
           if (window.pfChatBadge) pfChatBadge();
+        });
         });
       }
     });

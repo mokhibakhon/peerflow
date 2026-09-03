@@ -550,9 +550,14 @@
       reqs.outgoing.forEach(function(x){ reqByUser[x.to_user]   = { status: x.status, direction: 'out' }; });
       reqs.incoming.forEach(function(x){ reqByUser[x.from_user] = { status: x.status, direction: 'in'  }; });
       renderInbox(reqs.incoming.filter(function(x){ return x.status === 'pending'; }));
-      /* Now that they have been shown, they are not new any more. */
+      /* Now that they have been shown, they are not new any more — and
+         "shown" has to mean shown to a person. A prerendered People page has
+         drawn the inbox into a document nobody is looking at yet, so the
+         marking waits for activation. */
       if (pf.markRequestsSeen) {
-        pf.markRequestsSeen(reqs.incoming.map(function(x){ return x.id; }), []);
+        pf.whenActive(function(){
+          pf.markRequestsSeen(reqs.incoming.map(function(x){ return x.id; }), []);
+        });
       }
     }
     if (profile) {

@@ -126,6 +126,54 @@
     '</div>';
   document.body.insertBefore(bar, document.body.firstChild);
 
+  /* ---------- making the tabs feel like tabs ----------
+
+     This is a multi-page app, so a tab click is a whole document load: the JS
+     heap goes, app.css and db.js are parsed again, the Supabase client is
+     built again, the session is read again, and only then does the first query
+     leave. Measured on the live site, that preamble is most of a second, and
+     it is paid on every click — where a single-page app would pay it once.
+
+     Speculation rules hand that problem to the browser instead of solving it
+     with a framework. Chrome prerenders the target in the background — fetches
+     the document, runs its scripts, issues its queries — so the click lands on
+     a page that has already finished. Firefox and Safari do not implement it
+     and ignore the block, where it costs a few hundred bytes and nothing else.
+
+     Two choices in here are the whole of the tuning.
+
+     selector_matches on the tabs, rather than a URL pattern, keeps it to the
+     five destinations this bar offers. Every other link on these pages — a
+     session, a partner, the account menu — is left alone, because prerendering
+     a page is not free and the tabs are the ones people actually move between.
+
+     moderate eagerness means on hover, roughly 200ms before the click, rather
+     than the moment the bar is drawn. Prerendering all five on every page load
+     would run five documents and their queries to save one; Chrome also caps
+     how many it will keep, so asking for everything is a way of getting the
+     wrong two.
+
+     WRITES DO NOT RUN. A prerendered page is one nobody has opened, and four
+     things this app does on load are about what a person has looked at:
+     settling sessions, marking requests seen, marking a chat thread read, and
+     unlocking a badge. All four go through pf.whenActive, which holds them
+     until the page is really on screen. The long note above it in db.js has
+     the reasoning; without it this block would quietly mark things read on
+     pages nobody visited, which is worse than a slow tab. */
+  try {
+    if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) {
+      var rules = document.createElement('script');
+      rules.type = 'speculationrules';
+      rules.textContent = JSON.stringify({
+        prerender: [{
+          where: { selector_matches: '.topbar .tabs a' },
+          eagerness: 'moderate'
+        }]
+      });
+      document.body.appendChild(rules);
+    }
+  } catch (e) {}
+
   /* The bar used to be drawn from a cached "do you have a partner" flag and
      then reconciled against acceptedPartners() — an extra query on every page
      whose only job was to redraw the tabs. The tabs no longer depend on it,

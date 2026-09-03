@@ -25,7 +25,7 @@
  * genuinely running what you shipped. Bump it when you change anything in
  * assets/, and ask for it before believing a bug report about behaviour you
  * have already fixed. */
-window.PF_BUILD = '2026-09-03d';
+window.PF_BUILD = '2026-09-03e';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -98,6 +98,38 @@ window.pf = (function(){
       } catch(e){}
     }).catch(function(){});
   })();
+
+  /* ---------- prerendering ---------- */
+
+  /* Chrome may prerender a page you have not clicked yet: it fetches the
+     document, runs its scripts and issues its queries, so that the click lands
+     on a page which has already finished. assets/appshell.js asks for that on
+     the five nav tabs.
+
+     Reads are exactly what should happen then, and are why it is worth doing.
+     Writes are not. A page you never visit must not mark your partner requests
+     seen, unlock a badge, mark a chat thread read or settle your sessions —
+     all four of which this codebase does on load, and all four of which are
+     about what the person has actually looked at. Hovering a tab is not
+     looking at it.
+
+     document.prerendering is true for the whole of the prerender, and
+     prerenderingchange fires on the document at activation, which is the
+     moment the page genuinely is the one on screen. Everything with a side
+     effect goes through here.
+
+     On a browser that does not prerender — Safari and Firefox today — the
+     property is undefined, the branch is not taken, and this is a plain call.
+     Same on a page that was navigated to directly. */
+  function whenActive(fn){
+    try {
+      if (document.prerendering) {
+        document.addEventListener('prerenderingchange', function(){ fn(); }, { once: true });
+        return;
+      }
+    } catch (e) {}
+    fn();
+  }
 
   /* ---------- errors ---------- */
 
@@ -2717,6 +2749,7 @@ window.pf = (function(){
     sharedAvailability: sharedAvailability,
     availabilityHours: availabilityHours,
     currentUser: currentUser,
+    whenActive: whenActive,
     getProfile: getProfile,
     signOut: signOut,
     changePassword: changePassword,
