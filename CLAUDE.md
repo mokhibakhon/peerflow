@@ -113,11 +113,24 @@ congratulating the user.
 - **CSS source order decides ties.** A media-query override at equal
   specificity must come *after* the rule it overrides, not earlier in the file.
 - **Nothing in `assets/` is content-hashed**, so a browser can hold an old
-  `db.js` against a fresh `app.html` and behave like neither build. `vercel.json`
-  sends `must-revalidate` on everything to stop it. `window.PF_BUILD` in
-  `db.js` is logged on every load — **bump it when you change anything in
-  `assets/`**, and ask for it before believing a bug report about behaviour you
-  have already fixed.
+  `db.js` against a fresh `app.html` and behave like neither build.
+  `vercel.json` used to send `must-revalidate` on everything to stop it, and
+  no longer does: pages still get it, `/assets/(.*)` gets `max-age=300`.
+
+  That was not a small trade and it was made on measurement. `must-revalidate`
+  on everything cost a conditional request per file per navigation — nine to
+  eleven per page switch on a warm cache, all answered 304, none served from
+  cache — which is most of why moving between tabs felt slow. Five minutes buys
+  that back and bounds the exposure; there is deliberately no
+  `stale-while-revalidate`, which would have stretched a five-minute window
+  into a day for anyone returning after a gap.
+
+  So the failure above is now possible again, for five minutes after a deploy.
+  `window.PF_BUILD` in `db.js` is logged on every load and is how you tell —
+  **bump it when you change anything in `assets/`**, and ask for it before
+  believing a bug report about behaviour you have already fixed. A build string
+  that is one behind, on a page loaded minutes after a deploy, is this window
+  rather than a broken deploy.
 
 - **Pushing to `main` deploys to production.** The Vercel Git connection works;
   it was reconnected after the repository rename. Treat a merge to `main` as a

@@ -301,6 +301,34 @@ check((vercel.redirects || []).some((r) => r.source === '/index.html' && r.desti
 check(vercel.buildCommand === '' && vercel.installCommand === '',
   'vercel.json: build and install commands stay empty');
 
+// The assets rule is what stopped every page switch re-validating every file,
+// and it is stated as a second entry that overrides Cache-Control for
+// /assets/. Two things about it are worth pinning down, because both are
+// silent when wrong.
+//
+// The pages must NOT be caught by it. A page names which build of the assets
+// to load, so a cached page is a version stamp that lies; only /assets/ may be
+// held, and only the catch-all may set the page policy.
+//
+// And nosniff is repeated inside the assets rule rather than inherited. Vercel
+// merges the headers of every matching rule, so inheriting should work — but
+// "should" is doing a lot of work in a file where being wrong is invisible
+// until somebody reads response headers in a browser, and the cost of being
+// wrong is serving every script and stylesheet without nosniff. Repeating one
+// header is cheaper than depending on that.
+const assetRule = (vercel.headers || []).find((h) => h.source === '/assets/(.*)');
+const catchAll  = (vercel.headers || []).find((h) => h.source === '/(.*)');
+const cc = (rule) => (rule ? (rule.headers.find((h) => h.key === 'Cache-Control') || {}).value : undefined);
+check(!!assetRule && !!catchAll, 'vercel.json: both the catch-all and the assets header rules are present');
+check((vercel.headers || []).indexOf(assetRule) > (vercel.headers || []).indexOf(catchAll),
+  'vercel.json: the assets rule comes after the catch-all, so it wins for Cache-Control');
+check(/must-revalidate/.test(cc(catchAll) || ''),
+  `vercel.json: pages are still revalidated on every navigation (got ${cc(catchAll)})`);
+check(/^public, max-age=\d+$/.test(cc(assetRule) || ''),
+  `vercel.json: assets get a bounded max-age and no stale-while-revalidate (got ${cc(assetRule)})`);
+check(!!assetRule && assetRule.headers.some((h) => h.key === 'X-Content-Type-Options' && h.value === 'nosniff'),
+  'vercel.json: the assets rule repeats nosniff rather than relying on inheriting it');
+
 // ── the not-found page ─────────────────────────────────────────────────────
 // Vercel serves 404.html from the output root for any path that matches no
 // file and no rewrite. Nothing in this repo names the file, so nothing else
