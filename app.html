@@ -2909,26 +2909,72 @@
        Deliberately not awaited. Neither changes anything the page is about to
        draw for THIS load — a verdict settled now shows up on the next one —
        and making the dashboard wait on them would trade the thing people came
-       for against bookkeeping they never asked about. */
-    if (pf.settleAttendance) pf.settleAttendance();
-    if (pf.sendReminders) pf.sendReminders();
-    /* And the third thing that happens because somebody opened the page.
-       nudge_dormant asks about partnerships that have gone quiet and tells
-       the OTHER person — the one who is not here, which is the whole point:
-       the half of the pair that needs reaching is the half that is not
-       looking at this. The caller gets the band below instead, so nothing
-       tells them what their own screen is already saying.
+       for against bookkeeping they never asked about.
 
-       Not awaited, like its neighbours, and silent about failure for the same
-       reason: nobody opened a dashboard to be told about this. */
-    if (pf.nudgeDormant) pf.nudgeDormant();
+       They are also deliberately not SENT yet. Not awaiting them was never
+       enough, because the cost was never the waiting: it was the company they
+       kept. All three used to leave the browser in the same instant as the
+       reads this page is actually about, and they are not comparable pieces
+       of work. settle_due loops over your finished sessions calling
+       settle_pair on each, send_due_reminders writes reminder rows,
+       nudge_dormant walks quiet partnerships — three write-heavy
+       SECURITY DEFINER functions against the same database, at the same
+       moment, as the four reads that decide what is on screen.
+
+       Measured on the live site, nine calls all leaving at once: the two
+       reads that overlapped the RPCs took 1069ms each, while the reads that
+       finished before them took 467-492ms. The round trip to Supabase is
+       107ms. Nothing there was slow because of the network; it was slow
+       because the reads were queued behind the bookkeeping.
+
+       So the housekeeping now waits for the page to have what it came for.
+       runHousekeeping is called once the dashboard's own reads have landed,
+       on an idle callback so it does not compete with rendering either. The
+       work still happens on this load, by the same person, for the same
+       reason as the note above — a couple of seconds later, which no part of
+       it is sensitive to. requestIdleCallback is absent on older Safari, so
+       there is a timeout behind it. */
+    function runHousekeeping(){
+      if (runHousekeeping.done) return;   /* the page can settle more than once */
+      runHousekeeping.done = true;
+      var go = function(){
+        if (pf.settleAttendance) pf.settleAttendance();
+        if (pf.sendReminders) pf.sendReminders();
+        /* And the third thing that happens because somebody opened the page.
+           nudge_dormant asks about partnerships that have gone quiet and tells
+           the OTHER person — the one who is not here, which is the whole
+           point: the half of the pair that needs reaching is the half that is
+           not looking at this. The caller gets the band below instead, so
+           nothing tells them what their own screen is already saying.
+
+           Silent about failure, like its neighbours: nobody opened a
+           dashboard to be told about this. */
+        if (pf.nudgeDormant) pf.nudgeDormant();
+      };
+      if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 4000 });
+      else setTimeout(go, 1200);
+    }
 
     /* All three at once. The profile used to be awaited on its own before the
        partner and sessions queries were even sent, which made the page wait
        out two round trips end to end instead of one. Nothing in the partner
        or session queries depends on the profile. */
-    Promise.all([pf.getProfile(), pf.acceptedPartners(), pf.fetchSessions()])
-      .then(function(rows){
+    var pageReads = Promise.all([pf.getProfile(), pf.acceptedPartners(), pf.fetchSessions()]);
+
+    /* The housekeeping goes after these, whatever they came back with — a
+       failed read is not a reason to skip settling somebody's sessions, and
+       both handlers are the same function for that reason.
+
+       Chaining it here rather than calling it above is what makes the
+       ordering real. requestIdleCallback on its own would not: the main
+       thread is idle while a request is in flight, so an idle callback
+       scheduled at the top of this function fires WHILE the reads are still
+       out, which is the position this is trying to get out of. Waiting for
+       the reads to settle first, and only then asking for idle time, puts the
+       bookkeeping behind both the network and the rendering. */
+    pageReads.then(runHousekeeping, runHousekeeping);
+
+    pageReads.then(function(rows){
       var profile = rows[0];
       /* Genuinely new user with nothing saved anywhere: finish onboarding. */
       /* profile === false means the query failed, which is not the same as
