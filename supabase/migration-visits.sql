@@ -311,6 +311,97 @@ revoke all on function public.visit_context(int) from public, anon;
 grant execute on function public.visit_context(int) to authenticated;
 
 
+-- ---------- the campaigns, when there are any ----------
+-- utm_medium and utm_campaign have been recorded since day one and were shown
+-- nowhere, which made them collected-and-unused: the worst state for a column
+-- to be in, because it is data held for no reason. This is the reason.
+--
+-- Only rows carrying at least one utm_* field. An untagged arrival is already
+-- in visit_sources(); repeating it here under three nulls would bury the
+-- handful of rows this list exists to show. So a site that has never tagged a
+-- link gets an empty result and app-metrics.html hides the card rather than
+-- drawing an empty one.
+create or replace function public.visit_campaigns(p_days int default 30)
+returns table (source text, medium text, campaign text, views bigint)
+language sql
+security definer
+stable
+set search_path = public, pg_temp
+as $$
+  select coalesce(nullif(v.utm_source, ''),   '—'),
+         coalesce(nullif(v.utm_medium, ''),   '—'),
+         coalesce(nullif(v.utm_campaign, ''), '—'),
+         count(*)
+    from public.visits v
+   where v.at >= now() - (greatest(p_days, 1) || ' days')::interval
+     and (nullif(v.utm_source, '')   is not null
+       or nullif(v.utm_medium, '')   is not null
+       or nullif(v.utm_campaign, '') is not null)
+     and exists (
+       select 1 from public.app_admins a where a.user_id = auth.uid()
+     )
+   group by 1, 2, 3
+   order by 4 desc, 1, 2, 3
+   limit 50;
+$$;
+
+revoke all on function public.visit_campaigns(int) from public, anon;
+grant execute on function public.visit_campaigns(int) to authenticated;
+
+
+-- ---------- when they came, where they were ----------
+-- Hour of day and day of week, in the VISITOR's local time rather than UTC or
+-- the owner's. That is the whole point of the question — "is my audience awake
+-- at nine in the evening" is a question about their evening, and this is a
+-- product whose entire job is matching people across timezones. `at` is a
+-- timestamptz and every row already carries the zone the browser reported, so
+-- no new data is collected to answer it.
+--
+-- The zone is joined against pg_timezone_names rather than trusted. tz arrives
+-- from a browser through a column anybody holding the publishable key can
+-- write, and `at at time zone 'nonsense'` raises rather than returning null —
+-- one crafted row would take the whole function down. Rows with an unknown or
+-- missing zone are dropped from this breakdown; they are still counted
+-- everywhere else, and dropping them is honest because there is no local hour
+-- to place them at.
+--
+-- generate_series supplies all 24 hours and all 7 days, so a quiet hour is a
+-- zero rather than a gap — the same reason visit_daily() does it.
+create or replace function public.visit_timing(p_days int default 30)
+returns table (kind text, slot int, label text, views bigint)
+language sql
+security definer
+stable
+set search_path = public, pg_temp
+as $$
+  with allowed as (
+    select 1 where exists (
+      select 1 from public.app_admins a where a.user_id = auth.uid()
+    )
+  ),
+  local as (
+    select (v.at at time zone z.name) as lt
+      from public.visits v
+      join pg_timezone_names z on z.name = v.tz,
+           allowed
+     where v.at >= now() - (greatest(p_days, 1) || ' days')::interval
+  )
+  select 'hour', h::int, lpad(h::text, 2, '0') || ':00',
+         (select count(*) from local where extract(hour from lt) = h)
+    from generate_series(0, 23) h, allowed
+  union all
+  select 'dow', d::int,
+         to_char(date '2026-08-31' + d, 'Dy'),   -- 2026-08-31 is a Monday
+         (select count(*) from local
+           where extract(isodow from lt) = d + 1)
+    from generate_series(0, 6) d, allowed
+   order by 1, 2;
+$$;
+
+revoke all on function public.visit_timing(int) from public, anon;
+grant execute on function public.visit_timing(int) to authenticated;
+
+
 -- ---------- forgetting ----------
 -- Nothing here needs to be kept for a year. Ninety days is longer than any
 -- question this table answers and short enough that the pile does not become
