@@ -265,8 +265,13 @@
        Step two's picture was redrawn in September 2026. It used to be three
        names and three buttons — it said a list exists, without saying what the
        list knows about anybody on it, which is the only reason to look at one.
-       It now carries what the People page carries: the path, what the person
-       is working on. Both drawn frames are rendered by dev/how-frames-render.js
+       Each row now names the person's learning path — Mobile, Frontend,
+       Backend — which is the taxonomy the rest of the page is built on and the
+       one thing about a stranger that decides whether you would be matched
+       with them. A version carrying the goal as well was drawn and compared
+       against this one in a real card on /draft; it put a second line on every
+       row, at about 6px once the card is 300px wide, and lost.
+       Both drawn frames are rendered by dev/how-frames-render.js
        rather than by hand, so the picture and the markup that claims to draw it
        cannot drift apart again.
 
@@ -376,7 +381,7 @@
       <article class="how-card">
         <div class="how-shot">
           <img src="assets/how-1-find.png" width="1280" height="841" loading="lazy"
-               alt="Three learners with their path and what they are working on, each with a Send request button">
+               alt="Three learners and their learning paths — Mobile, Frontend, Backend — each with a Send request button">
         </div>
         <div class="how-body">
           <span class="mono">Step two</span>

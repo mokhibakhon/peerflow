@@ -44,30 +44,43 @@
   .fbody{flex:1;min-height:0;display:flex;flex-direction:column}
 
   /* ---------- 1. the directory ----------
-     This used to be three names and three buttons and nothing else — no path,
-     no goal, just "Sandra" and a green button. It said a list exists. It did
-     not say what the list knows about anybody on it, which is the only reason
-     to look at it.
+     This used to be three names and three buttons and nothing else — just
+     "Sandra" and a green button. It said a list exists. It did not say what
+     the list knows about anybody on it, which is the only reason to look at
+     one.
 
-     So each row now carries what the real People page carries: who, which
-     path they are on, what they are working on this month, and the one
-     control.
+     Each row is now a person and their learning path: Mobile, Frontend,
+     Backend. That is the taxonomy the whole site is built on, it is three
+     words rather than three sentences, and it reads at card size in a way a
+     goal like "Networking fundamentals" does not.
 
-     A SAME PATH tag sat on the first row for a while and has been taken out.
-     It was making the same point twice — every row already names a path, and
-     the caption under the card is the place that says they are matched to
-     yours — and it was the widest thing in the person column, which is what
-     forced the learning goals to be abbreviated. Removing it, and shrinking
-     the person column to the 240px its own two lines actually need, gave the
-     middle column 494px instead of 330 — enough for the longest goal at 456,
-     so the full wording came back with it.
+     WHAT WAS TRIED AND DROPPED
 
-     Sizes are for the card, not for this canvas. At 322px on the landing page
-     everything here is a quarter of the number in this block, so 46px reads
-     as 11.5 and 26px reads as 6.5 — which is the floor. Nothing smaller than
-     26px is allowed in, and the column labels a real table would have are
-     left out for exactly that reason: at 2.5px they are grey mush, and the
-     green bar already says what the picture is. */
+     A SAME PATH tag on the matching row. It made the same point twice — every
+     row names a path, and the caption beside the card is where "matched to
+     yours" is said — and it was the widest thing in the person column.
+
+     A goal on a second line under each name, with the path in the middle
+     column. It carries more, and it is what the caption's "a similar goal"
+     literally promises, but it puts two lines on every row and the second one
+     lands at about 6px on the card. Both versions were rendered into a real
+     card on /draft and compared there; this is the one that won.
+
+     THE TWO COLUMNS ARE EQUAL ON PURPOSE
+
+     flex:1 1 0 on both, so the name and the path start at evenly spaced
+     positions and the button closes the row. They were 240px and
+     whatever-was-left before, which put a small gap between name and path and
+     a large one between path and button — three columns that did not look
+     like three columns.
+
+     SIZES ARE FOR THE CARD, NOT FOR THIS CANVAS
+
+     At about 300px on the landing page everything here is read at roughly a
+     quarter of the number in this block, so 44px reads as 11 and 26px reads as
+     6.5, which is the floor. Nothing smaller than 26px is allowed in, and the
+     column labels a real table would have are left out for the same reason: at
+     2.5px they are grey mush, and the green bar already says what this is. */
   .prow{display:flex;align-items:center;gap:26px;padding:0 38px;flex:1;
     border-top:1px solid #F1F0F4}
   .prow:first-child{border-top:0}
@@ -76,14 +89,12 @@
      separate an avatar from a status dot. */
   .pav{width:84px;height:84px;border-radius:23px;flex:0 0 auto;display:grid;place-items:center;
     font-size:36px;font-weight:800}
-  .pwho{flex:0 0 240px;min-width:0}
+  .pwho{flex:1 1 0;min-width:0}
   .pnm{display:block;font-size:44px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
-  .ppath{display:flex;align-items:center;gap:12px;margin-top:9px}
-  .ppath span{font-size:28px;color:#9497A9;white-space:nowrap}
-  /* The middle column is the one thing the old frame had no room for, so it
-     gets the ink: same size as the button's label, in the body colour rather
-     than the grey the path line takes. */
-  .pfocus{flex:1;min-width:0;font-size:34px;letter-spacing:-.01em;line-height:1.25}
+  /* The path, in the body colour and close to the button's size rather than
+     as a grey subtitle: on this frame it is a column of its own, not a
+     footnote under a name. */
+  .pfocus{flex:1 1 0;min-width:0;font-size:34px;letter-spacing:-.01em;line-height:1.25}
   .pbtn{flex:0 0 auto;height:80px;border-radius:16px;display:inline-flex;
     align-items:center;gap:14px;padding:0 30px;font-size:32px;font-weight:700;
     letter-spacing:-.01em;white-space:nowrap;
@@ -130,71 +141,8 @@
   </div>
   <div class="fbody">
     <div class="prow">
-      <span class="pav" style="background:#EEEDFE;color:#3C3489">J</span>
-      <span class="pwho">
-        <span class="pnm">John Smith</span>
-        <span class="ppath"><span>Cybersecurity</span></span>
-      </span>
-      <span class="pfocus">Networking fundamentals</span>
-      <span class="pbtn">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-        Send request</span>
-    </div>
-    <div class="prow">
       <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
-      <span class="pwho">
-        <span class="pnm">Sarah</span>
-        <span class="ppath"><span>Mobile</span></span>
-      </span>
-      <span class="pfocus">Flutter basics</span>
-      <span class="pbtn">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-        Send request</span>
-    </div>
-    <div class="prow">
-      <span class="pav" style="background:#FDEEE6;color:#B4471F">D</span>
-      <span class="pwho">
-        <span class="pnm">Dilnoza</span>
-        <span class="ppath"><span>Data Science</span></span>
-      </span>
-      <span class="pfocus">Algorithms &amp; data structures</span>
-      <span class="pbtn">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-        Send request</span>
-    </div>
-  </div>
-</div>
-
-<!-- ============ 1a / 1b. the two the owner is choosing between ============
-
-     Both put the learning path in the middle column — Mobile, Frontend,
-     Backend — which is the taxonomy the whole site is built on and reads at
-     card size in a way a sentence does not. They differ in what happens to
-     the slot the path used to occupy, which is the actual decision:
-
-       A  nothing. The line under the name goes, the row carries three things
-          instead of four, and everything on it gets bigger.
-       B  the goal moves into it. The row still says what the person is
-          working on, which is what the caption beside the card promises
-          ("a similar goal, experience level and weekly availability"), at the
-          cost of a second line on every row.
-
-     Whichever is chosen becomes #f-find and the other two frames come out,
-     along with assets/how-1-find-a.png and -b.png, which exist only so
-     draft.html can show them side by side in a real card. -->
-<div class="frame" id="f-find-a">
-  <div class="fbar">
-    <span class="fbrand">
-      <svg width="32" height="32" viewBox="0 0 173 171" fill="#0b8f66"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-      <b>peer<span class="g">flow</span></b>
-    </span>
-  </div>
-  <div class="fbody">
-    <div class="prow">
-      <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
-      <span class="pwho">
-        <span class="pnm">Sarah</span>
-      </span>
+      <span class="pwho"><span class="pnm">Sarah</span></span>
       <span class="pfocus">Mobile</span>
       <span class="pbtn">
         <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
@@ -202,63 +150,15 @@
     </div>
     <div class="prow">
       <span class="pav" style="background:#EEEDFE;color:#3C3489">J</span>
-      <span class="pwho">
-        <span class="pnm">John Smith</span>
-      </span>
+      <span class="pwho"><span class="pnm">John</span></span>
       <span class="pfocus">Frontend</span>
       <span class="pbtn">
         <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         Send request</span>
     </div>
     <div class="prow">
-      <span class="pav" style="background:#FDEEE6;color:#B4471F">D</span>
-      <span class="pwho">
-        <span class="pnm">Dilnoza</span>
-      </span>
-      <span class="pfocus">Backend</span>
-      <span class="pbtn">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-        Send request</span>
-    </div>
-  </div>
-</div>
-
-<div class="frame" id="f-find-b">
-  <div class="fbar">
-    <span class="fbrand">
-      <svg width="32" height="32" viewBox="0 0 173 171" fill="#0b8f66"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-      <b>peer<span class="g">flow</span></b>
-    </span>
-  </div>
-  <div class="fbody">
-    <div class="prow">
-      <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
-      <span class="pwho">
-        <span class="pnm">Sarah</span>
-        <span class="ppath"><span>Flutter basics</span></span>
-      </span>
-      <span class="pfocus">Mobile</span>
-      <span class="pbtn">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-        Send request</span>
-    </div>
-    <div class="prow">
-      <span class="pav" style="background:#EEEDFE;color:#3C3489">J</span>
-      <span class="pwho">
-        <span class="pnm">John Smith</span>
-        <span class="ppath"><span>React and state</span></span>
-      </span>
-      <span class="pfocus">Frontend</span>
-      <span class="pbtn">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-        Send request</span>
-    </div>
-    <div class="prow">
-      <span class="pav" style="background:#FDEEE6;color:#B4471F">D</span>
-      <span class="pwho">
-        <span class="pnm">Dilnoza</span>
-        <span class="ppath"><span>APIs and databases</span></span>
-      </span>
+      <span class="pav" style="background:#FDEEE6;color:#B4471F">S</span>
+      <span class="pwho"><span class="pnm">Shahnoza</span></span>
       <span class="pfocus">Backend</span>
       <span class="pbtn">
         <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>

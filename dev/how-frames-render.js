@@ -46,14 +46,7 @@ const SCRATCH = process.env.PF_SCRATCH || require('os').tmpdir();
    the sizes in how-frames.html are chosen against. */
 const CARD = 322;
 
-const TARGETS = [
-  { id: 'f-find', out: 'assets/how-1-find.png', w: 1280, h: 841 },
-  /* Two alternates for step two, drawn only so draft.html can show them side
-     by side in a real card at the size they are read at. They come out — file
-     and frame both — as soon as one of them is chosen. */
-  { id: 'f-find-a', out: 'assets/how-1-find-a.png', w: 1280, h: 841 },
-  { id: 'f-find-b', out: 'assets/how-1-find-b.png', w: 1280, h: 841 },
-];
+const TARGETS = [{ id: 'f-find', out: 'assets/how-1-find.png', w: 1280, h: 841 }];
 
 let fails = 0;
 const fail = (m) => { fails++; console.error('  FAIL ' + m); };
