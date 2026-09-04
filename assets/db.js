@@ -25,7 +25,7 @@
  * genuinely running what you shipped. Bump it when you change anything in
  * assets/, and ask for it before believing a bug report about behaviour you
  * have already fixed. */
-window.PF_BUILD = '2026-09-04b';
+window.PF_BUILD = '2026-09-04c';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -2152,6 +2152,9 @@ window.pf = (function(){
      the ordinary state for a site that has never tagged a link, and the page
      hides the card rather than drawing an empty one — so null and [] mean
      different things here and both are returned as they come. */
+  function visitSources(days){ return topList('visit_sources', 'source', days); }
+  function visitPages(days){   return topList('visit_pages',   'path',   days); }
+
   function visitCampaigns(days){
     if (!client) return Promise.resolve(null);
     return client.rpc('visit_campaigns', { p_days: days || 30 }).then(function(r){
@@ -2168,32 +2171,30 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
-  /* Hour of day and day of week, already in the visitor's own local time —
-     the conversion happens in Postgres against the zone each row carries,
-     because doing it here would need a zone this browser does not have.
-     Both series come back complete, so a quiet hour is a zero and the chart
-     has 24 columns whatever the data looks like. */
-  function visitTiming(days){
+  /* The most recent views, newest first. Rows rather than totals, which is a
+     step past everything else in here — so: each one is still a page view with
+     no identifier on it, and two rows a second apart may be one person or two.
+     A log, not a profile.
+
+     `at` comes back as a Date so the page can render it in the reader's own
+     local time. The visitor's zone travels separately in tz, because those are
+     two different questions and the page shows both. */
+  function visitRecent(limit){
     if (!client) return Promise.resolve(null);
-    return client.rpc('visit_timing', { p_days: days || 30 }).then(function(r){
+    return client.rpc('visit_recent', { p_limit: limit || 50 }).then(function(r){
       if (r.error || !r.data) return null;
-      var out = { hour: [], dow: [] };
-      r.data.forEach(function(row){
-        var bucket = out[row.kind];
-        if (!bucket) return;
-        var v = Number(row.views), slot = Number(row.slot);
-        bucket.push({
-          slot:  isFinite(slot) ? slot : 0,
-          label: String(row.label || ''),
-          views: isFinite(v) ? v : 0
-        });
+      return r.data.map(function(row){
+        return {
+          at:      row.at ? new Date(row.at) : null,
+          path:    String(row.path || ''),
+          source:  String(row.source || ''),
+          device:  String(row.device || ''),
+          browser: String(row.browser || ''),
+          tz:      String(row.tz || '')
+        };
       });
-      return out;
     }).catch(function(){ return null; });
   }
-
-  function visitSources(days){ return topList('visit_sources', 'source', days); }
-  function visitPages(days){   return topList('visit_pages',   'path',   days); }
 
   /* Device, browser and timezone in one call, split here into three lists.
      One round trip because the page draws them side by side and three
@@ -2945,7 +2946,7 @@ window.pf = (function(){
     visitDaily: visitDaily,
     visitSources: visitSources,
     visitCampaigns: visitCampaigns,
-    visitTiming: visitTiming,
+    visitRecent: visitRecent,
     visitPages: visitPages,
     visitContext: visitContext,
     trackNames: trackNames,
