@@ -15,6 +15,7 @@
      __empty       true for no sessions at all
      __momentum    object merged over the streak fixture, or null for none
      __unread      unread message count
+     __goalMissing  markGoal answers needsMigration, as an un-migrated site does
      __goalCol     weekly goal, or null to act as though the column is missing
      __planWeeks   the twelve-week plan as stored on the profile
      __standing    {minutes, agreed, mine} for a standing slot
@@ -495,6 +496,17 @@ window.pf = (function(){
       if(window.__momentumSlow)
         return new Promise(function(res){setTimeout(function(){res(d)},window.__momentumSlow)});
       return P(d);
+    },
+    /* app.html's check-in writes this, and the stub did not have it: the page
+       called pf.markGoal and got "not a function" the moment anybody pressed
+       the button under PF_STUB. Found by the surface check in dev/seo-tests.js
+       on its first run, which is the reason that check exists. Same shape as
+       db.js — {saved:true}, or an error the page shows. */
+    markGoal:function(startsAt, roomUrl, done){
+      note('markGoal:' + startsAt + ' done=' + !!done);
+      if (window.__goalFail) return P({error:window.__goalFail});
+      if (window.__goalMissing) return P({needsMigration:true, error:'Goals aren\u2019t switched on for this site yet.'});
+      return P({saved:true});
     },
     saveGoal:function(n){note('saveGoal:'+n);return P(window.__goalFail?{error:'nope'}:{saved:true})},
     badgeStats:function(){ if(window.__badgeStats) return P(window.__badgeStats);

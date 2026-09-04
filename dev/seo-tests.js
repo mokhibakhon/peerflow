@@ -160,6 +160,71 @@ for (const f of indexable) {
   }
 }
 
+// ── every pf.* a page calls exists in db.js, and in the stub ───────────────
+// This exists because of a specific near-miss. Removing a block from db.js by
+// slicing between two markers also took visitSources and visitPages — two
+// one-line functions that happened to sit inside the range. Every browser
+// suite stayed green, because those pages run against dev/db-stub.js and only
+// dev/db-tests.js loads the real file; the sources and pages cards would have
+// gone blank in production with nothing failing.
+//
+// So: the public surface of both files, against every pf.NAME anywhere.
+const publicSurface = (file) => {
+  const src = read(file);
+  /* The module's own returned object — a `return {` at exactly two spaces of
+     indentation. Anchoring on the last `return {` anywhere finds one nested
+     inside a .map() callback in db-stub.js instead, which silently reports a
+     surface of the wrong 20 names. */
+  const starts = [...src.matchAll(/^ {2}return \{/gm)];
+  if (!starts.length) return null;
+  const tail = src.slice(starts[starts.length - 1].index);
+  return new Set([...tail.matchAll(/^ {4}([A-Za-z_][A-Za-z0-9_]*)\s*:/gm)].map((m) => m[1]));
+};
+
+const dbSurface   = publicSurface('assets/db.js');
+const stubSurface = publicSurface('dev/db-stub.js');
+check(!!dbSurface && dbSurface.size > 0, `assets/db.js: public surface found (${dbSurface ? dbSurface.size : 0})`);
+check(!!stubSurface && stubSurface.size > 0, `dev/db-stub.js: public surface found (${stubSurface ? stubSurface.size : 0})`);
+
+const callers = [...allPages, ...fs.readdirSync(path.join(root, 'assets'))
+  .filter((f) => f.endsWith('.js') && f !== 'db.js').map((f) => 'assets/' + f)];
+const calls = new Map();          // name -> the files that call it
+for (const f of callers) {
+  for (const m of read(f).matchAll(/\bpf\.([A-Za-z_][A-Za-z0-9_]*)/g)) {
+    if (!calls.has(m[1])) calls.set(m[1], []);
+    if (!calls.get(m[1]).includes(f)) calls.get(m[1]).push(f);
+  }
+}
+
+// db.js is absolute: a name called anywhere and missing here is broken in
+// production, whatever the stub says.
+if (dbSurface) {
+  const missing = [...calls.keys()].filter((n) => !dbSurface.has(n));
+  for (const n of missing) fail(`pf.${n} is called by ${calls.get(n).join(', ')} but is not exported from assets/db.js`);
+  check(missing.length === 0, `every pf.* call is exported from db.js (${calls.size} checked)`);
+}
+
+// The stub only stands in for the signed-in pages, so the functions the auth
+// pages and the landing page use legitimately have no stub — those pages are
+// never served with it. The list is explicit rather than inferred from which
+// file calls what, because that inference would quietly excuse a real gap the
+// moment a shared script grew a new caller.
+const NO_STUB_NEEDED = [
+  'signUpEmail', 'signInEmail', 'signInOAuth',   // login.html / signup.html
+  'sendPasswordReset', 'changePassword',         // reset.html
+  'trackCounts'                                  // assets/home.js, landing page
+];
+if (stubSurface) {
+  const gaps = [...calls.keys()].filter((n) => !stubSurface.has(n) && !NO_STUB_NEEDED.includes(n));
+  for (const n of gaps) fail(`pf.${n} is called by ${calls.get(n).join(', ')} but dev/db-stub.js has no stub for it`);
+  check(gaps.length === 0, 'every pf.* a stubbed page calls has a stub');
+
+  // And the exemption list cannot rot: an entry for a function nothing calls
+  // any more is a line that will excuse the wrong thing later.
+  const stale = NO_STUB_NEEDED.filter((n) => !calls.has(n));
+  check(stale.length === 0, `no stale entries in the no-stub-needed list${stale.length ? ' — ' + stale.join(', ') : ''}`);
+}
+
 // ── the visit beacon is on the public pages and nowhere else ───────────────
 // assets/visit.js records a page view. Which pages carry it is a privacy
 // decision, not a detail: privacy.html now states that the signed-in pages are
