@@ -123,6 +123,23 @@
 .mempty p:last-child{margin:0}
 .mempty code{font-family:var(--mono);font-size:12.5px;background:var(--band);
              padding:1px 5px;border-radius:4px}
+
+/* Two lists and a row of small ones. Deliberately not a chart: at these
+   volumes a bar chart of six referrers is a worse way to read six numbers
+   than six numbers are, and the bar is only there to make the ranking
+   scannable at a glance. */
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
+       padding:9px 0;border-top:1px solid var(--line)}
+.tl li:first-child{border-top:0}
+.tl-l{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-n{font-variant-numeric:tabular-nums;font-weight:700}
+.tl-bar{grid-column:1/-1;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.tl-bar i{display:block;height:100%;background:var(--p2)}
+.tl-empty{color:var(--ink-faint);margin:6px 0 0}
+.ctx{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.ctx h3{font-size:13px;letter-spacing:.02em;text-transform:uppercase;
+        color:var(--ink-faint);margin:0 0 8px}
 </style>
 </head>
 <body>
@@ -130,11 +147,13 @@
 <main>
   <div class="mhead">
     <h1>Metrics</h1>
-    <p>How far people get, counted from rows PeerFlow already holds. There is no
-      analytics on this site and none is being added — no script, no beacon, no
-      third party. Every number here is the account somebody made, the profile
-      they filled in and the sessions they booked, which is what the privacy
-      page already says the platform holds.</p>
+    <p>Two things, kept apart on purpose. <b>How far people get</b> is counted
+      from rows PeerFlow already holds — the account somebody made, the profile
+      they filled in, the sessions they booked. <b>Where visits come from</b> is
+      counted by a first-party beacon on the public pages, which records a page
+      view and nothing that could join two of them together: no id, no cookie,
+      no fingerprint, no third party. <a href="/privacy.html">The privacy page</a>
+      says the same in the same words.</p>
   </div>
 
   <p class="signedout-note" id="signedout" hidden>
@@ -199,9 +218,70 @@
       </div>
     </div>
 
-    <p class="mnote"><b>Nobody is named anywhere on this page.</b> Both database
-      functions return totals and have no argument, so there is no way to ask
-      either of them about a person.</p>
+    <!-- Hidden as a block when visit_counts() answers null, which is either
+         "migration-visits.sql has not been pasted in" or "there are no rows
+         yet". The funnel above does not depend on it, so a database without
+         this migration shows the funnel and simply omits this section rather
+         than breaking the page. -->
+    <div id="visits" hidden>
+      <div class="mkpi">
+        <div class="mkpi-c">
+          <p class="mkpi-k">Page views, 30 days</p>
+          <p class="mkpi-n" id="v-30">0</p>
+          <p class="mkpi-s" id="v-30-s"></p>
+        </div>
+        <div class="mkpi-c">
+          <p class="mkpi-k">Last 7 days</p>
+          <p class="mkpi-n" id="v-7">0</p>
+          <p class="mkpi-s" id="v-7-s"></p>
+        </div>
+        <div class="mkpi-c">
+          <p class="mkpi-k">Counted since</p>
+          <p class="mkpi-n" id="v-since">—</p>
+          <p class="mkpi-s" id="v-since-s"></p>
+        </div>
+      </div>
+
+      <div class="mcard">
+        <div class="mcard-h"><h2 class="mcard-t">Where visits came from</h2></div>
+        <p class="mcard-d">A campaign tag wins over the referring site when both
+          are present, because somebody chose the tag and the browser chose the
+          referrer. <b>direct</b> is an arrival with neither — typed in, or from
+          an app that strips referrers. A large direct share is a finding rather
+          than a gap: it means people already knew the name.</p>
+        <ul class="tl" id="v-src"></ul>
+        <p class="tl-empty" id="v-src-none" hidden>Nothing recorded in this window yet.</p>
+      </div>
+
+      <div class="mcard">
+        <div class="mcard-h"><h2 class="mcard-t">Which pages they landed on</h2></div>
+        <p class="mcard-d">Public pages only. The signed-in pages are not
+          counted at all — which screens a member moves between is the one thing
+          here that would come close to watching a named person, and it answers
+          none of the question this was built for.</p>
+        <ul class="tl" id="v-pages"></ul>
+        <p class="tl-empty" id="v-pages-none" hidden>Nothing recorded in this window yet.</p>
+      </div>
+
+      <div class="mcard">
+        <div class="mcard-h"><h2 class="mcard-t">Roughly who, roughly where</h2></div>
+        <p class="mcard-d">As coarse as it looks. The timezone is what the
+          browser reports and is the closest thing here to a location — a region
+          shared by millions of people, not an address. There is no IP address
+          in the database and no user-agent string.</p>
+        <div class="ctx">
+          <div><h3>Device</h3><ul class="tl" id="v-device"></ul></div>
+          <div><h3>Browser</h3><ul class="tl" id="v-browser"></ul></div>
+          <div><h3>Timezone</h3><ul class="tl" id="v-tz"></ul></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="mnote"><b>Nobody is named anywhere on this page.</b> Every function
+      behind it returns totals; none takes an argument that could name a person,
+      and the visits table has no column that could join two page views to the
+      same visitor. That is checked in <code>dev/sql-tests.sh</code> rather than
+      promised here.</p>
   </div>
 </main>
 
@@ -235,8 +315,16 @@
 
   pf.currentUser().then(function(user){
     if (!user) { el('signedout').hidden = false; return; }
-    return Promise.all([pf.funnelCounts(), pf.funnelDaily()]).then(function(r){
+    return Promise.all([
+      pf.funnelCounts(), pf.funnelDaily(),
+      /* Asked for unconditionally and allowed to come back null. A database
+         without migration-visits.sql answers null to all four, the visits
+         block stays hidden, and the funnel above is unaffected — adding
+         analytics must not be able to break the page that existed before it. */
+      pf.visitCounts(), pf.visitSources(30), pf.visitPages(30), pf.visitContext(30)
+    ]).then(function(r){
       var f = r[0], daily = r[1];
+      drawVisits(r[2], r[3], r[4], r[5]);
       /* No row and no function are the same screen, for the reason in the
          markup above. The extra line naming the migration is shown to
          everybody who gets here, because the only person who can act on it is
@@ -250,6 +338,61 @@
   });
 
   function pct(n, of){ return of > 0 ? Math.round((n / of) * 100) : 0; }
+
+  /* One list of {label, views}. The bar is scaled to the biggest row rather
+     than to the total, because the question these lists answer is "which of
+     these is biggest", and scaling to the total makes every bar a sliver as
+     soon as there is a long tail. */
+  function drawList(node, rows, emptyNode){
+    node.innerHTML = '';
+    if (emptyNode) emptyNode.hidden = !!(rows && rows.length);
+    if (!rows || !rows.length) return;
+    var max = rows.reduce(function(m, x){ return Math.max(m, x.views); }, 0) || 1;
+    rows.slice(0, 12).forEach(function(x){
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="tl-l">' + esc(x.label || '—') + '</span>' +
+                     '<span class="tl-n">' + x.views + '</span>' +
+                     '<span class="tl-bar"><i style="width:' +
+                     Math.max(2, Math.round((x.views / max) * 100)) + '%"></i></span>';
+      node.appendChild(li);
+    });
+  }
+
+  function drawVisits(c, sources, pages, ctx){
+    if (!c) return;                     /* migration not run, or no rows yet */
+    el('visits').hidden = false;
+
+    el('v-30').textContent = c.views_30d;
+    el('v-30-s').textContent = c.days_with_data === 1
+      ? 'across 1 day of data'
+      : 'across ' + c.days_with_data + ' days of data';
+
+    el('v-7').textContent = c.views_7d;
+    /* Same reasoning as the accounts KPI above: a count, not a percentage. At
+       these volumes 1 to 3 is "200% growth" and that is a true, useless
+       sentence. */
+    var d = c.views_7d - c.views_prev_7d;
+    el('v-7-s').textContent = d === 0 ? 'the same as the week before'
+                            : d > 0   ? d + ' more than the week before'
+                                      : (-d) + ' fewer than the week before';
+
+    if (c.first_at) {
+      el('v-since').textContent = c.first_at.toLocaleDateString(undefined,
+        { day: 'numeric', month: 'short' });
+      el('v-since-s').textContent = c.views + ' page views in total';
+    } else {
+      el('v-since').textContent = '—';
+      el('v-since-s').textContent = 'nothing recorded yet';
+    }
+
+    drawList(el('v-src'),   sources, el('v-src-none'));
+    drawList(el('v-pages'), pages,   el('v-pages-none'));
+    if (ctx) {
+      drawList(el('v-device'),  ctx.device);
+      drawList(el('v-browser'), ctx.browser);
+      drawList(el('v-tz'),      ctx.tz);
+    }
+  }
 
   function drawKpi(f){
     el('k-accounts').textContent  = f.accounts;

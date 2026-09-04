@@ -108,7 +108,7 @@ SQL
 # of it. Leaving it out of this list is how its three cases passed for the
 # wrong reason the first time they were written — the trigger they test was
 # never in the database, so the forgery simply succeeded and raised nothing.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql supabase/migration-funnel.sql supabase/migration-blocked-ids.sql"
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql supabase/migration-funnel.sql supabase/migration-blocked-ids.sql supabase/migration-visits.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
@@ -2616,6 +2616,184 @@ check "  neither function can be asked about a person" ok "$(wrap "
          and p.proname in ('funnel_counts','funnel_daily')
          and p.pronargs <> 0) > 0
     then raise exception 'a funnel function takes an argument'; end if;")"
+
+
+echo
+echo "==> a visit is writable by anybody and readable by nobody"
+
+# The publishable key ships in the browser, so whatever can write to visits is
+# public by definition. The design that makes that safe is the asymmetry: INSERT
+# for everyone, SELECT for no one, and the only way back out is a SECURITY
+# DEFINER function gated on app_admins. These cases are that asymmetry.
+
+check "a signed-out visitor can record a page view" ok "
+  set local role anon;
+  insert into public.visits (path, ref_host, device, browser, tz)
+  values ('/', 'dev.to', 'desktop', 'firefox', 'Asia/Tashkent');"
+
+check "  and a signed-in one can too" ok "
+  $AS_A
+  insert into public.visits (path) values ('/app.html');"
+
+check "  but a signed-out visitor cannot read one back" ok "
+  insert into public.visits (path) values ('/');
+  set local role anon;
+  do \$\$ declare n int; begin
+    select count(*) into n from public.visits;
+    if n <> 0 then raise exception 'anon read % visit rows', n; end if;
+  end \$\$;"
+
+check "  nor can a signed-in member" ok "
+  insert into public.visits (path) values ('/');
+  $AS_A
+  do \$\$ declare n int; begin
+    select count(*) into n from public.visits;
+    if n <> 0 then raise exception 'a member read % visit rows', n; end if;
+  end \$\$;"
+
+# `at` decides every window in every function below, so a caller who can set it
+# can move a launch. visitor_id is the seam for a later decision that has not
+# been taken; nothing may start filling it, including a well-meaning edit to
+# visit.js.
+check "the server sets the timestamp, whatever the browser claims" ok "
+  set local role anon;
+  insert into public.visits (path, at) values ('/', '2020-01-01T00:00:00Z');
+  set local role postgres;
+  do \$\$ begin
+    if (select min(at) from public.visits) < now() - interval '1 minute'
+      then raise exception 'a caller backdated a visit'; end if;
+  end \$\$;"
+
+check "  and forces visitor_id to null, so the seam stays shut" ok "
+  set local role anon;
+  insert into public.visits (path, visitor_id)
+  values ('/', '44444444-4444-4444-4444-444444444444');
+  set local role postgres;
+  do \$\$ begin
+    if (select count(*) from public.visits where visitor_id is not null) <> 0
+      then raise exception 'visitor_id was written'; end if;
+  end \$\$;"
+
+echo
+echo "==> and the shape of what it may write is bounded"
+
+# Volume cannot be bounded from here — the client is the attacker — but shape
+# can, and shape is what stops the table becoming a place to park data.
+check "a path that is not a path is refused" "23514" "$(wrap "
+  set local role anon;
+  insert into public.visits (path) values ('https://evil.example/x');")"
+
+check "  a device nobody ships is refused" "23514" "$(wrap "
+  set local role anon;
+  insert into public.visits (path, device) values ('/', 'toaster');")"
+
+check "  a browser outside the list is refused" "23514" "$(wrap "
+  set local role anon;
+  insert into public.visits (path, browser) values ('/', 'netscape');")"
+
+# The referrer column is a hostname. A full URL in it would carry the path of
+# the page somebody came from, which can hold a query, a token or a document
+# name — the one thing this table is designed not to learn.
+check "  a full URL in the referrer column is refused" "23514" "$(wrap "
+  set local role anon;
+  insert into public.visits (path, ref_host) values ('/', 'dev.to/some/article');")"
+
+check "  and an over-long path is refused" "23514" "$(wrap "
+  set local role anon;
+  insert into public.visits (path) values ('/' || repeat('x', 600));")"
+
+echo
+echo "==> the numbers come back only for the owner"
+
+check "a member who guesses the function name gets no row" ok "
+  insert into public.visits (path) values ('/');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.visit_counts()) <> 0
+      then raise exception 'visit_counts answered a member'; end if;
+  end \$\$;"
+
+check "  naming them an admin is what makes it answer" ok "
+  insert into public.visits (path) values ('/');
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.visit_counts()) <> 1
+      then raise exception 'visit_counts did not answer its admin'; end if;
+  end \$\$;"
+
+check "  the same holds for every other reader" ok "
+  insert into public.visits (path) values ('/');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.visit_daily())   <> 0
+      then raise exception 'visit_daily answered a member'; end if;
+    if (select count(*) from public.visit_sources()) <> 0
+      then raise exception 'visit_sources answered a member'; end if;
+    if (select count(*) from public.visit_pages())   <> 0
+      then raise exception 'visit_pages answered a member'; end if;
+    if (select count(*) from public.visit_context()) <> 0
+      then raise exception 'visit_context answered a member'; end if;
+  end \$\$;"
+
+# A row with neither a campaign tag nor a referrer is somebody who typed the
+# address or followed a link that sent no referrer. That is a finding — "most
+# of them already knew the name" — so it is labelled rather than dropped.
+check "an arrival with no referrer is counted as direct, not dropped" ok "
+  insert into public.visits (path) values ('/');
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if not exists (select 1 from public.visit_sources() where source = 'direct')
+      then raise exception 'a direct arrival vanished from the sources list'; end if;
+  end \$\$;"
+
+check "  and a campaign tag wins over the referrer host" ok "
+  insert into public.visits (path, ref_host, utm_source)
+  values ('/', 'dev.to', 'newsletter');
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if not exists (select 1 from public.visit_sources() where source = 'newsletter')
+      then raise exception 'utm_source did not win'; end if;
+    if exists (select 1 from public.visit_sources() where source = 'dev.to')
+      then raise exception 'the referrer host was counted as well'; end if;
+  end \$\$;"
+
+echo
+echo "==> and it forgets"
+
+check "prune_visits deletes what is older than the window and keeps the rest" ok "
+  insert into public.visits (path) values ('/old');
+  insert into public.visits (path) values ('/new');
+  set local role postgres;
+  update public.visits set at = now() - interval '200 days' where path = '/old';
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ declare gone bigint; begin
+    select public.prune_visits(90) into gone;
+    if gone <> 1 then raise exception 'prune removed % rows, expected 1', gone; end if;
+  end \$\$;
+  set local role postgres;
+  do \$\$ begin
+    if exists (select 1 from public.visits where path = '/old')
+      then raise exception 'the old row survived'; end if;
+    if not exists (select 1 from public.visits where path = '/new')
+      then raise exception 'the recent row was deleted'; end if;
+  end \$\$;"
+
+check "  and a member cannot use it to empty the table" ok "
+  insert into public.visits (path) values ('/');
+  $AS_A
+  do \$\$ begin
+    if public.prune_visits(0) <> 0
+      then raise exception 'a member pruned the table'; end if;
+  end \$\$;
+  set local role postgres;
+  do \$\$ begin
+    if (select count(*) from public.visits) = 0
+      then raise exception 'the table was emptied by a member'; end if;
+  end \$\$;"
 
 
 echo
