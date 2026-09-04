@@ -3,171 +3,627 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Draft: How it works, as the directory</title>
 <meta name="robots" content="noindex">
-<title>The directory panel, on its own</title>
-<!-- Every page in the repo links the same three, root-relative; dev/seo-tests.js
-     enforces it and caught this file missing them once already. -->
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="stylesheet" href="assets/tokens.css">
-<link rel="stylesheet" href="assets/app.css">
+<meta name="description" content="Find a tech study partner across 8 learning paths for recurring 1-on-1 camera-on study sessions. Match by path, level, goals and weekly availability.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PeerFlow">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Find a Tech Study Partner for Live Study Sessions | PeerFlow">
+<meta property="og:description" content="Find one compatible tech learner for recurring 1-on-1 camera-on study sessions across eight learning paths.">
+<meta property="og:url" content="https://www.peerflow.dev/">
+<meta property="og:image" content="https://www.peerflow.dev/assets/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="PeerFlow — find one study partner for your IT learning path">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Find a Tech Study Partner for Live Study Sessions | PeerFlow">
+<meta name="twitter:description" content="Find one compatible tech learner for recurring 1-on-1 camera-on study sessions across eight learning paths.">
+<meta name="twitter:image" content="https://www.peerflow.dev/assets/social.png">
+<meta name="twitter:image:alt" content="PeerFlow — find one study partner for your IT learning path">
+<meta name="theme-color" content="#0b8f66">
+<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
+<!-- supabase-js is fetched from here, and it blocks: db.js cannot create a
+     client until it lands, and authgate.js keeps the page invisible until
+     that happens. Without this line the browser only discovers it needs a
+     connection to jsdelivr when it reaches the tag at the bottom of the
+     body, and then pays DNS, TCP and TLS to a third origin before the
+     download can even start. The other three origins on the page were
+     already preconnected; this was the one on the critical path that was
+     not. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Loaded without blocking the first paint: text appears immediately in the
+     fallback face and swaps when the webfont lands. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
+<link rel="stylesheet" href="assets/home.css">
 <style>
-  body{margin:0;background:#F3F4F7;font-family:var(--body);color:#171A2E}
-  .wrap{max-width:1180px;margin:0 auto;padding:44px 24px 80px}
-  .pagenote{background:#FFF8E6;border:1px solid #F0DFAE;border-radius:10px;padding:13px 16px;
-    font-size:13px;line-height:1.65;color:#6B5518;max-width:78ch;margin:0 0 34px}
-
-  .sec{background:#F3F4F7;border-radius:18px;padding:40px 40px 44px}
-  .sec h2{font-size:34px;letter-spacing:-.025em;margin:0 0 8px}
-  .sec .lede{font-size:16px;line-height:1.6;color:#5B6070;margin:0 0 30px;max-width:56ch}
-
-  /* ---------------- the panel ---------------- */
-  .panel{background:#fff;border-radius:14px;overflow:hidden;
+  /* ---------- the directory, standing in for the four how-it-works cards ----------
+     Lives here rather than in home.css only because this is /draft. It moves
+     into home.css when it lands, and the .how-card/.how-shot/.how-body rules
+     it replaces come out at the same time.
+     Every var() here is one home.css defines. The first version reached for
+     --p6 and --line-strong, which are tokens.css names, and index.html does
+     not load tokens.css — the green bar and both button backgrounds came out
+     empty and their white text vanished into white. dev/seo-tests.js has a
+     check for exactly this. */
+  .dir{background:var(--card);border-radius:14px;overflow:hidden;
     box-shadow:0 1px 2px rgba(23,26,46,.05), 0 8px 26px rgba(23,26,46,.07)}
-  .pbar{background:#0F6E56;height:52px;display:flex;align-items:center;gap:9px;padding:0 22px}
-  .pbar svg{fill:#fff}
-  .pbar b{font-size:16px;font-weight:800;letter-spacing:-.02em;color:#fff}
-  .pbar .g{color:#9FE1CB}
+  .dir-bar{background:var(--live-deep);height:52px;display:flex;align-items:center;gap:9px;padding:0 22px}
+  .dir-bar svg{fill:#fff}
+  .dir-bar b{font-size:16px;font-weight:800;letter-spacing:-.02em;color:#fff}
+  .dir-bar b span{color:#9FE1CB}
 
-  table{width:100%;border-collapse:collapse}
-  th{font-family:var(--mono,monospace);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
-    color:#9497A9;font-weight:400;text-align:left;padding:15px 22px;background:#FBFBFC;
-    border-bottom:1px solid #EFEEF3}
-  td{padding:17px 22px;border-bottom:1px solid #F3F2F6;vertical-align:middle}
-  tr:last-child td{border-bottom:0}
+  .dir-tbl{width:100%;border-collapse:collapse}
+  .dir-tbl th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-faint);font-weight:400;text-align:left;padding:15px 22px;background:#FBFBFC;
+    border-bottom:1px solid var(--line)}
+  .dir-tbl td{padding:17px 22px;border-bottom:1px solid #F3F2F6;vertical-align:middle}
+  .dir-tbl tbody tr:last-child td{border-bottom:0}
 
-  .who{display:flex;align-items:center;gap:14px}
-  .av{width:40px;height:40px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;
+  .dir-who{display:flex;align-items:center;gap:14px}
+  .dir-av{width:40px;height:40px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;
     font-size:16px;font-weight:800}
-  .nm{font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
-  .path{display:flex;align-items:center;gap:9px;margin-top:4px;font-size:13.5px;color:#9497A9}
-  .chip{padding:2.5px 7px;border-radius:6px;background:#EEEDFE;color:#3C3489;
-    font-family:var(--mono,monospace);font-size:9.5px;font-weight:700;letter-spacing:.07em}
-  .focus{font-size:15px;letter-spacing:-.005em}
-  .act{text-align:right;width:1%;white-space:nowrap}
-  .btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:9px;
+  .dir-nm{display:block;font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+  .dir-path{display:flex;align-items:center;gap:9px;margin-top:4px;font-size:13.5px;color:var(--ink-faint)}
+  .dir-chip{padding:2.5px 7px;border-radius:6px;background:#EEEDFE;color:#3C3489;
+    font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.07em}
+  .dir-focus{font-size:15px;letter-spacing:-.005em}
+  .dir-act{text-align:right;width:1%;white-space:nowrap}
+  .dir-btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:9px;
     color:#fff;font-size:14px;font-weight:700;
-    background:linear-gradient(180deg,#1D9E75,#0F6E56);
+    background:linear-gradient(180deg,#1D9E75,var(--live-deep));
     box-shadow:0 1px 2px rgba(8,80,65,.22), inset 0 1px 0 rgba(255,255,255,.18)}
-  .btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;
-    stroke-linejoin:round}
-  .more{text-align:center;padding:17px 0 19px;font-size:14.5px;font-weight:700;color:#0F6E56}
-  .more span{margin-left:5px}
+  .dir-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linejoin:round}
+  .dir-more{display:block;text-align:center;padding:17px 0 19px;font-size:14.5px;font-weight:700;
+    color:var(--live-deep);text-decoration:none}
 
-  /* ---------------- on a phone it stops being a table ----------------
-     Three columns do not fit in 260px: measured at a 390px viewport the
-     focus cell and the button were both crushed to zero width and the row
-     rendered as a name with nothing beside it. 860px rather than a phone
-     width because the table is already failing well above the phone — at a
-     760px viewport the SAME PATH chip and the longest focus line each wrap
-     to two lines and the rows stop being the same height. So below 860px
-     each row
-     becomes a stacked block — name and path, then what they are working on,
-     then the button across the full width — which is the same information in
-     the order you would read it aloud. The header row goes, because a column
-     label with no column under it is noise. */
-  @media (max-width: 860px){
-    .wrap{padding:28px 16px 56px}
-    /* The section's own padding was eating 80px of a 390px screen. The panel
-       is the thing worth the width, so it gets it. */
-    .sec{padding:26px 0 30px}
-    .sec h2{font-size:26px}
-    .sec .lede{font-size:15px;margin-bottom:22px}
+  /* ---------- on a phone it stops being a table ----------
+     Measured, not guessed: at a 390px viewport three columns left the focus
+     cell and the button at zero width and the rows came out 102/86/107/107 —
+     a name with empty space where the rest of the row should have been. Below
+     860px each row becomes a stack instead: name and path, what they are
+     working on, then the button. Same rows, same words, read downwards.
 
-    thead{display:none}
-    tbody tr{display:block;padding:16px 16px 18px;border-bottom:1px solid #F3F2F6}
-    tbody tr:last-child{border-bottom:0}
-    td{display:block;padding:0;border-bottom:0}
-    /* 54px is the avatar's 40px plus the 14px gap, so the two lines below a
-       name start where the name starts rather than under the avatar. */
-    .focus{padding-left:54px;margin-top:11px}
-    .act{text-align:left;width:auto;padding-left:54px;margin-top:13px}
-    /* Full width, but capped: at the top of this range the row is 700px
-       across and a 700px button reads as a banner rather than a control. */
-    .btn{display:flex;width:100%;max-width:300px;justify-content:center}
+     860 rather than a phone width because the table was already failing well
+     above the phone. At 760 the SAME PATH chip and the longest focus line each
+     wrapped and the rows stopped matching (102/86/86/101); at 900 they measure
+     87/86/86/86 with nothing wrapped, so the table shape is kept exactly as
+     far down as it still works.
+
+     Last in the sheet on purpose: everything it overrides is at equal
+     specificity, so source order is the only thing deciding the tie. */
+  @media (max-width:860px){
+    .dir-tbl thead{display:none}
+    .dir-tbl tbody tr{display:block;padding:16px 16px 18px;border-bottom:1px solid #F3F2F6}
+    .dir-tbl tbody tr:last-child{border-bottom:0}
+    .dir-tbl td{display:block;padding:0;border-bottom:0}
+    /* 54px is the avatar's 40 plus the 14px gap, so the two lines under a name
+       start where the name starts rather than under the avatar. */
+    .dir-focus{padding-left:54px;margin-top:11px}
+    .dir-act{text-align:left;width:auto;padding-left:54px;margin-top:13px}
+    /* Full width, but capped: at the top of this range the row is 700px across
+       and a 700px button reads as a banner rather than as a control. */
+    .dir-btn{display:flex;width:100%;max-width:300px;justify-content:center}
   }
+
+  /* ---------- the draft marker ----------
+     Fixed rather than a banner at the top of the page, because the whole point
+     of this draft is seeing the section in its real position with everything
+     above and below it intact. A note in the flow would push the hero down and
+     make the one thing being judged the one thing shown wrongly. */
+  .draftmark{position:fixed;right:16px;bottom:16px;z-index:99;
+    background:#FFF8E6;border:1px solid #F0DFAE;border-radius:10px;padding:10px 14px;
+    font:600 12.5px/1.5 var(--body);color:#6B5518;max-width:270px;
+    box-shadow:0 6px 20px rgba(23,26,46,.14)}
+  .draftmark a{color:#6B5518}
 </style>
 </head>
 <body>
+
 <div class="wrap">
 
-  <p class="pagenote">
-    <strong>Just the panel.</strong> The four-step rail is gone, and so is the
-    picture-per-card row it replaced.<br><br>
-    <strong>On a phone it stops being a table.</strong> Three columns in 260px
-    crushed the focus text and the button to nothing, so under 860px each row
-    stacks: name and path, what they are working on, then the button. Same
-    rows, same words, read downwards.<br><br>
-    <strong>The heading is the open question.</strong> “How it works” was
-    answered by the four steps; a list of learners under it does not answer it.
-    So the heading below is not “How it works” any more — it names what the
-    table actually shows, and the line under it carries the one sentence the
-    steps were really for. Say if you want different words, or the old heading
-    back.
-  </p>
+  <nav class="nav">
+    <a class="logo" href="/" aria-label="PeerFlow home">
+      <svg width="26" height="26" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
+      <span>peer<b>flow</b></span>
+    </a>
+    <!-- Two navigations, one set of links, and only ever one of them on screen:
+         .nav-right is the inline row above 760px, .nav-menu is the panel the
+         Menu button opens below it. They are never both visible, so there is no
+         width where the page shows the same four links twice.
 
-  <div class="sec">
-    <h2>The people you would be matched with</h2>
-    <p class="lede">
-      Everyone here chose a path, said what they are working on, and put in the
-      hours they are free. Ask one of them; they get a notification and can accept.
-    </p>
+         home.js finds both auth links by href — now with querySelectorAll, so
+         it reaches the copies in both — which is why login.html and signup.html
+         have to stay written exactly like this in both places. The section
+         anchors beside them are free to change.
 
-    <div class="panel">
-      <div class="pbar">
-        <svg width="17" height="17" viewBox="0 0 173 171"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-        <b>peer<span class="g">flow</span></b>
+         .nav-right keeps existing on mobile even though its links are hidden:
+         usermenu.js appends the signed-in account chip to it, and that chip
+         still belongs in the top bar on a phone. -->
+    <div class="nav-right">
+      <a href="#how">How it works</a>
+      <a href="#paths">Learning paths</a>
+      <a href="login.html">Log in</a>
+      <a class="btn btn-sm" href="signup.html">Find my partner</a>
+    </div>
+
+    <!-- aria-expanded is written closed here rather than left to JS, so the
+         button is honest about its state from the first paint. -->
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav-menu">
+      <svg class="menu-ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor"
+           stroke-width="1.9" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+      <svg class="menu-ico-x" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor"
+           stroke-width="1.9" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      Menu
+    </button>
+
+    <!-- hidden, not a class: it is display:none from the first byte of markup,
+         so the panel cannot flash open before home.js has run. -->
+    <div class="nav-menu" id="nav-menu" hidden>
+      <a href="#how">How it works</a>
+      <a href="#paths">Learning paths</a>
+      <a href="login.html">Log in</a>
+      <a class="btn" href="signup.html">Find my partner</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <header class="hero">
+    <div class="hero-copy">
+      <!-- One sentence, not two. "Show up and learn together" moved down into
+           the lede. It carries none of the phrases SEO_ROADMAP.md targets, so
+           at 55px it was buying a whole third line of green for nothing, and it
+           reads better a line down where it is a promise rather than a heading.
+
+           The two-sentence version wrapped to three lines at 1280, 1440, 1728
+           and 2000 — every desktop width measured — and neither lever moved it:
+           three lines at 48px and at 44px too, and a copy column widened from
+           1.08fr to 1.3fr changed nothing anywhere. The length of the line is
+           the only lever there is, which is why this is a copy change and not a
+           type change.
+
+           The lede lost the four keyword phrases it was carrying, for the same
+           reason: they are already in this page's meta description word for
+           word, and that is the text a search result actually shows. It was
+           paying two lines to repeat a field that had already said it.
+
+           Green, and the whole line rather than a coloured half — colouring one
+           phrase is what made the old headline look broken in two. The colour
+           has moved into home.css beside the other h1 rules, where the note
+           that used to sit here said it belonged. -->
+      <h1>Find your tech study partner.</h1>
+      <p class="lede">Match with one learner on the same path and level. Show up on camera each week and learn together.</p>
+
+      <div class="cta-row">
+        <a class="btn" href="signup.html">Find my partner</a>
       </div>
 
-      <table>
+      <p class="trust">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
+    </div>
+
+    <!--
+      An illustration of a session in progress. It carries three things the
+      page claims — that it's one person and not a group, that the subject is
+      IT, and that the time is a standing one — so it is two camera tiles, a
+      named path and a weekly slot. Nobody here is a real user, so the whole
+      card is hidden from screen readers rather than announced as live data.
+
+      The pomodoro stays, because a session that runs on one is the thing being
+      illustrated, but it sits at the bottom in a small dial: it is a detail of
+      the session, not the point of the card. The clock is driven by home.js.
+    -->
+    <aside class="session" aria-hidden="true">
+      <div class="session-head">
+        <span class="live"><b></b>In session</span>
+        <span class="mono">cameras on</span>
+      </div>
+
+      <div class="tiles">
+        <div class="tile">
+          <span class="tav" style="background:#534AB7">AM</span>
+          <span class="tname">Amir</span>
+        </div>
+        <div class="tile you">
+          <span class="tav" style="background:#0FA36B">YOU</span>
+          <span class="tname">You</span>
+        </div>
+      </div>
+
+      <div class="rows">
+        <div class="row"><span>Both learning</span><b>Frontend</b></div>
+        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
+      </div>
+
+      <div class="pom">
+        <div class="pom-ring">
+          <svg viewBox="0 0 100 100">
+            <circle class="pom-track" cx="50" cy="50" r="43"/>
+            <circle class="pom-arc" id="pf-arc" cx="50" cy="50" r="43"/>
+          </svg>
+        </div>
+        <div class="pom-txt">
+          <b id="pf-count">25:00</b>
+          <span>left in this pomodoro</span>
+        </div>
+      </div>
+    </aside>
+  </header>
+
+  <!-- ================= SOUNDS FAMILIAR? =================
+       The problem, named before the fix is offered. It sits between the hero
+       and how-it-works on purpose: you say what is wrong, then the white band
+       opens straight onto the four steps that answer it.
+
+       Deliberately the quietest thing on the page. Green here means "the part
+       that works" — it is the route you took on the map, the Step one kicker,
+       every button. Spending it on three complaints would devalue it four
+       hundred pixels before the solutions arrive, so these cards are ink and
+       hairlines and nothing else. Their contrast comes from what follows
+       them: grey problems, then a white band of green-accented answers. -->
+  <section id="problem" class="sec">
+    <div class="sec-head">
+      <span class="mono">The problem</span>
+      <h2>Sounds familiar?</h2>
+    </div>
+
+    <ul class="probs">
+      <li class="prob">
+        <svg viewBox="0 0 56 32" fill="none" aria-hidden="true"><path d="M3 27c5-1 8-8 13-11s8-4 11-6" stroke="#0A7350" stroke-width="3.4" stroke-linecap="round"/><circle cx="27.6" cy="9.6" r="2" fill="#0A7350"/><path d="M35 8h1.5M42.5 6.6h1.5M50 5.2h1.5" stroke="#C6D8D1" stroke-width="3.4" stroke-linecap="round"/></svg>
+        <h3>You lose motivation and drop out before finishing.</h3>
+      </li>
+
+      <li class="prob">
+        <svg viewBox="0 0 56 32" fill="none" aria-hidden="true"><circle cx="15" cy="11" r="6.6" fill="#0A7350"/><path d="M4 28c0-6.1 4.9-10.6 11-10.6S26 21.9 26 28z" fill="#0A7350"/><circle cx="41" cy="11" r="6.6" fill="#DCE7E2"/><path d="M30 28c0-6.1 4.9-10.6 11-10.6S52 21.9 52 28z" fill="#DCE7E2"/></svg>
+        <h3>You can't find peers with the same level &amp; schedule.</h3>
+      </li>
+
+      <li class="prob">
+        <svg viewBox="0 0 56 32" fill="none" aria-hidden="true"><rect x="3" y="12" width="8" height="8" rx="2.4" fill="#0A7350"/><rect x="14" y="12" width="8" height="8" rx="2.4" fill="#DCE7E2"/><rect x="25" y="12" width="8" height="8" rx="2.4" fill="#DCE7E2"/><rect x="36" y="12" width="8" height="8" rx="2.4" fill="#0A7350"/><rect x="47" y="12" width="8" height="8" rx="2.4" fill="#DCE7E2"/></svg>
+        <h3>Practice is irregular and progress feels invisible.</h3>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ================= HOW IT WORKS =================
+       Four steps and four pictures used to live here. They are gone, and what
+       is left is the thing they were describing: the actual directory, with
+       four real people on it.
+
+       The reasoning is that four abstract steps ask a stranger to imagine the
+       product, and a table of four learners with a path, a goal and a Send
+       request button beside each one does not ask them to imagine anything.
+       The steps were also answering a question nobody had reached yet — you
+       have to want a study partner before "choose your path" means something,
+       and the fastest way to want one is to see four of them.
+
+       THE HEADING STAYS "How it works"
+
+       It is the label on two nav links, both pointing at this section's #how,
+       so renaming the heading here would leave the nav promising something the
+       page no longer says. The line underneath now carries what the four steps
+       were really for — choose a path, say what you are working on, ask
+       someone, meet weekly — in one sentence rather than four cards.
+
+       assets/how-1-find.png (44KB) was step two's picture and nothing else
+       references it. It is still in the tree; it comes out when this lands on
+       index.html, along with the how-card/how-shot/how-body rules in home.css
+       that now have nothing to style. -->
+  <section id="how" class="sec">
+    <div class="sec-head">
+      <h2>How it works</h2>
+      <p>Everyone here chose a path and said what they are working on. Find
+         someone going the same way, send a request, and meet on camera each
+         week.</p>
+    </div>
+
+    <div class="dir">
+      <div class="dir-bar">
+        <svg width="17" height="17" viewBox="0 0 173 171" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
+        <b>peer<span>flow</span></b>
+      </div>
+
+      <table class="dir-tbl">
         <thead>
           <tr><th>Person</th><th>Learning focus</th><th></th></tr>
         </thead>
         <tbody>
           <tr>
-            <td><div class="who">
-              <span class="av" style="background:#EEEDFE;color:#3C3489">J</span>
-              <span><span class="nm">John Smith</span>
-                <span class="path">Cybersecurity <span class="chip">SAME PATH</span></span></span>
+            <td><div class="dir-who">
+              <span class="dir-av" style="background:#EEEDFE;color:#3C3489">J</span>
+              <span><span class="dir-nm">John Smith</span>
+                <span class="dir-path">Cybersecurity <span class="dir-chip">SAME PATH</span></span></span>
             </div></td>
-            <td class="focus">Networking fundamentals</td>
-            <td class="act"><span class="btn"><svg viewBox="0 0 16 16"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
+            <td class="dir-focus">Networking fundamentals</td>
+            <td class="dir-act"><span class="dir-btn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
           </tr>
           <tr>
-            <td><div class="who">
-              <span class="av" style="background:#E1F5EE;color:#0F6E56">S</span>
-              <span><span class="nm">Sarah</span>
-                <span class="path">Mobile</span></span>
+            <td><div class="dir-who">
+              <span class="dir-av" style="background:#E1F5EE;color:#0F6E56">S</span>
+              <span><span class="dir-nm">Sarah</span>
+                <span class="dir-path">Mobile</span></span>
             </div></td>
-            <td class="focus">Flutter basics</td>
-            <td class="act"><span class="btn"><svg viewBox="0 0 16 16"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
+            <td class="dir-focus">Flutter basics</td>
+            <td class="dir-act"><span class="dir-btn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
           </tr>
           <tr>
-            <td><div class="who">
-              <span class="av" style="background:#FDEEE6;color:#B4471F">D</span>
-              <span><span class="nm">Dilnoza</span>
-                <span class="path">Data Science</span></span>
+            <td><div class="dir-who">
+              <span class="dir-av" style="background:#FDEEE6;color:#B4471F">D</span>
+              <span><span class="dir-nm">Dilnoza</span>
+                <span class="dir-path">Data Science</span></span>
             </div></td>
-            <td class="focus">Data structures &amp; algorithms</td>
-            <td class="act"><span class="btn"><svg viewBox="0 0 16 16"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
+            <td class="dir-focus">Data structures &amp; algorithms</td>
+            <td class="dir-act"><span class="dir-btn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
           </tr>
           <tr>
-            <td><div class="who">
-              <span class="av" style="background:#E6F1FB;color:#185FA5">M</span>
-              <span><span class="nm">Mohibakhon</span>
-                <span class="path">Cybersecurity <span class="chip">SAME PATH</span></span></span>
+            <td><div class="dir-who">
+              <span class="dir-av" style="background:#E6F1FB;color:#185FA5">M</span>
+              <span><span class="dir-nm">Mohibakhon</span>
+                <span class="dir-path">Cybersecurity <span class="dir-chip">SAME PATH</span></span></span>
             </div></td>
-            <td class="focus">Blue team / SOC fundamentals</td>
-            <td class="act"><span class="btn"><svg viewBox="0 0 16 16"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
+            <td class="dir-focus">Blue team / SOC fundamentals</td>
+            <td class="dir-act"><span class="dir-btn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
           </tr>
         </tbody>
       </table>
 
-      <div class="more">View more learners<span>›</span></div>
+      <a class="dir-more" href="signup.html">View more learners <span aria-hidden="true">&rsaquo;</span></a>
     </div>
-  </div>
+  </section>
+
+  <!-- ================= PATHS =================
+       The id is the target of "Learning paths" in the nav; nothing else in
+       this section changed. -->
+  <section id="paths" class="sec">
+    <div class="sec-head">
+      <span class="mono">Eight paths</span>
+      <h2>Choose your path</h2>
+      <p>Choose from eight tech paths. PeerFlow matches you with someone learning in the same direction, at roughly the same level.</p>
+    </div>
+
+    <!-- Each .waiting is filled in by home.js from the real number of people
+         signed up to that path. data-track matches the ids in signup.html. -->
+    <div class="grid">
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Frontend">
+          <rect width="200" height="130" fill="#3C3489"/>
+          <ellipse cx="98" cy="110" rx="56" ry="8" fill="#26215C"/>
+          <rect x="26" y="20" width="16" height="16" rx="4" fill="#534AB7"/>
+          <rect x="156" y="90" width="12" height="12" rx="3" fill="#534AB7"/>
+          <rect x="72" y="22" width="86" height="62" rx="7" fill="#534AB7"/>
+          <rect x="44" y="32" width="92" height="70" rx="7" fill="#EEEDFE"/>
+          <path d="M44 39a7 7 0 0 1 7-7h78a7 7 0 0 1 7 7v8H44Z" fill="#CECBF6"/>
+          <circle cx="53" cy="39" r="2.4" fill="#7F77DD"/><circle cx="62" cy="39" r="2.4" fill="#7F77DD"/><circle cx="71" cy="39" r="2.4" fill="#7F77DD"/>
+          <rect x="52" y="56" width="26" height="38" rx="4" fill="#AFA9EC"/>
+          <rect x="86" y="56" width="42" height="9" rx="3" fill="#CECBF6"/>
+          <rect x="86" y="70" width="42" height="9" rx="3" fill="#CECBF6"/>
+          <rect x="86" y="84" width="26" height="9" rx="3" fill="#AFA9EC"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="frontend"><b></b><span></span></span>
+          <a href="frontend-study-partner.html" aria-label="Learn about finding a Frontend study partner"><h3>Frontend</h3></a>
+          <a class="cta" href="signup.html?path=frontend">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Backend">
+          <rect width="200" height="130" fill="#0F6E56"/>
+          <ellipse cx="100" cy="112" rx="52" ry="8" fill="#085041"/>
+          <circle cx="32" cy="30" r="7" fill="#1D9E75"/>
+          <rect x="158" y="94" width="12" height="12" rx="3" fill="#1D9E75"/>
+          <rect x="61" y="27" width="84" height="22" rx="5" fill="#04342C"/>
+          <rect x="58" y="24" width="84" height="22" rx="5" fill="#E1F5EE"/>
+          <circle cx="69" cy="35" r="3.4" fill="#1D9E75"/>
+          <rect x="80" y="31" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="38" width="22" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="124" y="30" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="30" width="4" height="12" rx="2" fill="#5DCAA5"/>
+          <rect x="61" y="55" width="84" height="22" rx="5" fill="#04342C"/>
+          <rect x="58" y="52" width="84" height="22" rx="5" fill="#E1F5EE"/>
+          <circle cx="69" cy="63" r="3.4" fill="#1D9E75"/>
+          <rect x="80" y="59" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="66" width="22" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="124" y="58" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="58" width="4" height="12" rx="2" fill="#5DCAA5"/>
+          <rect x="61" y="83" width="84" height="22" rx="5" fill="#04342C"/>
+          <rect x="58" y="80" width="84" height="22" rx="5" fill="#E1F5EE"/>
+          <circle cx="69" cy="91" r="3.4" fill="#1D9E75"/>
+          <rect x="80" y="87" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="94" width="22" height="4" rx="2" fill="#9FE1CB"/>
+          <rect x="124" y="86" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="86" width="4" height="12" rx="2" fill="#5DCAA5"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="backend"><b></b><span></span></span>
+          <a href="backend-study-partner.html" aria-label="Learn about finding a Backend study partner"><h3>Backend</h3></a>
+          <a class="cta" href="signup.html?path=backend">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Cybersecurity">
+          <rect width="200" height="130" fill="#993C1D"/>
+          <ellipse cx="100" cy="112" rx="44" ry="8" fill="#712B13"/>
+          <circle cx="32" cy="34" r="6" fill="#D85A30"/>
+          <rect x="158" y="86" width="13" height="13" rx="3" fill="#D85A30"/>
+          <path d="M103 20l43 17v31c0 20-18 33-43 42-25-9-43-22-43-42V37Z" fill="#D85A30"/>
+          <path d="M100 20l43 17v31c0 20-18 33-43 42-25-9-43-22-43-42V37Z" fill="#FAECE7"/>
+          <path d="M100 31l33 13v24c0 15-14 25-33 32-19-7-33-17-33-32V44Z" fill="#F5C4B3"/>
+          <circle cx="100" cy="62" r="9" fill="#993C1D"/>
+          <path d="M95.5 67h9l-2 15h-5Z" fill="#993C1D"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="cybersecurity"><b></b><span></span></span>
+          <a href="cybersecurity-study-partner.html" aria-label="Learn about finding a Cybersecurity study partner"><h3>Cybersecurity</h3></a>
+          <a class="cta" href="signup.html?path=cybersecurity">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Data Science">
+          <rect width="200" height="130" fill="#185FA5"/>
+          <ellipse cx="100" cy="112" rx="54" ry="8" fill="#0C447C"/>
+          <circle cx="30" cy="32" r="7" fill="#378ADD"/>
+          <rect x="160" y="92" width="12" height="12" rx="3" fill="#378ADD"/>
+          <rect x="51" y="27" width="104" height="76" rx="8" fill="#0C447C"/>
+          <rect x="48" y="24" width="104" height="76" rx="8" fill="#E6F1FB"/>
+          <rect x="62" y="66" width="15" height="20" rx="3" fill="#85B7EB"/>
+          <rect x="83" y="56" width="15" height="30" rx="3" fill="#85B7EB"/>
+          <rect x="104" y="62" width="15" height="24" rx="3" fill="#378ADD"/>
+          <rect x="125" y="44" width="15" height="42" rx="3" fill="#378ADD"/>
+          <path d="M69 60 90 50l21 6 21-14" fill="none" stroke="#185FA5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="132" cy="42" r="4.5" fill="#185FA5"/>
+          <rect x="62" y="34" width="30" height="5" rx="2.5" fill="#B5D4F4"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="data"><b></b><span></span></span>
+          <a href="data-science-study-partner.html" aria-label="Learn about finding a Data Science study partner"><h3>Data Science</h3></a>
+          <a class="cta" href="signup.html?path=data">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="Mobile">
+          <rect width="200" height="130" fill="#993556"/>
+          <ellipse cx="100" cy="112" rx="46" ry="8" fill="#72243E"/>
+          <circle cx="34" cy="36" r="6" fill="#D4537E"/>
+          <rect x="77" y="21" width="52" height="86" rx="11" fill="#72243E"/>
+          <rect x="74" y="18" width="52" height="86" rx="11" fill="#FBEAF0"/>
+          <rect x="80" y="30" width="40" height="62" rx="6" fill="#F4C0D1"/>
+          <rect x="90" y="23" width="20" height="4" rx="2" fill="#F4C0D1"/>
+          <rect x="86" y="38" width="28" height="16" rx="4" fill="#D4537E"/>
+          <rect x="86" y="60" width="28" height="5" rx="2.5" fill="#ED93B1"/>
+          <rect x="86" y="70" width="18" height="5" rx="2.5" fill="#ED93B1"/>
+          <rect x="90" y="96" width="20" height="3" rx="1.5" fill="#F4C0D1"/>
+          <rect x="130" y="44" width="40" height="20" rx="6" fill="#D4537E"/>
+          <circle cx="140" cy="54" r="3" fill="#FBEAF0"/><rect x="147" y="52" width="16" height="4" rx="2" fill="#FBEAF0"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="mobile"><b></b><span></span></span>
+          <a href="mobile-development-study-partner.html" aria-label="Learn about finding a Mobile Development study partner"><h3>Mobile Development</h3></a>
+          <a class="cta" href="signup.html?path=mobile">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="DevOps and cloud">
+          <rect width="200" height="130" fill="#35414F"/>
+          <ellipse cx="100" cy="112" rx="48" ry="8" fill="#232C36"/>
+          <circle cx="32" cy="88" r="6" fill="#6C7C8E"/>
+          <rect x="160" y="28" width="12" height="12" rx="3" fill="#6C7C8E"/>
+          <path d="M78 55a17 17 0 0 1 33-6 13 13 0 0 1 19 12 12 12 0 0 1-4 23H80a17 17 0 0 1-2-29Z" fill="#232C36" transform="translate(3,3)"/>
+          <path d="M78 55a17 17 0 0 1 33-6 13 13 0 0 1 19 12 12 12 0 0 1-4 23H80a17 17 0 0 1-2-29Z" fill="#EDF0F3"/>
+          <path d="M76 92a26 26 0 0 0 48 0" fill="none" stroke="#9EAAB8" stroke-width="4" stroke-linecap="round"/>
+          <path d="M124 86l6 8-11 1Z" fill="#9EAAB8"/>
+          <rect x="88" y="60" width="24" height="4" rx="2" fill="#9EAAB8"/>
+          <rect x="88" y="69" width="16" height="4" rx="2" fill="#9EAAB8"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="devops"><b></b><span></span></span>
+          <a href="devops-cloud-study-partner.html" aria-label="Learn about finding a DevOps &amp; Cloud study partner"><h3>DevOps &amp; Cloud</h3></a>
+          <a class="cta" href="signup.html?path=devops">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="AI and machine learning">
+          <rect width="200" height="130" fill="#58256B"/>
+          <ellipse cx="100" cy="112" rx="46" ry="8" fill="#3C1749"/>
+          <circle cx="32" cy="32" r="6" fill="#9B5BB4"/>
+          <rect x="158" y="92" width="12" height="12" rx="3" fill="#9B5BB4"/>
+          <rect x="76" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="97" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="118" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/>
+          <rect x="76" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="97" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="118" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/>
+          <rect x="58" y="52" width="14" height="6" rx="3" fill="#9B5BB4"/><rect x="58" y="72" width="14" height="6" rx="3" fill="#9B5BB4"/>
+          <rect x="128" y="52" width="14" height="6" rx="3" fill="#9B5BB4"/><rect x="128" y="72" width="14" height="6" rx="3" fill="#9B5BB4"/>
+          <rect x="73" y="39" width="58" height="58" rx="12" fill="#3C1749"/>
+          <rect x="70" y="36" width="58" height="58" rx="12" fill="#F5EAF8"/>
+          <rect x="82" y="48" width="34" height="34" rx="8" fill="#C594D6"/>
+          <circle cx="99" cy="65" r="6" fill="#58256B"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="aiml"><b></b><span></span></span>
+          <a href="ai-machine-learning-study-partner.html" aria-label="Learn about finding a AI &amp; Machine Learning study partner"><h3>AI &amp; Machine Learning</h3></a>
+          <a class="cta" href="signup.html?path=aiml">Find my partner</a>
+        </div>
+      </article>
+
+      <article class="path">
+        <svg viewBox="0 0 200 130" role="img" aria-label="UX and UI design">
+          <rect width="200" height="130" fill="#854F0B"/>
+          <ellipse cx="100" cy="112" rx="52" ry="8" fill="#633806"/>
+          <circle cx="30" cy="92" r="6" fill="#EF9F27"/>
+          <rect x="160" y="26" width="12" height="12" rx="3" fill="#EF9F27"/>
+          <rect x="52" y="24" width="74" height="54" rx="7" fill="#EF9F27"/>
+          <rect x="77" y="47" width="74" height="54" rx="7" fill="#633806"/>
+          <rect x="74" y="44" width="74" height="54" rx="7" fill="#FAEEDA"/>
+          <rect x="84" y="54" width="26" height="26" rx="5" fill="#FAC775"/>
+          <rect x="118" y="54" width="22" height="5" rx="2.5" fill="#FAC775"/>
+          <rect x="118" y="64" width="22" height="5" rx="2.5" fill="#FAC775"/>
+          <rect x="118" y="74" width="14" height="5" rx="2.5" fill="#FAC775"/>
+          <path d="M113 78l22 9-9 3-3 9Z" fill="#633806"/>
+        </svg>
+        <div class="path-body">
+          <span class="waiting" data-track="design"><b></b><span></span></span>
+          <a href="ux-ui-design-study-partner.html" aria-label="Learn about finding a UX/UI Design study partner"><h3>UX/UI Design</h3></a>
+          <a class="cta" href="signup.html?path=design">Find my partner</a>
+        </div>
+      </article>
+
+    </div>
+
+    <p class="other"><strong>Eight paths, one format:</strong> matched peer-to-peer study with me sessions, on camera, at a recurring time.</p>
+
+    <p class="other">Learning something that isn't here? <a href="mailto:hello@peerflow.dev">Tell us</a> and we'll look for your partner too.</p>
+  </section>
+
+  <!-- ================= GUIDES ================= -->
+  <section id="guides" class="sec">
+    <div class="sec-head">
+      <span class="mono">Guides</span>
+      <h2>Before your first session</h2>
+      <p>Three short pieces on the part that decides whether this works at all: what to do with the hour, who to do it with, and what a first session with a stranger is actually like.</p>
+    </div>
+    <div class="guides">
+      <a href="how-to-run-a-study-with-me-session.html"><b>How to run a study-with-me session that produces work</b><span>The three sentences that decide whether an hour together produces anything, and the shape of a 50-minute session.</span></a>
+      <a href="study-partner-compatibility-checklist.html"><b>Study-partner compatibility checklist</b><span>Eight things worth checking before you commit to a recurring slot with somebody — and the five almost nobody asks about.</span></a>
+      <a href="camera-on-study-session-safety.html"><b>Camera-on study sessions: what&#39;s normal, and what you control</b><span>What a first session with somebody you have never met actually looks like, which parts of it you decide, and what report and block do.</span></a>
+    </div>
+  </section>
+
+  <!-- ================= FOUNDER ================= -->
+  <section class="founder">
+    <div class="sec-head">
+      <h2>Why this exists</h2>
+    </div>
+    <blockquote>I grew up in a small town. I didn't need another course — I needed someone who'd show up on Tuesday because I was expecting them.</blockquote>
+    <cite>Founder</cite>
+  </section>
+
+  <footer>
+    <span>peerflow — find one study partner to learn with</span>
+    <span><a href="conduct.html">Code of conduct</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a></span>
+  </footer>
 
 </div>
+
+<!-- Pinned and checked, for the same reason the LiveKit line below/above is:
+     the code that holds your session token should be the code we checked, not
+     whatever the CDN is serving under a moving tag today. @2 floated, so a bad
+     publish to any 2.x — or a compromise at jsdelivr — would have run in every
+     signed-in page automatically. The path is explicit so there is no question
+     which file the hash covers: it is the one the package's own jsdelivr field
+     points at. Bumping the version means recomputing the hash; that is the
+     cost, and it is the point. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/dist/umd/supabase.js"
+        integrity="sha384-ysv13JVP3fufiEXfjML9OdCa/rRbMJvUBOWyor82wfuK8INNZAvmbxHgKIHi+oqz"
+        crossorigin="anonymous"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/home.js"></script>
+<script src="assets/usermenu.js"></script>
+  <div class="draftmark">Draft. The four how-it-works cards are replaced by the
+    directory itself — <a href="#how">jump to it</a>. Nothing else on the page changed.</div>
 </body>
 </html>
