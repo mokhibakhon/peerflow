@@ -14,6 +14,14 @@ backend: auth, Postgres, RLS, and a handful of `SECURITY DEFINER` functions.
 Supabase directly. If a page needs data that isn't there yet, add a function to
 `db.js` and call that.
 
+There is exactly one exception and it is `assets/visit.js`, which POSTs a page
+view straight to PostgREST. It exists because the pages most worth counting —
+the landing pages and the guides — load no JavaScript at all, and `db.js` needs
+the ~110kB Supabase SDK, so routing one write through it would slow the pages
+whose whole job is to load fast. It writes one table, has no reader, and
+everything that reads visits is in `db.js` where it belongs. Do not treat it as
+a precedent: a second file like this means the rule is gone.
+
 ## Before you change a page
 
 Design changes go to **`draft.html`** first — it is served at `/draft` and is a
