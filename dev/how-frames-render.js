@@ -46,7 +46,14 @@ const SCRATCH = process.env.PF_SCRATCH || require('os').tmpdir();
    the sizes in how-frames.html are chosen against. */
 const CARD = 322;
 
-const TARGETS = [{ id: 'f-find', out: 'assets/how-1-find.png', w: 1280, h: 841 }];
+const TARGETS = [
+  { id: 'f-find', out: 'assets/how-1-find.png', w: 1280, h: 841 },
+  /* Two alternates for step two, drawn only so draft.html can show them side
+     by side in a real card at the size they are read at. They come out — file
+     and frame both — as soon as one of them is chosen. */
+  { id: 'f-find-a', out: 'assets/how-1-find-a.png', w: 1280, h: 841 },
+  { id: 'f-find-b', out: 'assets/how-1-find-b.png', w: 1280, h: 841 },
+];
 
 let fails = 0;
 const fail = (m) => { fails++; console.error('  FAIL ' + m); };
@@ -239,7 +246,14 @@ im.quantize(colors=64, method=Image.MEDIANCUT, dither=Image.FLOYDSTEINBERG).save
                 (saved ? `  (${(raw / 1024).toFixed(1)}KB before the palette)` : '') +
                 (before ? `  (previous file ${(before / 1024).toFixed(1)}KB)` : ''));
 
-    /* And the same frame at the size it is read at, for looking at. */
+    /* And the same frame at the size it is read at, for looking at.
+     *
+     * Measured again after the transform rather than reusing the box from
+     * above, and captured fullPage. Both matter once there is more than one
+     * frame: scaling an earlier frame moves every frame below it up the
+     * document, and the third target sat past the bottom of the viewport, so
+     * a viewport-relative clip from the pre-transform box asked for a region
+     * that was not in the image. */
     const proof = path.join(SCRATCH, path.basename(t.out, '.png') + '-at-card-size.png');
     await page.evaluate(([id, cw]) => {
       const f = document.getElementById(id);
@@ -247,7 +261,10 @@ im.quantize(colors=64, method=Image.MEDIANCUT, dither=Image.FLOYDSTEINBERG).save
       f.style.transform = 'scale(' + cw / f.getBoundingClientRect().width + ')';
     }, [t.id, CARD]);
     await page.waitForTimeout(120);
-    await page.screenshot({ path: proof, clip: { x: box.x, y: box.y, width: CARD, height: Math.ceil(t.h * CARD / t.w) } });
+    const scaled = await page.locator('#' + t.id).boundingBox();
+    await page.screenshot({ path: proof, fullPage: true,
+      clip: { x: scaled.x, y: scaled.y + await page.evaluate(() => window.scrollY),
+              width: CARD, height: Math.ceil(t.h * CARD / t.w) } });
     console.log(`  wrote ${proof}  ${CARD}px — this is the one to judge it at`);
   }
 
