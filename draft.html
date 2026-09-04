@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>How it works — one panel, four steps</title>
+<title>The directory panel, on its own</title>
 <!-- Every page in the repo links the same three, root-relative; dev/seo-tests.js
      enforces it and caught this file missing them once already. -->
 <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -13,47 +13,14 @@
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/app.css">
 <style>
-  /* The owner's layout, with the two removals asked for.
-
-     WHY THIS SHAPE BEATS THE FOUR-CARD ROW. Today each step owns a small
-     picture in a 322px card, and assets/how-frames.html says what that costs:
-     "A faithful screenshot is a grey blur at that width; this has to land in
-     one glance or it isn't doing anything." Every drawn frame in this repo is
-     a workaround for that width — a fifth of the real screen, at four times
-     the type size.
-
-     Taking the picture out of the cards removes the constraint instead of
-     working around it. Four steps become text, which is what they always
-     were, and one panel gets the full width — so it can be the real thing at
-     something near real density and still be read. */
   body{margin:0;background:#F3F4F7;font-family:var(--body);color:#171A2E}
   .wrap{max-width:1180px;margin:0 auto;padding:44px 24px 80px}
   .pagenote{background:#FFF8E6;border:1px solid #F0DFAE;border-radius:10px;padding:13px 16px;
     font-size:13px;line-height:1.65;color:#6B5518;max-width:78ch;margin:0 0 34px}
 
-  /* ---------------- the section, as it would sit on the landing page ------- */
-  .sec{background:#F3F4F7;border-radius:18px;padding:44px 40px 46px}
-  .sec h2{font-size:34px;letter-spacing:-.025em;margin:0 0 34px}
-
-  /* the four steps, as a rail */
-  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:0 0 34px}
-  .step{position:relative;padding-right:26px}
-  .badge{width:54px;height:54px;border-radius:50%;background:#fff;border:1px solid #E1E7E4;
-    display:grid;place-items:center;position:relative;z-index:2}
-  .badge svg{width:24px;height:24px;stroke:#0F6E56;fill:none;stroke-width:1.7;
-    stroke-linecap:round;stroke-linejoin:round}
-  /* Step two is filled because the panel underneath is step two. It is the one
-     thing tying the rail to the picture; without it the panel is just a
-     screenshot sitting under a list. */
-  .step.on .badge{background:#0F6E56;border-color:#0F6E56}
-  .step.on .badge svg{stroke:#fff}
-  /* the dotted run to the next step, behind the badges */
-  .step:not(:last-child)::after{content:"";position:absolute;left:62px;right:14px;top:27px;
-    border-top:2px dotted #C9D6D0;z-index:1}
-  .k{display:block;font-family:var(--mono,monospace);font-size:11px;letter-spacing:.11em;
-    text-transform:uppercase;color:#0F6E56;margin:18px 0 7px}
-  .step h3{font-size:18px;letter-spacing:-.015em;margin:0 0 8px;line-height:1.25}
-  .step p{font-size:14px;line-height:1.6;color:#5B6070;margin:0;max-width:27ch}
+  .sec{background:#F3F4F7;border-radius:18px;padding:40px 40px 44px}
+  .sec h2{font-size:34px;letter-spacing:-.025em;margin:0 0 8px}
+  .sec .lede{font-size:16px;line-height:1.6;color:#5B6070;margin:0 0 30px;max-width:56ch}
 
   /* ---------------- the panel ---------------- */
   .panel{background:#fff;border-radius:14px;overflow:hidden;
@@ -74,7 +41,6 @@
   .av{width:40px;height:40px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;
     font-size:16px;font-weight:800}
   .nm{font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
-  /* Path and badge on one line now that the level line under them is gone. */
   .path{display:flex;align-items:center;gap:9px;margin-top:4px;font-size:13.5px;color:#9497A9}
   .chip{padding:2.5px 7px;border-radius:6px;background:#EEEDFE;color:#3C3489;
     font-family:var(--mono,monospace);font-size:9.5px;font-weight:700;letter-spacing:.07em}
@@ -88,65 +54,65 @@
     stroke-linejoin:round}
   .more{text-align:center;padding:17px 0 19px;font-size:14.5px;font-weight:700;color:#0F6E56}
   .more span{margin-left:5px}
+
+  /* ---------------- on a phone it stops being a table ----------------
+     Three columns do not fit in 260px: measured at a 390px viewport the
+     focus cell and the button were both crushed to zero width and the row
+     rendered as a name with nothing beside it. 860px rather than a phone
+     width because the table is already failing well above the phone — at a
+     760px viewport the SAME PATH chip and the longest focus line each wrap
+     to two lines and the rows stop being the same height. So below 860px
+     each row
+     becomes a stacked block — name and path, then what they are working on,
+     then the button across the full width — which is the same information in
+     the order you would read it aloud. The header row goes, because a column
+     label with no column under it is noise. */
+  @media (max-width: 860px){
+    .wrap{padding:28px 16px 56px}
+    /* The section's own padding was eating 80px of a 390px screen. The panel
+       is the thing worth the width, so it gets it. */
+    .sec{padding:26px 0 30px}
+    .sec h2{font-size:26px}
+    .sec .lede{font-size:15px;margin-bottom:22px}
+
+    thead{display:none}
+    tbody tr{display:block;padding:16px 16px 18px;border-bottom:1px solid #F3F2F6}
+    tbody tr:last-child{border-bottom:0}
+    td{display:block;padding:0;border-bottom:0}
+    /* 54px is the avatar's 40px plus the 14px gap, so the two lines below a
+       name start where the name starts rather than under the avatar. */
+    .focus{padding-left:54px;margin-top:11px}
+    .act{text-align:left;width:auto;padding-left:54px;margin-top:13px}
+    /* Full width, but capped: at the top of this range the row is 700px
+       across and a 700px button reads as a banner rather than a control. */
+    .btn{display:flex;width:100%;max-width:300px;justify-content:center}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <p class="pagenote">
-    <strong>Your layout, with the two removals.</strong> The Availability column
-    is gone, and so is the level line under each path — “Doing tutorials”, “Just
-    starting”. Path and the <em>Same path</em> badge now share one line, so the
-    rows stayed the same height instead of collapsing.<br><br>
-    <strong>One thing to decide.</strong> Step two’s sentence still says
-    “similar goal <em>and experience level</em>”, and experience level is the
-    thing we just took out of the rows. It reads as a promise the picture no
-    longer keeps. Simplest fix is to end it at the goal — that version is set
-    below. Say if you would rather keep the level in the rows instead.
+    <strong>Just the panel.</strong> The four-step rail is gone, and so is the
+    picture-per-card row it replaced.<br><br>
+    <strong>On a phone it stops being a table.</strong> Three columns in 260px
+    crushed the focus text and the button to nothing, so under 860px each row
+    stacks: name and path, what they are working on, then the button. Same
+    rows, same words, read downwards.<br><br>
+    <strong>The heading is the open question.</strong> “How it works” was
+    answered by the four steps; a list of learners under it does not answer it.
+    So the heading below is not “How it works” any more — it names what the
+    table actually shows, and the line under it carries the one sentence the
+    steps were really for. Say if you want different words, or the old heading
+    back.
   </p>
 
   <div class="sec">
-    <h2>How it works</h2>
-
-    <div class="steps">
-
-      <div class="step">
-        <div class="badge">
-          <svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
-        </div>
-        <span class="k">Step one</span>
-        <h3>Choose your path</h3>
-        <p>Choose the IT field you want to learn and describe what you are working toward.</p>
-      </div>
-
-      <div class="step on">
-        <div class="badge">
-          <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3.1 2.5-5 5.5-5s5.5 1.9 5.5 5"/><circle cx="17" cy="9.5" r="2.4"/><path d="M16 14.2c2.4.2 4.2 1.9 4.2 4.3"/></svg>
-        </div>
-        <span class="k">Step two</span>
-        <h3>Find a compatible learner</h3>
-        <p>See people with a similar goal.</p>
-      </div>
-
-      <div class="step">
-        <div class="badge">
-          <svg viewBox="0 0 24 24"><path d="M3.5 8.5h3l1.6-2.2h7.8L17.5 8.5h3v10h-17z"/><circle cx="12" cy="13" r="3.4"/></svg>
-        </div>
-        <span class="k">Step three</span>
-        <h3>Meet face to face, cameras on</h3>
-        <p>Choose a regular time, join the 1-on-1 call, and focus together each week.</p>
-      </div>
-
-      <div class="step">
-        <div class="badge">
-          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12.5" rx="1.8"/><path d="M2 20.5h20M9.6 9.4 7.4 11.3l2.2 1.9M14.4 9.4l2.2 1.9-2.2 1.9"/></svg>
-        </div>
-        <span class="k">Step four</span>
-        <h3>Build something real</h3>
-        <p>Use your sessions to work toward a small practical project you can show.</p>
-      </div>
-
-    </div>
+    <h2>The people you would be matched with</h2>
+    <p class="lede">
+      Everyone here chose a path, said what they are working on, and put in the
+      hours they are free. Ask one of them; they get a notification and can accept.
+    </p>
 
     <div class="panel">
       <div class="pbar">
