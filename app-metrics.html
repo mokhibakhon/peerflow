@@ -149,6 +149,10 @@
 .ct-h{font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-faint);
       margin:18px 0 8px}
 .ct-h:first-of-type{margin-top:0}
+
+.ct-scroll{overflow-x:auto}
+.ct-t{white-space:nowrap;font-variant-numeric:tabular-nums}
+.ct-dim{color:var(--ink-faint)}
 </style>
 </head>
 <body>
@@ -297,18 +301,19 @@
       </div>
 
       <div class="mcard">
-        <div class="mcard-h"><h2 class="mcard-t">When they came</h2></div>
-        <p class="mcard-d">In the visitor's own local time, not yours and not
-          UTC — the useful question for a product that matches people across
-          timezones is what time it was <i>where they were</i>. Visits whose
-          browser reported no timezone are left out of these two, and counted
-          everywhere else.</p>
-        <h3 class="ct-h">Hour of day</h3>
-        <div class="days" id="v-hours"></div>
-        <div class="days-x"><span>00:00</span><span>23:00</span></div>
-        <h3 class="ct-h">Day of week</h3>
-        <div class="days" id="v-dow"></div>
-        <div class="days-x" id="v-dow-x"></div>
+        <div class="mcard-h"><h2 class="mcard-t">Recent views</h2></div>
+        <p class="mcard-d">The last fifty, newest first. <b>Time</b> is in your
+          local time; <b>their time</b> is the same moment where the visitor was,
+          which is the more useful of the two for a product that matches people
+          across timezones. Two rows a second apart may be one person clicking
+          through or two people arriving at once — there is no identifier here,
+          so nothing can tell the difference. It is a log, not a profile.</p>
+        <div class="ct-scroll">
+          <table class="ct"><thead><tr>
+            <th>Time</th><th>Their time</th><th>Page</th><th>Source</th><th>Device</th>
+          </tr></thead><tbody id="v-recent"></tbody></table>
+        </div>
+        <p class="tl-empty" id="v-recent-none" hidden>Nothing recorded yet.</p>
       </div>
 
       <div class="mcard">
@@ -370,7 +375,7 @@
          block stays hidden, and the funnel above is unaffected — adding
          analytics must not be able to break the page that existed before it. */
       pf.visitCounts(), pf.visitSources(30), pf.visitPages(30), pf.visitContext(30),
-      pf.visitDaily(), pf.visitCampaigns(30), pf.visitTiming(30)
+      pf.visitDaily(), pf.visitCampaigns(30), pf.visitRecent(50)
     ]).then(function(r){
       var f = r[0], daily = r[1];
       drawVisits(r[2], r[3], r[4], r[5], r[6], r[7], r[8]);
@@ -433,42 +438,45 @@
     }).join('');
   }
 
-  /* Both series are complete before they arrive — 24 hours, 7 days — so this
-     never has to fill a gap, and a scale of 1 keeps an all-quiet window from
-     dividing by zero. */
-  function bars(node, rows, title){
-    if (!rows || !rows.length) return;
-    var max = rows.reduce(function(m, r){ return Math.max(m, r.views); }, 0) || 1;
-    node.innerHTML = rows.map(function(r){
-      return '<span class="day" title="' + esc(title(r)) + '">' +
-        (r.views > 0 ? '<i class="d-done" style="height:' + (r.views / max * 100) + '%"></i>' : '') +
-      '</span>';
+  /* The visitor's local time for the same instant. Intl does the conversion
+     from the zone the row carries; an unknown or missing zone gets a dash
+     rather than a guess, which is the same choice the rest of this page makes
+     about zones it cannot place. */
+  function theirTime(d, tz){
+    if (!d || !tz) return '—';
+    try {
+      return d.toLocaleTimeString(undefined,
+        { hour: '2-digit', minute: '2-digit', timeZone: tz });
+    } catch (e) { return '—'; }
+  }
+
+  function drawRecent(rows){
+    var none = el('v-recent-none');
+    if (none) none.hidden = !!(rows && rows.length);
+    if (!rows || !rows.length) { el('v-recent').innerHTML = ''; return; }
+    el('v-recent').innerHTML = rows.map(function(r){
+      var when = r.at
+        ? r.at.toLocaleString(undefined,
+            { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+        : '—';
+      return '<tr>' +
+        '<td class="ct-t">' + esc(when) + '</td>' +
+        '<td class="ct-t ct-dim">' + esc(theirTime(r.at, r.tz)) +
+          (r.tz ? ' <span class="ct-dim">' + esc(r.tz.split('/').pop().replace(/_/g, ' ')) + '</span>' : '') +
+        '</td>' +
+        '<td>' + esc(r.path) + '</td>' +
+        '<td>' + esc(r.source) + '</td>' +
+        '<td class="ct-dim">' + esc(r.device || '—') + '</td>' +
+      '</tr>';
     }).join('');
   }
 
-  function drawTiming(t){
-    if (!t) return;
-    bars(el('v-hours'), t.hour, function(r){
-      return r.label + ' — ' + r.views + (r.views === 1 ? ' view' : ' views');
-    });
-    bars(el('v-dow'), t.dow, function(r){
-      return r.label + ' — ' + r.views + (r.views === 1 ? ' view' : ' views');
-    });
-    /* The weekday axis is seven labels rather than two, because Mon and Sun as
-       endpoints tell you nothing about what is in between. */
-    if (t.dow && t.dow.length) {
-      el('v-dow-x').innerHTML = t.dow.map(function(r){
-        return '<span>' + esc(r.label) + '</span>';
-      }).join('');
-    }
-  }
-
-  function drawVisits(c, sources, pages, ctx, daily, camps, timing){
+  function drawVisits(c, sources, pages, ctx, daily, camps, recent){
     if (!c) return;                     /* migration not run, or no rows yet */
     el('visits').hidden = false;
     drawVisitDays(daily);
     drawCampaigns(camps);
-    drawTiming(timing);
+    drawRecent(recent);
 
     el('v-30').textContent = c.views_30d;
     el('v-30-s').textContent = c.days_with_data === 1

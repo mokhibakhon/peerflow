@@ -349,57 +349,61 @@ revoke all on function public.visit_campaigns(int) from public, anon;
 grant execute on function public.visit_campaigns(int) to authenticated;
 
 
--- ---------- when they came, where they were ----------
--- Hour of day and day of week, in the VISITOR's local time rather than UTC or
--- the owner's. That is the whole point of the question — "is my audience awake
--- at nine in the evening" is a question about their evening, and this is a
--- product whose entire job is matching people across timezones. `at` is a
--- timestamptz and every row already carries the zone the browser reported, so
--- no new data is collected to answer it.
+-- ---------- the most recent views ----------
+-- The aggregate cards answer "how many" and "from where". This answers "what
+-- just happened", which is the question during a launch and the one an owner
+-- actually refreshes for.
 --
--- The zone is joined against pg_timezone_names rather than trusted. tz arrives
--- from a browser through a column anybody holding the publishable key can
--- write, and `at at time zone 'nonsense'` raises rather than returning null —
--- one crafted row would take the whole function down. Rows with an unknown or
--- missing zone are dropped from this breakdown; they are still counted
--- everywhere else, and dropping them is honest because there is no local hour
--- to place them at.
+-- It returns rows rather than totals, which is a step further than everything
+-- above it, so it is worth being precise about what that does and does not
+-- mean. Each row is still one page view with no identifier on it: two rows a
+-- second apart may be one person clicking through or two people arriving at
+-- once, and nothing here can tell the difference. It is a log, not a profile,
+-- and it cannot become one without the seam in the header being opened.
 --
--- generate_series supplies all 24 hours and all 7 days, so a quiet hour is a
--- zero rather than a gap — the same reason visit_daily() does it.
-create or replace function public.visit_timing(p_days int default 30)
-returns table (kind text, slot int, label text, views bigint)
+-- Capped hard at 200. A dashboard that would happily select the whole table if
+-- somebody passed a big number is a slow page waiting to happen, and there is
+-- no question this answers at row 5000 that it does not answer at row 200.
+--
+-- visit_timing() used to live here — hour-of-day and day-of-week bars. It was
+-- dropped rather than left unused: the owner found the two charts less useful
+-- than a plain list with a time on it, and an unread function is a thing that
+-- rots. The drop below cleans it out of a database that already ran the
+-- earlier version of this file.
+drop function if exists public.visit_timing(int);
+
+create or replace function public.visit_recent(p_limit int default 50)
+returns table (
+  at      timestamptz,
+  path    text,
+  source  text,
+  device  text,
+  browser text,
+  tz      text
+)
 language sql
 security definer
 stable
 set search_path = public, pg_temp
 as $$
-  with allowed as (
-    select 1 where exists (
-      select 1 from public.app_admins a where a.user_id = auth.uid()
-    )
-  ),
-  local as (
-    select (v.at at time zone z.name) as lt
-      from public.visits v
-      join pg_timezone_names z on z.name = v.tz,
-           allowed
-     where v.at >= now() - (greatest(p_days, 1) || ' days')::interval
-  )
-  select 'hour', h::int, lpad(h::text, 2, '0') || ':00',
-         (select count(*) from local where extract(hour from lt) = h)
-    from generate_series(0, 23) h, allowed
-  union all
-  select 'dow', d::int,
-         to_char(date '2026-08-31' + d, 'Dy'),   -- 2026-08-31 is a Monday
-         (select count(*) from local
-           where extract(isodow from lt) = d + 1)
-    from generate_series(0, 6) d, allowed
-   order by 1, 2;
+  select v.at,
+         v.path,
+         /* Same precedence as visit_sources(), so a row reads the same here as
+            it does in the totals above. */
+         coalesce(nullif(v.utm_source, ''), nullif(v.ref_host, ''), 'direct'),
+         v.device,
+         v.browser,
+         v.tz
+    from public.visits v
+   where exists (
+     select 1 from public.app_admins a where a.user_id = auth.uid()
+   )
+   order by v.at desc
+   limit least(greatest(coalesce(p_limit, 50), 1), 200);
 $$;
 
-revoke all on function public.visit_timing(int) from public, anon;
-grant execute on function public.visit_timing(int) to authenticated;
+revoke all on function public.visit_recent(int) from public, anon;
+grant execute on function public.visit_recent(int) to authenticated;
 
 
 -- ---------- forgetting ----------

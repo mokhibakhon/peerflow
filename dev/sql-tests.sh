@@ -2797,75 +2797,59 @@ check "  and a member cannot use it to empty the table" ok "
 
 
 echo
-echo "==> when they came, in their own time"
-
-# The hour breakdown is in the VISITOR's local time, not UTC and not the
-# owner's. That is the only version of the question worth answering for a
-# product that matches people across timezones, and it needs no new data
-# because every row already carries the zone the browser reported.
-check "an hour is counted in the visitor's timezone, not UTC" ok "
-  insert into public.visits (path, tz) values ('/', 'Asia/Tashkent');
-  insert into public.visits (path, tz) values ('/', 'Europe/London');
-  set local role postgres;
-  update public.visits set at = timestamptz '2026-09-02 09:00:00+00';
-  insert into public.app_admins (user_id) values ('$A');
-  $AS_A
-  do \$\$ begin
-    /* 09:00 UTC is 14:00 in Tashkent and 10:00 in London. Two rows, two
-       different local hours, and neither of them 9. */
-    if (select views from public.visit_timing() where kind='hour' and slot=14) <> 1
-      then raise exception 'the Tashkent visit was not placed at 14:00 local'; end if;
-    if (select views from public.visit_timing() where kind='hour' and slot=10) <> 1
-      then raise exception 'the London visit was not placed at 10:00 local'; end if;
-    if (select views from public.visit_timing() where kind='hour' and slot=9) <> 0
-      then raise exception 'a visit was counted at the UTC hour'; end if;
-  end \$\$;"
-
-# tz arrives from a browser, through a column anybody holding the publishable
-# key can write, and `at at time zone 'nonsense'` RAISES rather than returning
-# null. One crafted row would otherwise take the whole function down for the
-# owner — a denial of service costing one insert.
-check "a junk timezone cannot break the breakdown for everybody else" ok "
-  insert into public.visits (path, tz) values ('/', 'Asia/Tashkent');
-  insert into public.visits (path, tz) values ('/', 'Not/AZone');
-  insert into public.visits (path, tz) values ('/', null);
-  set local role postgres;
-  update public.visits set at = timestamptz '2026-09-02 09:00:00+00';
-  insert into public.app_admins (user_id) values ('$A');
-  $AS_A
-  do \$\$ declare total bigint; begin
-    select sum(views) into total from public.visit_timing() where kind = 'hour';
-    /* The good row is placed; the unknown zone and the missing one are dropped
-       rather than guessed at, because there is no local hour to put them at. */
-    if total <> 1 then raise exception 'expected 1 placed visit, got %', total; end if;
-  end \$\$;"
-
-check "  every hour and every weekday is present, so a quiet one is a zero" ok "
-  insert into public.visits (path, tz) values ('/', 'Asia/Tashkent');
-  insert into public.app_admins (user_id) values ('$A');
-  $AS_A
-  do \$\$ begin
-    if (select count(*) from public.visit_timing() where kind='hour') <> 24
-      then raise exception 'the hour series is not 24 long'; end if;
-    if (select count(*) from public.visit_timing() where kind='dow') <> 7
-      then raise exception 'the weekday series is not 7 long'; end if;
-  end \$\$;"
-
-# The label and the slot are computed separately — one from a date, one from
-# isodow — so they can disagree, and a chart labelled Monday showing Wednesday's
-# traffic is worse than no chart.
-check "  and the weekday label matches the day it counts" ok "
-  insert into public.visits (path, tz) values ('/', 'Europe/London');
-  set local role postgres;
-  update public.visits set at = timestamptz '2026-09-02 09:00:00+00';  -- a Wednesday
-  insert into public.app_admins (user_id) values ('$A');
-  $AS_A
-  do \$\$ begin
-    if (select label from public.visit_timing() where kind='dow' and views > 0) <> 'Wed'
-      then raise exception 'the weekday with the traffic is not labelled Wed'; end if;
-  end \$\$;"
-
 echo
+echo "==> the recent list, which returns rows rather than totals"
+
+# Everything else on that page is an aggregate. This one hands back rows, so
+# the checks are about the two things that makes newly possible: that a member
+# still cannot see them, and that the list cannot be asked for the whole table.
+check "a member gets no rows at all" ok "
+  insert into public.visits (path) values ('/');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.visit_recent()) <> 0
+      then raise exception 'visit_recent answered a member'; end if;
+  end \$\$;"
+
+check "  and the owner gets them newest first" ok "
+  insert into public.visits (path) values ('/old');
+  insert into public.visits (path) values ('/new');
+  set local role postgres;
+  update public.visits set at = now() - interval '1 hour' where path = '/old';
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select path from public.visit_recent() limit 1) <> '/new'
+      then raise exception 'the newest row is not first'; end if;
+  end \$\$;"
+
+# A dashboard that would select the whole table if somebody passed a big number
+# is a slow page waiting to happen. The cap is in SQL rather than in db.js
+# because db.js is not the only thing that can call this.
+check "  a caller asking for the whole table gets 200 rows" ok "$(wrap "
+  insert into public.visits (path)
+    select '/p' || g from generate_series(1, 260) g;
+  insert into public.app_admins (user_id) values ('$A');
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  if (select count(*) from public.visit_recent(100000)) <> 200
+    then raise exception 'the cap did not hold: got %',
+      (select count(*) from public.visit_recent(100000)); end if;")"
+
+check "  and a nonsense limit still returns something" ok "$(wrap "
+  insert into public.visits (path) values ('/');
+  insert into public.app_admins (user_id) values ('$A');
+  set local role authenticated; set local request.jwt.claim.sub = '$A';
+  if (select count(*) from public.visit_recent(-5)) <> 1
+    then raise exception 'a negative limit did not clamp to at least one'; end if;")"
+
+# visit_timing() was dropped rather than left unused. The drop has to be in the
+# file, because a database that ran the earlier version still has the function
+# and re-running is how it goes away.
+check "  and the dropped timing function is really gone" ok "$(wrap "
+  if exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              where n.nspname = 'public' and p.proname = 'visit_timing')
+    then raise exception 'visit_timing survived the migration'; end if;")"
+
 echo "==> and the campaigns, when there are any"
 
 check "an untagged arrival stays out of the campaign list" ok "
@@ -2908,8 +2892,8 @@ check "  and neither reader answers a member" ok "
   do \$\$ begin
     if (select count(*) from public.visit_campaigns()) <> 0
       then raise exception 'visit_campaigns answered a member'; end if;
-    if (select count(*) from public.visit_timing()) <> 0
-      then raise exception 'visit_timing answered a member'; end if;
+    if (select count(*) from public.visit_recent()) <> 0
+      then raise exception 'visit_recent answered a member'; end if;
   end \$\$;"
 
 

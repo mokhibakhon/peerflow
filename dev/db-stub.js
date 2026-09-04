@@ -105,7 +105,7 @@
                    the metrics page must survive rather than break on
      __visitCampaigns  the tagged-campaign rows; [] by default, which is the
                    state that keeps the card hidden and is the ordinary one
-     __visitTiming the hour and weekday series
+     __visitRecent the recent-views rows
      __visitDays / __visitSources / __visitPages / __visitContext
                    each list on its own, when one of them is the thing under
                    test
@@ -787,20 +787,28 @@ window.pf = (function(){
          __visitCampaigns to see the populated version. */
       return P(window.__visitCampaigns || []);
     },
-    visitTiming:function(){
+    visitRecent:function(){
       if (window.__visits === null) return P(null);
-      if (window.__visitTiming) return P(window.__visitTiming);
-      var hour = [], dow = [], i;
-      /* An evening-heavy shape with a lunchtime bump, so a chart drawn upside
-         down or off by one is visible rather than plausible. */
-      var byHour = [1,0,0,0,0,1,2,5,9,12,14,11,18,15,12,14,19,26,34,41,38,27,14,6];
-      for (i = 0; i < 24; i++) {
-        hour.push({slot:i, label:(i < 10 ? '0' : '') + i + ':00', views:byHour[i]});
+      if (window.__visitRecent) return P(window.__visitRecent);
+      /* A handful of rows a few minutes apart, in three zones — enough for the
+         "their time" column to be visibly different from the reader's, which is
+         the only thing that column exists to show. */
+      var zones = ['Asia/Tashkent','Europe/London','America/New_York',null];
+      var paths = ['/','/camera-on-study-session-safety.html','/frontend-study-partner.html','/signup.html'];
+      var srcs  = ['direct','dev.to','producthunt','google.com'];
+      var devs  = ['desktop','mobile','tablet'];
+      var out = [], now = Date.now();
+      for (var i = 0; i < 12; i++) {
+        out.push({
+          at:      new Date(now - i * 7 * 60000),
+          path:    paths[i % paths.length],
+          source:  srcs[i % srcs.length],
+          device:  devs[i % devs.length],
+          browser: 'chrome',
+          tz:      zones[i % zones.length] || ''
+        });
       }
-      var names = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-      var byDow = [41, 38, 52, 44, 31, 68, 59];
-      for (i = 0; i < 7; i++) dow.push({slot:i, label:names[i], views:byDow[i]});
-      return P({hour:hour, dow:dow});
+      return P(out);
     },
     visitContext:function(){
       if (window.__visits === null) return P(null);
