@@ -103,6 +103,9 @@
      __visits      the visit totals, merged over the defaults; null for a
                    database without migration-visits.sql, which is the case
                    the metrics page must survive rather than break on
+     __visitCampaigns  the tagged-campaign rows; [] by default, which is the
+                   state that keeps the card hidden and is the ordinary one
+     __visitTiming the hour and weekday series
      __visitDays / __visitSources / __visitPages / __visitContext
                    each list on its own, when one of them is the thing under
                    test
@@ -776,6 +779,28 @@ window.pf = (function(){
         {label:'/study-partner-compatibility-checklist.html', views:22},
         {label:'/privacy.html',                              views:9}
       ]);
+    },
+    visitCampaigns:function(){
+      if (window.__visits === null) return P(null);
+      /* Default is EMPTY, because a site that has never tagged a link is the
+         ordinary state and the card is supposed to stay hidden in it. Set
+         __visitCampaigns to see the populated version. */
+      return P(window.__visitCampaigns || []);
+    },
+    visitTiming:function(){
+      if (window.__visits === null) return P(null);
+      if (window.__visitTiming) return P(window.__visitTiming);
+      var hour = [], dow = [], i;
+      /* An evening-heavy shape with a lunchtime bump, so a chart drawn upside
+         down or off by one is visible rather than plausible. */
+      var byHour = [1,0,0,0,0,1,2,5,9,12,14,11,18,15,12,14,19,26,34,41,38,27,14,6];
+      for (i = 0; i < 24; i++) {
+        hour.push({slot:i, label:(i < 10 ? '0' : '') + i + ':00', views:byHour[i]});
+      }
+      var names = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      var byDow = [41, 38, 52, 44, 31, 68, 59];
+      for (i = 0; i < 7; i++) dow.push({slot:i, label:names[i], views:byDow[i]});
+      return P({hour:hour, dow:dow});
     },
     visitContext:function(){
       if (window.__visits === null) return P(null);

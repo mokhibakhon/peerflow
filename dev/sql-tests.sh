@@ -2797,6 +2797,123 @@ check "  and a member cannot use it to empty the table" ok "
 
 
 echo
+echo "==> when they came, in their own time"
+
+# The hour breakdown is in the VISITOR's local time, not UTC and not the
+# owner's. That is the only version of the question worth answering for a
+# product that matches people across timezones, and it needs no new data
+# because every row already carries the zone the browser reported.
+check "an hour is counted in the visitor's timezone, not UTC" ok "
+  insert into public.visits (path, tz) values ('/', 'Asia/Tashkent');
+  insert into public.visits (path, tz) values ('/', 'Europe/London');
+  set local role postgres;
+  update public.visits set at = timestamptz '2026-09-02 09:00:00+00';
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    /* 09:00 UTC is 14:00 in Tashkent and 10:00 in London. Two rows, two
+       different local hours, and neither of them 9. */
+    if (select views from public.visit_timing() where kind='hour' and slot=14) <> 1
+      then raise exception 'the Tashkent visit was not placed at 14:00 local'; end if;
+    if (select views from public.visit_timing() where kind='hour' and slot=10) <> 1
+      then raise exception 'the London visit was not placed at 10:00 local'; end if;
+    if (select views from public.visit_timing() where kind='hour' and slot=9) <> 0
+      then raise exception 'a visit was counted at the UTC hour'; end if;
+  end \$\$;"
+
+# tz arrives from a browser, through a column anybody holding the publishable
+# key can write, and `at at time zone 'nonsense'` RAISES rather than returning
+# null. One crafted row would otherwise take the whole function down for the
+# owner — a denial of service costing one insert.
+check "a junk timezone cannot break the breakdown for everybody else" ok "
+  insert into public.visits (path, tz) values ('/', 'Asia/Tashkent');
+  insert into public.visits (path, tz) values ('/', 'Not/AZone');
+  insert into public.visits (path, tz) values ('/', null);
+  set local role postgres;
+  update public.visits set at = timestamptz '2026-09-02 09:00:00+00';
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ declare total bigint; begin
+    select sum(views) into total from public.visit_timing() where kind = 'hour';
+    /* The good row is placed; the unknown zone and the missing one are dropped
+       rather than guessed at, because there is no local hour to put them at. */
+    if total <> 1 then raise exception 'expected 1 placed visit, got %', total; end if;
+  end \$\$;"
+
+check "  every hour and every weekday is present, so a quiet one is a zero" ok "
+  insert into public.visits (path, tz) values ('/', 'Asia/Tashkent');
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.visit_timing() where kind='hour') <> 24
+      then raise exception 'the hour series is not 24 long'; end if;
+    if (select count(*) from public.visit_timing() where kind='dow') <> 7
+      then raise exception 'the weekday series is not 7 long'; end if;
+  end \$\$;"
+
+# The label and the slot are computed separately — one from a date, one from
+# isodow — so they can disagree, and a chart labelled Monday showing Wednesday's
+# traffic is worse than no chart.
+check "  and the weekday label matches the day it counts" ok "
+  insert into public.visits (path, tz) values ('/', 'Europe/London');
+  set local role postgres;
+  update public.visits set at = timestamptz '2026-09-02 09:00:00+00';  -- a Wednesday
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select label from public.visit_timing() where kind='dow' and views > 0) <> 'Wed'
+      then raise exception 'the weekday with the traffic is not labelled Wed'; end if;
+  end \$\$;"
+
+echo
+echo "==> and the campaigns, when there are any"
+
+check "an untagged arrival stays out of the campaign list" ok "
+  insert into public.visits (path) values ('/');
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.visit_campaigns()) <> 0
+      then raise exception 'an untagged visit appeared as a campaign'; end if;
+  end \$\$;"
+
+check "  a tagged one is grouped by all three fields" ok "
+  insert into public.visits (path, utm_source, utm_medium, utm_campaign)
+    values ('/', 'producthunt', 'social', 'launch');
+  insert into public.visits (path, utm_source, utm_medium, utm_campaign)
+    values ('/', 'producthunt', 'social', 'launch');
+  insert into public.visits (path, utm_source, utm_medium, utm_campaign)
+    values ('/', 'producthunt', 'email', 'launch');
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.visit_campaigns()) <> 2
+      then raise exception 'the three rows did not group into two campaigns'; end if;
+    if (select views from public.visit_campaigns() where medium = 'social') <> 2
+      then raise exception 'the social pair did not group together'; end if;
+  end \$\$;"
+
+check "  a partly tagged arrival is kept, with a dash for what is missing" ok "
+  insert into public.visits (path, utm_source) values ('/', 'newsletter');
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select campaign from public.visit_campaigns() where source = 'newsletter') <> '—'
+      then raise exception 'a missing campaign was not shown as a dash'; end if;
+  end \$\$;"
+
+check "  and neither reader answers a member" ok "
+  insert into public.visits (path, utm_source) values ('/', 'x');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.visit_campaigns()) <> 0
+      then raise exception 'visit_campaigns answered a member'; end if;
+    if (select count(*) from public.visit_timing()) <> 0
+      then raise exception 'visit_timing answered a member'; end if;
+  end \$\$;"
+
+
+echo
 echo "==================================================="
 printf 'passed %d, failed %d\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1

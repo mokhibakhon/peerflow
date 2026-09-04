@@ -140,6 +140,15 @@
 .ctx{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
 .ctx h3{font-size:13px;letter-spacing:.02em;text-transform:uppercase;
         color:var(--ink-faint);margin:0 0 8px}
+
+.ct{width:100%;border-collapse:collapse;font-size:14px}
+.ct th{text-align:left;font-size:12px;letter-spacing:.02em;text-transform:uppercase;
+       color:var(--ink-faint);font-weight:600;padding:0 10px 8px 0}
+.ct td{padding:9px 10px 9px 0;border-top:1px solid var(--line)}
+.ct .ct-n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;padding-right:0}
+.ct-h{font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-faint);
+      margin:18px 0 8px}
+.ct-h:first-of-type{margin-top:0}
 </style>
 </head>
 <body>
@@ -243,6 +252,15 @@
       </div>
 
       <div class="mcard">
+        <div class="mcard-h"><h2 class="mcard-t">Views by day</h2></div>
+        <p class="mcard-d">Thirty days, one column each. A day nobody visited is
+          a zero rather than a gap, so a quiet week looks like a quiet week
+          instead of a straight line drawn between the days either side of it.</p>
+        <div class="days" id="v-days"></div>
+        <div class="days-x"><span id="v-from"></span><span id="v-to"></span></div>
+      </div>
+
+      <div class="mcard">
         <div class="mcard-h"><h2 class="mcard-t">Where visits came from</h2></div>
         <p class="mcard-d">A campaign tag wins over the referring site when both
           are present, because somebody chose the tag and the browser chose the
@@ -261,6 +279,36 @@
           none of the question this was built for.</p>
         <ul class="tl" id="v-pages"></ul>
         <p class="tl-empty" id="v-pages-none" hidden>Nothing recorded in this window yet.</p>
+      </div>
+
+      <!-- Hidden until at least one arrival carries a utm_ tag. An empty
+           campaigns table on a site that has never tagged a link is noise, and
+           the sources card above already shows those arrivals. -->
+      <div class="mcard" id="v-camp-card" hidden>
+        <div class="mcard-h"><h2 class="mcard-t">Tagged campaigns</h2></div>
+        <p class="mcard-d">Arrivals carrying a <code>utm_</code> tag, grouped by
+          all three fields. This is how one launch is told apart from another —
+          add <code>?utm_source=producthunt&amp;utm_medium=social&amp;utm_campaign=launch</code>
+          to the link you post, and it lands here instead of in the pile marked
+          <b>direct</b>. A dash means that field was not set.</p>
+        <table class="ct"><thead><tr>
+          <th>Source</th><th>Medium</th><th>Campaign</th><th class="ct-n">Views</th>
+        </tr></thead><tbody id="v-camp"></tbody></table>
+      </div>
+
+      <div class="mcard">
+        <div class="mcard-h"><h2 class="mcard-t">When they came</h2></div>
+        <p class="mcard-d">In the visitor's own local time, not yours and not
+          UTC — the useful question for a product that matches people across
+          timezones is what time it was <i>where they were</i>. Visits whose
+          browser reported no timezone are left out of these two, and counted
+          everywhere else.</p>
+        <h3 class="ct-h">Hour of day</h3>
+        <div class="days" id="v-hours"></div>
+        <div class="days-x"><span>00:00</span><span>23:00</span></div>
+        <h3 class="ct-h">Day of week</h3>
+        <div class="days" id="v-dow"></div>
+        <div class="days-x" id="v-dow-x"></div>
       </div>
 
       <div class="mcard">
@@ -321,10 +369,11 @@
          without migration-visits.sql answers null to all four, the visits
          block stays hidden, and the funnel above is unaffected — adding
          analytics must not be able to break the page that existed before it. */
-      pf.visitCounts(), pf.visitSources(30), pf.visitPages(30), pf.visitContext(30)
+      pf.visitCounts(), pf.visitSources(30), pf.visitPages(30), pf.visitContext(30),
+      pf.visitDaily(), pf.visitCampaigns(30), pf.visitTiming(30)
     ]).then(function(r){
       var f = r[0], daily = r[1];
-      drawVisits(r[2], r[3], r[4], r[5]);
+      drawVisits(r[2], r[3], r[4], r[5], r[6], r[7], r[8]);
       /* No row and no function are the same screen, for the reason in the
          markup above. The extra line naming the migration is shown to
          everybody who gets here, because the only person who can act on it is
@@ -358,9 +407,68 @@
     });
   }
 
-  function drawVisits(c, sources, pages, ctx){
+  /* One bar per day. Deliberately not the funnel's two-segment column: there
+     is only one number per day here, and reusing d-done/d-rest would draw a
+     stack whose second segment is always zero. */
+  function drawVisitDays(daily){
+    if (!daily || !daily.length) return;
+    var max = daily.reduce(function(m, d){ return Math.max(m, d.views); }, 0) || 1;
+    el('v-days').innerHTML = daily.map(function(d){
+      var title = d.day + ': ' + d.views + (d.views === 1 ? ' view' : ' views');
+      return '<span class="day" title="' + esc(title) + '">' +
+        (d.views > 0 ? '<i class="d-done" style="height:' + (d.views / max * 100) + '%"></i>' : '') +
+      '</span>';
+    }).join('');
+    el('v-from').textContent = daily[0].day;
+    el('v-to').textContent   = daily[daily.length - 1].day;
+  }
+
+  function drawCampaigns(rows){
+    if (!rows || !rows.length) return;          /* card stays hidden */
+    el('v-camp-card').hidden = false;
+    el('v-camp').innerHTML = rows.slice(0, 25).map(function(r){
+      return '<tr><td>' + esc(r.source) + '</td><td>' + esc(r.medium) +
+             '</td><td>' + esc(r.campaign) + '</td>' +
+             '<td class="ct-n">' + r.views + '</td></tr>';
+    }).join('');
+  }
+
+  /* Both series are complete before they arrive — 24 hours, 7 days — so this
+     never has to fill a gap, and a scale of 1 keeps an all-quiet window from
+     dividing by zero. */
+  function bars(node, rows, title){
+    if (!rows || !rows.length) return;
+    var max = rows.reduce(function(m, r){ return Math.max(m, r.views); }, 0) || 1;
+    node.innerHTML = rows.map(function(r){
+      return '<span class="day" title="' + esc(title(r)) + '">' +
+        (r.views > 0 ? '<i class="d-done" style="height:' + (r.views / max * 100) + '%"></i>' : '') +
+      '</span>';
+    }).join('');
+  }
+
+  function drawTiming(t){
+    if (!t) return;
+    bars(el('v-hours'), t.hour, function(r){
+      return r.label + ' — ' + r.views + (r.views === 1 ? ' view' : ' views');
+    });
+    bars(el('v-dow'), t.dow, function(r){
+      return r.label + ' — ' + r.views + (r.views === 1 ? ' view' : ' views');
+    });
+    /* The weekday axis is seven labels rather than two, because Mon and Sun as
+       endpoints tell you nothing about what is in between. */
+    if (t.dow && t.dow.length) {
+      el('v-dow-x').innerHTML = t.dow.map(function(r){
+        return '<span>' + esc(r.label) + '</span>';
+      }).join('');
+    }
+  }
+
+  function drawVisits(c, sources, pages, ctx, daily, camps, timing){
     if (!c) return;                     /* migration not run, or no rows yet */
     el('visits').hidden = false;
+    drawVisitDays(daily);
+    drawCampaigns(camps);
+    drawTiming(timing);
 
     el('v-30').textContent = c.views_30d;
     el('v-30-s').textContent = c.days_with_data === 1

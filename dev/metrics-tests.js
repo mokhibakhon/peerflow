@@ -83,7 +83,13 @@ async function open(b, dials){
     const p = await open(b, null);
     await p.waitForSelector('#days .day', { timeout: 15000 });
     const g = await p.evaluate(() => {
-      const days = [...document.querySelectorAll('.day')];
+      /* Scoped to #days. This block waits on `#days .day` and then asked for
+         `.day`, which was the same set only while the funnel owned the only
+         bar row on the page. app-metrics.html now draws three more of them —
+         visits per day, hour of day, day of week — all reusing the same
+         primitive, and an unscoped query counted 91 columns and failed a
+         check about 30. */
+      const days = [...document.querySelectorAll('#days .day')];
       const info = days.map(d => {
         const parts = [...d.querySelectorAll('i')];
         return {
@@ -159,7 +165,7 @@ async function open(b, dials){
       body: document.body.innerText,
       bars: [...document.querySelectorAll('.fun-bar')].map(e => +e.getBoundingClientRect().width.toFixed(1)),
       rows: document.querySelectorAll('.fun-row').length,
-      days: document.querySelectorAll('.day').length
+      days: document.querySelectorAll('#days .day').length   /* scoped, as above */
     }));
 
     ok('it renders rather than dividing by zero',
