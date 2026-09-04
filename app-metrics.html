@@ -243,6 +243,15 @@
       </div>
 
       <div class="mcard">
+        <div class="mcard-h"><h2 class="mcard-t">Views by day</h2></div>
+        <p class="mcard-d">Thirty days, one column each. A day nobody visited is
+          a zero rather than a gap, so a quiet week looks like a quiet week
+          instead of a straight line drawn between the days either side of it.</p>
+        <div class="days" id="v-days"></div>
+        <div class="days-x"><span id="v-from"></span><span id="v-to"></span></div>
+      </div>
+
+      <div class="mcard">
         <div class="mcard-h"><h2 class="mcard-t">Where visits came from</h2></div>
         <p class="mcard-d">A campaign tag wins over the referring site when both
           are present, because somebody chose the tag and the browser chose the
@@ -321,10 +330,11 @@
          without migration-visits.sql answers null to all four, the visits
          block stays hidden, and the funnel above is unaffected — adding
          analytics must not be able to break the page that existed before it. */
-      pf.visitCounts(), pf.visitSources(30), pf.visitPages(30), pf.visitContext(30)
+      pf.visitCounts(), pf.visitSources(30), pf.visitPages(30), pf.visitContext(30),
+      pf.visitDaily()
     ]).then(function(r){
       var f = r[0], daily = r[1];
-      drawVisits(r[2], r[3], r[4], r[5]);
+      drawVisits(r[2], r[3], r[4], r[5], r[6]);
       /* No row and no function are the same screen, for the reason in the
          markup above. The extra line naming the migration is shown to
          everybody who gets here, because the only person who can act on it is
@@ -358,9 +368,26 @@
     });
   }
 
-  function drawVisits(c, sources, pages, ctx){
+  /* One bar per day. Deliberately not the funnel's two-segment column: there
+     is only one number per day here, and reusing d-done/d-rest would draw a
+     stack whose second segment is always zero. */
+  function drawVisitDays(daily){
+    if (!daily || !daily.length) return;
+    var max = daily.reduce(function(m, d){ return Math.max(m, d.views); }, 0) || 1;
+    el('v-days').innerHTML = daily.map(function(d){
+      var title = d.day + ': ' + d.views + (d.views === 1 ? ' view' : ' views');
+      return '<span class="day" title="' + esc(title) + '">' +
+        (d.views > 0 ? '<i class="d-done" style="height:' + (d.views / max * 100) + '%"></i>' : '') +
+      '</span>';
+    }).join('');
+    el('v-from').textContent = daily[0].day;
+    el('v-to').textContent   = daily[daily.length - 1].day;
+  }
+
+  function drawVisits(c, sources, pages, ctx, daily){
     if (!c) return;                     /* migration not run, or no rows yet */
     el('visits').hidden = false;
+    drawVisitDays(daily);
 
     el('v-30').textContent = c.views_30d;
     el('v-30-s').textContent = c.days_with_data === 1
