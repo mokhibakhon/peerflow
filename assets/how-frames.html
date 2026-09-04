@@ -11,8 +11,7 @@
      app.css. Without it the declaration is invalid at computed-value time,
      which does not fall back to app.css's font — it falls back to the
      browser default, and every picture ever rendered from this file came
-     out in a serif. --mono, which the SAME PATH tag uses, is in the same
-     file. dev/seo-tests.js has a check for exactly this, but it walks the
+     out in a serif. dev/seo-tests.js has a check for exactly this, but it walks the
      .html files in the repo root and this one lives in assets/, so nothing
      was watching. dev/how-frames-render.js now refuses to write a picture
      whose text is not actually set in Plus Jakarta Sans. -->
@@ -52,9 +51,16 @@
 
      So each row now carries what the real People page carries: who, which
      path they are on, what they are working on this month, and the one
-     control. The SAME PATH tag is here because it is the whole promise of the
-     step underneath — you are not being shown everybody, you are being shown
-     people going where you are going.
+     control.
+
+     A SAME PATH tag sat on the first row for a while and has been taken out.
+     It was making the same point twice — every row already names a path, and
+     the caption under the card is the place that says they are matched to
+     yours — and it was the widest thing in the person column, which is what
+     forced the learning goals to be abbreviated. Removing it, and shrinking
+     the person column to the 240px its own two lines actually need, gave the
+     middle column 494px instead of 330 — enough for the longest goal at 456,
+     so the full wording came back with it.
 
      Sizes are for the card, not for this canvas. At 322px on the landing page
      everything here is a quarter of the number in this block, so 46px reads
@@ -70,17 +76,14 @@
      separate an avatar from a status dot. */
   .pav{width:84px;height:84px;border-radius:23px;flex:0 0 auto;display:grid;place-items:center;
     font-size:36px;font-weight:800}
-  .pwho{flex:0 0 360px;min-width:0}
+  .pwho{flex:0 0 240px;min-width:0}
   .pnm{display:block;font-size:44px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
   .ppath{display:flex;align-items:center;gap:12px;margin-top:9px}
-  .ppath span{font-size:26px;color:#9497A9;white-space:nowrap}
-  .pchip{padding:4px 11px;border-radius:10px;background:#EEEDFE;color:#3C3489;
-    font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.06em;
-    white-space:nowrap}
+  .ppath span{font-size:28px;color:#9497A9;white-space:nowrap}
   /* The middle column is the one thing the old frame had no room for, so it
      gets the ink: same size as the button's label, in the body colour rather
      than the grey the path line takes. */
-  .pfocus{flex:1;min-width:0;font-size:32px;letter-spacing:-.01em;line-height:1.25}
+  .pfocus{flex:1;min-width:0;font-size:34px;letter-spacing:-.01em;line-height:1.25}
   .pbtn{flex:0 0 auto;height:80px;border-radius:16px;display:inline-flex;
     align-items:center;gap:14px;padding:0 30px;font-size:32px;font-weight:700;
     letter-spacing:-.01em;white-space:nowrap;
@@ -130,9 +133,9 @@
       <span class="pav" style="background:#EEEDFE;color:#3C3489">J</span>
       <span class="pwho">
         <span class="pnm">John Smith</span>
-        <span class="ppath"><span>Cybersecurity</span><span class="pchip">SAME PATH</span></span>
+        <span class="ppath"><span>Cybersecurity</span></span>
       </span>
-      <span class="pfocus">Networking basics</span>
+      <span class="pfocus">Networking fundamentals</span>
       <span class="pbtn">
         <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         Send request</span>
@@ -154,7 +157,7 @@
         <span class="pnm">Dilnoza</span>
         <span class="ppath"><span>Data Science</span></span>
       </span>
-      <span class="pfocus">Data structures</span>
+      <span class="pfocus">Algorithms &amp; data structures</span>
       <span class="pbtn">
         <svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         Send request</span>

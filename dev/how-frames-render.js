@@ -208,6 +208,27 @@ im.quantize(colors=64, method=Image.MEDIANCUT, dither=Image.FLOYDSTEINBERG).save
     }, t.id);
     if (collisions.length) { fail(`#${t.id}: ` + collisions.join('; ')); continue; }
 
+    /* Every learning goal on one line. Not a nicety: a goal that wraps makes
+       its row taller than the other two, and at a quarter size an uneven row
+       is the first thing the eye lands on — which is the wrong thing, since
+       nothing about that row is more important. It happened once already,
+       with "Networking fundamentals" in a 330px column. */
+    const wrapped = await page.evaluate((id) =>
+      [...document.querySelectorAll('#' + id + ' .pfocus')]
+        .map((n, i) => {
+          /* Over the TEXT, not the element. .pfocus is a flex item, so it is
+             blockified and getClientRects() on the element returns exactly one
+             box however many lines are inside it — which is how the first
+             version of this check passed while the picture plainly wrapped.
+             A Range across the text node returns one rect per line. */
+          const range = document.createRange();
+          range.selectNodeContents(n);
+          return { i: i + 1, lines: range.getClientRects().length, text: n.textContent.trim() };
+        })
+        .filter((x) => x.lines > 1)
+        .map((x) => `row ${x.i} ("${x.text}") wraps to ${x.lines} lines`), t.id);
+    if (wrapped.length) { fail(`#${t.id}: ` + wrapped.join('; ')); continue; }
+
     const out = path.join(ROOT, t.out);
     const before = fs.existsSync(out) ? fs.statSync(out).size : 0;
     await el.screenshot({ path: out });
