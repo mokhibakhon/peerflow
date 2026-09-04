@@ -11,52 +11,15 @@ dashboards where it belongs.
 
 ## The migrations, in one paste
 
-**Do not read the order off this page. Ask the repository:**
+**Run `supabase/schema.sql`, then `supabase/migration-mvp.sql`, then
+`supabase/migrate-2026-08.sql`.** That is all three, in that order.
 
-    node dev/migration-check.js --list
-
-It prints the files to run, in order, by reading `supabase/` and skipping
-anything carrying a SUPERSEDED banner. As of this writing that is nine files,
-and the number only goes up.
-
-This paragraph used to name three — `schema.sql`, `migration-mvp.sql`,
-`migrate-2026-08.sql` — and finish with "that is all three, in that order."
-It was true when it was written and then six more migrations were merged and
-nobody came back to it. **A fresh install following the old instruction came
-up missing `migration-profiles-private.sql`**, which is the file that stops an
-anonymous caller reading every row of `profiles` — names, timezones and weekly
-availability — with the publishable key. That is the hole
-`docs/article-rls-publishable-key.md` is about, and this page was quietly
-telling people to build a site with it open. It also missed `forgery`,
-`actor-rules`, `blocked-ids`, `funnel` and `visits`.
-
-So the list is generated now rather than written down. This is the same lesson
-as the stale entries in `CLAUDE.md`: a hand-maintained list of what exists
-elsewhere goes stale silently, and the only durable fix is not to maintain one.
-
-The first three still matter in that order — `schema.sql`, then
-`migration-mvp.sql`, then `migrate-2026-08.sql`, which folds in fourteen
-migrations (goal, plan, reliability, room-per-session, video, standing, chat,
-no-double-booking, no-jitsi, notify, safety, attendance, reschedule and
-dormancy). None of those fourteen is run separately; every one opens with a
-SUPERSEDED banner saying so, because `create or replace` means an old paste
-silently wins over a newer one. Everything after those three is additive.
-
-### Checking it worked
-
-    node dev/migration-check.js
-
-prints a read-only query. Paste it into the SQL editor and run it: every row
-that comes back is something the repository expects and the database does not
-have. No rows means they match.
-
-Worth running even when you are sure, because the two ways this has actually
-gone wrong both looked like success. `migration-funnel.sql`'s `app_admins`
-insert matches on an email address and inserts nothing at all if that address
-is not yet in `auth.users` — so the metrics page shows its not-yours screen to
-the person who owns the site. And `migration-visits.sql` was once run in an
-earlier form, after which the metrics page rendered completely apart from two
-cards. The check catches both.
+The third folds in fourteen migrations — goal, plan, reliability,
+room-per-session, video, standing, chat, no-double-booking, no-jitsi, notify,
+safety, attendance, reschedule and dormancy — so none of those fourteen is run
+separately. Every one of them opens with a SUPERSEDED banner saying so, and
+that list is not maintained by hand: it is the set of `-- BEGIN` markers
+inside the combined file itself.
 
 Each is additive and safe to run more than once, so re-running the whole set
 after any change is the reliable move rather than trying to remember which
