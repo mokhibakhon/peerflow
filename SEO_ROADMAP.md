@@ -71,15 +71,17 @@ would cost more than it saves.
 - **`peerflow.dev` 301s to `www.peerflow.dev`.** Checked directly. Every
   canonical, the sitemap and robots.txt name the `www` host, and the apex
   redirects to it, so the site has one address.
+- **IndexNow verification works.** `curl https://www.peerflow.dev/be030ef03ed94c948bb69dfcc4f0d4b1.txt`
+  returned the key on 2026-09-04. It had never succeeded before: the file was
+  once committed as `YOUR_NEW_KEY.txt`, a placeholder filename, so the
+  mechanism was inert however correct everything around it was. The same curl
+  is the cheapest proof that production is serving `main`, which is why this
+  entry names the command rather than only the conclusion.
 
 ## Still to verify outside the repository
 
 - **Search Console** should have both the `www` and apex properties, with the
   sitemap submitted for `www`.
-- **IndexNow** verification, once deployed: `/be030ef03ed94c948bb69dfcc4f0d4b1.txt`
-  must return exactly that key. It was previously committed as
-  `YOUR_NEW_KEY.txt`, a placeholder filename, which meant verification could
-  never have succeeded.
 
 Merging to `main` is the deploy. The Vercel Git connection was reconnected
 after the repository rename, so there is no separate release step for any of
@@ -105,12 +107,19 @@ Potential next pages, only when evidence supports them:
 - React, Python, Security+, AWS, PyTorch, Figma topic pages
 
 ## Phase 3 — content that earns links
-Create useful original resources, not generic AI blog posts:
-- How to run a productive 1-on-1 study-with-me session
-- Study-partner compatibility checklist
+Create useful original resources, not generic AI blog posts. Three of the five
+are built and in the sitemap; the list is marked so nobody rebuilds them:
+
+- **built** — How to run a productive 1-on-1 study-with-me session
+  (`how-to-run-a-study-with-me-session.html`)
+- **built** — Study-partner compatibility checklist
+  (`study-partner-compatibility-checklist.html`)
+- **built** — Camera-on study etiquette and safety guide
+  (`camera-on-study-session-safety.html`)
 - Weekly tech learning accountability template
-- Camera-on study etiquette and safety guide
-- Anonymous aggregate insights from PeerFlow activity once enough real usage exists
+- Anonymous aggregate insights from PeerFlow activity once enough real usage
+  exists — and `app-metrics.html` is now the thing that would say when that is,
+  which it could not before 2026-09-04
 
 ## Conversion loop
 Every organic landing page should lead naturally to:
