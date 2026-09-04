@@ -25,7 +25,7 @@
  * genuinely running what you shipped. Bump it when you change anything in
  * assets/, and ask for it before believing a bug report about behaviour you
  * have already fixed. */
-window.PF_BUILD = '2026-09-04d';
+window.PF_BUILD = '2026-09-04e';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -2027,11 +2027,22 @@ window.pf = (function(){
 
      app-metrics.html is the only caller and it is not linked from anywhere,
      because these are numbers about the business rather than about a member.
-     There is no analytics here and there is not going to be: privacy.html
-     promises none in plain terms and that promise is worth more than a chart.
      Nothing below collects anything. Both functions count rows PeerFlow
      already holds and already says it holds — accounts, profiles, sessions —
      and return totals with no way to be asked about a person.
+
+     This block used to open by saying there was no analytics here and there
+     was never going to be. That was true when it was written and stopped
+     being true on 4 September 2026, when assets/visit.js and the visit
+     readers further down this file shipped — in this same file, a few hundred
+     lines below the sentence denying they existed. It is called out rather
+     than quietly deleted because it is the failure the RLS article in docs/
+     is about: a comment that is accurate when written, reads as reassuring
+     afterwards, and is never re-asked once the thing it describes changes.
+
+     What is still true is the narrower claim, and it is the one privacy.html
+     now makes: no third-party analytics, and nothing kept in a visitor's
+     browser that could join two page views together.
      ================================================================ */
 
   /* The funnel, as one object, or null.

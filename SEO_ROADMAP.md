@@ -31,7 +31,10 @@ Each path has its own indexable landing page. These pages must stay meaningfully
 - robots.txt + a sitemap generated from the pages themselves
 - noindex on auth/private application pages
 - internal links from homepage to every path page
-- SEO regression tests covering all twelve public pages
+- SEO regression tests covering all fifteen public pages — the count is not
+  maintained here, it is read off the filesystem by `dev/seo-tests.js`, so a
+  new indexable page is covered the moment it exists. This line said twelve
+  for as long as it took to add three
 
 The privacy, terms and code-of-conduct pages are part of this set. They are
 indexable and linked from every footer, so they belong in the sitemap and under

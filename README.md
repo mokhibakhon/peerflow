@@ -68,7 +68,7 @@ Auth, profiles, partner requests and sessions all live in Supabase. Everything
 degrades gracefully: if Supabase is unreachable (offline, file://, schema not
 created yet), pages fall back to a safe state rather than breaking.
 
-### What is actually applied, as of 2026-09-02
+### What is actually applied, as of 2026-09-04
 
 Nothing in CI applies `supabase/*.sql`, so "run it by hand" below is a real
 instruction and a merged migration is dormant until somebody pastes it. That
@@ -87,6 +87,7 @@ leaving the row out reads as "no such migration" rather than "not yet run".
 | `migration-profiles-private.sql` | verified against production: an anonymous `select` on `profiles` with the publishable key returns `[]`, and `rpc/track_counts` still returns per-track rows |
 | `migration-blocked-ids.sql` | owner ran it on 2026-09-03 and reported it applied; not independently verified, because the container cannot reach the Supabase host. It is a performance change only: it adds `blocked_ids()` and rewrites the `profiles` SELECT policy to gather the set of blocked accounts once instead of calling `blocked_with(id)` per row — measured at 1999 calls for a 2000-row read against a real PostgreSQL 16 with `track_functions=all`, and 1 call after. `dev/sql-tests.sh` covers it, and the case named "the profiles policy asks about blocks once, not once per row" is the one that goes red without it. The live numbers moved with it and with pg_cron in the same sitting: the slowest query on Today went from 1180ms to 514ms and nothing was left above 514ms, measured in the browser rather than here |
 | `migration-funnel.sql` | owner ran it on 2026-09-04, with the `app_admins` insert, and app-metrics.html now renders the seven-step funnel against real rows rather than its owner-only screen — confirmed from a screenshot of the live page, which is the only way it can be confirmed from here. The silent failure this row used to warn about is the one worth remembering: the `app_admins` insert matches on email and inserts nothing at all if that address is not in `auth.users`, and the page then looks exactly as it does when the migration was never run. `select count(*) from public.app_admins` is what tells the two apart |
+| `migration-visits.sql` | owner ran it on 2026-09-04 and confirmed from the live page: `/app-metrics` renders the visits cards, including **Recent views**, which is the one that only appears once `visit_recent()` exists. That is the check that distinguishes this file's final shape from the earlier paste — an intermediate version was run first, before the file gained `visit_campaigns()`, `visit_recent()` and the `drop function ... visit_timing(int)`, and with that version the page looks complete apart from two missing cards. **Tagged campaigns** staying hidden is not a symptom: it hides itself until some traffic actually carries `utm_*`. `select proname from pg_proc where pronamespace = 'public'::regnamespace and proname like 'visit%'` should return seven rows and no `visit_timing` |
 
 Also deployed on that date: `supabase functions deploy livekit-webhook`, which
 is the version whose `call()` helper throws on a failed RPC instead of

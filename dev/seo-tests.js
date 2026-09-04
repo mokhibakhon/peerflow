@@ -196,8 +196,45 @@ check(beaconExpected.every((f) => read(f).includes('supabase-config.js')),
 const priv = read('privacy.html');
 check(/Do Not Track/i.test(priv), 'privacy.html: says Do Not Track is honoured');
 check(/ninety days|90 days/i.test(priv), 'privacy.html: states the retention window');
-check(!/no analytics, and no tracking of any kind/i.test(priv),
-  'privacy.html: no longer claims there is no analytics of any kind');
+/* The site counts page views, so privacy.html must not say anywhere that it
+   has no analytics. This check used to name one exact sentence — "no
+   analytics, and no tracking of any kind" — which is the sentence the body
+   carried when the beacon shipped. It passed for a day while four copies of a
+   DIFFERENT wording sat in the head: the meta description, the JSON-LD
+   description, og:description and twitter:description all still read "No
+   advertising, no analytics, no tracking". Those are the SERP snippet and the
+   social card, so the page was making the false claim in the places most
+   likely to be quoted, and the test could not see it because it was pinned to
+   a phrasing rather than to the property.
+
+   So match the property. "no analytics" qualified by a word like third-party
+   or external is a narrower claim and still true; bare "no analytics" is not.
+   Whitespace is collapsed first because these tags are one long line and the
+   body is wrapped, and a claim split across a newline is the same claim. */
+const flat = priv.replace(/\s+/g, ' ');
+/* One pattern, with the qualifier optional and captured. A hit that captured
+   nothing is a bare claim; a hit that captured "third-party" is the narrower
+   one the page is allowed to make. Matching both in a single pass is what
+   keeps the two in step — a separate "is it qualified?" test run over a slice
+   around each hit has to guess how wide the slice should be, and guesses
+   wrong on the first sentence that puts other words in between. */
+const claim = /\b(?:no|without|zero)\s+(third-party |thirdparty |external |Google |outside )?analytics\b/gi;
+const offending = [];
+for (const m of flat.matchAll(claim)) {
+  if (m[1]) continue;                       // "no third-party analytics" — true, and allowed
+  if (/said there was no analytics/i.test(flat.slice(Math.max(0, m.index - 60), m.index + 20))) continue;
+  offending.push(flat.slice(Math.max(0, m.index - 50), m.index + 50));
+}
+check(offending.length === 0,
+  'privacy.html: nowhere claims there is no analytics, head tags included'
+  + (offending.length ? '\n      found: ' + offending.join('\n      found: ') : ''));
+
+/* The dated line recording what the page used to promise is the one place the
+   old claim is allowed to appear, because it is quoting itself. Keeping it is
+   part of the promise: a policy that changes without saying so is worse than
+   one that was never made, so a future edit that tidies it away should fail. */
+check(/Until 4 September 2026 this page said there was no analytics/i.test(flat),
+  'privacy.html: still records what it used to promise, and when that changed');
 
 // ── internal linking ───────────────────────────────────────────────────────
 // A page in the sitemap that nothing links to is a page search engines will

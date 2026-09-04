@@ -497,6 +497,16 @@ window.pf = (function(){
       return P(d);
     },
     saveGoal:function(n){note('saveGoal:'+n);return P(window.__goalFail?{error:'nope'}:{saved:true})},
+    /* Whether you did the thing you sat down to do, answered per session —
+       a different question from saveGoal, which sets the goal itself. The
+       stub carried only saveGoal, so app.html's goal-list click handler
+       threw "pf.markGoal is not a function" and the whole row went dead
+       under PF_STUB=1. Production was never affected; the path simply could
+       not be looked at or tested, which is the one job this file has.
+       __goalFail covers both, because a page that cannot save a goal
+       cannot mark one either. */
+    markGoal:function(at,room,done){note('markGoal:'+at+':'+(done?'done':'not done'));
+      return P(window.__goalFail?{error:'nope'}:{saved:true})},
     badgeStats:function(){ if(window.__badgeStats) return P(window.__badgeStats);
       return P({pastSessions:4,partners:1,mostWithOnePartner:4,totalMinutes:200,
       longestWeekStreak:4,profileComplete:true,joinRank:2})},
