@@ -3,274 +3,319 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Which funnel? — PeerFlow draft</title>
-<meta name="robots" content="noindex,nofollow">
-<link rel="icon" href="/favicon.ico" sizes="32x32">
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="stylesheet" href="/assets/tokens.css">
+<meta name="robots" content="noindex">
+<title>Step two — three options</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/app.css">
 <style>
-/* THE DRAFT: how app-metrics.html should draw the funnel.
- *
- * The page itself is not in question. It reads funnel_counts(), it is owner
- * only, it collects nothing, and it exists so a launch teaches you something
- * instead of producing a spike you cannot explain. What is in question is the
- * form, and the reason it is worth asking rather than assuming is scale.
- *
- * A funnel chart is drawn proportionally by default: each bar as wide as its
- * share of the top step. That is the right answer at a thousand accounts and
- * it is a bad one at eleven, because six of the seven bars collapse into
- * slivers that cannot be told apart — and eleven is where PeerFlow actually
- * is. So both options below are drawn TWICE, at today's numbers and at the
- * numbers a launch might produce. The question is not which looks better on
- * one of them. It is which one still works on both.
- *
- * One thing was decided by measurement rather than taste, and it is worth
- * writing down because it looks like a colour preference and is not. The
- * obvious scheme for an ordered funnel is the green ramp, light at the top
- * step and dark at the bottom. It cannot be done with the tokens this site
- * declares: --p0 sits at 1.11:1 against a white card and --p1 at 1.45:1, both
- * under the 2:1 floor where a fill stops being visible at all, so the ramp
- * only really starts at --p2 and there are four usable steps for a seven step
- * funnel. Every bar below is therefore the single accent green, which clears
- * every check on its own, and the emphasis is carried by weight and position
- * instead of by hue. */
+  /* Three candidate pictures for "Step two — Find a compatible learner", each
+     shown twice: once large enough to judge, and once at 322px, which is the
+     width the landing page actually gives it.
 
-body{margin:0;background:var(--paper);color:var(--ink);
-     font:400 15px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,sans-serif}
-.wrap{max-width:920px;margin:0 auto;padding:48px 24px 90px}
-h1{font-size:30px;line-height:1.2;margin:0 0 8px;letter-spacing:-.02em}
-.lede{color:var(--ink-soft);margin:0 0 28px;max-width:66ch}
-.note{background:var(--card);border:1px solid var(--line-strong);
-      border-radius:var(--r-card);padding:16px 18px;margin:0 0 34px}
-.note p{margin:0 0 9px}.note p:last-child{margin:0}
-.note b{font-weight:700}
+     The second one is the point. assets/how-frames.html already says why:
+     "A faithful screenshot is a grey blur at that width; this has to land in
+     one glance or it isn't doing anything." So an option that looks best big
+     and dissolves small is the wrong option, and the only way to see that is
+     to put the two next to each other. */
+  body{margin:0;background:#F3F4F7;font-family:var(--body);color:#171A2E}
+  .wrap{max-width:1180px;margin:0 auto;padding:48px 24px 90px}
+  h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px}
+  .lede{color:#5B6070;font-size:15px;line-height:1.6;max-width:70ch;margin:0 0 12px}
+  .note{background:#FFF8E6;border:1px solid #F0DFAE;border-radius:10px;padding:12px 15px;
+    font-size:13px;line-height:1.6;color:#6B5518;max-width:70ch;margin:0 0 40px}
 
-.opt{margin:0 0 12px}
-.opt-h{display:flex;align-items:baseline;gap:10px;margin:0 0 4px}
-.opt-k{font:600 var(--t-kicker)/1 var(--mono);letter-spacing:.08em;
-       text-transform:uppercase;color:var(--p6)}
-.opt-t{font-size:21px;font-weight:700;margin:0;letter-spacing:-.01em}
-.opt-d{color:var(--ink-soft);margin:0 0 16px;max-width:64ch;font-size:14.5px}
+  .opt{background:#fff;border:1px solid #E7E6EC;border-radius:16px;padding:26px 28px 30px;
+    margin:0 0 30px}
+  .opt h2{font-size:19px;margin:0 0 4px;letter-spacing:-.01em}
+  .opt .idea{font-size:14px;color:#0F6E56;font-weight:700;margin:0 0 6px}
+  .opt p{font-size:14px;line-height:1.65;color:#5B6070;margin:0 0 22px;max-width:66ch}
+  .pair{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+  .cap{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#9497A9;
+    margin:0 0 9px;font-family:var(--mono,monospace)}
 
-/* Two scales side by side, so neither option can be judged on the flattering
-   one alone. They stack under 760px rather than shrinking, because the whole
-   point is reading the bars against each other. */
-.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 40px}
-@media (max-width:760px){.pair{grid-template-columns:1fr}}
-.panel{background:var(--card);border:1px solid var(--line);
-       border-radius:var(--r-card);padding:18px 18px 20px}
-.panel-h{font:600 var(--t-kicker)/1 var(--mono);letter-spacing:.08em;
-         text-transform:uppercase;color:var(--ink-faint);margin:0 0 16px}
+  /* The real frame, 1280x841, exactly as how-frames.html builds it. */
+  .frame{width:1280px;height:841px;background:#fff;border:1px solid #E7E6EC;
+    border-radius:15px;overflow:hidden;display:flex;flex-direction:column}
+  .fbar{height:96px;flex:0 0 auto;background:#0F6E56;display:flex;align-items:center;padding:0 34px}
+  .fbrand{display:flex;align-items:center;gap:12px}
+  .fbrand b{font-size:30px;font-weight:800;letter-spacing:-.03em;color:#fff}
+  .fbrand .g{color:#9FE1CB}
+  .fbody{flex:1;min-height:0;display:flex;flex-direction:column}
 
-/* ---------- option A: proportional ---------- */
-/* Bars scaled to the top step, which is what "funnel chart" means everywhere
-   else. 4px rounded ends and a 2px gap between rows are the house mark specs;
-   the label sits outside the bar because inside it is unreadable the moment a
-   bar is narrower than its own number. */
-.fa-row{display:grid;grid-template-columns:104px 1fr auto;align-items:center;
-        gap:10px;margin:0 0 2px;padding:3px 0}
-.fa-k{font-size:var(--t-xs);color:var(--ink-soft);text-align:right;line-height:1.25}
-/* Both are display:block on purpose. They are spans, and an inline element
-   ignores width and height outright — the first version of this drew seven
-   bars of exactly 0px, with markup that inspected perfectly. The grid
-   blockifies .fa-track because it is a grid item, but .fa-bar is a child of
-   that item rather than of the grid, so nothing blockifies it for us. */
-.fa-track{display:block;height:20px;position:relative}
-.fa-bar{display:block;height:20px;background:var(--p4);
-        border-radius:0 4px 4px 0;min-width:2px;transition:width .2s}
-.fa-n{font-size:var(--t-sm);font-weight:700;font-variant-numeric:tabular-nums;
-      min-width:34px;text-align:right}
+  /* Two viewports onto the same frame: judgeable, and actual size. */
+  .view{overflow:hidden;border-radius:15px;flex:0 0 auto}
+  .v-big{width:620px;height:407px}
+  .v-big .frame{transform:scale(.4844);transform-origin:0 0}
+  .v-real{width:322px;height:212px}
+  .v-real .frame{transform:scale(.2516);transform-origin:0 0}
 
-/* ---------- option B: the ladder ---------- */
-/* Every step gets the same room, so the seventh is as readable as the first,
-   and the proportion moves into a bar inside the row rather than into the
-   row's own width. The drop between two steps gets its own line, which is the
-   number the page exists to show — a funnel's content is its gaps, and a
-   proportional chart draws the gaps as the absence of something. */
-.fb-step{display:grid;grid-template-columns:1fr auto;align-items:center;
-         gap:12px;padding:9px 0}
-.fb-k{font-size:var(--t-sm);color:var(--ink);margin:0 0 5px;font-weight:600}
-.fb-track{height:8px;background:var(--band);border-radius:4px;overflow:hidden}
-.fb-fill{height:8px;background:var(--p4);border-radius:0 4px 4px 0;min-width:2px}
-.fb-n{font-size:var(--t-num-sm);font-weight:700;line-height:1;
-      min-width:44px;text-align:right}
-.fb-gap{display:flex;align-items:center;gap:7px;padding:0 0 0 2px;
-        font-size:var(--t-xs);color:var(--ink-faint)}
-.fb-gap i{display:block;width:1px;height:13px;background:var(--line-strong);
-          margin-left:5px;flex:none}
-/* The worst drop is the actionable one, so it is the only line that is not
-   grey. Weight and ink, never a second hue: the bars carry the one colour on
-   the page and text that borrows it stops reading as text. */
-.fb-gap.worst{color:var(--bad-ink);font-weight:700}
-.fb-gap.worst i{background:var(--bad-line)}
+  /* how the card reads on the landing page, under the picture */
+  .howtext{width:322px;margin-top:14px}
+  .howtext .k{font-family:var(--mono,monospace);font-size:11px;letter-spacing:.09em;
+    text-transform:uppercase;color:#0F6E56}
+  .howtext h3{font-size:17px;margin:5px 0 5px;letter-spacing:-.01em}
+  .howtext p{font-size:13px;line-height:1.55;color:#5B6070;margin:0}
 
-.verdict{background:var(--deep);color:#fff;border-radius:var(--r-card);
-         padding:20px 22px;margin:36px 0 0}
-.verdict h2{font-size:17px;margin:0 0 9px;color:#fff}
-.verdict p{margin:0 0 9px;color:#D6E6DF;font-size:14.5px;max-width:66ch}
-.verdict p:last-child{margin:0}
-.verdict b{color:#fff}
+  /* ---------- shared row furniture, 4x the size it is read at ---------- */
+  .prow{display:flex;align-items:center;gap:26px;padding:0 40px;flex:1;
+    border-top:1px solid #F1F0F4}
+  .prow:first-child{border-top:0}
+  .pav{width:84px;height:84px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    font-size:34px;font-weight:800}
+  .pwho{flex:1;min-width:0}
+  .pnm{display:block;font-size:44px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+  .psub{display:block;font-size:27px;color:#9497A9;margin-top:7px}
+  .pbtn,.pdone{flex:0 0 auto;height:76px;border-radius:16px;display:inline-flex;
+    align-items:center;gap:13px;padding:0 32px;font-size:32px;font-weight:700;white-space:nowrap}
+  .pbtn{border:0;color:#fff;background:linear-gradient(180deg,#1D9E75,#0F6E56);
+    box-shadow:0 3px 7px rgba(8,80,65,.24), inset 0 2px 0 rgba(255,255,255,.2)}
+  .pdone{border:2px solid #E7E6EC;background:#FBFBFC;color:#82869C}
+  .pbtn svg,.pdone svg{width:30px;height:30px;flex:0 0 auto}
+
+  /* A — the badge that says "compatible" */
+  .chip{display:inline-block;vertical-align:6px;margin-left:16px;padding:7px 16px;border-radius:9px;
+    background:#EEEDFE;color:#3C3489;font-size:24px;font-weight:800;letter-spacing:.06em;
+    font-family:var(--mono,monospace)}
+
+  /* B — one fact, in green, doing all the work */
+  .hrs{flex:0 0 auto;text-align:right;margin-right:8px}
+  .hrs b{display:block;font-size:46px;font-weight:800;color:#0F6E56;letter-spacing:-.02em;line-height:1}
+  .hrs span{display:block;font-size:24px;color:#7B8090;margin-top:9px;letter-spacing:.04em;
+    font-family:var(--mono,monospace);text-transform:uppercase}
+
+  /* C — one person, and the reasons */
+  .one{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 56px}
+  .kick{font-family:var(--mono,monospace);font-size:25px;letter-spacing:.11em;
+    text-transform:uppercase;color:#0F6E56;margin-bottom:22px}
+  .onehead{display:flex;align-items:center;gap:26px;margin-bottom:34px}
+  .onehead .pav{width:104px;height:104px;font-size:44px}
+  .onenm{font-size:56px;font-weight:800;letter-spacing:-.025em;line-height:1.1}
+  .onesub{font-size:29px;color:#9497A9;margin-top:8px}
+  .why{display:flex;gap:0;border-top:1px solid #ECEBF1;padding-top:30px;margin-bottom:38px}
+  .why div{flex:1}
+  .why b{display:block;font-size:33px;font-weight:800;letter-spacing:-.015em}
+  .why span{display:block;font-size:22px;color:#9497A9;margin-top:9px;letter-spacing:.06em;
+    font-family:var(--mono,monospace);text-transform:uppercase}
+  .onebtn{align-self:flex-start;height:86px;border-radius:18px;display:inline-flex;
+    align-items:center;gap:15px;padding:0 40px;font-size:36px;font-weight:700;color:#fff;
+    background:linear-gradient(180deg,#1D9E75,#0F6E56);
+    box-shadow:0 4px 9px rgba(8,80,65,.26), inset 0 2px 0 rgba(255,255,255,.2)}
+  .onebtn svg{width:34px;height:34px}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<h1>Which funnel?</h1>
-<p class="lede">Both options show the same seven numbers from
-<code>funnel_counts()</code>. Each is drawn at today's scale and at the scale a
-launch might produce, because the honest test is whether it survives both — and
-today's scale is the one the page has to work at first.</p>
+  <h1>Step two — three pictures for “Find a compatible learner”</h1>
+  <p class="lede">
+    The picture that ships today shows three names and three buttons. The heading
+    above it promises <em>compatible</em>, and the picture shows nothing about
+    compatibility — no path, no topic, no level, no shared hours. The real
+    directory has all of it. Each option below picks <strong>one</strong> of
+    those facts and makes it the whole picture.
+  </p>
+  <p class="note">
+    <strong>The right-hand column is the one to judge by.</strong> These sit in a
+    322&nbsp;px card on the landing page — a quarter of the size they are drawn at.
+    <code>assets/how-frames.html</code> already warns that a faithful screenshot is
+    a grey blur at that width. An option that reads well big and dissolves small is
+    the wrong option.<br><br>
+    Names are illustrative, not taken from real accounts — a public landing page
+    should not carry the names of actual members.
+  </p>
 
-<div class="note">
-  <p><b>Nothing here is analytics.</b> There is no script, no beacon, no
-  page-view and no third party, and none is being added.
-  <code>privacy.html</code> promises exactly that and the promise is worth more
-  than a chart. Every number below is counted from rows PeerFlow already holds
-  and already says it holds: the account you made, the profile you filled in,
-  the sessions you booked.</p>
-  <p><b>It counts people, not events.</b> A session is two rows, one per
-  person, so counting rows would report two people for every meeting between
-  two — and report two for a proposal nobody answered as readily as for a
-  session both attended. Each step is the number of distinct people who ever
-  reached it, so every step is a subset of the one above and the gaps are real
-  drop-off.</p>
-</div>
-
-<!-- ============ option A ============ -->
-<div class="opt">
-  <div class="opt-h"><span class="opt-k">Option A</span></div>
-  <h2 class="opt-t">The proportional funnel</h2>
-</div>
-<p class="opt-d">What a funnel chart normally means: each bar as wide as its
-share of the top step. The shape carries the story and needs no reading.</p>
-
-<div class="pair">
-  <div class="panel">
-    <p class="panel-h">Today — 11 accounts</p>
-    <div id="a-now"></div>
+  <!-- ======================= OPTION A ======================= -->
+  <div class="opt">
+    <h2>Option A · Same path</h2>
+    <p class="idea">One idea: they are learning the thing you are learning.</p>
+    <p>
+      Closest to what ships today — same three rows, same buttons — with the one
+      badge that answers “compatible”, and the path and stage under each name.
+      Lowest risk, smallest gain.
+    </p>
+    <div class="pair">
+      <div>
+        <p class="cap">Large enough to judge</p>
+        <div class="view v-big"><div class="frame">
+          <div class="fbar"><span class="fbrand"><b>peer<span class="g">flow</span></b></span></div>
+          <div class="fbody">
+            <div class="prow">
+              <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
+              <span class="pwho"><span class="pnm">Sardor<span class="chip">SAME PATH</span></span>
+                <span class="psub">Cybersecurity · Job-hunt prep</span></span>
+              <span class="pbtn"><svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Send request</span>
+            </div>
+            <div class="prow">
+              <span class="pav" style="background:#EEEDFE;color:#3C3489">A</span>
+              <span class="pwho"><span class="pnm">Amir<span class="chip">SAME PATH</span></span>
+                <span class="psub">Cybersecurity · Doing tutorials</span></span>
+              <span class="pdone"><svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Asked</span>
+            </div>
+            <div class="prow">
+              <span class="pav" style="background:#FDEEE6;color:#B4471F">D</span>
+              <span class="pwho"><span class="pnm">Dilnoza</span>
+                <span class="psub">Mobile · Just starting</span></span>
+              <span class="pbtn"><svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Send request</span>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div>
+        <p class="cap">Actual size on the page</p>
+        <div class="view v-real"><div class="frame">
+          <div class="fbar"><span class="fbrand"><b>peer<span class="g">flow</span></b></span></div>
+          <div class="fbody">
+            <div class="prow">
+              <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
+              <span class="pwho"><span class="pnm">Sardor<span class="chip">SAME PATH</span></span>
+                <span class="psub">Cybersecurity · Job-hunt prep</span></span>
+              <span class="pbtn">Send request</span>
+            </div>
+            <div class="prow">
+              <span class="pav" style="background:#EEEDFE;color:#3C3489">A</span>
+              <span class="pwho"><span class="pnm">Amir<span class="chip">SAME PATH</span></span>
+                <span class="psub">Cybersecurity · Doing tutorials</span></span>
+              <span class="pdone">Asked</span>
+            </div>
+            <div class="prow">
+              <span class="pav" style="background:#FDEEE6;color:#B4471F">D</span>
+              <span class="pwho"><span class="pnm">Dilnoza</span>
+                <span class="psub">Mobile · Just starting</span></span>
+              <span class="pbtn">Send request</span>
+            </div>
+          </div>
+        </div></div>
+        <div class="howtext"><span class="k">Step two</span>
+          <h3>Find a compatible learner</h3>
+          <p>See people with a similar goal, experience level and weekly availability.</p></div>
+      </div>
+    </div>
   </div>
-  <div class="panel">
-    <p class="panel-h">After a launch — 340 accounts</p>
-    <div id="a-launch"></div>
+
+  <!-- ======================= OPTION B ======================= -->
+  <div class="opt">
+    <h2>Option B · Hours you are both free</h2>
+    <p class="idea">One idea: you can actually meet.</p>
+    <p>
+      The number is the biggest thing in each row. It is also the fact no other
+      “find a study buddy” product can show, because it needs both people’s weekly
+      availability — which is exactly what signup collects. The rows lose the
+      topic to make room.
+    </p>
+    <div class="pair">
+      <div>
+        <p class="cap">Large enough to judge</p>
+        <div class="view v-big"><div class="frame">
+          <div class="fbar"><span class="fbrand"><b>peer<span class="g">flow</span></b></span></div>
+          <div class="fbody">
+            <div class="prow">
+              <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
+              <span class="pwho"><span class="pnm">Sardor</span><span class="psub">Cybersecurity</span></span>
+              <span class="hrs"><b>14 hrs</b><span>you’re both free</span></span>
+              <span class="pbtn">Send request</span>
+            </div>
+            <div class="prow">
+              <span class="pav" style="background:#EEEDFE;color:#3C3489">A</span>
+              <span class="pwho"><span class="pnm">Amir</span><span class="psub">Cybersecurity</span></span>
+              <span class="hrs"><b>9 hrs</b><span>you’re both free</span></span>
+              <span class="pdone">Asked</span>
+            </div>
+            <div class="prow">
+              <span class="pav" style="background:#FDEEE6;color:#B4471F">D</span>
+              <span class="pwho"><span class="pnm">Dilnoza</span><span class="psub">Mobile</span></span>
+              <span class="hrs"><b>6 hrs</b><span>you’re both free</span></span>
+              <span class="pbtn">Send request</span>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div>
+        <p class="cap">Actual size on the page</p>
+        <div class="view v-real"><div class="frame">
+          <div class="fbar"><span class="fbrand"><b>peer<span class="g">flow</span></b></span></div>
+          <div class="fbody">
+            <div class="prow">
+              <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
+              <span class="pwho"><span class="pnm">Sardor</span><span class="psub">Cybersecurity</span></span>
+              <span class="hrs"><b>14 hrs</b><span>you’re both free</span></span>
+              <span class="pbtn">Send request</span>
+            </div>
+            <div class="prow">
+              <span class="pav" style="background:#EEEDFE;color:#3C3489">A</span>
+              <span class="pwho"><span class="pnm">Amir</span><span class="psub">Cybersecurity</span></span>
+              <span class="hrs"><b>9 hrs</b><span>you’re both free</span></span>
+              <span class="pdone">Asked</span>
+            </div>
+            <div class="prow">
+              <span class="pav" style="background:#FDEEE6;color:#B4471F">D</span>
+              <span class="pwho"><span class="pnm">Dilnoza</span><span class="psub">Mobile</span></span>
+              <span class="hrs"><b>6 hrs</b><span>you’re both free</span></span>
+              <span class="pbtn">Send request</span>
+            </div>
+          </div>
+        </div></div>
+        <div class="howtext"><span class="k">Step two</span>
+          <h3>Find a compatible learner</h3>
+          <p>See people with a similar goal, experience level and weekly availability.</p></div>
+      </div>
+    </div>
   </div>
-</div>
 
-<!-- ============ option B ============ -->
-<div class="opt">
-  <div class="opt-h"><span class="opt-k">Option B</span></div>
-  <h2 class="opt-t">The ladder</h2>
-</div>
-<p class="opt-d">Every step gets the same room and its own number, the
-proportion moves into a bar inside the row, and the drop between two steps is
-printed rather than implied. The worst one is called out, because it is the only
-line on the page you can act on.</p>
-
-<div class="pair">
-  <div class="panel">
-    <p class="panel-h">Today — 11 accounts</p>
-    <div id="b-now"></div>
+  <!-- ======================= OPTION C ======================= -->
+  <div class="opt">
+    <h2>Option C · The one match, and why</h2>
+    <p class="idea">One idea: PeerFlow picks somebody, and tells you the reasons.</p>
+    <p>
+      This is the card the real People page already leads with. Fewest elements and
+      the biggest type, so it survives the shrink best — and it is the only option
+      that shows the product doing something for you rather than handing you a list.
+      The cost is that it no longer says there are many people.
+    </p>
+    <div class="pair">
+      <div>
+        <p class="cap">Large enough to judge</p>
+        <div class="view v-big"><div class="frame">
+          <div class="fbar"><span class="fbrand"><b>peer<span class="g">flow</span></b></span></div>
+          <div class="fbody"><div class="one">
+            <div class="kick">Closest on your path</div>
+            <div class="onehead">
+              <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
+              <div><div class="onenm">Sardor</div><div class="onesub">Learning SOC analyst</div></div>
+            </div>
+            <div class="why">
+              <div><b>Cybersecurity</b><span>same path</span></div>
+              <div><b>14 hours</b><span>you’re both free</span></div>
+              <div><b>Job-hunt prep</b><span>stage</span></div>
+            </div>
+            <span class="onebtn"><svg viewBox="0 0 16 16" fill="none"><path d="M14 2L7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Send request</span>
+          </div></div>
+        </div></div>
+      </div>
+      <div>
+        <p class="cap">Actual size on the page</p>
+        <div class="view v-real"><div class="frame">
+          <div class="fbar"><span class="fbrand"><b>peer<span class="g">flow</span></b></span></div>
+          <div class="fbody"><div class="one">
+            <div class="kick">Closest on your path</div>
+            <div class="onehead">
+              <span class="pav" style="background:#E1F5EE;color:#0F6E56">S</span>
+              <div><div class="onenm">Sardor</div><div class="onesub">Learning SOC analyst</div></div>
+            </div>
+            <div class="why">
+              <div><b>Cybersecurity</b><span>same path</span></div>
+              <div><b>14 hours</b><span>you’re both free</span></div>
+              <div><b>Job-hunt prep</b><span>stage</span></div>
+            </div>
+            <span class="onebtn">Send request</span>
+          </div></div>
+        </div></div>
+        <div class="howtext"><span class="k">Step two</span>
+          <h3>Find a compatible learner</h3>
+          <p>See people with a similar goal, experience level and weekly availability.</p></div>
+      </div>
+    </div>
   </div>
-  <div class="panel">
-    <p class="panel-h">After a launch — 340 accounts</p>
-    <div id="b-launch"></div>
-  </div>
-</div>
-
-<div class="verdict">
-  <h2>Decided: Option A</h2>
-  <p>The owner picked <b>A</b>, and it is built — <code>app-metrics.html</code>,
-  owner-only and linked from nowhere.</p>
-  <p>My recommendation had been B, and the argument for it is left standing
-  above rather than quietly deleted, because it is the thing to re-read if the
-  page ever stops being readable: below the second step every bar is a sliver,
-  and at eleven accounts <i>Sent a request</i>, <i>Has a partner</i> and
-  <i>Proposed a session</i> draw the same 137px bar three times.</p>
-  <p>Two things in the shipped page answer that without changing the form. The
-  count sits outside each bar rather than inside it, since below about 40px a
-  bar is narrower than its own number. And each row carries its share of the
-  step above, which is what separates three bars that are otherwise identical.
-  Both are ordinary funnel-chart furniture, not the ladder in disguise: the
-  rows are still proportional and the drop is still read from the shape.</p>
-  <p>What did not survive is the colour idea. A light-to-dark ramp down the
-  funnel cannot be built from the tokens this site declares — <code>--p0</code>
-  is 1.11:1 against a white card and <code>--p1</code> 1.45:1, both under the
-  2:1 floor where a fill stops being visible — so four steps are usable for a
-  seven-step funnel. Every bar is the single accent green instead.</p>
-</div>
 
 </div>
-
-<script>
-/* The two scales. Today's are what a platform this age plausibly looks like;
-   the launch column is a Product Hunt day that converted normally. Neither is
-   read from the database — this page is a design decision, not a dashboard. */
-var STEPS = [
-  ['Accounts',          'accounts'],
-  ['Finished signing up','profile_complete'],
-  ['Sent a request',    'request_sent'],
-  ['Has a partner',     'partnered'],
-  ['Proposed a session','session_proposed'],
-  ['Booked one',        'session_booked'],
-  ['Turned up',         'session_attended']
-];
-var NOW    = {accounts:11, profile_complete:4, request_sent:2, partnered:2,
-              session_proposed:2, session_booked:1, session_attended:1};
-var LAUNCH = {accounts:340, profile_complete:96, request_sent:41, partnered:28,
-              session_proposed:22, session_booked:14, session_attended:9};
-
-function rows(d){ return STEPS.map(function(s){ return {k:s[0], n:d[s[1]]}; }); }
-
-/* Option A. The width is the share of the top step, floored at 2px so a step
-   somebody did reach never disappears completely — which is itself a small
-   argument against the form: the floor is there because the honest width is
-   sometimes less than a pixel. */
-function drawA(el, d){
-  var r = rows(d), top = r[0].n || 1;
-  el.innerHTML = r.map(function(x){
-    var pct = Math.max((x.n / top) * 100, 0.6);
-    return '<div class="fa-row">' +
-      '<span class="fa-k">' + x.k + '</span>' +
-      '<span class="fa-track"><span class="fa-bar" style="width:' + pct + '%" ' +
-        'title="' + x.k + ': ' + x.n + '"></span></span>' +
-      '<span class="fa-n">' + x.n + '</span></div>';
-  }).join('');
-}
-
-/* Option B. Same widths inside each row's own track, plus the drop between
-   consecutive steps as its own line. The worst drop is found first so it can
-   be marked; ties go to the earlier step, which is the one further up the
-   funnel and therefore the one worth fixing. */
-function drawB(el, d){
-  var r = rows(d), top = r[0].n || 1;
-  var worst = -1, worstLoss = -1;
-  for (var i = 1; i < r.length; i++){
-    var loss = r[i-1].n - r[i].n;
-    if (loss > worstLoss){ worstLoss = loss; worst = i; }
-  }
-  var out = '';
-  r.forEach(function(x, i){
-    if (i > 0){
-      var lost = r[i-1].n - x.n;
-      var pct  = r[i-1].n ? Math.round((lost / r[i-1].n) * 100) : 0;
-      var txt  = lost === 0 ? 'no one lost'
-                            : lost + (lost === 1 ? ' person' : ' people') + ' lost, ' + pct + '%';
-      out += '<div class="fb-gap' + (i === worst && lost > 0 ? ' worst' : '') + '">' +
-             '<i></i>' + txt + '</div>';
-    }
-    var w = Math.max((x.n / top) * 100, 1);
-    out += '<div class="fb-step"><div>' +
-             '<p class="fb-k">' + x.k + '</p>' +
-             '<div class="fb-track"><div class="fb-fill" style="width:' + w + '%"></div></div>' +
-           '</div><span class="fb-n">' + x.n + '</span></div>';
-  });
-  el.innerHTML = out;
-}
-
-drawA(document.getElementById('a-now'), NOW);
-drawA(document.getElementById('a-launch'), LAUNCH);
-drawB(document.getElementById('b-now'), NOW);
-drawB(document.getElementById('b-launch'), LAUNCH);
-</script>
 </body>
 </html>
