@@ -25,7 +25,7 @@
  * genuinely running what you shipped. Bump it when you change anything in
  * assets/, and ask for it before believing a bug report about behaviour you
  * have already fixed. */
-window.PF_BUILD = '2026-09-04a';
+window.PF_BUILD = '2026-09-04d';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -2089,6 +2089,131 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* Where visits came from, for the owner.
+
+     Five readers rather than one because the page draws five things and a
+     single function returning a nested object would have to be unpacked here
+     anyway. All of them answer null for a caller who is not named in
+     app_admins — the functions return no rows rather than raising, so "not
+     your page" arrives as an empty result and app-metrics.html says so in a
+     sentence instead of showing an error.
+
+     Nothing here writes. The write is assets/visit.js, which is a single POST
+     with no SDK, for the reason its own header gives at length: the pages most
+     worth counting load no JavaScript today and adding 110kB to them to learn
+     a referrer would be a bad trade. */
+  function visitCounts(){
+    if (!client) return Promise.resolve(null);
+    var fields = ['views', 'views_7d', 'views_prev_7d', 'views_30d', 'days_with_data'];
+    return client.rpc('visit_counts').then(function(r){
+      if (r.error) return null;
+      var row = (r.data && r.data.length) ? r.data[0] : null;
+      if (!row) return null;
+      var out = {};
+      fields.forEach(function(k){
+        var n = Number(row[k]);
+        out[k] = isFinite(n) ? n : 0;
+      });
+      /* A date rather than a count, and null is meaningful: no rows yet. */
+      out.first_at = row.first_at ? new Date(row.first_at) : null;
+      return out;
+    }).catch(function(){ return null; });
+  }
+
+  /* Thirty days oldest first, zeros included — same reasoning as funnelDaily:
+     a quiet day has to be a zero and not a gap, or a chart joins the days
+     either side with a straight line that never happened. */
+  function visitDaily(){
+    if (!client) return Promise.resolve(null);
+    return client.rpc('visit_daily').then(function(r){
+      if (r.error || !r.data || !r.data.length) return null;
+      return r.data.map(function(row){
+        var v = Number(row.views);
+        return { day: String(row.day || '').slice(0, 10), views: isFinite(v) ? v : 0 };
+      });
+    }).catch(function(){ return null; });
+  }
+
+  /* A list of {label, views}, biggest first. Shared by sources and pages
+     because the two functions return the same shape under different column
+     names and the page draws them as the same component. */
+  function topList(fn, labelCol, days){
+    if (!client) return Promise.resolve(null);
+    return client.rpc(fn, { p_days: days || 30 }).then(function(r){
+      if (r.error || !r.data) return null;
+      return r.data.map(function(row){
+        var v = Number(row.views);
+        return { label: String(row[labelCol] || ''), views: isFinite(v) ? v : 0 };
+      });
+    }).catch(function(){ return null; });
+  }
+
+  /* Only rows carrying a utm_* field, grouped by all three. An empty list is
+     the ordinary state for a site that has never tagged a link, and the page
+     hides the card rather than drawing an empty one — so null and [] mean
+     different things here and both are returned as they come. */
+  function visitSources(days){ return topList('visit_sources', 'source', days); }
+  function visitPages(days){   return topList('visit_pages',   'path',   days); }
+
+  function visitCampaigns(days){
+    if (!client) return Promise.resolve(null);
+    return client.rpc('visit_campaigns', { p_days: days || 30 }).then(function(r){
+      if (r.error || !r.data) return null;
+      return r.data.map(function(row){
+        var v = Number(row.views);
+        return {
+          source:   String(row.source || ''),
+          medium:   String(row.medium || ''),
+          campaign: String(row.campaign || ''),
+          views:    isFinite(v) ? v : 0
+        };
+      });
+    }).catch(function(){ return null; });
+  }
+
+  /* The most recent views, newest first. Rows rather than totals, which is a
+     step past everything else in here — so: each one is still a page view with
+     no identifier on it, and two rows a second apart may be one person or two.
+     A log, not a profile.
+
+     `at` comes back as a Date so the page can render it in the reader's own
+     local time. The visitor's zone travels separately in tz, because those are
+     two different questions and the page shows both. */
+  function visitRecent(limit){
+    if (!client) return Promise.resolve(null);
+    return client.rpc('visit_recent', { p_limit: limit || 50 }).then(function(r){
+      if (r.error || !r.data) return null;
+      return r.data.map(function(row){
+        return {
+          at:      row.at ? new Date(row.at) : null,
+          path:    String(row.path || ''),
+          source:  String(row.source || ''),
+          device:  String(row.device || ''),
+          browser: String(row.browser || ''),
+          tz:      String(row.tz || '')
+        };
+      });
+    }).catch(function(){ return null; });
+  }
+
+  /* Device, browser and timezone in one call, split here into three lists.
+     One round trip because the page draws them side by side and three
+     requests for three small lists is silly. */
+  function visitContext(days){
+    if (!client) return Promise.resolve(null);
+    return client.rpc('visit_context', { p_days: days || 30 }).then(function(r){
+      if (r.error || !r.data) return null;
+      var out = { device: [], browser: [], tz: [] };
+      r.data.forEach(function(row){
+        var bucket = out[row.kind];
+        if (!bucket) return;
+        var v = Number(row.views);
+        bucket.push({ label: String(row.label || ''), views: isFinite(v) ? v : 0 });
+      });
+      return out;
+    }).catch(function(){ return null; });
+  }
+
   /* ================================================================
      Progress page support.
 
@@ -2817,6 +2942,13 @@ window.pf = (function(){
     trackCounts: trackCounts,
     funnelCounts: funnelCounts,
     funnelDaily: funnelDaily,
+    visitCounts: visitCounts,
+    visitDaily: visitDaily,
+    visitSources: visitSources,
+    visitCampaigns: visitCampaigns,
+    visitRecent: visitRecent,
+    visitPages: visitPages,
+    visitContext: visitContext,
     trackNames: trackNames,
 
     /* Progress page */

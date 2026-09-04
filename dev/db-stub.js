@@ -100,6 +100,15 @@
                    as though the caller is not named in app_admins, which is
                    also what a missing migration-funnel.sql looks like: the two
                    are the same screen and there is nothing to tell apart
+     __visits      the visit totals, merged over the defaults; null for a
+                   database without migration-visits.sql, which is the case
+                   the metrics page must survive rather than break on
+     __visitCampaigns  the tagged-campaign rows; [] by default, which is the
+                   state that keeps the card hidden and is the ordinary one
+     __visitRecent the recent-views rows
+     __visitDays / __visitSources / __visitPages / __visitContext
+                   each list on its own, when one of them is the thing under
+                   test
      __funnelDays  thirty days as [{day, accounts, profile_complete}], oldest
                    first, or null for the same not-yours state. Left undefined
                    it is generated from the fixture with one busy day in it,
@@ -720,6 +729,98 @@ window.pf = (function(){
     deleteAccount:function(){note('deleteAccount');
       if(window.__deleteFail) return P({error:window.__deleteFail});
       return P({saved:true})},
+
+    /* The visit readers. __visits === null is the state that matters most —
+       it is a database without migration-visits.sql, and the metrics page has
+       to draw its funnel and simply omit the visits block rather than break.
+       Each list can be overridden on its own; the defaults are shaped like a
+       small real site rather than round numbers, so a bar scaled to the
+       biggest row has something to be wrong about. */
+    visitCounts:function(){
+      if (window.__visits === null) return P(null);
+      var base = {views:412, views_7d:96, views_prev_7d:71, views_30d:388,
+                  days_with_data:24,
+                  first_at:new Date(Date.now() - 24*86400000)};
+      var over = window.__visits || {}, out = {};
+      Object.keys(base).forEach(function(k){
+        out[k] = (over[k] === undefined ? base[k] : over[k]);
+      });
+      return P(out);
+    },
+    visitDaily:function(){
+      if (window.__visits === null) return P(null);
+      if (window.__visitDays) return P(window.__visitDays);
+      var out = [], today = new Date();
+      for (var i = 29; i >= 0; i--) {
+        var d = new Date(today.getTime() - i * 86400000);
+        out.push({day:d.toISOString().slice(0,10),
+                  views: i === 6 ? 84 : (i > 24 ? 0 : 3 + (i % 7))});
+      }
+      return P(out);
+    },
+    visitSources:function(){
+      if (window.__visits === null) return P(null);
+      return P(window.__visitSources || [
+        {label:'direct',        views:171},
+        {label:'dev.to',        views:96},
+        {label:'google.com',    views:58},
+        {label:'t.co',          views:31},
+        {label:'reddit.com',    views:19},
+        {label:'newsletter',    views:13}
+      ]);
+    },
+    visitPages:function(){
+      if (window.__visits === null) return P(null);
+      return P(window.__visitPages || [
+        {label:'/',                                         views:203},
+        {label:'/camera-on-study-session-safety.html',       views:61},
+        {label:'/frontend-study-partner.html',               views:44},
+        {label:'/signup.html',                               views:38},
+        {label:'/study-partner-compatibility-checklist.html', views:22},
+        {label:'/privacy.html',                              views:9}
+      ]);
+    },
+    visitCampaigns:function(){
+      if (window.__visits === null) return P(null);
+      /* Default is EMPTY, because a site that has never tagged a link is the
+         ordinary state and the card is supposed to stay hidden in it. Set
+         __visitCampaigns to see the populated version. */
+      return P(window.__visitCampaigns || []);
+    },
+    visitRecent:function(){
+      if (window.__visits === null) return P(null);
+      if (window.__visitRecent) return P(window.__visitRecent);
+      /* A handful of rows a few minutes apart, in three zones — enough for the
+         "their time" column to be visibly different from the reader's, which is
+         the only thing that column exists to show. */
+      var zones = ['Asia/Tashkent','Europe/London','America/New_York',null];
+      var paths = ['/','/camera-on-study-session-safety.html','/frontend-study-partner.html','/signup.html'];
+      var srcs  = ['direct','dev.to','producthunt','google.com'];
+      var devs  = ['desktop','mobile','tablet'];
+      var out = [], now = Date.now();
+      for (var i = 0; i < 12; i++) {
+        out.push({
+          at:      new Date(now - i * 7 * 60000),
+          path:    paths[i % paths.length],
+          source:  srcs[i % srcs.length],
+          device:  devs[i % devs.length],
+          browser: 'chrome',
+          tz:      zones[i % zones.length] || ''
+        });
+      }
+      return P(out);
+    },
+    visitContext:function(){
+      if (window.__visits === null) return P(null);
+      return P(window.__visitContext || {
+        device:  [{label:'desktop',views:241},{label:'mobile',views:132},{label:'tablet',views:15}],
+        browser: [{label:'chrome',views:198},{label:'safari',views:104},
+                  {label:'firefox',views:52},{label:'edge',views:22},{label:'other',views:12}],
+        tz:      [{label:'Asia/Tashkent',views:151},{label:'Europe/London',views:73},
+                  {label:'America/New_York',views:44},{label:'Asia/Karachi',views:31},
+                  {label:'unknown',views:19}]
+      });
+    },
 
     funnelCounts:function(){
       if (window.__funnel === null) return P(null);

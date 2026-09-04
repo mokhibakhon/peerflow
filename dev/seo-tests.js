@@ -160,6 +160,45 @@ for (const f of indexable) {
   }
 }
 
+// ── the visit beacon is on the public pages and nowhere else ───────────────
+// assets/visit.js records a page view. Which pages carry it is a privacy
+// decision, not a detail: privacy.html now states that the signed-in pages are
+// not counted, so a stray script tag on an app page would make a legal document
+// false. The file has its own path guard as well, and this is the other half —
+// the guard cannot help if somebody copies the tag onto a page the guard does
+// not know about.
+const BEACON = 'assets/visit.js';
+const beaconExpected = allPages.filter((f) =>
+  !(f.startsWith('app') || ['call.html', 'draft.html', '404.html', 'reset.html'].includes(f)));
+
+for (const f of allPages) {
+  const html = read(f);
+  const has = html.includes(BEACON);
+  const want = beaconExpected.includes(f);
+  if (has === want) continue;
+  fail(want ? `${f}: public page is missing the visit beacon`
+            : `${f}: carries the visit beacon and should not — it is a signed-in or private page`);
+}
+check(beaconExpected.every((f) => read(f).includes(BEACON)),
+  `assets/visit.js: on all ${beaconExpected.length} public pages`);
+check(allPages.filter((f) => !beaconExpected.includes(f)).every((f) => !read(f).includes(BEACON)),
+  'assets/visit.js: on none of the signed-in or private pages');
+
+// The beacon needs the config for the project URL and key, and it is the only
+// thing on a static landing page that does. A page with the beacon and no
+// config is a silent no-op — it returns at the first line and nothing says so.
+check(beaconExpected.every((f) => read(f).includes('supabase-config.js')),
+  'every page with the beacon also loads supabase-config.js');
+
+// privacy.html has to keep describing what actually ships. These are the two
+// claims the beacon would falsify if it were ever pointed at the app pages or
+// given a stored identifier.
+const priv = read('privacy.html');
+check(/Do Not Track/i.test(priv), 'privacy.html: says Do Not Track is honoured');
+check(/ninety days|90 days/i.test(priv), 'privacy.html: states the retention window');
+check(!/no analytics, and no tracking of any kind/i.test(priv),
+  'privacy.html: no longer claims there is no analytics of any kind');
+
 // ── internal linking ───────────────────────────────────────────────────────
 // A page in the sitemap that nothing links to is a page search engines will
 // discount. Check each indexable page is linked from at least one other one.

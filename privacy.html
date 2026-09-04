@@ -127,10 +127,10 @@
 <section>
   <div class="wrap">
     <div class="prose">
-      <p class="stamp">Last updated 19 August 2026</p>
+      <p class="stamp">Last updated 4 September 2026</p>
 
       <h2>The short version</h2>
-      <p>PeerFlow holds the account you made, the profile you filled in, and the record of the sessions you booked. There is no advertising on this site, no analytics, and no tracking of any kind. Nothing about you is sold or handed to anyone whose job is not running PeerFlow. If you want all of it gone, Settings has a button that does it, and it does not wait for anyone's approval.</p>
+      <p>PeerFlow holds the account you made, the profile you filled in, and the record of the sessions you booked. There is no advertising on this site. The public pages count page views so we can see where people arrive from, and that count keeps nothing in your browser and cannot tell one visitor from another. Nothing about you is sold or handed to anyone whose job is not running PeerFlow. If you want all of it gone, Settings has a button that does it, and it does not wait for anyone's approval.</p>
 
       <h2>What we hold</h2>
       <p><b>Your account.</b> An email address, and either a password — stored as a hash, so nobody here can read it back — or the fact that you signed in with Google. If you use Google, what we receive is your email address and the name on that account, and nothing else.</p>
@@ -141,7 +141,31 @@
       <p>If you left your email on the home page before making an account, that is stored as well, along with whatever you typed about what you wanted to learn.</p>
 
       <h2>What we don't do</h2>
-      <p>No advertising. No analytics — not Google Analytics, not a self-hosted substitute, nothing; nobody here knows which pages you looked at. No tracking cookies: the only thing PeerFlow keeps in your browser is the token that holds you signed in, and clearing it signs you out. Nothing about you is sold, rented, or passed to a data broker, and there is no arrangement under which that could change without this page changing first.</p>
+      <p>No advertising. No third-party analytics — no Google Analytics, no tracking pixel, no service that would see you here and recognise you somewhere else. No tracking cookies, and no tracking without them either: the only thing PeerFlow keeps in your browser is the token that holds you signed in, and clearing it signs you out. Nothing about you is sold, rented, or passed to a data broker, and there is no arrangement under which that could change without this page changing first.</p>
+      <p>Until 4 September 2026 this page said there was no analytics of any kind, including a self-hosted one, and that nobody here knew which pages you looked at. That stopped being true on that date and the section below says what replaced it. It is recorded here rather than quietly edited out, because a promise that changes without saying so is worse than one that was never made.</p>
+
+      <h2>Counting visits</h2>
+      <p>The public pages — the home page, the eight learning paths, the guides
+        and these legal pages — record that a page was viewed. There is no
+        script on the signed-in pages, so nothing records which parts of the app
+        you use.</p>
+      <p>What a view records: which page, the <i>hostname</i> of the site you
+        arrived from if you followed a link, any campaign tag in the address, a
+        device class (mobile, tablet or desktop), a browser family from a fixed
+        list, and the timezone your browser reports. That last one is the
+        closest thing to a location and it is a region shared by millions of
+        people, not an address.</p>
+      <p>What it does not record, and could not: any identifier, cookie or
+        stored value — nothing is written to your browser at all — your IP
+        address, your full user-agent string, or the full address of the page
+        you came from. There is nothing in the table that could join two page
+        views together, which means we cannot count how many people visited, or
+        follow anyone from one page to the next, and cannot connect any of it to
+        an account. Those are not settings that could be turned on later; the
+        data to do it is not collected.</p>
+      <p>It is ours, on our own servers, and no third party is involved. If your
+        browser sends <i>Do Not Track</i> or Global Privacy Control, nothing is
+        recorded at all. Rows are deleted after ninety days.</p>
 
       <h2>Your calls</h2>
       <p>Video and audio run through LiveKit, which passes the streams between the two of you. Calls are not recorded — not by us and not by LiveKit. There is no recording feature in PeerFlow and nothing from a call is written to disk. What comes back from the video server is the bare fact of attendance: that your account joined a room at one moment and left at another. That is what a streak is counted from.</p>
@@ -201,5 +225,7 @@
   </div>
 </footer>
 
+<script src="/assets/supabase-config.js"></script>
+<script src="/assets/visit.js" defer></script>
 </body>
 </html>
