@@ -85,7 +85,7 @@ leaving the row out reads as "no such migration" rather than "not yet run".
 | `migration-forgery.sql` | owner ran it and reported the expected `true true false` |
 | `migration-actor-rules.sql` | same run, same report |
 | `migration-profiles-private.sql` | verified against production: an anonymous `select` on `profiles` with the publishable key returns `[]`, and `rpc/track_counts` still returns per-track rows |
-| **`migration-blocked-ids.sql` — NOT applied** | added 2026-09-03 and never pasted in. It is a performance change only: it adds `blocked_ids()` and rewrites the `profiles` SELECT policy to gather the set of blocked accounts once instead of calling `blocked_with(id)` per row — measured at 1999 calls for a 2000-row read against a real PostgreSQL 16 with `track_functions=all`, and 1 call after. Until it is run the old policy stands and everything works exactly as before, which is why merging it ahead of the paste carried no risk; the People directory and the count on Today simply keep paying per row. `dev/sql-tests.sh` covers it, and the case named "the profiles policy asks about blocks once, not once per row" is the one that goes red without it |
+| `migration-blocked-ids.sql` | owner ran it on 2026-09-03 and reported it applied; not independently verified, because the container cannot reach the Supabase host. It is a performance change only: it adds `blocked_ids()` and rewrites the `profiles` SELECT policy to gather the set of blocked accounts once instead of calling `blocked_with(id)` per row — measured at 1999 calls for a 2000-row read against a real PostgreSQL 16 with `track_functions=all`, and 1 call after. `dev/sql-tests.sh` covers it, and the case named "the profiles policy asks about blocks once, not once per row" is the one that goes red without it. The live numbers moved with it and with pg_cron in the same sitting: the slowest query on Today went from 1180ms to 514ms and nothing was left above 514ms, measured in the browser rather than here |
 | **`migration-funnel.sql` — NOT applied** | merged 2026-09-01 and never pasted in. Until it is, `funnel_counts()` and `funnel_daily()` do not exist, both readers in `db.js` return null, and `app-metrics.html` shows its owner-only screen to everybody including the owner. That is the designed degraded state rather than a fault, which is why merging it ahead of the migration carried no risk — but the page is inert until somebody runs it. It also needs the one-line `app_admins` insert in its own header, naming the owner by email; the insert is silent when the email matches no row in `auth.users`, so `select count(*) from public.app_admins` is the check that it took |
 
 Also deployed on that date: `supabase functions deploy livekit-webhook`, which
@@ -442,6 +442,12 @@ a static site, so the sweep runs from whoever opens the app — for both people
 in a session, which is what makes it useful: your partner opening PeerFlow at
 lunchtime is what reminds you about this evening. With `pg_cron` installed the
 migration schedules it properly and the page-load path finds nothing to do.
+
+**`pg_cron` is installed as of 2026-09-03** — `select jobname, schedule from
+cron.job` returns `peerflow-attendance` on `*/5 * * * *`. So the second half of
+that paragraph is the live arrangement, not the hypothetical one: the browser
+still calls all three RPCs on Today, and they now come back in 354-399ms
+having found nothing to do, against 1073ms when they were doing the work.
 
 ## Counting your own funnel without tracking anybody
 
