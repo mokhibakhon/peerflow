@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Draft: How it works, as the directory</title>
+<title>Draft: step two, with the new picture</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
@@ -44,83 +44,12 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
 <link rel="stylesheet" href="assets/home.css">
 <style>
-  /* ---------- the directory, standing in for the four how-it-works cards ----------
-     Lives here rather than in home.css only because this is /draft. It moves
-     into home.css when it lands, and the .how-card/.how-shot/.how-body rules
-     it replaces come out at the same time.
-     Every var() here is one home.css defines. The first version reached for
-     --p6 and --line-strong, which are tokens.css names, and index.html does
-     not load tokens.css — the green bar and both button backgrounds came out
-     empty and their white text vanished into white. dev/seo-tests.js has a
-     check for exactly this. */
-  .dir{background:var(--card);border-radius:14px;overflow:hidden;
-    box-shadow:0 1px 2px rgba(23,26,46,.05), 0 8px 26px rgba(23,26,46,.07)}
-  .dir-bar{background:var(--live-deep);height:52px;display:flex;align-items:center;gap:9px;padding:0 22px}
-  .dir-bar svg{fill:#fff}
-  .dir-bar b{font-size:16px;font-weight:800;letter-spacing:-.02em;color:#fff}
-  .dir-bar b span{color:#9FE1CB}
-
-  .dir-tbl{width:100%;border-collapse:collapse}
-  .dir-tbl th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
-    color:var(--ink-faint);font-weight:400;text-align:left;padding:15px 22px;background:#FBFBFC;
-    border-bottom:1px solid var(--line)}
-  .dir-tbl td{padding:17px 22px;border-bottom:1px solid #F3F2F6;vertical-align:middle}
-  .dir-tbl tbody tr:last-child td{border-bottom:0}
-
-  .dir-who{display:flex;align-items:center;gap:14px}
-  .dir-av{width:40px;height:40px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;
-    font-size:16px;font-weight:800}
-  .dir-nm{display:block;font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
-  .dir-path{display:flex;align-items:center;gap:9px;margin-top:4px;font-size:13.5px;color:var(--ink-faint)}
-  .dir-chip{padding:2.5px 7px;border-radius:6px;background:#EEEDFE;color:#3C3489;
-    font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.07em}
-  .dir-focus{font-size:15px;letter-spacing:-.005em}
-  .dir-act{text-align:right;width:1%;white-space:nowrap}
-  .dir-btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:9px;
-    color:#fff;font-size:14px;font-weight:700;
-    background:linear-gradient(180deg,#1D9E75,var(--live-deep));
-    box-shadow:0 1px 2px rgba(8,80,65,.22), inset 0 1px 0 rgba(255,255,255,.18)}
-  .dir-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linejoin:round}
-  .dir-more{display:block;text-align:center;padding:17px 0 19px;font-size:14.5px;font-weight:700;
-    color:var(--live-deep);text-decoration:none}
-
-  /* ---------- on a phone it stops being a table ----------
-     Measured, not guessed: at a 390px viewport three columns left the focus
-     cell and the button at zero width and the rows came out 102/86/107/107 —
-     a name with empty space where the rest of the row should have been. Below
-     860px each row becomes a stack instead: name and path, what they are
-     working on, then the button. Same rows, same words, read downwards.
-
-     860 rather than a phone width because the table was already failing well
-     above the phone. At 760 the SAME PATH chip and the longest focus line each
-     wrapped and the rows stopped matching (102/86/86/101); at 900 they measure
-     87/86/86/86 with nothing wrapped, so the table shape is kept exactly as
-     far down as it still works.
-
-     Last in the sheet on purpose: everything it overrides is at equal
-     specificity, so source order is the only thing deciding the tie. */
-  @media (max-width:860px){
-    .dir-tbl thead{display:none}
-    .dir-tbl tbody tr{display:block;padding:16px 16px 18px;border-bottom:1px solid #F3F2F6}
-    .dir-tbl tbody tr:last-child{border-bottom:0}
-    .dir-tbl td{display:block;padding:0;border-bottom:0}
-    /* 54px is the avatar's 40 plus the 14px gap, so the two lines under a name
-       start where the name starts rather than under the avatar. */
-    .dir-focus{padding-left:54px;margin-top:11px}
-    .dir-act{text-align:left;width:auto;padding-left:54px;margin-top:13px}
-    /* Full width, but capped: at the top of this range the row is 700px across
-       and a 700px button reads as a banner rather than as a control. */
-    .dir-btn{display:flex;width:100%;max-width:300px;justify-content:center}
-  }
-
-  /* ---------- the draft marker ----------
-     Fixed rather than a banner at the top of the page, because the whole point
-     of this draft is seeing the section in its real position with everything
-     above and below it intact. A note in the flow would push the hero down and
-     make the one thing being judged the one thing shown wrongly. */
+  /* Fixed rather than a banner in the flow: the point of this draft is seeing
+     the new picture at the size and in the position it is really read at, and
+     a note above the fold would push everything down. */
   .draftmark{position:fixed;right:16px;bottom:16px;z-index:99;
     background:#FFF8E6;border:1px solid #F0DFAE;border-radius:10px;padding:10px 14px;
-    font:600 12.5px/1.5 var(--body);color:#6B5518;max-width:270px;
+    font:600 12.5px/1.5 var(--body);color:#6B5518;max-width:280px;
     box-shadow:0 6px 20px rgba(23,26,46,.14)}
   .draftmark a{color:#6B5518}
 </style>
@@ -292,88 +221,193 @@
   </section>
 
   <!-- ================= HOW IT WORKS =================
-       Four steps and four pictures used to live here. They are gone, and what
-       is left is the thing they were describing: the actual directory, with
-       four real people on it.
+       Four steps, four pictures. Two of them are the drawn PNGs from
+       assets/how-frames.html — pictures made for this width rather than
+       screenshots shrunk until the words turn to texture — and two are drawn
+       here in CSS, because no existing picture says "pick a field" or "you
+       finished something". They share the same shell as the PNGs: the green
+       PeerFlow bar over a white body, at the same 1280:841 shape, so all four
+       cards line up whatever the row width is.
 
-       The reasoning is that four abstract steps ask a stranger to imagine the
-       product, and a table of four learners with a path, a goal and a Send
-       request button beside each one does not ask them to imagine anything.
-       The steps were also answering a question nobody had reached yet — you
-       have to want a study partner before "choose your path" means something,
-       and the fastest way to want one is to see four of them.
+       Step two's picture was redrawn in September 2026. It used to be three
+       names and three buttons — it said a list exists, without saying what the
+       list knows about anybody on it, which is the only reason to look at one.
+       Each row now names the person's learning path — Mobile, Frontend,
+       Backend — which is the taxonomy the rest of the page is built on and the
+       one thing about a stranger that decides whether you would be matched
+       with them. A version carrying the goal as well was drawn and compared
+       against this one in a real card on /draft; it put a second line on every
+       row, at about 6px once the card is 300px wide, and lost.
+       Both drawn frames are rendered by dev/how-frames-render.js
+       rather than by hand, so the picture and the markup that claims to draw it
+       cannot drift apart again.
 
-       THE HEADING STAYS "How it works"
+       how-frames.html still draws a second frame that this section does not
+       use. It was for agreeing a time and used to be stored as
+       assets/how-2-time.png, which nothing referenced; the file is gone and the
+       frame can be re-rendered if that step is ever wanted back.
 
-       It is the label on two nav links, both pointing at this section's #how,
-       so renaming the heading here would leave the nav promising something the
-       page no longer says. The line underneath now carries what the four steps
-       were really for — choose a path, say what you are working on, ask
-       someone, meet weekly — in one sentence rather than four cards.
-
-       assets/how-1-find.png (44KB) was step two's picture and nothing else
-       references it. It is still in the tree; it comes out when this lands on
-       index.html, along with the how-card/how-shot/how-body rules in home.css
-       that now have nothing to style. -->
+       Step three is a WebP rather than a PNG because it is photographic — two
+       webcam stills in a chrome frame — and PNG is the wrong container for
+       that. It was 256KB as a palette PNG, which also banded the flat walls;
+       at WebP q82 it is 50KB and cleaner. Step one stays a PNG because it is
+       a flat UI screenshot, which is precisely what PNG is good at: it is
+       twice the pixels and a fifth of the bytes. -->
   <section id="how" class="sec">
+    <!-- No mono kicker above the heading here, the way the other sections
+         have one — it would only repeat the heading. No line under it either:
+         the four cards say it themselves, and a sentence in front of them was
+         only delaying them. -->
     <div class="sec-head">
       <h2>How it works</h2>
-      <p>Everyone here chose a path and said what they are working on. Find
-         someone going the same way, send a request, and meet on camera each
-         week.</p>
     </div>
 
-    <div class="dir">
-      <div class="dir-bar">
-        <svg width="17" height="17" viewBox="0 0 173 171" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-        <b>peer<span>flow</span></b>
-      </div>
+    <div class="how-grid">
 
-      <table class="dir-tbl">
-        <thead>
-          <tr><th>Person</th><th>Learning focus</th><th></th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><div class="dir-who">
-              <span class="dir-av" style="background:#EEEDFE;color:#3C3489">J</span>
-              <span><span class="dir-nm">John Smith</span>
-                <span class="dir-path">Cybersecurity <span class="dir-chip">SAME PATH</span></span></span>
-            </div></td>
-            <td class="dir-focus">Networking fundamentals</td>
-            <td class="dir-act"><span class="dir-btn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
-          </tr>
-          <tr>
-            <td><div class="dir-who">
-              <span class="dir-av" style="background:#E1F5EE;color:#0F6E56">S</span>
-              <span><span class="dir-nm">Sarah</span>
-                <span class="dir-path">Mobile</span></span>
-            </div></td>
-            <td class="dir-focus">Flutter basics</td>
-            <td class="dir-act"><span class="dir-btn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
-          </tr>
-          <tr>
-            <td><div class="dir-who">
-              <span class="dir-av" style="background:#FDEEE6;color:#B4471F">D</span>
-              <span><span class="dir-nm">Dilnoza</span>
-                <span class="dir-path">Data Science</span></span>
-            </div></td>
-            <td class="dir-focus">Data structures &amp; algorithms</td>
-            <td class="dir-act"><span class="dir-btn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
-          </tr>
-          <tr>
-            <td><div class="dir-who">
-              <span class="dir-av" style="background:#E6F1FB;color:#185FA5">M</span>
-              <span><span class="dir-nm">Mohibakhon</span>
-                <span class="dir-path">Cybersecurity <span class="dir-chip">SAME PATH</span></span></span>
-            </div></td>
-            <td class="dir-focus">Blue team / SOC fundamentals</td>
-            <td class="dir-act"><span class="dir-btn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14 2 7 9M14 2l-4.6 12-2.4-5-5-2.4L14 2z"/></svg>Send request</span></td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- ---- 01 · drawn here: a map, one route taken ----
+           Not a mock-up of a screen, unlike the rest of the row. Three routes
+           leave one pin, two of them faint and dashed and named where they
+           end, and the one you took is solid green and finishes at a flag —
+           the two halves of the sentence under the card in one picture.
 
-      <a class="dir-more" href="signup.html">View more learners <span aria-hidden="true">&rsaquo;</span></a>
+           Drawn on the same 1280:841 shape as the other three, so the row
+           still lines up. It has no green PeerFlow bar, on purpose.
+
+           Painted out of the page's own palette rather than the cream it was
+           first drawn in: the sheet is white with the faintest green cast,
+           the grid and the fold creases are pale greens, and the route you
+           took is --live-deep, the same green as the "Step one" kicker below
+           it and the buttons in the card next door. The routes you did not
+           take are a desaturated green-grey, so they read as the same family
+           of ink rather than a second colour scheme. -->
+      <article class="how-card">
+        <div class="how-shot">
+          <svg class="how-map" viewBox="0 0 400 263" role="img"
+               aria-label="A map with three routes leaving one pin: Backend and Mobile faint and untaken, and Frontend marked out and ending at a flag">
+            <rect width="400" height="263" fill="#F7FBF9"/>
+            <!-- grid, then the two creases on top of it: each crease is a pale
+                 highlight beside a darker line, which is what a fold looks
+                 like. On the old version they were a single faint line and
+                 vanished at card size. -->
+            <g stroke="#E6F2EC" stroke-width="2">
+              <path d="M0 66h400M0 197h400M67 0v263M200 0v263M333 0v263"/>
+            </g>
+            <g fill="none" stroke="#DCEEE5" stroke-width="3">
+              <path d="M0 38C56 34 78 64 132 60S200 18 258 26s94 50 142 40"/>
+              <path d="M0 246C64 242 86 212 146 216s76 42 136 34 74-28 118-32"/>
+            </g>
+            <g stroke-width="2">
+              <path d="M133.5 0v263M267.5 0v263M0 131.5h400" stroke="#D5E9E0"/>
+              <path d="M131 0v263M265 0v263M0 129h400" stroke="#FFFFFF"/>
+            </g>
+
+            <!-- the two you did not take -->
+            <g fill="none" stroke="#AEC8BF" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 13">
+              <path d="M66 196C122 194 172 182 226 170"/>
+              <path d="M66 196C124 214 180 226 240 230"/>
+            </g>
+            <g fill="#AEC8BF"><circle cx="230" cy="169" r="6"/><circle cx="244" cy="230" r="6"/></g>
+
+            <!-- the one you did -->
+            <path d="M66 196C96 172 112 138 158 126S232 116 262 92" fill="none"
+                  stroke="#0A7350" stroke-width="8" stroke-linecap="round"/>
+            <g fill="#FFFFFF" stroke="#0A7350" stroke-width="4">
+              <circle cx="158" cy="126" r="6"/><circle cx="215" cy="110" r="6"/>
+            </g>
+
+            <path d="M66 218c0 0-15-21-15-31a15 15 0 1 1 30 0c0 10-15 31-15 31z" fill="#171A2E"/>
+            <circle cx="66" cy="186" r="5.5" fill="#FFFFFF"/>
+
+            <path d="M262 92V54" stroke="#171A2E" stroke-width="5" stroke-linecap="round"/>
+            <path d="M262 54h36l-9 10 9 10h-36z" fill="#0A7350"/>
+            <ellipse cx="262" cy="94" rx="12" ry="4" fill="#171A2E" opacity=".16"/>
+
+            <!-- every label sits clear of every line; on the old version
+                 "Mobile" landed on top of the green route. -->
+            <text x="166" y="66" font-family="Plus Jakarta Sans, system-ui, sans-serif"
+                  font-size="17" font-weight="800" fill="#0A5240">Frontend</text>
+            <g font-family="Plus Jakarta Sans, system-ui, sans-serif" font-size="14" font-weight="600" fill="#6F8B83">
+              <text x="244" y="174">Backend</text>
+              <text x="258" y="235">Mobile</text>
+            </g>
+
+            <g opacity=".55">
+              <circle cx="356" cy="222" r="16" fill="none" stroke="#B6D2C7" stroke-width="2"/>
+              <path d="M356 210l5 12-5 12-5-12z" fill="#93BBAC"/>
+            </g>
+          </svg>
+        </div>
+        <div class="how-body">
+          <span class="mono">Step one</span>
+          <h3>Choose your path</h3>
+          <p>Choose the IT field you want to learn and describe what you are working toward.</p>
+        </div>
+      </article>
+
+      <!-- ---- 02 ---- -->
+      <article class="how-card">
+        <div class="how-shot">
+          <img src="assets/how-1-find.png" width="1280" height="841" loading="lazy"
+               alt="Three learners and their learning paths — Mobile, Frontend, Backend — each with a Send request button">
+        </div>
+        <div class="how-body">
+          <span class="mono">Step two</span>
+          <h3>Find a compatible learner</h3>
+          <p>See people with a similar goal, experience level and weekly availability.</p>
+        </div>
+      </article>
+
+      <!-- ---- 03 ---- -->
+      <article class="how-card">
+        <div class="how-shot">
+          <img src="assets/how-3-call.webp" width="1280" height="813" loading="lazy"
+               alt="Two people in a video session, cameras on">
+        </div>
+        <div class="how-body">
+          <span class="mono">Step three</span>
+          <h3>Meet face to face, cameras on</h3>
+          <p>Choose a regular time, join the 1-on-1 call, and focus beside the same learning peer each week.</p>
+        </div>
+      </article>
+
+      <!-- ---- 04 · drawn here: the thing you made, shipped ---- -->
+      <article class="how-card">
+        <div class="how-shot">
+          <div class="how-draw" role="img"
+               aria-label="A small portfolio site open in a browser window, marked published">
+            <div class="hd-bar">
+              <svg viewBox="0 0 173 171" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
+              <b>peer<i>flow</i></b>
+            </div>
+            <div class="hd-body">
+              <div class="hd-win">
+                <div class="hd-chrome">
+                  <i></i><i></i><i></i>
+                  <span class="hd-url">portfolio-site</span>
+                </div>
+                <div class="hd-code">
+                  <span style="width:78%"></span>
+                  <span style="width:54%" class="g"></span>
+                  <span style="width:66%"></span>
+                  <span style="width:41%"></span>
+                  <span style="width:71%"></span>
+                  <span style="width:48%" class="g"></span>
+                </div>
+              </div>
+              <span class="hd-live">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                Published
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="how-body">
+          <span class="mono">Step four</span>
+          <h3>Build something real</h3>
+          <p>Use your sessions to work toward a small practical project you can show.</p>
+        </div>
+      </article>
+
     </div>
   </section>
 
@@ -623,7 +657,7 @@
 <script src="assets/db.js"></script>
 <script src="assets/home.js"></script>
 <script src="assets/usermenu.js"></script>
-  <div class="draftmark">Draft. The four how-it-works cards are replaced by the
-    directory itself — <a href="#how">jump to it</a>. Nothing else on the page changed.</div>
+  <div class="draftmark">Draft. Only step two’s picture changed —
+    <a href="#how">jump to it</a>. The four steps and everything else are as they ship.</div>
 </body>
 </html>
