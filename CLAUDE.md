@@ -167,6 +167,26 @@ are not applied automatically and nothing in CI checks them, so a merged
 migration is dormant until the user runs it — say so explicitly when you merge
 one, and don't assume an earlier one landed.
 
+**`node dev/migration-check.js` turns that into a question with an answer.** It
+prints a read-only query; the user pastes it into the SQL editor and every row
+that comes back is something the repository expects and the database does not
+have. `--list` prints the apply order. Both are derived from `supabase/` at run
+time — a file counts as live unless it opens with a SUPERSEDED banner — so a
+new migration is covered without anybody editing the tool.
+
+Hand it over rather than guessing. The two failures this has actually caused
+both looked like success from outside: the `app_admins` insert matches on email
+and inserts nothing if that address is not yet in `auth.users`, and
+`migration-visits.sql` was once run in an earlier form, leaving a metrics page
+that rendered fine apart from two cards. Neither is visible from here and both
+show up in that query.
+
+The list this replaced is worth remembering as a pattern. `SETUP_GUIDE.md` said
+"run these three, that is all three" for as long as it took six more migrations
+to be merged — including the one that closes anonymous reads of `profiles`. A
+written-down list of what exists somewhere else goes stale silently, which is
+the same failure this whole file is about.
+
 ## Git
 
 Develop on the branch you were given, commit, push with `-u origin <branch>`,
