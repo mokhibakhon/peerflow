@@ -156,13 +156,27 @@
         closest thing to a location and it is a region shared by millions of
         people, not an address.</p>
       <p>What it does not record, and could not: any identifier, cookie or
-        stored value — nothing is written to your browser at all — your IP
-        address, your full user-agent string, or the full address of the page
-        you came from. There is nothing in the table that could join two page
-        views together, which means we cannot count how many people visited, or
-        follow anyone from one page to the next, and cannot connect any of it to
-        an account. Those are not settings that could be turned on later; the
-        data to do it is not collected.</p>
+        fingerprint, your IP address, your full user-agent string, or the full
+        address of the page you came from. There is nothing in the table that
+        could join two page views together, which means we cannot count how many
+        people visited, or follow anyone from one page to the next, and cannot
+        connect any of it to an account. Those are not settings that could be
+        turned on later; the data to do it is not collected.</p>
+      <p>One thing is written to your browser, and only if you ask for it. The
+        button below stores a single value meaning <i>do not count me</i>, and
+        while it is there no view of yours is recorded at all. It is the same
+        value for everyone who sets it, so it identifies nobody; it is never
+        sent anywhere, because what it does is stop the request being made. It
+        lives in this browser only — set it again on your phone, and clearing
+        your browsing data removes it.</p>
+      <p>Until 5 September 2026 this section said nothing was written to your
+        browser at all, which was true until that button existed. The sentence
+        is corrected rather than removed for the same reason as the dated line
+        further up.</p>
+      <p class="pf-optout">
+        <button type="button" id="pf-count-btn" class="btn">Don’t count my visits</button>
+        <span id="pf-count-say" class="pf-optout-say"></span>
+      </p>
       <p>It is ours, on our own servers, and no third party is involved. If your
         browser sends <i>Do Not Track</i> or Global Privacy Control, nothing is
         recorded at all. Rows are deleted after ninety days.</p>
@@ -181,7 +195,10 @@
         <li><b>Google</b> — if you chose to sign in with Google. Google also serves the typeface the site is set in, which means your browser fetches a file from Google on every page and Google sees your IP address in the process.</li>
         <li><b>jsDelivr</b> — a content network that serves two JavaScript libraries the site depends on. Same point about IP addresses.</li>
       </ul>
-      <p>Beyond those: other members see your profile, and your partner sees what you write to them. Nobody else sees anything.</p>
+      <p>Beyond those: other members see your profile, and your partner sees what you write to them.</p>
+      <p>And the person who runs PeerFlow can see the account records themselves — your name, which path you chose, when you signed up, when you last signed in, and how many sessions you have proposed, booked and turned up to. That is one screen listing everyone with an account, and it exists to answer whether people are coming back. Nothing new is collected for it: those are the records you made by signing up and by booking, and the sign-in dates are kept by Supabase for every account on every service built on it.</p>
+      <p>It does not include your messages, and it is not connected to the page views described above — there is still nothing in that table that could be tied to an account, so it cannot say which pages any particular member read.</p>
+      <p>The paragraph above is new on 5 September 2026. This section used to end "Nobody else sees anything", which was written about other members and read as though it covered the operator too. The screen it describes is new; the records on it are not.</p>
 
       <h2>Email</h2>
       <p>We email you when a session needs an answer — a time proposed, accepted, turned down or called off — and for nothing else. There is no newsletter and there are no product announcements. You can switch it off in Settings, and the bell inside the app carries on working either way.</p>
@@ -225,6 +242,82 @@
   </div>
 </footer>
 
+<style>
+  /* Local to this page. The control exists in one place and nothing else on
+     the site has a shape like it, so it does not earn a component in
+     auth.css. */
+  .pf-optout{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0 0}
+  .pf-optout-say{font-size:var(--t-sm);color:var(--ink-soft)}
+</style>
+<script>
+/* The opt-out control. assets/visit.js owns the key and the decision; this is
+   only a button on top of it, so the two cannot disagree about what counts as
+   opted out — the name is written once here and once there and nowhere else.
+ *
+ * Deliberately not in db.js: nothing here touches the database, and the value
+ * never leaves the browser.
+ */
+(function(){
+  var KEY = 'pf_count';
+  var btn = document.getElementById('pf-count-btn');
+  var say = document.getElementById('pf-count-say');
+  if (!btn || !say) return;
+
+  function isOff(){
+    try { return localStorage.getItem(KEY) === 'off'; }
+    catch (e) { return false; }
+  }
+
+  /* A browser that refuses storage cannot honour the button, and saying so is
+     better than a control that silently does nothing. Those visitors are
+     usually the ones who care most about the answer. */
+  function storageWorks(){
+    try { localStorage.setItem(KEY + '_t', '1'); localStorage.removeItem(KEY + '_t'); return true; }
+    catch (e) { return false; }
+  }
+
+  function draw(){
+    if (!storageWorks()){
+      btn.disabled = true;
+      btn.textContent = 'Don’t count my visits';
+      say.textContent = 'This browser is not letting the site store anything, so this ' +
+                        'button cannot remember your choice. Do Not Track and Global ' +
+                        'Privacy Control both work without storing anything, and this ' +
+                        'site honours either.';
+      return;
+    }
+    var off = isOff();
+    btn.textContent = off ? 'Start counting my visits again' : 'Don’t count my visits';
+    say.textContent = off
+      ? 'Your visits are not being recorded on this browser.'
+      : 'Your visits are counted the way this page describes.';
+  }
+
+  btn.addEventListener('click', function(){
+    try {
+      if (isOff()) localStorage.removeItem(KEY);
+      else         localStorage.setItem(KEY, 'off');
+    } catch (e) {}
+    draw();
+  });
+
+  draw();
+
+  /* And again once visit.js has run.
+   *
+   * ?pf_count=off is applied by visit.js, which is deferred, and this script
+   * is inline — so on an arrival carrying that parameter the button was drawn
+   * from a key that had not been written yet and read "Don't count my visits"
+   * on a browser that had just opted out. The state was right and the label
+   * was a version behind.
+   *
+   * Redrawing on load fixes it without this file learning about the parameter,
+   * which matters: the moment two files decide what counts as opted out they
+   * can disagree, and the one a visitor sees would not be the one that writes
+   * the row. visit.js owns the rule; this only ever reports it. */
+  window.addEventListener('load', draw);
+}());
+</script>
 <script src="/assets/supabase-config.js"></script>
 <script src="/assets/visit.js" defer></script>
 </body>

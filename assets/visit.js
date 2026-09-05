@@ -23,11 +23,24 @@
  * Path, referrer HOSTNAME, utm_* if present, a device class, a browser family
  * from a fixed list, and the IANA timezone.
  *
- * Not: any id, cookie, localStorage entry, fingerprint, IP address (it cannot
- * see one) or user agent string. Nothing is kept in the browser — there is no
- * state here at all, so two views by the same person are two unrelated rows and
- * cannot be joined. That is a real limitation, it is the point, and
+ * Not: any id, cookie, fingerprint, IP address (it cannot see one) or user
+ * agent string. Two views by the same person are two unrelated rows and cannot
+ * be joined. That is a real limitation, it is the point, and
  * supabase/migration-visits.sql says the same at more length.
+ *
+ * This block used to end "Nothing is kept in the browser — there is no state
+ * here at all." That stopped being true the moment the opt-out below was
+ * added, and it is corrected here rather than left because a comment that
+ * describes the file it sits in is the one a reader trusts most.
+ *
+ * There is now exactly one stored value: pf_count, written only when somebody
+ * asks not to be counted. It is worth being precise about what that does and
+ * does not undo. It is not an identifier — every visitor who sets it stores
+ * the same three letters, so it distinguishes nobody from anybody. It is never
+ * sent: it decides whether a request happens at all, and it is not a field on
+ * the row. Nothing on the server can read it or infer it. The property the
+ * paragraph above claims — that two rows cannot be joined — is untouched,
+ * because the only thing this key can do is prevent a row existing.
  *
  * The referrer is reduced to its host before it leaves the page. A referring
  * URL's path can carry a search query, a token or a private document name, and
@@ -51,6 +64,42 @@
      would otherwise all land in the same table as production and there would be
      no column to tell them apart afterwards. */
   if (location.hostname !== 'www.peerflow.dev' && location.hostname !== 'peerflow.dev') return;
+
+  /* The opt-out.
+   *
+   * One key, one value, set only by asking for it. privacy.html carries the
+   * button that writes it and the sentence explaining it; ?pf_count=off does
+   * the same thing from any page, which is what makes it usable from a phone
+   * you are testing on without hunting for the control.
+   *
+   * WHY THIS EXISTS AT ALL, GIVEN THE FILE STORES NOTHING ELSE
+   *
+   * The owner wanted their own visits marked as theirs in the log. That would
+   * need an identifier, and an identifier that can mark one person can mark
+   * anyone — it is the mechanism privacy.html says is not there and will not
+   * be. Not counting somebody answers the same question from the other side:
+   * if your own views are absent, everything in the log is somebody else, and
+   * nothing had to be identified to achieve it.
+   *
+   * It is genuinely one bit. It says whether to write a row. It cannot be read
+   * back by the server, it is not sent anywhere, and it is the same flag for
+   * every visitor rather than an owner-only switch — which is why the sentence
+   * it forced into privacy.html is one a reader is glad to find rather than
+   * one that needs defending.
+   */
+  var COUNT_KEY = 'pf_count';
+  try {
+    var want = new URLSearchParams(location.search).get(COUNT_KEY);
+    if (want === 'off')     localStorage.setItem(COUNT_KEY, 'off');
+    else if (want === 'on') localStorage.removeItem(COUNT_KEY);
+    if (localStorage.getItem(COUNT_KEY) === 'off') return;
+  } catch (e) {
+    /* Private windows, blocked site data, and browsers set to refuse storage
+       all throw here rather than returning null. Swallowing it means the visit
+       is counted, which is the same answer as a visitor who never opted out —
+       and the alternative, treating a thrown error as an opt-out, would
+       silently stop counting anyone with strict settings. */
+  }
 
   /* Public pages only. The signed-in pages are deliberately not counted: which
      app screens a member moved between is the closest thing here to watching a

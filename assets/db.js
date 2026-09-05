@@ -25,7 +25,7 @@
  * genuinely running what you shipped. Bump it when you change anything in
  * assets/, and ask for it before believing a bug report about behaviour you
  * have already fixed. */
-window.PF_BUILD = '2026-09-04e';
+window.PF_BUILD = '2026-09-05a';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -2207,6 +2207,48 @@ window.pf = (function(){
     }).catch(function(){ return null; });
   }
 
+  /* The members, and when each was last here.
+   *
+   * The only reader on this page that names people. Everything else counts
+   * rows; this one lists them, which is a different kind of screen and worth
+   * saying so where somebody will read it.
+   *
+   * It collects nothing. created_at and last_sign_in_at are written by
+   * Supabase on every account and have been since the project existed;
+   * profiles and sessions are PeerFlow's own tables. There is no new column
+   * and no new write anywhere behind this.
+   *
+   * It does not touch the visits table and cannot. A member's page views stay
+   * unattributable — that is a property of there being no identifier in that
+   * table at all, not of anything this function chooses not to do.
+   *
+   * Numbers arrive as strings from PostgREST when the column is bigint, so
+   * every count is coerced. That exact bug scored a track of forty as one on
+   * the landing page once, and it looks like working code until the number is
+   * big enough to matter. */
+  function memberActivity(limit){
+    if (!client) return Promise.resolve(null);
+    return client.rpc('member_activity', { p_limit: limit || 100 }).then(function(r){
+      if (r.error || !r.data) return null;
+      return r.data.map(function(row){
+        var num = function(v){ var n = Number(v); return isFinite(n) ? n : 0; };
+        return {
+          name:     String(row.name || ''),
+          trackId:  row.track_id ? String(row.track_id) : null,
+          joined:   row.joined_at    ? new Date(row.joined_at)    : null,
+          /* null is a real answer here and must survive: it means an account
+             that has never signed in since it was made, which is the row the
+             owner most wants to see. Coercing it to a date would hide it. */
+          lastSeen: row.last_seen_at ? new Date(row.last_seen_at) : null,
+          complete: row.complete === true,
+          proposed: num(row.proposed),
+          booked:   num(row.booked),
+          attended: num(row.attended)
+        };
+      });
+    }).catch(function(){ return null; });
+  }
+
   /* Device, browser and timezone in one call, split here into three lists.
      One round trip because the page draws them side by side and three
      requests for three small lists is silly. */
@@ -2958,6 +3000,7 @@ window.pf = (function(){
     visitSources: visitSources,
     visitCampaigns: visitCampaigns,
     visitRecent: visitRecent,
+    memberActivity: memberActivity,
     visitPages: visitPages,
     visitContext: visitContext,
     trackNames: trackNames,

@@ -68,7 +68,20 @@ create schema if not exists auth;
 create table if not exists auth.users (
   id uuid primary key default gen_random_uuid(),
   email text,
-  raw_user_meta_data jsonb default '{}'::jsonb
+  raw_user_meta_data jsonb default '{}'::jsonb,
+  -- Both are real columns on Supabase's auth.users and both are written by
+  -- Supabase itself: created_at when the account is made, last_sign_in_at on
+  -- every sign-in. They are stubbed here because member_activity() reads them
+  -- and this table previously carried only what the older tests needed — so
+  -- the suite failed to load a migration that is correct against production.
+  --
+  -- Worth remembering as a shape: a stub that is leaner than the real thing
+  -- fails safe (a test cannot pass on a column that is missing here and
+  -- present there), but a stub that is more generous than the real thing does
+  -- the opposite, which is why nothing gets added here that Supabase does not
+  -- actually provide.
+  created_at timestamptz not null default now(),
+  last_sign_in_at timestamptz
 );
 -- The real auth.uid() reads the JWT PostgREST puts on the connection. Same
 -- claim name, so the policies behave exactly as they do in production.
@@ -108,7 +121,17 @@ SQL
 # of it. Leaving it out of this list is how its three cases passed for the
 # wrong reason the first time they were written — the trigger they test was
 # never in the database, so the forgery simply succeeded and raised nothing.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql supabase/migration-funnel.sql supabase/migration-blocked-ids.sql supabase/migration-visits.sql"
+# This list is the second copy of something dev/migration-check.js derives from
+# supabase/ at run time, and second copies are what that tool exists to retire.
+# It stays hand-written here because this script's whole contract is that it
+# needs psql and nothing else — shelling out to node to build it would trade a
+# staleness risk for a dependency the suite does not otherwise have.
+#
+# So it is a knowing trade, and this is the mitigation: `node
+# dev/migration-check.js --list` is the authority on what a live migration is,
+# and a file that is in that list and not in this one is covered by nothing.
+# Compare the two when adding a migration.
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql supabase/migration-funnel.sql supabase/migration-blocked-ids.sql supabase/migration-visits.sql supabase/migration-members.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
@@ -2896,6 +2919,91 @@ check "  and neither reader answers a member" ok "
       then raise exception 'visit_recent answered a member'; end if;
   end \$\$;"
 
+
+echo
+echo "==> the members list, which is the one reader that names people"
+
+# Everything else on the metrics page counts rows. This one lists them, with a
+# name against each, so the gate matters more here than anywhere else on it —
+# and it reads auth.users, which nothing else in this file does.
+check "a member cannot see the members list" ok "
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.member_activity()) <> 0
+      then raise exception 'member_activity answered a member'; end if;
+  end \$\$;"
+
+check "  and the owner sees every account, not only the ones with profiles" ok "
+  set local role postgres;
+  insert into auth.users (id, email) values
+    ('33333333-3333-3333-3333-333333333333', 'c@x.dev')
+    on conflict (id) do nothing;
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.member_activity()) < 3
+      then raise exception 'an account without a finished profile was dropped'; end if;
+  end \$\$;"
+
+# The whole reason this screen exists is to tell "nobody has come back" apart
+# from "everybody has". An account that never signed in has a NULL there, and a
+# reader that sorted those first would bury the people who are actually active.
+check "  an account that never signed in comes last, not first" ok "
+  set local role postgres;
+  -- A and B are seeded by this suite already, so these set the two states
+  -- rather than creating rows: one signed in just now, one never.
+  update auth.users set last_sign_in_at = now()  where id = '$B';
+  update auth.users set last_sign_in_at = null   where id = '$A';
+  insert into public.app_admins (user_id) values ('$A');
+  $AS_A
+  do \$\$ begin
+    if (select last_seen_at from public.member_activity() limit 1) is null
+      then raise exception 'a never-signed-in account sorted to the top'; end if;
+  end \$\$;"
+
+# The same five fields funnel_counts() calls "finished signing up". They are
+# restated in member_activity rather than shared, so this is the case that
+# catches the two drifting apart.
+check "  \"complete\" means the same five fields the funnel counts" ok "
+  set local role postgres;
+  insert into public.app_admins (user_id) values ('$A');
+  update public.profiles set track_id = 'cybersecurity', topic = 'nmap',
+    level = 'new', timezone = 'Asia/Tashkent', availability = '[1]'::jsonb
+   where id = '$A';
+  $AS_A
+  do \$\$ begin
+    if not (select complete from public.member_activity() where name is not null limit 1)
+      then raise exception 'a profile with all five fields was not complete'; end if;
+  end \$\$;"
+
+check "  and a profile missing one of them is not complete" ok "
+  set local role postgres;
+  insert into public.app_admins (user_id) values ('$A');
+  update public.profiles set track_id = 'cybersecurity', topic = 'nmap',
+    level = 'new', timezone = null, availability = '[1]'::jsonb
+   where id = '$A';
+  $AS_A
+  do \$\$ begin
+    if (select complete from public.member_activity() where name is not null limit 1)
+      then raise exception 'a profile with no timezone was called complete'; end if;
+  end \$\$;"
+
+# Same reasoning as visit_recent: a reader that returns rows must not be
+# askable for the whole table.
+check "  a caller asking for everyone gets at most 500" ok "
+  set local role postgres;
+  insert into public.app_admins (user_id) values ('$A');
+  insert into auth.users (id, email)
+    select gen_random_uuid(), 'm' || g || '@x.dev' from generate_series(1, 520) g;
+  $AS_A
+  do \$\$ begin
+    if (select count(*) from public.member_activity(100000)) > 500
+      then raise exception 'the cap did not hold'; end if;
+  end \$\$;"
+
+check "  and anon cannot execute it at all" "42501" "$(wrap "
+  set local role anon;
+  perform * from public.member_activity();")"
 
 echo
 echo "==================================================="
