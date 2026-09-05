@@ -3,661 +3,244 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Draft: step two, with the new picture</title>
 <meta name="robots" content="noindex">
+<title>Draft — saying what is and isn't booked</title>
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="description" content="Find a tech study partner across 8 learning paths for recurring 1-on-1 camera-on study sessions. Match by path, level, goals and weekly availability.">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="PeerFlow">
-<meta property="og:locale" content="en_US">
-<meta property="og:title" content="Find a Tech Study Partner for Live Study Sessions | PeerFlow">
-<meta property="og:description" content="Find one compatible tech learner for recurring 1-on-1 camera-on study sessions across eight learning paths.">
-<meta property="og:url" content="https://www.peerflow.dev/">
-<meta property="og:image" content="https://www.peerflow.dev/assets/social.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="PeerFlow — find one study partner for your IT learning path">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Find a Tech Study Partner for Live Study Sessions | PeerFlow">
-<meta name="twitter:description" content="Find one compatible tech learner for recurring 1-on-1 camera-on study sessions across eight learning paths.">
-<meta name="twitter:image" content="https://www.peerflow.dev/assets/social.png">
-<meta name="twitter:image:alt" content="PeerFlow — find one study partner for your IT learning path">
-<meta name="theme-color" content="#0b8f66">
-<link rel="preconnect" href="https://ooolpkdqrfhnmcmdqhau.supabase.co" crossorigin>
-<!-- supabase-js is fetched from here, and it blocks: db.js cannot create a
-     client until it lands, and authgate.js keeps the page invisible until
-     that happens. Without this line the browser only discovers it needs a
-     connection to jsdelivr when it reaches the tag at the bottom of the
-     body, and then pays DNS, TCP and TLS to a third origin before the
-     download can even start. The other three origins on the page were
-     already preconnected; this was the one on the critical path that was
-     not. -->
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Loaded without blocking the first paint: text appears immediately in the
-     fallback face and swaps when the webfont lands. -->
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
-      onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"></noscript>
-<link rel="stylesheet" href="assets/home.css">
+<link rel="stylesheet" href="/assets/tokens.css">
+<link rel="stylesheet" href="/assets/app.css">
 <style>
-  /* Fixed rather than a banner in the flow: the point of this draft is seeing
-     the new picture at the size and in the position it is really read at, and
-     a note above the fold would push everything down. */
-  .draftmark{position:fixed;right:16px;bottom:16px;z-index:99;
-    background:#FFF8E6;border:1px solid #F0DFAE;border-radius:10px;padding:10px 14px;
-    font:600 12.5px/1.5 var(--body);color:#6B5518;max-width:280px;
-    box-shadow:0 6px 20px rgba(23,26,46,.14)}
-  .draftmark a{color:#6B5518}
+/* Draft chrome only. The options below use the real .now and .pop classes out
+   of app.css, so what is on screen is what the page would look like. */
+body{background:var(--bg);margin:0}
+.d-wrap{max-width:1000px;margin:0 auto;padding:36px 20px 90px}
+.d-head{max-width:66ch;margin-bottom:8px}
+.d-head h1{font-size:27px;line-height:1.18;letter-spacing:-.03em;margin:0 0 12px;color:var(--ink)}
+.d-head p{margin:0 0 12px;color:var(--soft);font-size:14.5px;line-height:1.65}
+.d-head b{color:var(--ink)}
+.d-sec{margin:44px 0 0;padding-top:26px;border-top:2px solid var(--line)}
+.d-sec > h2{font-size:20px;letter-spacing:-.02em;margin:0 0 8px;color:var(--ink)}
+.d-sec > .lede{margin:0 0 6px;color:var(--soft);font-size:14.5px;max-width:70ch;line-height:1.6}
+.d-opt{margin:26px 0 0}
+.d-opt > h3{font-size:14px;margin:0 0 5px;color:var(--ink)}
+.d-opt > .why{margin:0 0 13px;color:var(--soft);font-size:13.5px;max-width:72ch;line-height:1.6}
+.d-opt > .why b{color:var(--ink)}
+.d-now{max-width:820px}
+.tag{display:inline-block;font:600 11px/1 var(--mono,monospace);letter-spacing:.08em;
+     text-transform:uppercase;padding:4px 8px;border-radius:var(--r-mark);
+     background:var(--p0);color:var(--p6);margin-left:8px;vertical-align:middle}
+.tag.now{background:#FDF0D8;color:#7A5A12}
+
+/* a stand-in for the time popover, using the same shapes app.css gives it */
+.mock-pop{width:300px;border:1px solid var(--line);border-radius:var(--r-card);
+  background:var(--card);padding:14px 15px;box-shadow:0 10px 30px rgba(23,26,46,.10)}
+.mock-pop .ph{font:600 11px/1 var(--mono,monospace);letter-spacing:.09em;text-transform:uppercase;
+  color:var(--faint);margin:0 0 9px}
+.mock-pop .ph.big{color:var(--soft)}
+.mock-grid{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.mock-grid button{font:600 13px/1 inherit;padding:8px 11px;border-radius:var(--r-control);
+  border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:default}
+.mock-grid button.free{background:var(--p0);border-color:var(--p0)}
+.mock-grid button.on{background:var(--p8);border-color:var(--p8);color:#fff}
+.mock-grid button.wide{width:100%;background:var(--p0);border-color:var(--p0);color:var(--p6)}
+.mock-sep{height:1px;background:var(--line);margin:0 0 13px}
+.two{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
 </style>
 </head>
 <body>
 
-<div class="wrap">
+<div class="d-wrap">
 
-  <nav class="nav">
-    <a class="logo" href="/" aria-label="PeerFlow home">
-      <svg width="26" height="26" viewBox="0 0 173 171" fill="#0b8f66" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-      <span>peer<b>flow</b></span>
-    </a>
-    <!-- Two navigations, one set of links, and only ever one of them on screen:
-         .nav-right is the inline row above 760px, .nav-menu is the panel the
-         Menu button opens below it. They are never both visible, so there is no
-         width where the page shows the same four links twice.
+<div class="d-head">
+  <h1>Saying what is booked, and what is only being asked</h1>
+  <p>Two things on the Today page read as more settled and more restricted than
+    they are. Both are wording rather than behaviour — <b>nothing below changes
+    what the app can do</b>, only what it claims.</p>
+  <p><b>The second one is worth reading before you pick anything:</b> you can
+    already propose any time on any day. The time menu has an <i>Any other
+    time</i> section listing every hour from 7am to 11pm, and the day menu has
+    a date box for any date at all. Nothing is restricted to the hours you
+    share. The menu just puts those first and gives them more weight, which
+    reads as "these are the options" rather than "these are the likely ones".</p>
+</div>
 
-         home.js finds both auth links by href — now with querySelectorAll, so
-         it reaches the copies in both — which is why login.html and signup.html
-         have to stay written exactly like this in both places. The section
-         anchors beside them are free to change.
+<!-- ══════════════════════════════════════════════════════ 1 ══════════ -->
+<div class="d-sec">
+  <h2>1. The band says you have a session when you have not proposed one</h2>
+  <p class="lede">The heading is a noun phrase with no verb, so it asserts that
+    the thing exists. The correction is in the third sentence of the subline,
+    after the day, the time and the length — by which point the heading has
+    already been believed.</p>
 
-         .nav-right keeps existing on mobile even though its links are hidden:
-         usermenu.js appends the signed-in account chip to it, and that chip
-         still belongs in the top bar on a phone. -->
-    <div class="nav-right">
-      <a href="#how">How it works</a>
-      <a href="#paths">Learning paths</a>
-      <a href="login.html">Log in</a>
-      <a class="btn btn-sm" href="signup.html">Find my partner</a>
-    </div>
-
-    <!-- aria-expanded is written closed here rather than left to JS, so the
-         button is honest about its state from the first paint. -->
-    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav-menu">
-      <svg class="menu-ico" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor"
-           stroke-width="1.9" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
-      <svg class="menu-ico-x" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor"
-           stroke-width="1.9" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
-      Menu
-    </button>
-
-    <!-- hidden, not a class: it is display:none from the first byte of markup,
-         so the panel cannot flash open before home.js has run. -->
-    <div class="nav-menu" id="nav-menu" hidden>
-      <a href="#how">How it works</a>
-      <a href="#paths">Learning paths</a>
-      <a href="login.html">Log in</a>
-      <a class="btn" href="signup.html">Find my partner</a>
-    </div>
-  </nav>
-
-  <!-- ================= HERO ================= -->
-  <header class="hero">
-    <div class="hero-copy">
-      <!-- One sentence, not two. "Show up and learn together" moved down into
-           the lede. It carries none of the phrases SEO_ROADMAP.md targets, so
-           at 55px it was buying a whole third line of green for nothing, and it
-           reads better a line down where it is a promise rather than a heading.
-
-           The two-sentence version wrapped to three lines at 1280, 1440, 1728
-           and 2000 — every desktop width measured — and neither lever moved it:
-           three lines at 48px and at 44px too, and a copy column widened from
-           1.08fr to 1.3fr changed nothing anywhere. The length of the line is
-           the only lever there is, which is why this is a copy change and not a
-           type change.
-
-           The lede lost the four keyword phrases it was carrying, for the same
-           reason: they are already in this page's meta description word for
-           word, and that is the text a search result actually shows. It was
-           paying two lines to repeat a field that had already said it.
-
-           Green, and the whole line rather than a coloured half — colouring one
-           phrase is what made the old headline look broken in two. The colour
-           has moved into home.css beside the other h1 rules, where the note
-           that used to sit here said it belonged. -->
-      <h1>Find your tech study partner.</h1>
-      <p class="lede">Match with one learner on the same path and level. Show up on camera each week and learn together.</p>
-
-      <div class="cta-row">
-        <a class="btn" href="signup.html">Find my partner</a>
-      </div>
-
-      <p class="trust">8 tech paths · 1-on-1 · Camera-on study sessions · Beginner friendly</p>
-    </div>
-
-    <!--
-      An illustration of a session in progress. It carries three things the
-      page claims — that it's one person and not a group, that the subject is
-      IT, and that the time is a standing one — so it is two camera tiles, a
-      named path and a weekly slot. Nobody here is a real user, so the whole
-      card is hidden from screen readers rather than announced as live data.
-
-      The pomodoro stays, because a session that runs on one is the thing being
-      illustrated, but it sits at the bottom in a small dial: it is a detail of
-      the session, not the point of the card. The clock is driven by home.js.
-    -->
-    <aside class="session" aria-hidden="true">
-      <div class="session-head">
-        <span class="live"><b></b>In session</span>
-        <span class="mono">cameras on</span>
-      </div>
-
-      <div class="tiles">
-        <div class="tile">
-          <span class="tav" style="background:#534AB7">AM</span>
-          <span class="tname">Amir</span>
-        </div>
-        <div class="tile you">
-          <span class="tav" style="background:#0FA36B">YOU</span>
-          <span class="tname">You</span>
+  <div class="d-opt">
+    <h3>Now <span class="tag now">shipping</span></h3>
+    <p class="why">Reads as: this session exists, on Saturday, at 11.</p>
+    <div class="now d-now" data-tone="idle">
+      <div class="now-txt">
+        <span class="mono now-k">Your first session</span>
+        <p class="now-h">Your first session with Gulsanam.</p>
+        <p class="now-s">Saturday, Sep 5 · 11:00 AM · a 50-minute first session. Nothing is booked until they accept.</p>
+        <div class="now-a">
+          <a class="btn" href="#">Propose this time</a>
+          <a class="ghost" href="#">Someone else</a>
         </div>
       </div>
+    </div>
+  </div>
 
-      <div class="rows">
-        <div class="row"><span>Both learning</span><b>Frontend</b></div>
-        <div class="row"><span>Weekly slot</span><b>Tuesdays, 19:00</b></div>
+  <div class="d-opt">
+    <h3>A — put the verb back <span class="tag">recommended</span></h3>
+    <p class="why">The heading becomes the ask it actually is, and keeps every
+      specific the current one has: who, when, how long. <b>Nothing is booked
+      until they accept</b> moves out of the subline because the heading no
+      longer contradicts it — the button already says <i>Propose</i>, and the
+      form repeats it on save.</p>
+    <div class="now d-now" data-tone="idle">
+      <div class="now-txt">
+        <span class="mono now-k">Your first session</span>
+        <p class="now-h">Ask Gulsanam to meet on Saturday at 11:00 AM.</p>
+        <p class="now-s">A 50-minute first session. They can accept it, or offer a different time.</p>
+        <div class="now-a">
+          <a class="btn" href="#">Send this</a>
+          <a class="ghost" href="#">Someone else</a>
+        </div>
       </div>
+    </div>
+  </div>
 
-      <div class="pom">
-        <div class="pom-ring">
-          <svg viewBox="0 0 100 100">
-            <circle class="pom-track" cx="50" cy="50" r="43"/>
-            <circle class="pom-arc" id="pf-arc" cx="50" cy="50" r="43"/>
-          </svg>
-        </div>
-        <div class="pom-txt">
-          <b id="pf-count">25:00</b>
-          <span>left in this pomodoro</span>
+  <div class="d-opt">
+    <h3>B — leave the heading, fix the label</h3>
+    <p class="why">The smallest possible change: the eyebrow above the heading
+      is doing nothing today (<i>Your first session</i> restates the heading),
+      so it carries the state instead. <b>Cost:</b> the heading still says the
+      session is yours, and the label is the smallest text in the band — it is
+      the one people skip.</p>
+    <div class="now d-now" data-tone="idle">
+      <div class="now-txt">
+        <span class="mono now-k">Not booked yet</span>
+        <p class="now-h">Your first session with Gulsanam.</p>
+        <p class="now-s">Saturday, Sep 5 · 11:00 AM · a 50-minute first session, if they accept.</p>
+        <div class="now-a">
+          <a class="btn" href="#">Propose this time</a>
+          <a class="ghost" href="#">Someone else</a>
         </div>
       </div>
-    </aside>
-  </header>
+    </div>
+  </div>
 
-  <!-- ================= SOUNDS FAMILIAR? =================
-       The problem, named before the fix is offered. It sits between the hero
-       and how-it-works on purpose: you say what is wrong, then the white band
-       opens straight onto the four steps that answer it.
+  <div class="d-opt">
+    <h3>C — lead with the true state</h3>
+    <p class="why">Says the honest thing first and the suggestion second. It is
+      the most accurate of the three and the least motivating: the band's whole
+      job is to make a first session easy to start, and this one opens by
+      telling you that you have not.</p>
+    <div class="now d-now" data-tone="idle">
+      <div class="now-txt">
+        <span class="mono now-k">Your first session</span>
+        <p class="now-h">You and Gulsanam haven’t met yet.</p>
+        <p class="now-s">Saturday at 11:00 AM works for you both — 50 minutes. Send it and they decide.</p>
+        <div class="now-a">
+          <a class="btn" href="#">Send this</a>
+          <a class="ghost" href="#">Someone else</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-       Deliberately the quietest thing on the page. Green here means "the part
-       that works" — it is the route you took on the map, the Step one kicker,
-       every button. Spending it on three complaints would devalue it four
-       hundred pixels before the solutions arrive, so these cards are ink and
-       hairlines and nothing else. Their contrast comes from what follows
-       them: grey problems, then a white band of green-accented answers. -->
-  <section id="problem" class="sec">
-    <div class="sec-head">
-      <span class="mono">The problem</span>
-      <h2>Sounds familiar?</h2>
+<!-- ══════════════════════════════════════════════════════ 2 ══════════ -->
+<div class="d-sec">
+  <h2>2. The time menu looks like a list of the times you’re allowed</h2>
+  <p class="lede">It isn’t. Every hour is already there. But the shared ones sit
+    under a heading that names a fact about both of you, and the rest sit under
+    <i>Any other time</i> — which reads as the overflow drawer rather than as
+    equally valid. The line under the sentence says the same thing again:
+    <i>You’re both free in the morning that day.</i></p>
+
+  <div class="two">
+    <div class="d-opt" style="flex:1;min-width:300px">
+      <h3>Now <span class="tag now">shipping</span></h3>
+      <p class="why">Three visual weights, and the third reads as leftovers.</p>
+      <div class="mock-pop">
+        <p class="ph">Straight away</p>
+        <div class="mock-grid"><button class="wide">Now — 8:31 AM</button></div>
+        <div class="mock-sep"></div>
+        <p class="ph">Evening — you’re both free</p>
+        <div class="mock-grid">
+          <button class="on">5:00 PM</button><button class="free">6:00 PM</button>
+          <button class="free">7:00 PM</button><button class="free">8:00 PM</button>
+        </div>
+        <div class="mock-sep"></div>
+        <p class="ph">Any other time</p>
+        <div class="mock-grid">
+          <button>7:00 AM</button><button>8:00 AM</button><button>9:00 AM</button>
+          <button>10:00 AM</button><button>11:00 AM</button>
+        </div>
+      </div>
     </div>
 
-    <ul class="probs">
-      <li class="prob">
-        <svg viewBox="0 0 56 32" fill="none" aria-hidden="true"><path d="M3 27c5-1 8-8 13-11s8-4 11-6" stroke="#0A7350" stroke-width="3.4" stroke-linecap="round"/><circle cx="27.6" cy="9.6" r="2" fill="#0A7350"/><path d="M35 8h1.5M42.5 6.6h1.5M50 5.2h1.5" stroke="#C6D8D1" stroke-width="3.4" stroke-linecap="round"/></svg>
-        <h3>You lose motivation and drop out before finishing.</h3>
-      </li>
-
-      <li class="prob">
-        <svg viewBox="0 0 56 32" fill="none" aria-hidden="true"><circle cx="15" cy="11" r="6.6" fill="#0A7350"/><path d="M4 28c0-6.1 4.9-10.6 11-10.6S26 21.9 26 28z" fill="#0A7350"/><circle cx="41" cy="11" r="6.6" fill="#DCE7E2"/><path d="M30 28c0-6.1 4.9-10.6 11-10.6S52 21.9 52 28z" fill="#DCE7E2"/></svg>
-        <h3>You can't find peers with the same level &amp; schedule.</h3>
-      </li>
-
-      <li class="prob">
-        <svg viewBox="0 0 56 32" fill="none" aria-hidden="true"><rect x="3" y="12" width="8" height="8" rx="2.4" fill="#0A7350"/><rect x="14" y="12" width="8" height="8" rx="2.4" fill="#DCE7E2"/><rect x="25" y="12" width="8" height="8" rx="2.4" fill="#DCE7E2"/><rect x="36" y="12" width="8" height="8" rx="2.4" fill="#0A7350"/><rect x="47" y="12" width="8" height="8" rx="2.4" fill="#DCE7E2"/></svg>
-        <h3>Practice is irregular and progress feels invisible.</h3>
-      </li>
-    </ul>
-  </section>
-
-  <!-- ================= HOW IT WORKS =================
-       Four steps, four pictures. Two of them are the drawn PNGs from
-       assets/how-frames.html — pictures made for this width rather than
-       screenshots shrunk until the words turn to texture — and two are drawn
-       here in CSS, because no existing picture says "pick a field" or "you
-       finished something". They share the same shell as the PNGs: the green
-       PeerFlow bar over a white body, at the same 1280:841 shape, so all four
-       cards line up whatever the row width is.
-
-       Step two's picture was redrawn in September 2026. It used to be three
-       names and three buttons — it said a list exists, without saying what the
-       list knows about anybody on it, which is the only reason to look at one.
-       Each row now names the person's learning path — Mobile, Frontend,
-       Backend — which is the taxonomy the rest of the page is built on and the
-       one thing about a stranger that decides whether you would be matched
-       with them. A version carrying the goal as well was drawn and compared
-       against this one in a real card on /draft; it put a second line on every
-       row, at about 6px once the card is 300px wide, and lost.
-       Both drawn frames are rendered by dev/how-frames-render.js
-       rather than by hand, so the picture and the markup that claims to draw it
-       cannot drift apart again.
-
-       how-frames.html still draws a second frame that this section does not
-       use. It was for agreeing a time and used to be stored as
-       assets/how-2-time.png, which nothing referenced; the file is gone and the
-       frame can be re-rendered if that step is ever wanted back.
-
-       Step three is a WebP rather than a PNG because it is photographic — two
-       webcam stills in a chrome frame — and PNG is the wrong container for
-       that. It was 256KB as a palette PNG, which also banded the flat walls;
-       at WebP q82 it is 50KB and cleaner. Step one stays a PNG because it is
-       a flat UI screenshot, which is precisely what PNG is good at: it is
-       twice the pixels and a fifth of the bytes. -->
-  <section id="how" class="sec">
-    <!-- No mono kicker above the heading here, the way the other sections
-         have one — it would only repeat the heading. No line under it either:
-         the four cards say it themselves, and a sentence in front of them was
-         only delaying them. -->
-    <div class="sec-head">
-      <h2>How it works</h2>
+    <div class="d-opt" style="flex:1;min-width:300px">
+      <h3>D — name what the sections mean <span class="tag">recommended</span></h3>
+      <p class="why">The headings stop describing the times and start describing
+        <b>the odds</b>. Nothing moves, nothing is restyled — the second heading
+        just stops sounding like a rule. Pairs with the helper line below.</p>
+      <div class="mock-pop">
+        <p class="ph">Straight away</p>
+        <div class="mock-grid"><button class="wide">Now — 8:31 AM</button></div>
+        <div class="mock-sep"></div>
+        <p class="ph">Hours they said suit them</p>
+        <div class="mock-grid">
+          <button class="on">5:00 PM</button><button class="free">6:00 PM</button>
+          <button class="free">7:00 PM</button><button class="free">8:00 PM</button>
+        </div>
+        <div class="mock-sep"></div>
+        <p class="ph big">Any other hour — they’ll still be asked</p>
+        <div class="mock-grid">
+          <button>7:00 AM</button><button>8:00 AM</button><button>9:00 AM</button>
+          <button>10:00 AM</button><button>11:00 AM</button>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="how-grid">
-
-      <!-- ---- 01 · drawn here: a map, one route taken ----
-           Not a mock-up of a screen, unlike the rest of the row. Three routes
-           leave one pin, two of them faint and dashed and named where they
-           end, and the one you took is solid green and finishes at a flag —
-           the two halves of the sentence under the card in one picture.
-
-           Drawn on the same 1280:841 shape as the other three, so the row
-           still lines up. It has no green PeerFlow bar, on purpose.
-
-           Painted out of the page's own palette rather than the cream it was
-           first drawn in: the sheet is white with the faintest green cast,
-           the grid and the fold creases are pale greens, and the route you
-           took is --live-deep, the same green as the "Step one" kicker below
-           it and the buttons in the card next door. The routes you did not
-           take are a desaturated green-grey, so they read as the same family
-           of ink rather than a second colour scheme. -->
-      <article class="how-card">
-        <div class="how-shot">
-          <svg class="how-map" viewBox="0 0 400 263" role="img"
-               aria-label="A map with three routes leaving one pin: Backend and Mobile faint and untaken, and Frontend marked out and ending at a flag">
-            <rect width="400" height="263" fill="#F7FBF9"/>
-            <!-- grid, then the two creases on top of it: each crease is a pale
-                 highlight beside a darker line, which is what a fold looks
-                 like. On the old version they were a single faint line and
-                 vanished at card size. -->
-            <g stroke="#E6F2EC" stroke-width="2">
-              <path d="M0 66h400M0 197h400M67 0v263M200 0v263M333 0v263"/>
-            </g>
-            <g fill="none" stroke="#DCEEE5" stroke-width="3">
-              <path d="M0 38C56 34 78 64 132 60S200 18 258 26s94 50 142 40"/>
-              <path d="M0 246C64 242 86 212 146 216s76 42 136 34 74-28 118-32"/>
-            </g>
-            <g stroke-width="2">
-              <path d="M133.5 0v263M267.5 0v263M0 131.5h400" stroke="#D5E9E0"/>
-              <path d="M131 0v263M265 0v263M0 129h400" stroke="#FFFFFF"/>
-            </g>
-
-            <!-- the two you did not take -->
-            <g fill="none" stroke="#AEC8BF" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 13">
-              <path d="M66 196C122 194 172 182 226 170"/>
-              <path d="M66 196C124 214 180 226 240 230"/>
-            </g>
-            <g fill="#AEC8BF"><circle cx="230" cy="169" r="6"/><circle cx="244" cy="230" r="6"/></g>
-
-            <!-- the one you did -->
-            <path d="M66 196C96 172 112 138 158 126S232 116 262 92" fill="none"
-                  stroke="#0A7350" stroke-width="8" stroke-linecap="round"/>
-            <g fill="#FFFFFF" stroke="#0A7350" stroke-width="4">
-              <circle cx="158" cy="126" r="6"/><circle cx="215" cy="110" r="6"/>
-            </g>
-
-            <path d="M66 218c0 0-15-21-15-31a15 15 0 1 1 30 0c0 10-15 31-15 31z" fill="#171A2E"/>
-            <circle cx="66" cy="186" r="5.5" fill="#FFFFFF"/>
-
-            <path d="M262 92V54" stroke="#171A2E" stroke-width="5" stroke-linecap="round"/>
-            <path d="M262 54h36l-9 10 9 10h-36z" fill="#0A7350"/>
-            <ellipse cx="262" cy="94" rx="12" ry="4" fill="#171A2E" opacity=".16"/>
-
-            <!-- every label sits clear of every line; on the old version
-                 "Mobile" landed on top of the green route. -->
-            <text x="166" y="66" font-family="Plus Jakarta Sans, system-ui, sans-serif"
-                  font-size="17" font-weight="800" fill="#0A5240">Frontend</text>
-            <g font-family="Plus Jakarta Sans, system-ui, sans-serif" font-size="14" font-weight="600" fill="#6F8B83">
-              <text x="244" y="174">Backend</text>
-              <text x="258" y="235">Mobile</text>
-            </g>
-
-            <g opacity=".55">
-              <circle cx="356" cy="222" r="16" fill="none" stroke="#B6D2C7" stroke-width="2"/>
-              <path d="M356 210l5 12-5 12-5-12z" fill="#93BBAC"/>
-            </g>
-          </svg>
-        </div>
-        <div class="how-body">
-          <span class="mono">Step one</span>
-          <h3>Choose your path</h3>
-          <p>Choose the IT field you want to learn and describe what you are working toward.</p>
-        </div>
-      </article>
-
-      <!-- ---- 02 ---- -->
-      <article class="how-card">
-        <div class="how-shot">
-          <img src="assets/how-1-find.png" width="1280" height="841" loading="lazy"
-               alt="Three learners and their learning paths — Mobile, Frontend, Backend — each with a Send request button">
-        </div>
-        <div class="how-body">
-          <span class="mono">Step two</span>
-          <h3>Find a compatible learner</h3>
-          <p>See people with a similar goal, experience level and weekly availability.</p>
-        </div>
-      </article>
-
-      <!-- ---- 03 ---- -->
-      <article class="how-card">
-        <div class="how-shot">
-          <img src="assets/how-3-call.webp" width="1280" height="813" loading="lazy"
-               alt="Two people in a video session, cameras on">
-        </div>
-        <div class="how-body">
-          <span class="mono">Step three</span>
-          <h3>Meet face to face, cameras on</h3>
-          <p>Choose a regular time, join the 1-on-1 call, and focus beside the same learning peer each week.</p>
-        </div>
-      </article>
-
-      <!-- ---- 04 · drawn here: the thing you made, shipped ---- -->
-      <article class="how-card">
-        <div class="how-shot">
-          <div class="how-draw" role="img"
-               aria-label="A small portfolio site open in a browser window, marked published">
-            <div class="hd-bar">
-              <svg viewBox="0 0 173 171" aria-hidden="true"><rect x="79" y="0" width="13" height="15"/><rect x="0" y="81" width="15" height="13"/><rect x="158" y="81" width="14" height="13"/><rect x="79" y="156" width="13" height="15"/><path d="M52 24H116V39H99V56H83V70H67V39H52Z"/><path d="M24 57H39V74H56V89H70V106H39V121H24Z"/><path d="M134 53H149V118H134V101H117V85H103V69H134Z"/><path d="M119 147H55V132H72V115H88V101H104V132H119Z"/></svg>
-              <b>peer<i>flow</i></b>
-            </div>
-            <div class="hd-body">
-              <div class="hd-win">
-                <div class="hd-chrome">
-                  <i></i><i></i><i></i>
-                  <span class="hd-url">portfolio-site</span>
-                </div>
-                <div class="hd-code">
-                  <span style="width:78%"></span>
-                  <span style="width:54%" class="g"></span>
-                  <span style="width:66%"></span>
-                  <span style="width:41%"></span>
-                  <span style="width:71%"></span>
-                  <span style="width:48%" class="g"></span>
-                </div>
-              </div>
-              <span class="hd-live">
-                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.4 8.4l3 3.1L12.8 4.9" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-                Published
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="how-body">
-          <span class="mono">Step four</span>
-          <h3>Build something real</h3>
-          <p>Use your sessions to work toward a small practical project you can show.</p>
-        </div>
-      </article>
-
+  <div class="d-opt">
+    <h3>E — the line under the sentence</h3>
+    <p class="why">This is the line that most made it feel like a constraint,
+      because it is the only sentence on the card that mentions availability at
+      all. Same change either way, and it is worth taking even if you keep the
+      menu exactly as it is.</p>
+    <div style="display:grid;gap:10px;max-width:620px">
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:15px 18px">
+        <p style="margin:0 0 4px;font:600 11px/1 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)">Now</p>
+        <p style="margin:0;color:var(--soft);font-size:14px">You’re both free in the morning that day.</p>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--p2);border-radius:var(--r-card);padding:15px 18px">
+        <p style="margin:0 0 4px;font:600 11px/1 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--p6)">Instead</p>
+        <p style="margin:0;color:var(--soft);font-size:14px">Mornings suit you both — but any time can be proposed, and they decide.</p>
+      </div>
     </div>
-  </section>
+  </div>
+</div>
 
-  <!-- ================= PATHS =================
-       The id is the target of "Learning paths" in the nav; nothing else in
-       this section changed. -->
-  <section id="paths" class="sec">
-    <div class="sec-head">
-      <span class="mono">Eight paths</span>
-      <h2>Choose your path</h2>
-      <p>Choose from eight tech paths. PeerFlow matches you with someone learning in the same direction, at roughly the same level.</p>
-    </div>
-
-    <!-- Each .waiting is filled in by home.js from the real number of people
-         signed up to that path. data-track matches the ids in signup.html. -->
-    <div class="grid">
-
-      <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Frontend">
-          <rect width="200" height="130" fill="#3C3489"/>
-          <ellipse cx="98" cy="110" rx="56" ry="8" fill="#26215C"/>
-          <rect x="26" y="20" width="16" height="16" rx="4" fill="#534AB7"/>
-          <rect x="156" y="90" width="12" height="12" rx="3" fill="#534AB7"/>
-          <rect x="72" y="22" width="86" height="62" rx="7" fill="#534AB7"/>
-          <rect x="44" y="32" width="92" height="70" rx="7" fill="#EEEDFE"/>
-          <path d="M44 39a7 7 0 0 1 7-7h78a7 7 0 0 1 7 7v8H44Z" fill="#CECBF6"/>
-          <circle cx="53" cy="39" r="2.4" fill="#7F77DD"/><circle cx="62" cy="39" r="2.4" fill="#7F77DD"/><circle cx="71" cy="39" r="2.4" fill="#7F77DD"/>
-          <rect x="52" y="56" width="26" height="38" rx="4" fill="#AFA9EC"/>
-          <rect x="86" y="56" width="42" height="9" rx="3" fill="#CECBF6"/>
-          <rect x="86" y="70" width="42" height="9" rx="3" fill="#CECBF6"/>
-          <rect x="86" y="84" width="26" height="9" rx="3" fill="#AFA9EC"/>
-        </svg>
-        <div class="path-body">
-          <span class="waiting" data-track="frontend"><b></b><span></span></span>
-          <a href="frontend-study-partner.html" aria-label="Learn about finding a Frontend study partner"><h3>Frontend</h3></a>
-          <a class="cta" href="signup.html?path=frontend">Find my partner</a>
-        </div>
-      </article>
-
-      <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Backend">
-          <rect width="200" height="130" fill="#0F6E56"/>
-          <ellipse cx="100" cy="112" rx="52" ry="8" fill="#085041"/>
-          <circle cx="32" cy="30" r="7" fill="#1D9E75"/>
-          <rect x="158" y="94" width="12" height="12" rx="3" fill="#1D9E75"/>
-          <rect x="61" y="27" width="84" height="22" rx="5" fill="#04342C"/>
-          <rect x="58" y="24" width="84" height="22" rx="5" fill="#E1F5EE"/>
-          <circle cx="69" cy="35" r="3.4" fill="#1D9E75"/>
-          <rect x="80" y="31" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="38" width="22" height="4" rx="2" fill="#9FE1CB"/>
-          <rect x="124" y="30" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="30" width="4" height="12" rx="2" fill="#5DCAA5"/>
-          <rect x="61" y="55" width="84" height="22" rx="5" fill="#04342C"/>
-          <rect x="58" y="52" width="84" height="22" rx="5" fill="#E1F5EE"/>
-          <circle cx="69" cy="63" r="3.4" fill="#1D9E75"/>
-          <rect x="80" y="59" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="66" width="22" height="4" rx="2" fill="#9FE1CB"/>
-          <rect x="124" y="58" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="58" width="4" height="12" rx="2" fill="#5DCAA5"/>
-          <rect x="61" y="83" width="84" height="22" rx="5" fill="#04342C"/>
-          <rect x="58" y="80" width="84" height="22" rx="5" fill="#E1F5EE"/>
-          <circle cx="69" cy="91" r="3.4" fill="#1D9E75"/>
-          <rect x="80" y="87" width="34" height="4" rx="2" fill="#9FE1CB"/><rect x="80" y="94" width="22" height="4" rx="2" fill="#9FE1CB"/>
-          <rect x="124" y="86" width="4" height="12" rx="2" fill="#5DCAA5"/><rect x="131" y="86" width="4" height="12" rx="2" fill="#5DCAA5"/>
-        </svg>
-        <div class="path-body">
-          <span class="waiting" data-track="backend"><b></b><span></span></span>
-          <a href="backend-study-partner.html" aria-label="Learn about finding a Backend study partner"><h3>Backend</h3></a>
-          <a class="cta" href="signup.html?path=backend">Find my partner</a>
-        </div>
-      </article>
-
-      <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Cybersecurity">
-          <rect width="200" height="130" fill="#993C1D"/>
-          <ellipse cx="100" cy="112" rx="44" ry="8" fill="#712B13"/>
-          <circle cx="32" cy="34" r="6" fill="#D85A30"/>
-          <rect x="158" y="86" width="13" height="13" rx="3" fill="#D85A30"/>
-          <path d="M103 20l43 17v31c0 20-18 33-43 42-25-9-43-22-43-42V37Z" fill="#D85A30"/>
-          <path d="M100 20l43 17v31c0 20-18 33-43 42-25-9-43-22-43-42V37Z" fill="#FAECE7"/>
-          <path d="M100 31l33 13v24c0 15-14 25-33 32-19-7-33-17-33-32V44Z" fill="#F5C4B3"/>
-          <circle cx="100" cy="62" r="9" fill="#993C1D"/>
-          <path d="M95.5 67h9l-2 15h-5Z" fill="#993C1D"/>
-        </svg>
-        <div class="path-body">
-          <span class="waiting" data-track="cybersecurity"><b></b><span></span></span>
-          <a href="cybersecurity-study-partner.html" aria-label="Learn about finding a Cybersecurity study partner"><h3>Cybersecurity</h3></a>
-          <a class="cta" href="signup.html?path=cybersecurity">Find my partner</a>
-        </div>
-      </article>
-
-      <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Data Science">
-          <rect width="200" height="130" fill="#185FA5"/>
-          <ellipse cx="100" cy="112" rx="54" ry="8" fill="#0C447C"/>
-          <circle cx="30" cy="32" r="7" fill="#378ADD"/>
-          <rect x="160" y="92" width="12" height="12" rx="3" fill="#378ADD"/>
-          <rect x="51" y="27" width="104" height="76" rx="8" fill="#0C447C"/>
-          <rect x="48" y="24" width="104" height="76" rx="8" fill="#E6F1FB"/>
-          <rect x="62" y="66" width="15" height="20" rx="3" fill="#85B7EB"/>
-          <rect x="83" y="56" width="15" height="30" rx="3" fill="#85B7EB"/>
-          <rect x="104" y="62" width="15" height="24" rx="3" fill="#378ADD"/>
-          <rect x="125" y="44" width="15" height="42" rx="3" fill="#378ADD"/>
-          <path d="M69 60 90 50l21 6 21-14" fill="none" stroke="#185FA5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="132" cy="42" r="4.5" fill="#185FA5"/>
-          <rect x="62" y="34" width="30" height="5" rx="2.5" fill="#B5D4F4"/>
-        </svg>
-        <div class="path-body">
-          <span class="waiting" data-track="data"><b></b><span></span></span>
-          <a href="data-science-study-partner.html" aria-label="Learn about finding a Data Science study partner"><h3>Data Science</h3></a>
-          <a class="cta" href="signup.html?path=data">Find my partner</a>
-        </div>
-      </article>
-
-      <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="Mobile">
-          <rect width="200" height="130" fill="#993556"/>
-          <ellipse cx="100" cy="112" rx="46" ry="8" fill="#72243E"/>
-          <circle cx="34" cy="36" r="6" fill="#D4537E"/>
-          <rect x="77" y="21" width="52" height="86" rx="11" fill="#72243E"/>
-          <rect x="74" y="18" width="52" height="86" rx="11" fill="#FBEAF0"/>
-          <rect x="80" y="30" width="40" height="62" rx="6" fill="#F4C0D1"/>
-          <rect x="90" y="23" width="20" height="4" rx="2" fill="#F4C0D1"/>
-          <rect x="86" y="38" width="28" height="16" rx="4" fill="#D4537E"/>
-          <rect x="86" y="60" width="28" height="5" rx="2.5" fill="#ED93B1"/>
-          <rect x="86" y="70" width="18" height="5" rx="2.5" fill="#ED93B1"/>
-          <rect x="90" y="96" width="20" height="3" rx="1.5" fill="#F4C0D1"/>
-          <rect x="130" y="44" width="40" height="20" rx="6" fill="#D4537E"/>
-          <circle cx="140" cy="54" r="3" fill="#FBEAF0"/><rect x="147" y="52" width="16" height="4" rx="2" fill="#FBEAF0"/>
-        </svg>
-        <div class="path-body">
-          <span class="waiting" data-track="mobile"><b></b><span></span></span>
-          <a href="mobile-development-study-partner.html" aria-label="Learn about finding a Mobile Development study partner"><h3>Mobile Development</h3></a>
-          <a class="cta" href="signup.html?path=mobile">Find my partner</a>
-        </div>
-      </article>
-
-      <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="DevOps and cloud">
-          <rect width="200" height="130" fill="#35414F"/>
-          <ellipse cx="100" cy="112" rx="48" ry="8" fill="#232C36"/>
-          <circle cx="32" cy="88" r="6" fill="#6C7C8E"/>
-          <rect x="160" y="28" width="12" height="12" rx="3" fill="#6C7C8E"/>
-          <path d="M78 55a17 17 0 0 1 33-6 13 13 0 0 1 19 12 12 12 0 0 1-4 23H80a17 17 0 0 1-2-29Z" fill="#232C36" transform="translate(3,3)"/>
-          <path d="M78 55a17 17 0 0 1 33-6 13 13 0 0 1 19 12 12 12 0 0 1-4 23H80a17 17 0 0 1-2-29Z" fill="#EDF0F3"/>
-          <path d="M76 92a26 26 0 0 0 48 0" fill="none" stroke="#9EAAB8" stroke-width="4" stroke-linecap="round"/>
-          <path d="M124 86l6 8-11 1Z" fill="#9EAAB8"/>
-          <rect x="88" y="60" width="24" height="4" rx="2" fill="#9EAAB8"/>
-          <rect x="88" y="69" width="16" height="4" rx="2" fill="#9EAAB8"/>
-        </svg>
-        <div class="path-body">
-          <span class="waiting" data-track="devops"><b></b><span></span></span>
-          <a href="devops-cloud-study-partner.html" aria-label="Learn about finding a DevOps &amp; Cloud study partner"><h3>DevOps &amp; Cloud</h3></a>
-          <a class="cta" href="signup.html?path=devops">Find my partner</a>
-        </div>
-      </article>
-
-      <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="AI and machine learning">
-          <rect width="200" height="130" fill="#58256B"/>
-          <ellipse cx="100" cy="112" rx="46" ry="8" fill="#3C1749"/>
-          <circle cx="32" cy="32" r="6" fill="#9B5BB4"/>
-          <rect x="158" y="92" width="12" height="12" rx="3" fill="#9B5BB4"/>
-          <rect x="76" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="97" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="118" y="26" width="6" height="14" rx="3" fill="#9B5BB4"/>
-          <rect x="76" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="97" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/><rect x="118" y="90" width="6" height="14" rx="3" fill="#9B5BB4"/>
-          <rect x="58" y="52" width="14" height="6" rx="3" fill="#9B5BB4"/><rect x="58" y="72" width="14" height="6" rx="3" fill="#9B5BB4"/>
-          <rect x="128" y="52" width="14" height="6" rx="3" fill="#9B5BB4"/><rect x="128" y="72" width="14" height="6" rx="3" fill="#9B5BB4"/>
-          <rect x="73" y="39" width="58" height="58" rx="12" fill="#3C1749"/>
-          <rect x="70" y="36" width="58" height="58" rx="12" fill="#F5EAF8"/>
-          <rect x="82" y="48" width="34" height="34" rx="8" fill="#C594D6"/>
-          <circle cx="99" cy="65" r="6" fill="#58256B"/>
-        </svg>
-        <div class="path-body">
-          <span class="waiting" data-track="aiml"><b></b><span></span></span>
-          <a href="ai-machine-learning-study-partner.html" aria-label="Learn about finding a AI &amp; Machine Learning study partner"><h3>AI &amp; Machine Learning</h3></a>
-          <a class="cta" href="signup.html?path=aiml">Find my partner</a>
-        </div>
-      </article>
-
-      <article class="path">
-        <svg viewBox="0 0 200 130" role="img" aria-label="UX and UI design">
-          <rect width="200" height="130" fill="#854F0B"/>
-          <ellipse cx="100" cy="112" rx="52" ry="8" fill="#633806"/>
-          <circle cx="30" cy="92" r="6" fill="#EF9F27"/>
-          <rect x="160" y="26" width="12" height="12" rx="3" fill="#EF9F27"/>
-          <rect x="52" y="24" width="74" height="54" rx="7" fill="#EF9F27"/>
-          <rect x="77" y="47" width="74" height="54" rx="7" fill="#633806"/>
-          <rect x="74" y="44" width="74" height="54" rx="7" fill="#FAEEDA"/>
-          <rect x="84" y="54" width="26" height="26" rx="5" fill="#FAC775"/>
-          <rect x="118" y="54" width="22" height="5" rx="2.5" fill="#FAC775"/>
-          <rect x="118" y="64" width="22" height="5" rx="2.5" fill="#FAC775"/>
-          <rect x="118" y="74" width="14" height="5" rx="2.5" fill="#FAC775"/>
-          <path d="M113 78l22 9-9 3-3 9Z" fill="#633806"/>
-        </svg>
-        <div class="path-body">
-          <span class="waiting" data-track="design"><b></b><span></span></span>
-          <a href="ux-ui-design-study-partner.html" aria-label="Learn about finding a UX/UI Design study partner"><h3>UX/UI Design</h3></a>
-          <a class="cta" href="signup.html?path=design">Find my partner</a>
-        </div>
-      </article>
-
-    </div>
-
-    <p class="other"><strong>Eight paths, one format:</strong> matched peer-to-peer study with me sessions, on camera, at a recurring time.</p>
-
-    <p class="other">Learning something that isn't here? <a href="mailto:hello@peerflow.dev">Tell us</a> and we'll look for your partner too.</p>
-  </section>
-
-  <!-- ================= GUIDES ================= -->
-  <section id="guides" class="sec">
-    <div class="sec-head">
-      <span class="mono">Guides</span>
-      <h2>Before your first session</h2>
-      <p>Three short pieces on the part that decides whether this works at all: what to do with the hour, who to do it with, and what a first session with a stranger is actually like.</p>
-    </div>
-    <div class="guides">
-      <a href="how-to-run-a-study-with-me-session.html"><b>How to run a study-with-me session that produces work</b><span>The three sentences that decide whether an hour together produces anything, and the shape of a 50-minute session.</span></a>
-      <a href="study-partner-compatibility-checklist.html"><b>Study-partner compatibility checklist</b><span>Eight things worth checking before you commit to a recurring slot with somebody — and the five almost nobody asks about.</span></a>
-      <a href="camera-on-study-session-safety.html"><b>Camera-on study sessions: what&#39;s normal, and what you control</b><span>What a first session with somebody you have never met actually looks like, which parts of it you decide, and what report and block do.</span></a>
-    </div>
-  </section>
-
-  <!-- ================= FOUNDER ================= -->
-  <section class="founder">
-    <div class="sec-head">
-      <h2>Why this exists</h2>
-    </div>
-    <blockquote>I grew up in a small town. I didn't need another course — I needed someone who'd show up on Tuesday because I was expecting them.</blockquote>
-    <cite>Founder</cite>
-  </section>
-
-  <footer>
-    <span>peerflow — find one study partner to learn with</span>
-    <span><a href="/conduct.html">Code of conduct</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a></span>
-  </footer>
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="d-sec">
+  <h2>One thing I noticed and did not change</h2>
+  <p class="lede">In your screenshot the band names <b>Gulsanam</b> and the form
+    underneath says <b>Meet Asalxon</b>. The code points the form at the same
+    partner the band names — <code>pickPartner(target.i)</code> runs immediately
+    before the band is written, and there is a comment saying why: <i>"The band
+    and the form have to be about the same person and the same hour, or Propose
+    this time opens a form offering a different one."</i></p>
+  <p class="lede">So either you opened the form with <i>Someone else</i> and
+    changed the name yourself, which is the boring explanation — or the thing
+    that comment is guarding against is happening anyway. Worth knowing which.
+    If you did not touch the name dropdown, say so and I will go and find it,
+    because that is a real bug rather than a wording one.</p>
+</div>
 
 </div>
 
-<!-- Pinned and checked, for the same reason the LiveKit line below/above is:
-     the code that holds your session token should be the code we checked, not
-     whatever the CDN is serving under a moving tag today. @2 floated, so a bad
-     publish to any 2.x — or a compromise at jsdelivr — would have run in every
-     signed-in page automatically. The path is explicit so there is no question
-     which file the hash covers: it is the one the package's own jsdelivr field
-     points at. Bumping the version means recomputing the hash; that is the
-     cost, and it is the point. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/dist/umd/supabase.js"
-        integrity="sha384-ysv13JVP3fufiEXfjML9OdCa/rRbMJvUBOWyor82wfuK8INNZAvmbxHgKIHi+oqz"
-        crossorigin="anonymous"></script>
-<script src="assets/supabase-config.js"></script>
-<script src="assets/db.js"></script>
-<script src="assets/home.js"></script>
-<script src="assets/usermenu.js"></script>
-  <div class="draftmark">Draft. Only step two’s picture changed —
-    <a href="#how">jump to it</a>. The four steps and everything else are as they ship.</div>
+<script src="/assets/supabase-config.js"></script>
 </body>
 </html>
