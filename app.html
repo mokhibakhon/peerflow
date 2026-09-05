@@ -551,13 +551,42 @@
       pickPartner(target.i);
       var firstAt = chosen();
       var who1 = String(target.p.name || 'your partner').split(/\s+/)[0];
+      /* The heading is an instruction to the reader, not a description of
+       * something that exists.
+       *
+       * It used to be "Your first session with Amir." — a noun phrase with no
+       * verb, which asserts the session is real. It is not: nothing has been
+       * sent, and the person named has not been asked. The band did say so,
+       * but in the third sentence of the subline, after the day, the time and
+       * the length, and a correction that arrives after the claim loses to it.
+       * The owner read this band as a booking and said so.
+       *
+       * With a verb in front the heading carries the same three specifics —
+       * who, when, how long — and stops claiming. That also frees the subline:
+       * "nothing is booked until they accept" was only there to take the
+       * heading back, and what belongs in its place is the thing a person
+       * actually wants to know before sending, which is that a wrong guess at
+       * the time is not a wasted message.
+       */
       band({
         tone:'idle', k:'Your first session',
-        h: 'Your first session with ' + esc(who1) + '.',
+        h: firstAt
+             ? 'Ask ' + esc(who1) + ' to meet on ' + esc(dayLong(firstAt)) +
+               ' at ' + esc(clockOf(firstAt.getHours(), firstAt.getMinutes())) + '.'
+             /* No hour they share, so there is none to name and the heading
+                cannot be specific. It still has to be an ask rather than a
+                claim, which is the whole point of the change. */
+             : 'Ask ' + esc(who1) + ' to meet.',
         s: firstAt
-             ? dayLong(firstAt) + ' · ' + clockOf(firstAt.getHours(), firstAt.getMinutes()) +
-               ' · a ' + bkLen + '-minute first session. Nothing is booked until they accept.'
+             ? 'A ' + bkLen + '-minute first session. They can accept it, or offer a different time.'
              : pickWhen + tail,
+        /* The button opens the form; it does not send. openBook() fills the
+           sentence in and scrolls to it, and the actual proposal goes out from
+           #bk-save, which says "Propose this time". A draft of this change had
+           the band button say "Send this", which reads as one press to send and
+           is wrong by one step — and it would have disagreed with the button it
+           hands you to. The heading is where the honesty was missing; the
+           button was already telling the truth. */
         a: '<a class="btn" data-open-book data-pick="' + target.i + '" href="#book-card">' +
              (firstAt ? 'Propose this time' : 'Propose a time') + '</a>' +
            (n === 1 ? '' :
