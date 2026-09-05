@@ -236,12 +236,47 @@ check(offending.length === 0,
 check(/Until 4 September 2026 this page said there was no analytics/i.test(flat),
   'privacy.html: still records what it used to promise, and when that changed');
 
+// ── the footer says the same thing in the same form everywhere ─────────────
+// The footer is duplicated by hand into every page, because there is no build
+// step to share it from. That is a deliberate trade and it is fine — what is
+// not fine is the two conventions it had drifted into: the three guides linked
+// /privacy.html and everything else linked privacy.html, which resolve to the
+// same URL only because every page on this site sits at the root.
+//
+// Nothing was broken by that and nothing would be until the first page moved
+// into a subdirectory, at which point half the footers would quietly keep
+// working and half would not. So the convention is root-relative, and this
+// pins it, because a hand-copied block with no rule attached drifts again the
+// next time somebody adds a page.
+//
+// It checks the LINK FORM, not the markup: the legal pages carry a different
+// footer with a logo in it and index.html has its own line of copy, and both
+// of those are design decisions rather than drift.
+for (const f of allPages) {
+  const html = read(f);
+  const i = html.indexOf('<footer');
+  if (i < 0) continue;
+  const j = html.indexOf('</footer>', i);
+  const relative = [...html.slice(i, j).matchAll(/href="(?!https?:|mailto:|#|\/)([^"]+)"/g)]
+    .map((m) => m[1]);
+  check(relative.length === 0,
+    `${f}: every footer link is root-relative`
+    + (relative.length ? ` — found ${relative.join(', ')}` : ''));
+}
+
 // ── internal linking ───────────────────────────────────────────────────────
 // A page in the sitemap that nothing links to is a page search engines will
 // discount. Check each indexable page is linked from at least one other one.
+//
+// The leading slash is optional in the pattern because the question this asks
+// is whether anything links to the page at all, and /privacy.html and
+// privacy.html are the same page. It used to accept only the relative form and
+// "./", so normalising the footers to root-relative made privacy.html and
+// terms.html look like orphans — a test failing on the form of a link rather
+// than on the fact of it.
 for (const f of indexable) {
   if (f === 'index.html') continue;
-  const linkers = indexable.filter((o) => o !== f && new RegExp(`href="(\\./)?${f}[?#"]`).test(read(o)));
+  const linkers = indexable.filter((o) => o !== f && new RegExp(`href="(\\./|/)?${f}[?#"]`).test(read(o)));
   check(linkers.length > 0, `${f}: linked from ${linkers.length} other indexable page(s)`);
 }
 
