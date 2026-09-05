@@ -179,12 +179,32 @@ const rowOf = p => p.evaluate(() => {
        is the commonest way this product fails. */
     const p = await page(b, '/app.html', 'window.__empty = true;');
     const band = await bandOf(p);
-    ok('with no history it names the first session', /Your first session with Amir/.test(band.head), band.head);
-    ok('  giving a day, a time and a length rather than pointing at a form',
-       /·/.test(band.sub) && /minute first session/.test(band.sub), band.sub);
-    ok('  and it is the short one, which is easier to say yes to',
+    ok('with no history it names the partner', /Amir/.test(band.head), band.head);
+    /* The heading must not assert that the session exists. It used to read
+       "Your first session with Amir." — a noun phrase with no verb, which
+       claims a booking that has not been sent, and the owner read it exactly
+       that way. The correction was in the subline and arrived after the claim.
+
+       This checks the property rather than the replacement sentence: whatever
+       the heading says, it must not open by calling the session yours. The
+       previous version of this test named the old wording, so it would have
+       gone green on any rephrasing that kept the same false claim. */
+    ok('  and does not claim the session is already yours',
+       !/^Your\b/i.test(band.head.trim()), band.head);
+    ok('  giving a day and a time rather than pointing at a form',
+       /\bSep\b|\bday\b/i.test(band.head) && /\d{1,2}:\d{2}/.test(band.head), band.head);
+    ok('  and it is the short length, which is easier to say yes to',
        /25-minute/.test(band.sub), band.sub);
-    ok('  with a button that proposes it rather than opening an empty form',
+    /* Saying a wrong guess is not a wasted message is what replaced "nothing
+       is booked until they accept" — that clause only existed to take the
+       heading back, and the heading no longer needs taking back. */
+    ok('  and says the time is theirs to change rather than final',
+       /accept it, or offer a different time/i.test(band.sub), band.sub);
+    /* "Propose this time" and not "Send this": the button opens the form with
+       the sentence filled in, and the proposal goes out from the form's own
+       button, which says the same words. A band button promising to send would
+       be wrong by one step and would disagree with the control it hands you. */
+    ok('  with a button that opens the filled-in form, in the form’s own words',
        band.acts[0] === 'Propose this time', JSON.stringify(band.acts));
     await p.locator('#now').screenshot({ path: OUT + '/band-first-session.png' });
     await p.close();
