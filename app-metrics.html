@@ -392,18 +392,49 @@
 
   pf.currentUser().then(function(user){
     if (!user) { el('signedout').hidden = false; return; }
+    /* Every reader is asked for through this rather than called directly, and
+     * it is not defensiveness for its own sake — calling them directly took
+     * this whole page down for five minutes.
+     *
+     * Nothing in assets/ is content-hashed and /assets/(.*) is served with
+     * max-age=300, so for five minutes after a deploy a browser can hold the
+     * PREVIOUS db.js against the NEW app-metrics.html. When this page grew a
+     * call to pf.memberActivity, every such browser hit a TypeError on a
+     * function that did not exist yet — thrown while building the argument
+     * list, before Promise.all was constructed, so the .then never ran and the
+     * page rendered nothing at all. Not the members card: nothing. The funnel,
+     * which has no connection to any of this, went with it.
+     *
+     * The comment that used to sit here said adding analytics must not be able
+     * to break the page that existed before it. It was right, and the line
+     * underneath it did exactly that, because "allowed to answer null" only
+     * covers a reader that EXISTS and returns null. A reader that is missing
+     * throws, and a throw here is fatal to everything.
+     *
+     * So a missing reader is the same as one answering null. That is true of
+     * the migration case this was written for — no migration-visits.sql, no
+     * visit_counts() — and it is now also true of the deploy-skew case, which
+     * is the one that actually happened.
+     */
+    function ask(name, arg){
+      var fn = pf[name];
+      if (typeof fn !== 'function') return Promise.resolve(null);
+      try { return Promise.resolve(fn(arg)); }
+      catch (e) { return Promise.resolve(null); }
+    }
+
     return Promise.all([
-      pf.funnelCounts(), pf.funnelDaily(),
-      /* Asked for unconditionally and allowed to come back null. A database
-         without migration-visits.sql answers null to all four, the visits
-         block stays hidden, and the funnel above is unaffected — adding
-         analytics must not be able to break the page that existed before it. */
-      pf.visitCounts(), pf.visitSources(30), pf.visitPages(30), pf.visitContext(30),
-      pf.visitDaily(), pf.visitCampaigns(30), pf.visitRecent(50),
-      /* Same contract as the visits readers: asked for unconditionally and
-         allowed to answer null, so a database without migration-members.sql
+      /* The funnel is the page. If these two are missing there is nothing to
+         draw and the not-yours screen is the right answer, which is what null
+         already produces below. */
+      ask('funnelCounts'), ask('funnelDaily'),
+      /* A database without migration-visits.sql answers null to all of these,
+         the visits block stays hidden, and the funnel above is unaffected. */
+      ask('visitCounts'), ask('visitSources', 30), ask('visitPages', 30), ask('visitContext', 30),
+      ask('visitDaily'), ask('visitCampaigns', 30), ask('visitRecent', 50),
+      /* Same contract: no migration-members.sql, or a db.js that predates it,
          draws every other card and omits this one. */
-      pf.memberActivity(100)
+      ask('memberActivity', 100)
     ]).then(function(r){
       var f = r[0], daily = r[1];
       drawVisits(r[2], r[3], r[4], r[5], r[6], r[7], r[8]);
