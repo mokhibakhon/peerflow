@@ -231,6 +231,30 @@
       </div>
     </div>
 
+    <!-- The one card on this page that names people.
+         Hidden until member_activity() answers, so a database without
+         migration-members.sql shows everything else and omits this, the same
+         way the visits block below handles its own migration. -->
+    <div class="mcard" id="members" hidden>
+      <div class="mcard-h"><h2 class="mcard-t">Who is here, and when they last were</h2></div>
+      <p class="mcard-d">Everyone with an account, most recently seen first.
+        <b>Last seen</b> is the last time they signed in, which Supabase has
+        recorded since the day this project was created — nothing new is
+        collected to draw this. An account that has never signed in since it
+        was made sits at the bottom and says so.</p>
+      <p class="mcard-d">This is the only screen here that names anybody. It
+        reads the records members made by signing up; it has no connection to
+        the page-view log below, which still holds nothing that could be tied
+        to an account.</p>
+      <div class="ct-scroll">
+        <table class="ct"><thead><tr>
+          <th>Name</th><th>Path</th><th>Joined</th><th>Last seen</th>
+          <th class="ct-n">Proposed</th><th class="ct-n">Booked</th><th class="ct-n">Turned up</th>
+        </tr></thead><tbody id="m-rows"></tbody></table>
+      </div>
+      <p class="tl-empty" id="m-none" hidden>No accounts yet.</p>
+    </div>
+
     <!-- Hidden as a block when visit_counts() answers null, which is either
          "migration-visits.sql has not been pasted in" or "there are no rows
          yet". The funnel above does not depend on it, so a database without
@@ -375,10 +399,15 @@
          block stays hidden, and the funnel above is unaffected — adding
          analytics must not be able to break the page that existed before it. */
       pf.visitCounts(), pf.visitSources(30), pf.visitPages(30), pf.visitContext(30),
-      pf.visitDaily(), pf.visitCampaigns(30), pf.visitRecent(50)
+      pf.visitDaily(), pf.visitCampaigns(30), pf.visitRecent(50),
+      /* Same contract as the visits readers: asked for unconditionally and
+         allowed to answer null, so a database without migration-members.sql
+         draws every other card and omits this one. */
+      pf.memberActivity(100)
     ]).then(function(r){
       var f = r[0], daily = r[1];
       drawVisits(r[2], r[3], r[4], r[5], r[6], r[7], r[8]);
+      drawMembers(r[9]);
       /* No row and no function are the same screen, for the reason in the
          markup above. The extra line naming the migration is shown to
          everybody who gets here, because the only person who can act on it is
@@ -468,6 +497,46 @@
         '<td>' + esc(r.source) + '</td>' +
         '<td class="ct-dim">' + esc(r.device || '—') + '</td>' +
       '</tr>';
+    }).join('');
+  }
+
+  /* The members table.
+   *
+   * null means member_activity() is not there or answered nothing, and the
+   * card stays hidden — same contract as the visits block, and for the same
+   * reason: a migration that has not been pasted in must not be able to break
+   * the page that worked before it.
+   *
+   * An empty array is different from null and gets the empty line, because
+   * "no accounts" is a real answer and a blank card is not. */
+  function drawMembers(rows){
+    if (!rows) return;
+    el('members').hidden = false;
+    el('m-none').hidden = rows.length > 0;
+
+    /* "Never" rather than a blank cell. An account that has never signed in
+       since it was created is the most actionable row on this table, and an
+       empty cell reads as missing data instead of as the finding it is. */
+    var when = function(d){
+      if (!d) return '<span class="ct-dim">never</span>';
+      return esc(d.toLocaleDateString(undefined,
+        { day: 'numeric', month: 'short', year: 'numeric' }));
+    };
+
+    el('m-rows').innerHTML = rows.map(function(m){
+      return '<tr>' +
+        '<td>' + esc(m.name) +
+          /* The funnel's biggest drop-off is accounts that never finished
+             signing up, and this is the same fact per person. Marked on the
+             name because that is the column being read. */
+          (m.complete ? '' : ' <span class="ct-dim">· unfinished</span>') + '</td>' +
+        '<td>' + (m.trackId ? esc(m.trackId) : '<span class="ct-dim">—</span>') + '</td>' +
+        '<td>' + when(m.joined) + '</td>' +
+        '<td>' + when(m.lastSeen) + '</td>' +
+        '<td class="ct-n">' + m.proposed + '</td>' +
+        '<td class="ct-n">' + m.booked + '</td>' +
+        '<td class="ct-n">' + m.attended + '</td>' +
+        '</tr>';
     }).join('');
   }
 

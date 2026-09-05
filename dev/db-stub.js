@@ -106,6 +106,10 @@
      __visitCampaigns  the tagged-campaign rows; [] by default, which is the
                    state that keeps the card hidden and is the ordinary one
      __visitRecent the recent-views rows
+     __members     the members table as [{name, trackId, joined, lastSeen,
+                   complete, proposed, booked, attended}]; null acts as though
+                   migration-members.sql has not been run and hides the card,
+                   [] is the real "no accounts" state and shows the empty line
      __visitDays / __visitSources / __visitPages / __visitContext
                    each list on its own, when one of them is the thing under
                    test
@@ -796,6 +800,31 @@ window.pf = (function(){
          ordinary state and the card is supposed to stay hidden in it. Set
          __visitCampaigns to see the populated version. */
       return P(window.__visitCampaigns || []);
+    },
+    /* The members table. __members === null is the migration-not-run case, an
+       array overrides the fixture, and [] is the real "no accounts" state,
+       which draws the empty line rather than a blank card.
+
+       The fixture covers the three rows that read differently: somebody active
+       with sessions behind them, somebody who finished signing up and has done
+       nothing since, and an account that has never signed in at all — which is
+       the row the "never" cell exists for and the most useful one on the
+       screen. */
+    memberActivity:function(){
+      if (window.__members === null) return P(null);
+      if (window.__members) return P(window.__members);
+      var day = 86400000, now = Date.now();
+      return P([
+        { name:'Amir Karimov', trackId:'cybersecurity',
+          joined:new Date(now - 40*day), lastSeen:new Date(now - 2*3600000),
+          complete:true,  proposed:6, booked:4, attended:4 },
+        { name:'Dilnoza R',    trackId:'frontend',
+          joined:new Date(now - 21*day), lastSeen:new Date(now - 9*day),
+          complete:true,  proposed:2, booked:1, attended:0 },
+        { name:'(no name yet)', trackId:null,
+          joined:new Date(now - 12*day), lastSeen:null,
+          complete:false, proposed:0, booked:0, attended:0 }
+      ]);
     },
     visitRecent:function(){
       if (window.__visits === null) return P(null);
