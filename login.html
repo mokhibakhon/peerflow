@@ -38,7 +38,7 @@
     </a>
     <div class="nav-right">
       <span class="nav-note">New here?</span>
-      <a class="login" href="signup.html">Sign up</a>
+      <a class="login" href="/signup">Sign up</a>
     </div>
   </div>
 </header>
@@ -93,7 +93,7 @@
   <div class="stack">
     <button class="btn big wide" id="login">Log in</button>
   </div>
-  <p class="swap">New here? <a href="signup.html">Sign up</a></p>
+  <p class="swap">New here? <a href="/signup">Sign up</a></p>
 
   <p id="li-status" class="form-status"></p>
   <p class="onb-note">Email and Google sign-in are live.</p>
@@ -129,7 +129,7 @@
   function dest(){
     var next = '';
     try { next = new URLSearchParams(location.search).get('next') || ''; } catch(e){}
-    return /^[A-Za-z0-9_.-]+\.html(\?[^#]*)?$/.test(next) ? next : 'app.html';
+    return /^[A-Za-z0-9_.-]+\.html(\?[^#]*)?$/.test(next) ? next : '/app';
   }
 
   /* Already signed in? There's nothing to log into. Straight through. */

@@ -74,6 +74,35 @@ http.createServer(function(req, res){
     return res.end();
   }
   if (REWRITES[url]) url = REWRITES[url].destination;
+
+  /* cleanUrls, both halves of it, because a dev server that only does the
+     forgiving half would let a broken link pass locally and 308 in production.
+     Vercel's flag does two things and this has to do both:
+
+     1. a .html address REDIRECTS to the bare one, so the extension has exactly
+        one canonical form and an old link still arrives; and
+     2. the bare address SERVES the file.
+
+     The redirect is first and it is permanent, matching Vercel. It runs after
+     the explicit redirect table so /index.html -> / keeps winning: without
+     that ordering, /index.html would 308 to /index, which is not a page. */
+  if (VERCEL.cleanUrls) {
+    if (/\.html$/.test(url)) {
+      res.writeHead(308, { 'Location': url.replace(/\.html$/, '') + query,
+                           'Cache-Control': 'no-store' });
+      return res.end();
+    }
+    /* Only where a file of that name actually exists. Every unknown address
+       has to keep falling through to 404.html, and appending .html to
+       everything would turn a typo into a read of a file that is not there —
+       the same 404 by a longer route, but it would also mean /assets/app.css
+       was briefly considered as /assets/app.css.html. */
+    if (url !== '/' && !path.extname(url) &&
+        fs.existsSync(path.join(ROOT, path.normalize(url + '.html')))) {
+      url = url + '.html';
+    }
+  }
+
   if (url === '/') url = '/index.html';
 
   if (STUB && url === '/assets/db.js') url = '/dev/db-stub.js';

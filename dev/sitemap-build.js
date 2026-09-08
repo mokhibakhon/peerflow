@@ -31,10 +31,18 @@ const indexable = fs.readdirSync(root)
   })
   .sort();
 
+// Both of these are the same rule: advertise the address that answers 200,
+// never one that redirects to it. Listing a URL that 301s is a self-inflicted
+// crawl error.
+//
 // The homepage is served at / and vercel.json permanently redirects
-// /index.html there, so the sitemap must advertise the destination, never the
-// source. Listing a URL that 301s is a self-inflicted crawl error.
-const urlFor = (f) => (f === 'index.html' ? ORIGIN + '/' : `${ORIGIN}/${f}`);
+// /index.html there. And since cleanUrls, every other page answers at its bare
+// name while the .html form 308s to it — so the extension comes off here too.
+// This function is the single place that decides what a page's URL is:
+// dev/seo-tests.js imports it to check canonicals, so a canonical and a
+// sitemap entry cannot disagree about the same page.
+const urlFor = (f) =>
+  (f === 'index.html' ? ORIGIN + '/' : `${ORIGIN}/${f.replace(/\.html$/, '')}`);
 
 const lastmodFor = (f) => {
   const out = execFileSync('git', ['log', '-1', '--format=%cs', '--', f], { cwd: root })

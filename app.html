@@ -35,8 +35,8 @@
 
   <p class="signedout" id="signedout" hidden>
     You're not signed in, so we can't load your sessions.
-    <a href="login.html">Log in</a> to see them — or
-    <a href="signup.html">finish signing up</a> if you're new.
+    <a href="/login">Log in</a> to see them — or
+    <a href="/signup">finish signing up</a> if you're new.
   </p>
 
   <!-- The page's own name. .app-head is the same heading row every other app
@@ -251,7 +251,7 @@
              app-progress.html, so the card was carrying two links to the same
              page; its wording sharpens to name the plan once the plan is
              known. -->
-        <a class="rail-l" href="app-progress.html" id="wk-l">Your progress &rarr;</a>
+        <a class="rail-l" href="/app-progress" id="wk-l">Your progress &rarr;</a>
       </section>
 
       <!-- ============ your pair ============
@@ -297,7 +297,7 @@
           <p class="st-err" id="st-err" hidden></p>
         </div>
 
-        <a class="rail-l" href="app-sessions.html">Partner page &rarr;</a>
+        <a class="rail-l" href="/app-sessions">Partner page &rarr;</a>
       </section>
 
     </aside>
@@ -312,8 +312,8 @@
 </main>
 
 <div class="mfoot">
-  <a href="conduct.html">Code of conduct</a>
-  <a href="privacy.html">Privacy</a>
+  <a href="/conduct">Code of conduct</a>
+  <a href="/privacy">Privacy</a>
   <a href="mailto:hello@peerflow.dev">Report a problem</a>
   <span>peerflow</span>
 </div>
@@ -1013,7 +1013,7 @@
        somebody else's server. */
     var right = past ? ''
       : isOpen(s)
-        ? '<a class="btn" href="call.html?s=' + encodeURIComponent(s.id) + '">Join</a>'
+        ? '<a class="btn" href="/call?s=' + encodeURIComponent(s.id) + '">Join</a>'
         : '<span class="when-rel">' + esc(relative(s.startsAt)) + '</span>';
     var key = ' data-at="' + esc(s.startsAt.toISOString()) + '" data-room="' + esc(s.roomUrl || '') + '"';
     return '<div class="slot">' +
@@ -1159,7 +1159,7 @@
     /* Moving a session you already have is not something a partner list can
        help with, and bouncing somebody to People mid-reschedule would lose
        the booking they were trying to keep. */
-    if (!canBook && !movingSession) { location.href = 'app-people.html'; return; }
+    if (!canBook && !movingSession) { location.href = '/app-people'; return; }
     var card = $('book-card');
     card.hidden = false;
     try { card.scrollIntoView({ behavior:'smooth', block:'center' }); } catch(err){}
@@ -1870,7 +1870,7 @@
                the calendar and the sessions card all describe a booking that
                has just stopped existing, and none of them can work that out
                for itself. */
-            window.location.href = 'app.html';
+            window.location.href = '/app';
             return;
           }
           note.textContent = (res && res.error) ||
@@ -2354,7 +2354,7 @@
       off.disabled = true;
       off.textContent = 'Putting it away\u2026';
       pf.snoozeDormant(off.getAttribute('data-quiet-off')).then(function(res){
-        if (res && res.saved) { window.location.href = 'app.html'; return; }
+        if (res && res.saved) { window.location.href = '/app'; return; }
         off.disabled = false;
         off.textContent = 'Not now';
         var line = $('now-f');
@@ -2545,7 +2545,7 @@
          * Declining through the band is the ordinary way to decline \u2014 it is
          * the first thing on the page \u2014 so this was most of the decline
          * journeys, not an edge case. */
-        if (accept || no || drop) { window.location.href = 'app.html'; return; }
+        if (accept || no || drop) { window.location.href = '/app'; return; }
 
         loadProposals().then(function(){
           if (!swap) return;
@@ -2887,7 +2887,7 @@
 
   $('copy-invite').addEventListener('click', function(){
     var btn = this;
-    var url = location.origin + '/signup.html';
+    var url = location.origin + '/signup';
     function done(ok){ btn.textContent = ok ? 'Copied' : url; setTimeout(function(){ btn.textContent = 'Copy invite link'; }, 2200); }
     if (navigator.clipboard) navigator.clipboard.writeText(url).then(function(){ done(true); }, function(){ done(false); });
     else done(false);
@@ -2900,7 +2900,7 @@
       $('signedout').hidden = false;
       band({ tone:'none', k:'Signed out', h:'You’re signed out.',
              s:'Log in and your partner, sessions and history come back exactly as you left them.',
-             a:'<a class="btn" href="login.html">Log in</a><a class="ghost" href="signup.html">Sign up</a>' });
+             a:'<a class="btn" href="/login">Log in</a><a class="ghost" href="/signup">Sign up</a>' });
       $('sess-card').hidden = true;
       $('rail-mo').hidden = true;
       syncRail();
@@ -3020,7 +3020,7 @@
          way back to the questions. flushPending has already had its go by
          here, so an unfinished profile now is genuinely unfinished. */
       var onboarded = profile && (profile.track_id || profile.topic);
-      if (!onboarded && profile !== false){ window.location.replace('signup.html'); return; }
+      if (!onboarded && profile !== false){ window.location.replace('/signup'); return; }
 
       myName  = (profile && profile.name) || name || '';
       myAvail = (profile && profile.availability) || [];
@@ -3224,9 +3224,9 @@
             var acts = '<a class="btn" data-open-book href="#book-card">Reschedule</a>';
             var pid = (bookPartners.filter(function(p){
               return p.requestId === s.pairId; })[0] || {}).id;
-            if (pid) acts += '<a class="ghost" href="app-chat.html?to=' + encodeURIComponent(pid) +
+            if (pid) acts += '<a class="ghost" href="/app-chat?to=' + encodeURIComponent(pid) +
                              '">Message ' + esc(String(s.partnerName).split(/\s+/)[0]) + '</a>';
-            acts += '<a class="ghost" href="app-people.html">Find another partner</a>';
+            acts += '<a class="ghost" href="/app-people">Find another partner</a>';
             return acts;
           }
 
@@ -3255,8 +3255,8 @@
               h: esc(af) + ' hasn’t arrived.',
               s: 'It has been more than ' + (GRACE_MS / 60000) + ' minutes. They may still turn ' +
                  'up — and if they don’t, none of this lands on your record.',
-              a: '<a class="btn" href="call.html?s=' + encodeURIComponent(alone.id) + '">Back to the room</a>' +
-                 (apid ? '<a class="ghost" href="app-chat.html?to=' + encodeURIComponent(apid) +
+              a: '<a class="btn" href="/call?s=' + encodeURIComponent(alone.id) + '">Back to the room</a>' +
+                 (apid ? '<a class="ghost" href="/app-chat?to=' + encodeURIComponent(apid) +
                          '">Message ' + esc(af) + '</a>' : '')
             });
           } else if (upcoming.length){
@@ -3276,7 +3276,7 @@
                    /* One action while a call is open. Anything else here is a
                       second thing to read at the one moment the page has
                       exactly one thing to say. */
-                   ? '<a class="btn" href="call.html?s=' + encodeURIComponent(next.id) + '">Join the call</a>'
+                   ? '<a class="btn" href="/call?s=' + encodeURIComponent(next.id) + '">Join the call</a>'
                    /* Reschedule between booking another and calling this one
                       off, because that is the order of how much somebody
                       wants each of them. Drawn only when the database can
@@ -3344,7 +3344,7 @@
               tone:'none', k:'No partner yet',
               h: 'Find someone learning what you’re learning.',
               s: 'Look through everyone who has signed up and ask one of them. They get a notification and can accept.',
-              a: '<a class="btn" href="app-people.html">Find someone</a>'
+              a: '<a class="btn" href="/app-people">Find someone</a>'
             });
           }
 

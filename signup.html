@@ -38,7 +38,7 @@
     </a>
     <div class="nav-right">
       <span class="nav-note">Already have an account?</span>
-      <a class="login" href="login.html">Log in</a>
+      <a class="login" href="/login">Log in</a>
     </div>
   </div>
 </header>
@@ -100,7 +100,7 @@
          questions asked of an account that already exists, so this is the last
          moment where consent means anything. -->
     <p class="onb-note">By creating an account you agree to the
-      <a href="terms.html">terms</a> and the <a href="privacy.html">privacy policy</a>.</p>
+      <a href="/terms">terms</a> and the <a href="/privacy">privacy policy</a>.</p>
   </section>
 
   <!-- ============ STEP 2 — what are you learning + when are you free ============ -->
@@ -188,7 +188,7 @@
       then log in — you'll go straight to your dashboard with everything you
       just told us already filled in.</p>
     <div class="stack">
-      <a class="btn big wide" href="login.html">Go to log in</a>
+      <a class="btn big wide" href="/login">Go to log in</a>
     </div>
     <p class="onb-note">Nothing after a minute? Check your spam folder, or write to
       <a href="mailto:hello@peerflow.dev">hello@peerflow.dev</a>.</p>
@@ -258,7 +258,7 @@
   }
   function social(provider){
     if (!pf.ready()) { suError('Sign-in is temporarily unavailable — check your connection and try again.'); return; }
-    pf.signInOAuth(provider, 'signup.html').then(function(res){
+    pf.signInOAuth(provider, '/signup').then(function(res){
       if (res.redirecting) return;      // browser navigates to Google/GitHub
       suError(res.error || ('Could not reach ' + provider + ' sign-in. Please try again.'));
     });
@@ -284,7 +284,7 @@
   pf.currentUser().then(function(user){
     if (!user) return;
     pf.getProfile().then(function(profile){
-      if (profile && profile.track_id) { window.location.replace('app.html'); return; }
+      if (profile && profile.track_id) { window.location.replace('/app'); return; }
       var meta = user.user_metadata || {};
       /* Google already hands the name over split — given_name and family_name.
          Use those rather than guessing where a first name ends, which gets
@@ -622,7 +622,7 @@
           localStorage.removeItem('pf_pending');
           localStorage.removeItem('pf_want_path');
         } catch(e){}
-        window.location.href = 'app.html';
+        window.location.href = '/app';
         return;
       }
 
@@ -635,7 +635,7 @@
 
       /* No backend at all: the offline demo, which runs on localStorage and
          is supposed to reach the app. */
-      window.location.href = 'app.html';
+      window.location.href = '/app';
     }, function(){
       if (!stop()) return;
       fail('Could not save that — check your connection and try again.');

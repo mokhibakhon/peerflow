@@ -55,14 +55,19 @@ got=$(curl -s --max-time 15 "$ORIGIN/assets/db.js" | grep -m1 -o "PF_BUILD = '[^
 [ "$got" = "$want" ] && pass "serving $got, which is what this checkout says" \
                      || fail "serving '${got:-nothing}', checkout says '$want' — deploy has not landed, or you are behind main"
 
-# 3. The .html addresses still answer 200. This is the one that matters most:
-#    every canonical, every sitemap entry and every internal link names the
-#    .html form, so if one of these ever redirects, the redirects have been
-#    pointed the wrong way and the site is telling search engines to index URLs
-#    that bounce.
+# 3. The BARE addresses answer 200. This is the one that matters most: every
+#    canonical, every sitemap entry and every internal link names the bare
+#    form, so if one of these ever redirects, the redirects have been pointed
+#    the wrong way and the site is telling search engines to index URLs that
+#    bounce.
+#
+#    This block used to check the opposite — that /privacy.html answered 200 —
+#    because the site used to advertise the extension and redirect the bare
+#    name to it. cleanUrls reversed that, and the check reverses with it. The
+#    reason the direction matters has not changed at all.
 echo
 echo "Canonical addresses answer directly"
-for p in / /privacy.html /terms.html /conduct.html /frontend-study-partner.html; do
+for p in / /privacy /terms /conduct /frontend-study-partner; do
   c=$(code "$p")
   [ "$c" = "200" ] && pass "$p → 200" || fail "$p → $c (must be 200, never a redirect)"
 done
@@ -95,11 +100,27 @@ fi
 # 5. The addresses people type.
 echo
 echo "Typed addresses"
-for pair in "/privacy /privacy.html" "/login /login.html" "/frontend /frontend-study-partner.html"; do
+# Two kinds now. An old .html address must land on its bare form — those are
+# the URLs Google already has indexed and every link anybody has ever shared —
+# and the eight nicknames must land on their page. A nickname pointing at a
+# .html address would redirect twice, which is why the destination is checked
+# and not just the status.
+for pair in "/privacy.html /privacy" "/login.html /login" \
+            "/frontend /frontend-study-partner" "/design /ux-ui-design-study-partner"; do
   set -- $pair
   c=$(code "$1"); d=$(dest "$1")
   { [ "$c" = "308" ] || [ "$c" = "301" ]; } && [ "${d%$2}" != "$d" ] \
     && pass "$1 → $c $2" || fail "$1 → $c ${d:-no redirect}, expected a redirect to $2"
+done
+
+# And nothing may redirect twice. A second hop means a nickname was pointed at
+# an address that itself redirects, which is invisible in a browser and costs
+# every crawl.
+for p in /frontend /privacy.html /index.html; do
+  d=$(dest "$p")
+  [ -n "$d" ] && { c2=$(code "${d#$ORIGIN}"); [ "$c2" = "200" ] \
+    && pass "$p lands in one hop" \
+    || fail "$p → $d → $c2 (two hops)"; }
 done
 
 # 6. A missing page is a 404 and says so with its status, not just its words.
@@ -113,7 +134,7 @@ c=$(code /404)
 [ "$c" = "404" ] && pass "/404 → 404, so the page has no address of its own" \
                  || fail "/404 → $c (it must never answer 200 anywhere)"
 c=$(code /draft)
-[ "$c" = "200" ] && pass "/draft → 200, still a rewrite" || fail "/draft → $c"
+[ "$c" = "200" ] && pass "/draft → 200, served by cleanUrls" || fail "/draft → $c"
 
 echo
 if [ "$fails" -gt 0 ]; then echo "$fails check(s) failed."; exit 1; fi

@@ -55,8 +55,8 @@
       <a href="/#paths">Learning paths</a>
     </nav>
     <div class="nav-right">
-      <a class="login" href="/login.html">Log in</a>
-      <a class="btn" href="/signup.html">Sign up</a>
+      <a class="login" href="/login">Log in</a>
+      <a class="btn" href="/signup">Sign up</a>
     </div>
   </div>
 </header>
@@ -134,24 +134,24 @@
      sends a signed-out visitor to the login page with a next parameter, so
      suggesting it is safe either way. */
   var PAGES = [
-    ['index.html',                             'the home page'],
-    ['ai-machine-learning-study-partner.html', 'AI and machine learning study partners'],
-    ['backend-study-partner.html',             'backend study partners'],
-    ['cybersecurity-study-partner.html',       'cybersecurity study partners'],
-    ['data-science-study-partner.html',        'data science study partners'],
-    ['devops-cloud-study-partner.html',        'DevOps and cloud study partners'],
-    ['frontend-study-partner.html',            'frontend study partners'],
-    ['mobile-development-study-partner.html',  'mobile development study partners'],
-    ['ux-ui-design-study-partner.html',        'UX and UI design study partners'],
-    ['how-to-run-a-study-with-me-session.html', 'how to run a study-with-me session'],
-    ['study-partner-compatibility-checklist.html', 'the study-partner compatibility checklist'],
-    ['camera-on-study-session-safety.html',   'camera-on session safety and etiquette'],
-    ['conduct.html',                           'the code of conduct'],
-    ['privacy.html',                           'the privacy policy'],
-    ['terms.html',                             'the terms'],
-    ['login.html',                             'the login page'],
-    ['signup.html',                            'the sign-up page'],
-    ['app.html',                               'your sessions']
+    ['/',                             'the home page'],
+    ['/ai-machine-learning-study-partner', 'AI and machine learning study partners'],
+    ['/backend-study-partner',             'backend study partners'],
+    ['/cybersecurity-study-partner',       'cybersecurity study partners'],
+    ['/data-science-study-partner',        'data science study partners'],
+    ['/devops-cloud-study-partner',        'DevOps and cloud study partners'],
+    ['/frontend-study-partner',            'frontend study partners'],
+    ['/mobile-development-study-partner',  'mobile development study partners'],
+    ['/ux-ui-design-study-partner',        'UX and UI design study partners'],
+    ['/how-to-run-a-study-with-me-session', 'how to run a study-with-me session'],
+    ['/study-partner-compatibility-checklist', 'the study-partner compatibility checklist'],
+    ['/camera-on-study-session-safety',   'camera-on session safety and etiquette'],
+    ['/conduct',                           'the code of conduct'],
+    ['/privacy',                           'the privacy policy'],
+    ['/terms',                             'the terms'],
+    ['/login',                             'the login page'],
+    ['/signup',                            'the sign-up page'],
+    ['/app',                               'your sessions']
   ];
 
   /* Levenshtein, iterative and single-row, because a 404 page is not the place
@@ -205,14 +205,20 @@
      than whichever long slug happened to be listed first. */
   var best = null, bestRule = 4, bestSlug = '';
   for (var k = 0; k < PAGES.length; k++){
-    var slug = PAGES[k][0].replace(/\.html$/, '');
+    /* PAGES holds addresses now, not filenames — since cleanUrls the address
+       of a page IS its bare name, so there is no extension to strip and the
+       only thing between the entry and a comparable slug is the leading
+       slash. The home page is '/', whose slug is the empty string, and that
+       is correct: nothing a person types can equal it, so it is never the
+       exact match and only ever arrives as a spelling distance. */
+    var slug = PAGES[k][0].replace(/^\//, '');
     var rule = slug === typed ? 1
              : (typed.length >= 3 && slug.indexOf(typed) === 0) ? 2
              : (typed.length >= 4 && distance(typed, slug) <= 2) ? 3
              : 4;
     if (rule === 4) continue;
     /* Slug against slug. Comparing a slug to PAGES[k][0] would be comparing it
-       to a filename five characters longer, so the incumbent would win ties it
+       to an address one character longer, so the incumbent would win ties it
        had not earned. */
     if (rule < bestRule || (rule === bestRule && slug.length < bestSlug.length)){
       best = PAGES[k];
@@ -224,7 +230,10 @@
 
   var link = document.getElementById('nf-guess-link');
   if (!link) return;
-  link.setAttribute('href', best[0] === 'index.html' ? '/' : '/' + best[0]);
+  /* The entry is already the address. It used to be a filename and this line
+     added the slash; adding one now produces //frontend-study-partner, which a
+     browser reads as a protocol-relative URL and treats as another HOST. */
+  link.setAttribute('href', best[0]);
   link.textContent = best[1];
   link.parentNode.hidden = false;
 })();

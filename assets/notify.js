@@ -115,7 +115,7 @@
    *
    * That is a string match, and it is a string match because the row carries
    * no reference to the session it is about: raise_note() writes user, kind,
-   * title, body and href, and href is a bare 'app.html'. Giving the trigger
+   * title, body and href, and href is a bare '/app'. Giving the trigger
    * the session id and putting it in the href is the proper fix and would
    * make this exact; it needs a migration, so it is deliberately not in this
    * change. The cost of the approximation is small and one-directional — an
@@ -213,7 +213,7 @@
         '<p><b>' + who + '</b> accepted your request</p>' +
         '<p class="bell-time">' + ago(x.created_at) + '</p>' +
         '<div class="bell-actions"><a class="btn primary" href="' +
-          (fresh ? 'app.html?plan=' + encodeURIComponent(x.other.id) : 'app-sessions.html') +
+          (fresh ? '/app?plan=' + encodeURIComponent(x.other.id) : '/app-sessions') +
           '">' + (fresh ? 'Plan your first session' : 'See my partner') + '</a></div>' +
         '</div>';
     }

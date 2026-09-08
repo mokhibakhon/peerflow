@@ -44,13 +44,13 @@
       <h2 id="match-title">You don't have a partner yet</h2>
       <p id="match-sub"></p>
       <div class="row" id="match-find" hidden style="margin-top:16px">
-        <a class="btn" href="app-people.html">Find someone</a>
+        <a class="btn" href="/app-people">Find someone</a>
       </div>
       <!-- The other dead end this card had: it said "finish setting up" and
            then offered nothing to press. -->
       <div class="row" id="match-finish" hidden style="margin-top:16px">
-        <a class="btn" href="signup.html">Finish setting up</a>
-        <a class="btn ghost" href="app-profile.html">Edit your profile</a>
+        <a class="btn" href="/signup">Finish setting up</a>
+        <a class="btn ghost" href="/app-profile">Edit your profile</a>
       </div>
     </div>
 
@@ -121,7 +121,7 @@
         <div class="find-card">
           <h3>Find another partner</h3>
           <p>Meet someone compatible with your path, goals, and weekly availability.</p>
-          <a class="btn on-dark" href="app-people.html">
+          <a class="btn on-dark" href="/app-people">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
             </svg>
@@ -141,7 +141,7 @@
         <div><dt>Learning your topic</dt><dd id="q-same">—</dd></div>
       </dl>
       <p class="queue-note" id="q-note">Checking…</p>
-      <a class="btn ghost" href="app-people.html" style="margin-top:16px">See who's here</a>
+      <a class="btn ghost" href="/app-people" style="margin-top:16px">See who's here</a>
     </div>
   </div>
 </main>
@@ -301,9 +301,9 @@
              partner to choose. The label changes on the one that matters:
              a partnership with no sessions behind it is the state this whole
              card exists to get out of. */
-          '<a class="btn" href="' + (pr.id ? 'app.html?plan=' + esc(pr.id) : 'app.html') + '">' +
+          '<a class="btn" href="' + (pr.id ? '/app?plan=' + esc(pr.id) : '/app') + '">' +
             icon('cal', 17) + (n === 0 ? 'Plan your first session' : 'Propose a time') + '</a>' +
-          (pr.id ? '<a class="ghost" href="app-chat.html?to=' + esc(pr.id) + '">' +
+          (pr.id ? '<a class="ghost" href="/app-chat?to=' + esc(pr.id) + '">' +
                      icon('chat', 17) + 'Message</a>' +
                    /* Everything else this row can do, folded away. Three
                       buttons of equal weight made the one you actually press
@@ -317,8 +317,8 @@
                        '<circle cx="15.8" cy="10" r="1.5" fill="currentColor"/></svg>' +
                      '</button>' +
                      '<div class="pmenu-pop" hidden>' +
-                       '<a href="app-person.html?id=' + esc(pr.id) + '">View profile</a>' +
-                       '<a href="app-people.html">Find another partner</a>' +
+                       '<a href="/app-person?id=' + esc(pr.id) + '">View profile</a>' +
+                       '<a href="/app-people">Find another partner</a>' +
                      '</div>' +
                    '</div>'
                  : '') +

@@ -130,7 +130,7 @@ window.pfUserMenu = (function(){
       /* replace() rather than href: pressing back after logging out should
          not return you to a page that still looks signed in. */
       var left = false;
-      function leave(){ if (left) return; left = true; window.location.replace('index.html'); }
+      function leave(){ if (left) return; left = true; window.location.replace('/'); }
 
       var out = window.pf && pf.signOut ? pf.signOut() : null;
       if (out && out.then) {

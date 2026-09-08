@@ -2,6 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "",
+  "cleanUrls": true,
   "buildCommand": "",
   "outputDirectory": ".",
   "redirects": [
@@ -11,190 +12,49 @@
       "permanent": true
     },
     {
-      "source": "/ai-machine-learning-study-partner",
-      "destination": "/ai-machine-learning-study-partner.html",
-      "permanent": true
-    },
-    {
-      "source": "/app-badges",
-      "destination": "/app-badges.html",
-      "permanent": true
-    },
-    {
-      "source": "/app-chat",
-      "destination": "/app-chat.html",
-      "permanent": true
-    },
-    {
-      "source": "/app-metrics",
-      "destination": "/app-metrics.html",
-      "permanent": true
-    },
-    {
-      "source": "/app-people",
-      "destination": "/app-people.html",
-      "permanent": true
-    },
-    {
-      "source": "/app-person",
-      "destination": "/app-person.html",
-      "permanent": true
-    },
-    {
-      "source": "/app-profile",
-      "destination": "/app-profile.html",
-      "permanent": true
-    },
-    {
-      "source": "/app-progress",
-      "destination": "/app-progress.html",
-      "permanent": true
-    },
-    {
-      "source": "/app-sessions",
-      "destination": "/app-sessions.html",
-      "permanent": true
-    },
-    {
-      "source": "/app-settings",
-      "destination": "/app-settings.html",
-      "permanent": true
-    },
-    {
-      "source": "/app",
-      "destination": "/app.html",
-      "permanent": true
-    },
-    {
-      "source": "/backend-study-partner",
-      "destination": "/backend-study-partner.html",
-      "permanent": true
-    },
-    {
-      "source": "/call",
-      "destination": "/call.html",
-      "permanent": true
-    },
-    {
-      "source": "/conduct",
-      "destination": "/conduct.html",
-      "permanent": true
-    },
-    {
-      "source": "/cybersecurity-study-partner",
-      "destination": "/cybersecurity-study-partner.html",
-      "permanent": true
-    },
-    {
-      "source": "/data-science-study-partner",
-      "destination": "/data-science-study-partner.html",
-      "permanent": true
-    },
-    {
-      "source": "/devops-cloud-study-partner",
-      "destination": "/devops-cloud-study-partner.html",
-      "permanent": true
-    },
-    {
-      "source": "/frontend-study-partner",
-      "destination": "/frontend-study-partner.html",
-      "permanent": true
-    },
-    {
-      "source": "/how-to-run-a-study-with-me-session",
-      "destination": "/how-to-run-a-study-with-me-session.html",
-      "permanent": true
-    },
-    {
-      "source": "/login",
-      "destination": "/login.html",
-      "permanent": true
-    },
-    {
-      "source": "/mobile-development-study-partner",
-      "destination": "/mobile-development-study-partner.html",
-      "permanent": true
-    },
-    {
-      "source": "/privacy",
-      "destination": "/privacy.html",
-      "permanent": true
-    },
-    {
-      "source": "/reset",
-      "destination": "/reset.html",
-      "permanent": true
-    },
-    {
-      "source": "/signup",
-      "destination": "/signup.html",
-      "permanent": true
-    },
-    {
-      "source": "/study-partner-compatibility-checklist",
-      "destination": "/study-partner-compatibility-checklist.html",
-      "permanent": true
-    },
-    {
-      "source": "/camera-on-study-session-safety",
-      "destination": "/camera-on-study-session-safety.html",
-      "permanent": true
-    },
-    {
-      "source": "/terms",
-      "destination": "/terms.html",
-      "permanent": true
-    },
-    {
-      "source": "/ux-ui-design-study-partner",
-      "destination": "/ux-ui-design-study-partner.html",
+      "source": "/404",
+      "destination": "/",
       "permanent": true
     },
     {
       "source": "/aiml",
-      "destination": "/ai-machine-learning-study-partner.html",
+      "destination": "/ai-machine-learning-study-partner",
       "permanent": true
     },
     {
       "source": "/backend",
-      "destination": "/backend-study-partner.html",
+      "destination": "/backend-study-partner",
       "permanent": true
     },
     {
       "source": "/cybersecurity",
-      "destination": "/cybersecurity-study-partner.html",
+      "destination": "/cybersecurity-study-partner",
       "permanent": true
     },
     {
       "source": "/data",
-      "destination": "/data-science-study-partner.html",
+      "destination": "/data-science-study-partner",
       "permanent": true
     },
     {
       "source": "/devops",
-      "destination": "/devops-cloud-study-partner.html",
+      "destination": "/devops-cloud-study-partner",
       "permanent": true
     },
     {
       "source": "/frontend",
-      "destination": "/frontend-study-partner.html",
+      "destination": "/frontend-study-partner",
       "permanent": true
     },
     {
       "source": "/mobile",
-      "destination": "/mobile-development-study-partner.html",
+      "destination": "/mobile-development-study-partner",
       "permanent": true
     },
     {
       "source": "/design",
-      "destination": "/ux-ui-design-study-partner.html",
+      "destination": "/ux-ui-design-study-partner",
       "permanent": true
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/draft",
-      "destination": "/draft.html"
     }
   ],
   "headers": [

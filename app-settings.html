@@ -38,7 +38,7 @@
     </div>
 
     <p class="signedout-note" id="signedout" hidden>
-      You're not signed in. <a href="login.html">Log in</a> to change your settings.
+      You're not signed in. <a href="/login">Log in</a> to change your settings.
     </p>
 
     <div class="app-grid">
@@ -113,7 +113,7 @@
           <h3>Your profile</h3>
           <p style="font-size:14.5px">Your name, path, topic, stage and free times live on your
             profile — that's what your partner sees.</p>
-          <a class="btn ghost" href="app-profile.html" style="margin-top:14px">Edit profile</a>
+          <a class="btn ghost" href="/app-profile" style="margin-top:14px">Edit profile</a>
         </div>
 
         <!-- Who you have blocked, and the way back. A block has to be
@@ -143,7 +143,7 @@
           <p style="font-size:13.5px;color:var(--muted);margin-top:10px">Two things stay,
             and both are somebody else's record rather than yours: a former partner keeps
             the times you booked together, with your name off them, and any report made
-            about you remains. <a href="privacy.html" style="color:var(--green-dark);font-weight:600">Privacy</a>.</p>
+            about you remains. <a href="/privacy" style="color:var(--green-dark);font-weight:600">Privacy</a>.</p>
 
           <div style="margin-top:16px">
             <button class="small danger" id="s-del-start">Delete my account</button>
@@ -380,7 +380,7 @@
         /* Signed out by deleteAccount() already. Straight to the home page
            rather than a confirmation screen for an account that no longer
            exists to show one to. */
-        location.href = 'index.html';
+        location.href = '/';
         return;
       }
       delGo.disabled = false; delGo.textContent = 'Delete everything';

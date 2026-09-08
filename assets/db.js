@@ -25,7 +25,7 @@
  * genuinely running what you shipped. Bump it when you change anything in
  * assets/, and ask for it before believing a bug report about behaviour you
  * have already fixed. */
-window.PF_BUILD = '2026-09-05a';
+window.PF_BUILD = '2026-09-08a';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -226,7 +226,7 @@ window.pf = (function(){
       /* Supabase expects the provider id in lower case ("google", not "Google");
          callers pass a display name for use in error messages. */
       provider: String(provider).toLowerCase(),
-      options: { redirectTo: base + (redirectPath || 'app.html') }
+      options: { redirectTo: base + (redirectPath || '/app') }
     }).then(function(res){
       return res.error ? fail(res.error, 'Could not start that sign-in. Please try again.')
                        : { redirecting: true };
@@ -279,7 +279,7 @@ window.pf = (function(){
   function sendPasswordReset(email){
     if (!client) return Promise.resolve({ demo: true });
     var base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
-    return client.auth.resetPasswordForEmail(email, { redirectTo: base + 'reset.html' })
+    return client.auth.resetPasswordForEmail(email, { redirectTo: base + '/reset' })
       .then(function(r){
         if (r.error) {
           var m = String(r.error.message || '');
@@ -1096,7 +1096,7 @@ window.pf = (function(){
         p_title: (who || 'Your request') + ' said yes',
         p_body: 'You\u2019re partners now. Pick an hour you\u2019re both free and propose it \u2014 ' +
                 'nothing is booked until ' + first + ' accepts.',
-        p_href: 'app.html?plan=' + ((me && me.id) || '')
+        p_href: '/app?plan=' + ((me && me.id) || '')
       }).then(function(n){
         if (n.error) {
           if (missingFunction(n.error)) {

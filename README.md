@@ -311,24 +311,50 @@ row of it into a bar. `node dev/404-field.js` regenerates the markup from a
 seeded PRNG — run it if the mark or the digits change, rather than editing 207
 elements by hand.
 
-**A typed address works, and the canonical stays where it is.** URLs here carry
-`.html`, so `/privacy` was a 404 that the not-found page rescued in one extra
-click. `vercel.json` now redirects the bare name of every root page to its file
-— 24 of them, generated from the files rather than curated, so a new page cannot
-be forgotten. Three are deliberately absent and `dev/seo-tests.js` asserts each
-one stays absent: `index.html` is served at `/` and already redirects the other
-way, `draft.html` is a rewrite so `/draft` keeps its own address, and
-`404.html` must never answer 200 anywhere — a `/404` that served it would be
-the soft 404 that page exists to avoid.
+**Every page answers at its bare name.** `vercel.json` sets `cleanUrls`, so
+`/privacy` is the page and `/privacy.html` permanently redirects to it.
 
-The direction matters more than the feature. Vercel's `cleanUrls` would also
-308 `/privacy.html` to `/privacy`, which points all 12 canonicals, 11 sitemap
-entries and 217 internal links at redirecting URLs — a rewrite of the whole URL
-surface that has to land in one commit, not a config flag. Redirecting the other
-way costs 24 lines and moves nothing else. `dev/serve.js` reads the redirect and
-rewrite tables out of `vercel.json` rather than restating them, so development
-cannot route differently from production, and it throws rather than guessing if
-a source is ever something other than a literal path.
+This is the reverse of what the site did until 8 September 2026, and the note
+that used to sit here argued for the old direction: 24 redirects pointing the
+bare name at the file, on the grounds that `cleanUrls` "points all 12
+canonicals, 11 sitemap entries and 217 internal links at redirecting URLs — a
+rewrite of the whole URL surface that has to land in one commit, not a config
+flag."
+
+That reasoning was correct and it is exactly what the change cost: one commit
+moving 106 absolute URLs, 274 internal links and 54 more built inside
+JavaScript strings, plus the sitemap, the 404 resolver, four test suites and
+the dev server. It was done anyway, because `.html` in a public URL reads as
+amateurish and the price of moving only goes up — two weeks of index history is
+the cheapest this was ever going to be.
+
+Three things about it are worth knowing, because each was invisible until
+something was pointed at it:
+
+- **The 24 old redirects had to go in the same commit.** A rule saying
+  `/privacy` → `/privacy.html` while `cleanUrls` says `/privacy.html` →
+  `/privacy` is an infinite loop, and it is one that no file looks wrong in.
+  `dev/seo-tests.js` now fails on any redirect whose destination is its own
+  source plus `.html`.
+- **`/404` gained an address it must not have.** `cleanUrls` gives every file a
+  bare name, the not-found page included, and a 404 page served at `/404` under
+  a 200 is a soft 404 — indexable, and a duplicate of every mistyped URL on the
+  site. It needs an explicit redirect to `/` now. This is the one place the
+  change made the config bigger.
+- **The eight nicknames point at bare addresses, not files.** `/frontend` →
+  `/frontend-study-partner`, not `…-partner.html`, or every visitor who typed
+  the short form would redirect twice.
+
+The eight learning paths still answer to the nickname they already had. Every
+landing page links `signup?path=frontend`, so the alias is read off the page
+rather than invented, which is what stops the URL and the signup form ever
+meaning different things.
+
+`dev/serve.js` reads the redirect table out of `vercel.json` rather than
+restating it, and implements both halves of `cleanUrls` itself — the `.html`
+redirect and the bare-name serve — so development cannot route differently from
+production. It throws rather than guessing if a redirect source is ever
+something other than a literal path.
 
 The eight learning paths also answer to the nickname they already had. Every
 landing page links `signup.html?path=frontend`, so `/frontend` redirects to
@@ -338,10 +364,10 @@ form ever meaning different things.
 
 `dev/live-check.sh` asks whether production matches this checkout: the IndexNow
 key returns its own key, `PF_BUILD` is the one in your working tree, every URL
-in the sitemap answers 200, the typed addresses redirect and — the one that
-matters most — the `.html` addresses still answer **directly**. If one of those
-ever redirects, the redirects have been pointed the wrong way and the site is
-advertising URLs that bounce. It is curl and nothing else, because it has to run
+in the sitemap answers 200, the old `.html` addresses redirect, nothing
+redirects twice, and — the one that matters most — the **bare** addresses
+answer directly. If one of those ever redirects, the redirects have been
+pointed the wrong way and the site is advertising URLs that bounce. It is curl and nothing else, because it has to run
 on a laptop: the agent container cannot reach `www.peerflow.dev` at all. Pass an
 origin to point it somewhere else — `dev/live-check.sh http://127.0.0.1:9000` is
 how the script itself gets tested.
