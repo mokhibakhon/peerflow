@@ -131,7 +131,7 @@ SQL
 # dev/migration-check.js --list` is the authority on what a live migration is,
 # and a file that is in that list and not in this one is covered by nothing.
 # Compare the two when adding a migration.
-FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql supabase/migration-funnel.sql supabase/migration-blocked-ids.sql supabase/migration-visits.sql supabase/migration-members.sql"
+FILES="supabase/schema.sql supabase/migration-mvp.sql supabase/migrate-2026-08.sql supabase/migration-forgery.sql supabase/migration-actor-rules.sql supabase/migration-profiles-private.sql supabase/migration-funnel.sql supabase/migration-blocked-ids.sql supabase/migration-visits.sql supabase/migration-members.sql supabase/migration-avatars.sql"
 
 # A test that has never been seen to fail is not evidence of anything, so the
 # suite can be run against the schema as it was before the fix:
@@ -3004,6 +3004,92 @@ check "  a caller asking for everyone gets at most 500" ok "
 check "  and anon cannot execute it at all" "42501" "$(wrap "
   set local role anon;
   perform * from public.member_activity();")"
+
+echo
+echo "==> the photo other members are allowed to see"
+
+# The account menu has always shown a real picture, because it reads your own
+# auth record. Nobody else can read that record — which is why the People list
+# drew initials and why this column exists at all.
+
+check "a Google account's photo is copied onto the profile at signup" ok "
+  set local role postgres;
+  -- a fresh id: \$A and \$B are seeded by this suite already, and inserting
+  -- them again with on-conflict-do-nothing means the trigger never fires, so
+  -- the case passed on a database where the trigger did nothing at all.
+  insert into auth.users (id, email, raw_user_meta_data) values
+    ('44444444-4444-4444-4444-444444444444', 'g@x.dev', '{\"name\":\"G\",\"avatar_url\":\"https://lh3.googleusercontent.com/a/p\"}'::jsonb);
+  do \$\$ begin
+    if (select avatar_url from public.profiles where id = '44444444-4444-4444-4444-444444444444')
+       is distinct from 'https://lh3.googleusercontent.com/a/p'
+      then raise exception 'the trigger did not copy the photo'; end if;
+  end \$\$;"
+
+check "  an email signup has none, and that is not an error" ok "
+  set local role postgres;
+  insert into auth.users (id, email, raw_user_meta_data) values
+    ('33333333-3333-3333-3333-333333333333', 'e@x.dev', '{\"name\":\"E\"}'::jsonb)
+    on conflict (id) do nothing;
+  do \$\$ begin
+    if (select avatar_url from public.profiles
+         where id = '33333333-3333-3333-3333-333333333333') is not null
+      then raise exception 'an email signup was given a photo'; end if;
+  end \$\$;"
+
+# The column takes a URL, not an image. A data: URI here would be a picture
+# pasted into a text column that every reader of the table then downloads.
+check "  a data: URI is refused by the constraint" 23514 "$(wrap "
+  set local role postgres;
+  update public.profiles set avatar_url = 'data:image/png;base64,AAAA' where id = '$A';")"
+
+check "  and so is one longer than the cap" 23514 "$(wrap "
+  set local role postgres;
+  update public.profiles set avatar_url = 'https://x.dev/' || repeat('a', 600) where id = '$A';")"
+
+# set_my_avatar is the only write path a page has, and it must not be usable
+# to touch anybody else's row — it takes no id, and this is what proves the
+# where clause rather than the signature is doing that work.
+check "  set_my_avatar writes the caller's row and nobody else's" ok "
+  set local role postgres;
+  update public.profiles set avatar_url = 'https://lh3.googleusercontent.com/a/theirs' where id = '$B';
+  $AS_A
+  select public.set_my_avatar('https://lh3.googleusercontent.com/a/mine');
+  do \$\$ begin
+    if (select avatar_url from public.profiles where id = '$A')
+       is distinct from 'https://lh3.googleusercontent.com/a/mine'
+      then raise exception 'the caller row was not written'; end if;
+    if (select avatar_url from public.profiles where id = '$B')
+       is distinct from 'https://lh3.googleusercontent.com/a/theirs'
+      then raise exception 'somebody else was written'; end if;
+  end \$\$;"
+
+# A javascript: URL reaching an src attribute is the reason this check exists.
+check "  a non-https URL is refused and the old one kept" ok "
+  set local role postgres;
+  update public.profiles set avatar_url = 'https://lh3.googleusercontent.com/a/keep' where id = '$A';
+  $AS_A
+  select public.set_my_avatar('javascript:alert(1)');
+  do \$\$ begin
+    if (select avatar_url from public.profiles where id = '$A')
+       is distinct from 'https://lh3.googleusercontent.com/a/keep'
+      then raise exception 'a javascript: URL got through'; end if;
+  end \$\$;"
+
+# Removing your picture from Google has to remove it here too, so empty is a
+# write and not a no-op.
+check "  and an empty one clears it, because that is a real state" ok "
+  set local role postgres;
+  update public.profiles set avatar_url = 'https://lh3.googleusercontent.com/a/x' where id = '$A';
+  $AS_A
+  select public.set_my_avatar('');
+  do \$\$ begin
+    if (select avatar_url from public.profiles where id = '$A') is not null
+      then raise exception 'clearing did nothing'; end if;
+  end \$\$;"
+
+check "  anon cannot call it at all" 42501 "$(wrap "
+  set local role anon;
+  perform public.set_my_avatar('https://lh3.googleusercontent.com/a/x');")"
 
 echo
 echo "==================================================="

@@ -224,6 +224,32 @@
 
   function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
 
+  /* What goes inside an avatar circle: the person's photo where there is one,
+     and the initial on its colour where there is not.
+     
+     A photo is not the common case and must not be assumed. Somebody who
+     signed up with an email address has none, and neither does anybody at all
+     until supabase/migration-avatars.sql has been run — so this returns the
+     initial for a missing, empty or non-https value and every caller keeps
+     working exactly as it did before.
+     
+     onerror matters more than it looks: Google's photo URLs expire when
+     somebody changes their picture, and a dead one renders as a broken-image
+     glyph on a circle of colour, which is worse than the initial it replaced.
+     Clearing the img's parent back to the initial means the failure looks like
+     the ordinary no-photo case rather than like a fault.
+     
+     https only, because this string goes straight into an src attribute. The
+     column has a check constraint saying the same thing; this is the half that
+     does not depend on the migration having been run. */
+  function faceOf(nm, url){
+    var u = String(url || '');
+    if (!/^https:\/\//.test(u)) return initial(nm);
+    return '<img src="' + esc(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer" ' +
+           'onerror="this.parentNode.textContent=this.getAttribute(\'data-i\')" ' +
+           'data-i="' + initial(nm) + '">';
+  }
+
   /* Reliability, compressed to fit a row.
    *
    * This used to render nothing at all below the floor, on the reasoning that
@@ -331,7 +357,7 @@
     return '<div class="top-pick" data-id="' + esc(p.id) + '">' +
       '<p class="tp-tag">' + tag + '</p>' +
       '<div class="tp-top">' +
-        '<span class="tp-av" style="background:' + t[0] + ';color:' + t[1] + '">' + initial(nm) + '</span>' +
+        '<span class="tp-av" style="background:' + t[0] + ';color:' + t[1] + '">' + faceOf(nm, p.avatar_url) + '</span>' +
         '<div><p class="tp-nm">' + esc(nm) + '</p><p class="tp-sub">' +
           (p.topic ? 'Learning ' + esc(p.topic) : 'Hasn’t said what they’re learning yet') +
         '</p></div>' +
@@ -360,7 +386,7 @@
        leaves one thing to press per row rather than two. */
     return '<div class="pt-row" data-id="' + esc(p.id) + '">' +
       '<a class="pt-who" href="/app-person?id=' + esc(p.id) + '">' +
-        '<span class="pt-av" style="background:' + t[0] + ';color:' + t[1] + '">' + initial(nm) + '</span>' +
+        '<span class="pt-av" style="background:' + t[0] + ';color:' + t[1] + '">' + faceOf(nm, p.avatar_url) + '</span>' +
         '<div style="min-width:0"><div class="pt-nm">' +
           '<span class="pt-nm-t">' + esc(nm) + '</span>' + tags +
           relChip(p.id) + '</div>' +
@@ -422,7 +448,7 @@
          row rewrites itself into a link to book with them. */
       return '<div class="inreq" data-req="' + esc(x.id) + '" data-uid="' + esc(p.id || '') + '">' +
         '<span class="inreq-av" style="background:' + t[0] + ';color:' + t[1] + '">' +
-          initial(nm) + '</span>' +
+          faceOf(nm, p.avatar_url) + '</span>' +
         '<div class="inreq-b">' +
           '<p class="inreq-nm">' +
             '<a class="who" href="/app-person?id=' + esc(p.id) + '">' + esc(nm) + '</a>' +

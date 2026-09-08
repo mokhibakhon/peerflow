@@ -25,7 +25,7 @@
  * genuinely running what you shipped. Bump it when you change anything in
  * assets/, and ask for it before believing a bug report about behaviour you
  * have already fixed. */
-window.PF_BUILD = '2026-09-08a';
+window.PF_BUILD = '2026-09-08b';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -1939,7 +1939,7 @@ window.pf = (function(){
     if (!client) return Promise.resolve(null);
     return currentUid().then(function(uid){
       var q = client.from('profiles')
-        .select('id,name,track_id,topic,level,timezone,created_at,availability')
+        .select('id,name,track_id,topic,level,timezone,created_at,availability,avatar_url')
         /* Signing in with Google creates the row before any question is
            answered, and this used to require a path so those half-finished
            rows stayed out. It hid real people: somebody who signed up, sent a
@@ -1955,7 +1955,28 @@ window.pf = (function(){
         .order('created_at', { ascending: false })
         .limit(limit || 24);
       if (uid) q = q.neq('id', uid);
-      return q.then(function(r){ return r.error ? null : (r.data || []); });
+      return q.then(function(r){
+        if (!r.error) return r.data || [];
+        /* avatar_url arrived after this reader did, and a select naming a
+           column the database has not got is a hard error rather than a null
+           field — so without this the People page would go blank on any
+           deployment where supabase/migration-avatars.sql has not been pasted
+           in yet, which is every deployment for as long as it takes somebody
+           to paste it.
+           
+           The whole page, not the pictures: PostgREST rejects the request, not
+           the column. So the query is asked again without it and everybody
+           renders as an initial, which is exactly what the page did before
+           avatars existed. */
+        if (!missingColumn(r.error)) return null;
+        var again = client.from('profiles')
+          .select('id,name,track_id,topic,level,timezone,created_at,availability')
+          .not('name', 'is', null).neq('name', '')
+          .order('created_at', { ascending: false })
+          .limit(limit || 24);
+        if (uid) again = again.neq('id', uid);
+        return again.then(function(f){ return f.error ? null : (f.data || []); });
+      });
     }).catch(function(){ return null; });
   }
 
@@ -2205,6 +2226,48 @@ window.pf = (function(){
         };
       });
     }).catch(function(){ return null; });
+  }
+
+  /* Keep your own stored photo in step with the one your session carries.
+   *
+   * The account menu has always drawn a real picture, because it reads
+   * user_metadata off YOUR OWN auth record. Nobody else can read that record,
+   * which is why the People list drew initials: not a rendering bug, an
+   * unreachable field. public.profiles.avatar_url is the copy other members
+   * are allowed to see, and this is what keeps that copy honest.
+   *
+   * Called on load rather than only at signup because a Google photo URL
+   * changes when somebody changes their picture, and a stale one renders as a
+   * broken image on every page that lists them.
+   *
+   * It writes only when the two differ, so the ordinary case is a read of the
+   * session that was already in memory and no request at all. It resolves to
+   * nothing in every failure path — a photo that did not sync is not worth a
+   * message, and nothing on any page waits for this.
+   */
+  var avatarSynced = null;
+  function syncAvatar(){
+    if (!client) return Promise.resolve(null);
+    /* Once per page. Several pages call this through appshell and the answer
+       cannot change between two calls in the same document. */
+    if (avatarSynced) return avatarSynced;
+    avatarSynced = client.auth.getUser().then(function(res){
+      var user = res && res.data && res.data.user;
+      if (!user) return null;
+      var meta = user.user_metadata || {};
+      var url  = String(meta.avatar_url || meta.picture || '');
+      return client.from('profiles').select('avatar_url').eq('id', user.id).maybeSingle()
+        .then(function(r){
+          /* No column yet means migration-avatars.sql has not been run. There
+             is nowhere to write, and that is not an error worth reporting to
+             somebody who only opened a page. */
+          if (r.error) return null;
+          var have = String((r.data && r.data.avatar_url) || '');
+          if (have === url) return null;
+          return client.rpc('set_my_avatar', { p_url: url }).then(function(){ return null; });
+        });
+    }).catch(function(){ return null; });
+    return avatarSynced;
   }
 
   /* The members, and when each was last here.
@@ -3001,6 +3064,7 @@ window.pf = (function(){
     visitCampaigns: visitCampaigns,
     visitRecent: visitRecent,
     memberActivity: memberActivity,
+    syncAvatar: syncAvatar,
     visitPages: visitPages,
     visitContext: visitContext,
     trackNames: trackNames,
