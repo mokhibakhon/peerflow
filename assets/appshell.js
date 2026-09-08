@@ -180,6 +180,23 @@
      so the query and the flag are both gone. */
   pfChatBadge();
 
+  /* Copy your own photo onto your profile row, so other people can see it.
+   *
+   * The account menu has always shown a real picture because it reads your own
+   * auth record; nobody else can read that record, which is why the People
+   * list drew initials for everybody. public.profiles.avatar_url is the copy
+   * members are allowed to read, and this is what fills it.
+   *
+   * Here rather than at signup because it also has to cover the accounts that
+   * already existed, and because a Google photo URL changes when somebody
+   * changes their picture — a copy written once goes stale and renders as a
+   * broken image on every page that lists them.
+   *
+   * Nothing waits for it and nothing shows if it fails. It writes only when
+   * the stored URL differs from the session's, so the ordinary page load makes
+   * no request at all. */
+  try { if (window.pf && pf.syncAvatar) pf.syncAvatar(); } catch (e) {}
+
   /* The streak, in the bar, on every page.
      The ring on Today explains it; this only has to remind you it exists while
      you are somewhere else. It stays hidden at zero: a dark flame reading "0"

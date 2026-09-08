@@ -380,10 +380,16 @@ window.pf = (function(){
          case with four people. */
       if (window.__peers !== undefined) return P(window.__peers);
       return P([
+      /* Two with a photo and the rest without, because both paths ship: an
+         email signup has no avatar_url at all and must still draw its initial.
+         The URLs are the shape Google really returns; nothing fetches them in
+         a test unless the test routes them itself. */
       {id:'m1',name:'Amir Karimov',track_id:'cybersecurity',topic:'SOC analyst',level:'tutorials',
-       timezone:'Asia/Tashkent',availability:THEIR_AVAIL},
+       timezone:'Asia/Tashkent',availability:THEIR_AVAIL,
+       avatar_url:'https://lh3.googleusercontent.com/a/amir=s96-c'},
       {id:'m2',name:'Dilnoza Rahimova',track_id:'cybersecurity',topic:'Pentesting',level:'tutorials',
-       timezone:'Asia/Tashkent',availability:['thu-evening']}]
+       timezone:'Asia/Tashkent',availability:['thu-evening'],
+       avatar_url:'https://lh3.googleusercontent.com/a/dilnoza=s96-c'}]
       .concat(window.__trackless?[{id:'m3',name:'Nodira Yusupova',track_id:null,topic:'',
        level:null,timezone:null,availability:[]}]:[]))},
     learnerStats:function(){return P({total:12,sameTopic:3})},
@@ -810,6 +816,10 @@ window.pf = (function(){
        nothing since, and an account that has never signed in at all — which is
        the row the "never" cell exists for and the most useful one on the
        screen. */
+    /* Resolves and does nothing. The real one compares the session's photo
+       with the stored one and writes when they differ; there is no session
+       here and nothing to write to, and every caller ignores the result. */
+    syncAvatar:function(){ return P(null); },
     memberActivity:function(){
       if (window.__members === null) return P(null);
       if (window.__members) return P(window.__members);

@@ -1379,6 +1379,23 @@ html{scroll-behavior:smooth}
 .tp-top{display:flex;gap:16px;align-items:center}
 .tp-av{width:58px;height:58px;border-radius:var(--r-card);display:flex;align-items:center;
   justify-content:center;font-weight:700;font-size:20px;flex:0 0 auto}
+
+/* A photo inside any of the three avatar shapes on this page.
+   
+   overflow:hidden on the circle rather than a radius on the image, so the
+   image inherits whichever shape its container has — the People card uses a
+   card radius, the partner row a control radius, and a request a full circle.
+   One rule, three shapes, and adding a fourth needs nothing here.
+   
+   object-fit:cover because a Google photo is square but nothing guarantees it,
+   and the alternative to cropping is a letterboxed face on a coloured circle.
+   
+   display:block kills the inline baseline gap that would otherwise leave a
+   sliver of the background colour along the bottom edge — visible precisely
+   because the background is a strong tone chosen to carry white text. */
+.tp-av,.pt-av,.inreq-av{overflow:hidden}
+.tp-av img,.pt-av img,.inreq-av img{
+  display:block;width:100%;height:100%;object-fit:cover}
 .tp-nm{margin:0;font-size:var(--t-card);font-weight:800;letter-spacing:-.02em}
 .tp-sub{margin:2px 0 0;font-size:var(--t-sm);color:var(--soft)}
 .tp-facts{display:flex;gap:22px;flex-wrap:wrap;margin:18px 0 0;padding-top:16px;
