@@ -32,11 +32,11 @@
 
 <main>
   <div class="wrap" style="max-width:760px">
-    <a class="backlink" href="app-people.html">&larr; Everyone on PeerFlow</a>
+    <a class="backlink" href="/app-people">&larr; Everyone on PeerFlow</a>
 
     <p class="pv-miss" id="pv-miss" hidden>
       We couldn’t find that person. They may have deleted their account.
-      <a href="app-people.html">Back to everyone</a>.
+      <a href="/app-people">Back to everyone</a>.
     </p>
 
     <!-- Where this page ends up after you block somebody, and it has to be a
@@ -53,8 +53,8 @@
       <p style="font-size:13.5px;color:var(--muted);margin-top:10px">Sessions you had
         booked together have come off both calendars, and the partnership has ended.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-        <a class="btn" href="app-people.html">Back to everyone</a>
-        <a class="ghost" href="app-settings.html">Undo this in Settings</a>
+        <a class="btn" href="/app-people">Back to everyone</a>
+        <a class="ghost" href="/app-settings">Undo this in Settings</a>
       </div>
     </section>
 
@@ -101,9 +101,9 @@
 </main>
 
 <div class="mfoot">
-  <a href="conduct.html">Code of conduct</a>
-  <a href="privacy.html">Privacy</a>
-  <a href="app-people.html">Everyone</a>
+  <a href="/conduct">Code of conduct</a>
+  <a href="/privacy">Privacy</a>
+  <a href="/app-people">Everyone</a>
   <span>peerflow</span>
 </div>
 
@@ -196,14 +196,14 @@
        so the buttons are written from the request row rather than guessed. */
     var out = '';
     if (!req) {
-      out += '<a class="btn" href="app-people.html?ask=' + esc(person.id) + '">Send request</a>';
+      out += '<a class="btn" href="/app-people?ask=' + esc(person.id) + '">Send request</a>';
     } else if (req.status === 'accepted') {
       /* Partnered, and the page said so and stopped. The one thing two
          partners have to do is agree an hour, and there was nothing here that
          led to it — you had to know that booking lives on Sessions and that
          the form has a menu with this person in it. */
       out += '<span class="pstate ok">Partners</span>' +
-             '<a class="btn" href="app.html?plan=' + esc(person.id) + '">Propose a time</a>';
+             '<a class="btn" href="/app?plan=' + esc(person.id) + '">Propose a time</a>';
     } else if (req.status === 'declined') {
       out += '<span class="pstate no">Declined</span>';
     } else {
@@ -212,7 +212,7 @@
     }
     /* Messaging needs a request in some direction — the same rule the
        database enforces — so the button only appears when it would work. */
-    if (req) out += '<a class="ghost" href="app-chat.html?to=' + esc(person.id) + '">Message</a>';
+    if (req) out += '<a class="ghost" href="/app-chat?to=' + esc(person.id) + '">Message</a>';
     /* Report is not conditional on anything. The code of conduct promises it
        whether or not you are still on the call, which means whether or not
        you ever partnered with them — somebody can be harassing you through

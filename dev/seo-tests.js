@@ -80,12 +80,17 @@ for (const f of indexable) {
     && /property="og:locale"/.test(html),
     `${f}: complete social metadata`);
 
-  // An internal link to /index.html is a link to a URL that permanently
-  // redirects. It still resolves, but it spends a round trip and a little of
-  // the page's link equity to arrive somewhere the site could have named
-  // directly. The three legal pages did this in their footers.
-  const hops = (html.match(/href="[^"]*index\.html[^"]*"/g) || []);
-  check(hops.length === 0, `${f}: no internal links to the redirecting /index.html${hops.length ? ' — ' + hops.join(', ') : ''}`);
+  /* A link to a URL that redirects still resolves, but it spends a round trip
+     and a little of the page's link equity arriving somewhere the site could
+     have named directly. There are two shapes of that now.
+     
+     /index.html has always redirected to /. And since cleanUrls, so does every
+     other .html address — which turned a rule that caught one filename into
+     one that has to catch them all, and made it worth having: a single link
+     written the old way is invisible in a browser and costs a hop on every
+     crawl. */
+  const hops = (html.match(/href="[^"]*\.html[^"]*"/g) || []);
+  check(hops.length === 0, `${f}: no internal links to a redirecting .html address${hops.length ? ' — ' + hops.join(', ') : ''}`);
 
   check(/<html lang="en">/.test(html), `${f}: lang declared`);
   check(/<meta charset="utf-8">/i.test(html), `${f}: charset declared`);
@@ -276,7 +281,19 @@ for (const f of allPages) {
 // than on the fact of it.
 for (const f of indexable) {
   if (f === 'index.html') continue;
-  const linkers = indexable.filter((o) => o !== f && new RegExp(`href="(\\./|/)?${f}[?#"]`).test(read(o)));
+  /* Matched on the ADDRESS rather than the filename. Since cleanUrls a page is
+     linked as /privacy, and this used to look for /privacy.html — so on the
+     commit that stripped the extensions every indexable page looked like an
+     orphan at once. Fourteen simultaneous failures are easy to read as the
+     test being wrong; one would have been easy to read as a real orphan, which
+     is the more dangerous way round for a check like this to break.
+     
+     The extension is still accepted, because a link that carries it is not
+     broken — it 308s — and this check is about whether anything points at the
+     page at all. The separate footer check above is what enforces the form. */
+  const slug = f.replace(/\.html$/, '');
+  const re = new RegExp(`href="(\\./|/)?${slug}(\\.html)?[?#"]`);
+  const linkers = indexable.filter((o) => o !== f && re.test(read(o)));
   check(linkers.length > 0, `${f}: linked from ${linkers.length} other indexable page(s)`);
 }
 
@@ -464,11 +481,16 @@ if (fs.existsSync(path.join(root, '404.html'))) {
   // drift: every page it names has to exist, and every page a visitor could
   // plausibly be aiming at has to be named. The second half is the one that
   // rots — a ninth learning path would be a page the resolver never offers.
-  const listed = [...nf.matchAll(/\['([a-z0-9.-]+\.html)',/g)].map((m) => m[1]);
+  /* The list holds addresses now, not filenames — '/privacy' rather than
+     'privacy.html' — so both halves of this map back to a file before judging
+     it. The home page is '/', which is index.html. */
+  const listed = [...nf.matchAll(/\['(\/[a-z0-9-]*)',/g)].map((m) => m[1]);
+  const fileFor = (addr) => (addr === '/' ? 'index.html' : addr.slice(1) + '.html');
   check(listed.length > 0, `404.html: the resolver's page list parses (found ${listed.length})`);
-  const ghosts = listed.filter((f) => !fs.existsSync(path.join(root, f)));
+  const ghosts = listed.filter((a) => !fs.existsSync(path.join(root, fileFor(a))));
   check(ghosts.length === 0, `404.html: every page it can suggest exists${ghosts.length ? ' — ' + ghosts.join(', ') : ''}`);
-  const uncovered = indexable.filter((f) => !listed.includes(f));
+  const covered = new Set(listed.map(fileFor));
+  const uncovered = indexable.filter((f) => !covered.has(f));
   check(uncovered.length === 0,
     `404.html: suggests every indexable page${uncovered.length ? ' — missing ' + uncovered.join(', ') : ''}`);
 
@@ -500,10 +522,38 @@ if (fs.existsSync(path.join(root, '404.html'))) {
 //               would be a soft 404, which is the thing that page's own
 //               comment exists to warn about.
 {
-  const SKIP = { 'index.html': 'served at /', 'draft.html': 'a rewrite, not a redirect',
-                 '404.html': 'must never answer 200' };
-  const want = new Map(allPages.filter((f) => !SKIP[f])
-    .map((f) => ['/' + f.replace(/\.html$/, ''), '/' + f]));
+  /* index.html and draft.html must have no redirect: the first is served at /
+     and already redirects the other way, the second is served at /draft by
+     cleanUrls like every other page.
+     
+     404.html is the opposite and it changed with cleanUrls. It used to need no
+     redirect because /404 simply was not a route — nothing served 404.html
+     except a miss. cleanUrls gives every file a bare address, /404 included,
+     and a 404 page served under a 200 is a soft 404: indexable, and a
+     duplicate of every mistyped URL on the site. So /404 now needs an explicit
+     redirect to stop being reachable, which is the one place this change made
+     the config bigger rather than smaller. */
+  const SKIP = { 'index.html': 'served at /', 'draft.html': 'served at /draft by cleanUrls' };
+  /* Since cleanUrls, a page's extensionless address is not a redirect any
+     more — Vercel serves the file at the bare name and 308s the .html form to
+     it. So the 24 extension-adding redirects that used to be required here are
+     now forbidden, and that inversion is the single most important thing this
+     block checks.
+     
+     A redirect saying /privacy -> /privacy.html while cleanUrls says
+     /privacy.html -> /privacy is an infinite loop, and it is a loop that no
+     test touching one file alone could see: vercel.json looks reasonable, the
+     page looks reasonable, and the site is simply unreachable. */
+  check(vercel.cleanUrls === true,
+    'vercel.json: cleanUrls is on, which is what serves every page at its bare name');
+
+  const loops = (vercel.redirects || [])
+    .filter((r) => r.destination === r.source + '.html')
+    .map((r) => `${r.source} -> ${r.destination}`);
+  check(loops.length === 0,
+    `vercel.json: no redirect that fights cleanUrls into a loop${loops.length ? ' — ' + loops.join(', ') : ''}`);
+
+  const want = new Map();
 
   // The eight learning paths also answer to a nickname, and the nickname is
   // not chosen here: every landing page links signup.html?path=<name>, and that
@@ -512,35 +562,45 @@ if (fs.existsSync(path.join(root, '404.html'))) {
   // and it is why these eight are defensible where eight invented ones would
   // not have been. A page naming two paths, or none, is a defect in the page.
   for (const f of allPages.filter((f) => f.endsWith('-study-partner.html'))) {
-    const names = [...new Set([...read(f).matchAll(/signup\.html\?path=([a-z]+)/g)].map((m) => m[1]))];
+    const names = [...new Set([...read(f).matchAll(/signup\?path=([a-z]+)/g)].map((m) => m[1]))];
     check(names.length === 1, `${f}: names exactly one learning path${names.length === 1 ? ` (${names[0]})` : ` — found ${names.length}: ${names.join(', ')}`}`);
-    if (names.length === 1) want.set('/' + names[0], '/' + f);
+    if (names.length === 1) want.set('/' + names[0], '/' + f.replace(/\.html$/, ''));
   }
 
   const got = new Map((vercel.redirects || []).map((r) => [r.source, r]));
 
   const missing = [...want].filter(([src]) => !got.has(src)).map(([src]) => src);
   check(missing.length === 0,
-    `vercel.json: every page has an extensionless address, and every path its nickname${missing.length ? ' — missing ' + missing.join(', ') : ` (${want.size})`}`);
+    `vercel.json: every learning path answers to its nickname${missing.length ? ' — missing ' + missing.join(', ') : ` (${want.size})`}`);
 
+  /* And it must point at the extensionless address, not the file. A nickname
+     landing on /frontend-study-partner.html would 308 again to the bare name —
+     two hops for every visitor who typed the short form, and two hops is what
+     the whole change was meant to remove. */
   const wrong = [...want].filter(([src, dest]) => got.has(src) &&
     (got.get(src).destination !== dest || got.get(src).permanent !== true))
     .map(([src, dest]) => `${src} should be a permanent redirect to ${dest}`);
-  check(wrong.length === 0, `vercel.json: each one is permanent and points at its own file${wrong.length ? ' — ' + wrong.join('; ') : ''}`);
+  check(wrong.length === 0, `vercel.json: each nickname is permanent and points at a bare address${wrong.length ? ' — ' + wrong.join('; ') : ''}`);
 
   // An extra redirect is not harmless: it either shadows a real file or sends
   // somebody to one that is not there.
-  const extra = [...got.keys()].filter((src) => !want.has(src) && src !== '/index.html');
+  const extra = [...got.keys()].filter((src) =>
+    !want.has(src) && src !== '/index.html' && src !== '/404');
   check(extra.length === 0, `vercel.json: no redirect that no page asked for${extra.length ? ' — ' + extra.join(', ') : ''}`);
 
   for (const [f, why] of Object.entries(SKIP)) {
     const src = '/' + f.replace(/\.html$/, '');
     check(!got.has(src), `vercel.json: no redirect for ${src} — ${why}`);
   }
-  // The one that would be silent if it broke: /draft has to stay a rewrite, so
-  // the preview page keeps its own address instead of bouncing to draft.html.
-  check((vercel.rewrites || []).some((r) => r.source === '/draft' && r.destination === '/draft.html'),
-    'vercel.json: /draft is still a rewrite');
+  check(got.has('/404') && got.get('/404').destination === '/' && got.get('/404').permanent === true,
+    'vercel.json: /404 redirects away, so cleanUrls cannot serve the not-found page under a 200');
+  /* /draft used to need a rewrite so the preview page kept its own address
+     rather than bouncing to draft.html. cleanUrls does that for every page
+     now, so the rewrite is not merely unnecessary — leaving it in would mean
+     one page routed by a mechanism nothing else uses, which is the kind of
+     special case that survives long after the reason for it has gone. */
+  check(!(vercel.rewrites || []).some((r) => r.source === '/draft'),
+    'vercel.json: /draft needs no rewrite now that cleanUrls serves it');
 }
 
 // ── the build marker ───────────────────────────────────────────────────────

@@ -135,7 +135,7 @@
       h = 'Log in to join your session';
       s = 'You will come straight back here.';
       a = '<a class="btn" href="login.html?next=' +
-          encodeURIComponent('call.html' + location.search) + '">Log in</a>';
+          encodeURIComponent('/call' + location.search) + '">Log in</a>';
     } else if (res.reason === 'not-deployed' || res.reason === 'not-configured') {
       k = 'Not switched on';
       h = 'Calls are not set up on this site yet';
@@ -749,7 +749,7 @@
 
   $('c-leave').addEventListener('click', leave);
 
-  $('done-back').addEventListener('click', function(){ location.href = 'app.html'; });
+  $('done-back').addEventListener('click', function(){ location.href = '/app'; });
   $('done-again').addEventListener('click', function(){
     left = false; room = null;
     show('st-load');

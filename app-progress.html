@@ -37,7 +37,7 @@
 
     <p class="signedout-note" id="signedout" hidden>
       You're not signed in, so we can't work out what you've done.
-      <a href="login.html">Log in</a> to see it.
+      <a href="/login">Log in</a> to see it.
     </p>
 
     <!-- ============ the record ============
@@ -124,9 +124,9 @@
 </main>
 
 <div class="mfoot">
-  <a href="conduct.html">Code of conduct</a>
-  <a href="privacy.html">Privacy</a>
-  <a href="app-profile.html">Your profile</a>
+  <a href="/conduct">Code of conduct</a>
+  <a href="/privacy">Privacy</a>
+  <a href="/app-profile">Your profile</a>
   <span>peerflow</span>
 </div>
 
@@ -191,7 +191,7 @@
 
     if (!plan) {
       name.textContent = 'Your learning path';
-      sub.innerHTML = 'Pick a path in <a href="app-profile.html" style="text-decoration:underline">your profile</a> ' +
+      sub.innerHTML = 'Pick a path in <a href="/app-profile" style="text-decoration:underline">your profile</a> ' +
                       'and the weeks will appear here.';
       box.innerHTML = '';
       acts.hidden = true;
@@ -480,7 +480,7 @@
     } else {
       note.innerHTML = 'Nothing here yet. Book a session with your partner and ' +
         'your hours, streak and attendance start counting. ' +
-        '<a href="app.html" style="text-decoration:underline">Propose a time</a>';
+        '<a href="/app" style="text-decoration:underline">Propose a time</a>';
     }
   }
 
@@ -524,7 +524,7 @@
         if (!res || !res.fresh || backfill) return null;
         if (pf.notifySelf) {
           pf.notifySelf('achievement', 'Achievement unlocked: ' + b.name,
-                        b.sub || b.desc || null, 'app-progress.html');
+                        b.sub || b.desc || null, '/app-progress');
         }
         return b;
       }).catch(function(){ return null; });

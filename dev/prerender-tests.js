@@ -77,7 +77,12 @@ async function open(browser, path, prerendering) {
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 
-  for (const path of ['/app.html', '/app-progress.html', '/app-people.html']) {
+  /* Bare addresses, because that is what the site serves since cleanUrls.
+     Pointed at the .html forms these navigate through a 308 first, and a
+     prerender that has to follow a redirect is not the thing being tested —
+     the suite reported "nothing was ever written" for all three, which reads
+     like the beacon is broken rather than like the URL moved. */
+  for (const path of ['/app', '/app-progress', '/app-people']) {
     console.log('\n==> ' + path + ' while it is being prerendered');
     const { ctx, page } = await open(browser, path, true);
 
@@ -103,7 +108,7 @@ async function open(browser, path, prerendering) {
   }
 
   console.log('\n==> and a normal navigation is unaffected');
-  const { ctx, page } = await open(browser, '/app.html', false);
+  const { ctx, page } = await open(browser, '/app', false);
   const normal = await page.evaluate(() => window.__writes.slice());
   ok('a page opened directly writes without waiting for anything',
      normal.length > 0, normal.length ? 'called ' + normal.join(', ') : 'no writes at all');

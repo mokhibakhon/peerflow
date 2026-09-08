@@ -32,8 +32,8 @@
     if (!window.pf || !pf.currentUser) { reveal(); return; }
     pf.currentUser().then(function(user){
       if (user) { reveal(); return; }
-      var here = (location.pathname.split('/').pop() || 'app.html') + location.search;
-      location.replace('login.html?next=' + encodeURIComponent(here));
+      var here = (location.pathname.split('/').pop() || '/app') + location.search;
+      location.replace('/login?next=' + encodeURIComponent(here));
     }, reveal);
   }
 

@@ -136,14 +136,21 @@ async function guess(p){
      the bottom — a path with directories in front of it, one
      that already ends in .html, and one in the wrong case — none of which match
      a redirect source, all of which resolve on the last segment. */
+  /* The offered href is the page's real address, which since cleanUrls has no
+     extension. Worth checking rather than assuming: the resolver's page list
+     holds addresses now where it used to hold filenames, and the line that
+     built the href from an entry was still prefixing a slash — which turned
+     /frontend-study-partner into //frontend-study-partner, a protocol-relative
+     URL that a browser reads as a different HOST. Every guess would have led
+     off the site, and the text beside it would have looked perfect. */
   for (const [url, expect, href] of [
-    ['/docs/frontend',     'frontend study partners',   '/frontend-study-partner.html'],
-    ['/backend-study',     'backend study partners',    '/backend-study-partner.html'],
-    ['/singup',            'the sign-up page',          '/signup.html'],
-    ['/tems',              'the terms',                 '/terms.html'],
-    ['/docs/privacy',      'the privacy policy',        '/privacy.html'],
-    ['/privacy.html/',     'the privacy policy',        '/privacy.html'],
-    ['/PRIVACY',           'the privacy policy',        '/privacy.html'],
+    ['/docs/frontend',     'frontend study partners',   '/frontend-study-partner'],
+    ['/backend-study',     'backend study partners',    '/backend-study-partner'],
+    ['/singup',            'the sign-up page',          '/signup'],
+    ['/tems',              'the terms',                 '/terms'],
+    ['/docs/privacy',      'the privacy policy',        '/privacy'],
+    ['/privacy.html/',     'the privacy policy',        '/privacy'],
+    ['/PRIVACY',           'the privacy policy',        '/privacy'],
   ]) {
     const t = await open(b, url);
     const g = await guess(t.p);
@@ -152,30 +159,46 @@ async function guess(p){
   }
 
   console.log('\n==> the addresses that never get here any more');
-  /* Two kinds now: the extensionless form of a page's own name, and the eight
-     nicknames the learning paths already had in signup.html?path=. */
-  /* The redirects are in vercel.json and dev/serve.js reads that file rather
-     than restating it, so this exercises the real table. Two things have to
-     hold and only one of them is obvious. The bare name has to move, and the
-     .html form has to stay exactly where it is — the whole reason for choosing
-     this direction over cleanUrls is that no canonical, sitemap entry or
-     internal link had to change, and a redirect pointing the other way would
-     quietly undo all of it. */
+  /* The direction reversed when cleanUrls went on, and this table is where
+     that is visible. It used to assert that /privacy 308'd to /privacy.html
+     and that /privacy.html answered 200 directly. Both are now the other way
+     round: the bare name is the page, and the extension is the thing that
+     moves.
+     
+     The two properties worth holding are the same ones as before, mirrored.
+     The address the site ADVERTISES must answer 200 and never redirect — every
+     canonical, sitemap entry and internal link names it. And the address
+     people may already HAVE must move, because Google has the .html forms
+     indexed and every link anybody shared before today carries one.
+     
+     /404 is the case cleanUrls created rather than inherited. Every file gets
+     a bare address under it, including the not-found page, and a 404 page
+     served at /404 under a 200 is a soft 404 — indexable, and a duplicate of
+     every mistyped URL on the site. The explicit redirect in vercel.json is
+     what stops that, and this is what proves it is still there.
+     
+     dev/serve.js reads vercel.json rather than restating it, so this exercises
+     the real table. */
   {
     const req = (await b.newPage()).request;
     for (const [url, status, to] of [
-      ['/privacy',      308, '/privacy.html'],
-      ['/login',        308, '/login.html'],
-      ['/app',          308, '/app.html'],
-      ['/terms',        308, '/terms.html'],
-      ['/index.html',   308, '/'],
-      ['/frontend',     308, '/frontend-study-partner.html'],
-      ['/design',       308, '/ux-ui-design-study-partner.html'],
-      ['/privacy.html', 200, null],
+      /* the advertised addresses answer directly */
+      ['/privacy',      200, null],
+      ['/login',        200, null],
+      ['/app',          200, null],
+      ['/terms',        200, null],
       ['/draft',        200, null],
-      ['/404',          404, null],
-      ['/random',       404, null],
       ['/assets/db.js', 200, null],
+      /* the addresses people already have move, in one hop */
+      ['/privacy.html', 308, '/privacy'],
+      ['/login.html',   308, '/login'],
+      ['/index.html',   308, '/'],
+      /* the nicknames land on the bare page, not on a .html that moves again */
+      ['/frontend',     308, '/frontend-study-partner'],
+      ['/design',       308, '/ux-ui-design-study-partner'],
+      /* and the not-found page has no address of its own */
+      ['/404',          308, '/'],
+      ['/random',       404, null],
     ]) {
       const r = await req.get(BASE + url, { maxRedirects: 0 });
       const loc = r.headers()['location'];
@@ -183,11 +206,16 @@ async function guess(p){
       ok(url + ' → ' + r.status() + (where ? ' ' + where : ''),
          r.status() === status && (to === null ? !loc : where === to));
     }
-    /* The query has to survive: call.html is reached as /call?s=<booking> and
-       arriving without it is a room with no session behind it. */
+    /* The query has to survive: the room is reached as /call?s=<booking> and
+       arriving without it is a room with no session behind it.
+       
+       It used to survive a REDIRECT — /call 308'd to /call.html?s=… and the
+       check was that the query rode along. There is no redirect now, so the
+       stronger statement is available and is the one made here: the address
+       answers directly, so there is no hop for the query to be dropped by. */
     const q = await req.get(BASE + '/call?s=abc123', { maxRedirects: 0 });
-    ok('/call?s=abc123 keeps its query → ' + (q.headers()['location'] || '').replace(BASE, ''),
-       (q.headers()['location'] || '').endsWith('/call.html?s=abc123'));
+    ok('/call?s=abc123 is served directly, so the query cannot be dropped → ' + q.status(),
+       q.status() === 200 && !q.headers()['location']);
   }
 
   console.log('\n==> and the guesses it declines to make');

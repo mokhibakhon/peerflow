@@ -27,7 +27,7 @@
 
     var ctas = document.querySelectorAll('.nav a[href="signup.html"]');
     Array.prototype.forEach.call(ctas, function(a){
-      a.href = 'app.html';
+      a.href = '/app';
       a.textContent = 'Open app';
     });
   });

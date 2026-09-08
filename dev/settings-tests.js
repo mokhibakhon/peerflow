@@ -28,7 +28,10 @@
  */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const PORT = process.argv[2] || process.env.PORT || 9000;
-const B = 'http://127.0.0.1:' + PORT + '/app-settings.html';
+/* The bare address, because that is what the site serves since cleanUrls.
+   Loading the .html form works — it 308s here — but then the pathname check
+   below compares against wherever the browser ended up, which is this. */
+const B = 'http://127.0.0.1:' + PORT + '/app-settings';
 
 let pass = 0, fail = 0;
 
@@ -113,19 +116,16 @@ async function main() {
     const p = await open();
     await p.click('#s-del-start');
     await p.fill('#s-del-word', 'DELETE');
-    /* The page sets location.href = 'index.html', and vercel.json answers that
-       with a 308 to '/' — index.html is served at the root, and the .html form
-       is one of the redirects pointing the other way, which dev/serve.js reads
-       out of that same table rather than restating. So the URL this settles on
-       is the origin itself, and waiting for /index\.html$/ waited the full
-       thirty seconds for a spelling the redirect had already replaced.
+    /* The page sets location.href = '/' and lands there directly. It used to
+       set 'index.html' and arrive via a 308, which is why this case once
+       failed as "deleting ... leaves for the home page" while delete was
+       working perfectly: the wait was for /index\.html$/ and Playwright's own
+       log said `navigated to "http://127.0.0.1:9000/"` underneath the timeout.
 
-       It failed as "deleting ... leaves for the home page", which is the one
-       reading the evidence ruled out: Playwright's own log said `navigated to
-       "http://127.0.0.1:9000/"` underneath the timeout. Delete had been
-       working the whole time. Either form is accepted below, because what is
-       being asserted is that it left for the home page and not which of that
-       page's two addresses it came to rest on. */
+       Both forms are still accepted, because what is being asserted is that it
+       left for the home page rather than which spelling it came to rest on —
+       and a check that pins the spelling is exactly what cost thirty seconds
+       and a wrong diagnosis the first time. */
     await Promise.all([
       p.waitForURL((u) => {
         const path = new URL(u).pathname;
@@ -158,7 +158,7 @@ async function main() {
     eq(await p.locator('#s-del-note').innerText(), 'Could not delete your account.');
     eq(await p.locator('#s-del-go').isDisabled(), false, 'button usable again:');
     eq(await p.locator('#s-del-cancel').isDisabled(), false, 'cancel usable again:');
-    eq(new URL(p.url()).pathname, '/app-settings.html', 'still on settings:');
+    eq(new URL(p.url()).pathname, '/app-settings', 'still on settings:');
     await p.close();
   });
 

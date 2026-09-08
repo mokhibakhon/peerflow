@@ -80,13 +80,13 @@
      "Sessions" became "Today" in the same pass. The page was named after the
      card that used to dominate it, which left the app with a Sessions tab
      holding a Sessions card next to a Partner tab holding a partner. */
-  var HOME    = { href:'app.html',          label:'Today',    icon:'sessions' };
-  var PARTNER = { href:'app-sessions.html', label:'My partners', icon:'partner' };
-  var CHAT    = { href:'app-chat.html',     label:'Chat',     icon:'chat'     };
-  var PEOPLE  = { href:'app-people.html',   label:'People',   icon:'people'   };
-  var PATH    = { href:'app-progress.html', label:'Progress', icon:'progress' };
+  var HOME    = { href:'/app',          label:'Today',    icon:'sessions' };
+  var PARTNER = { href:'/app-sessions', label:'My partners', icon:'partner' };
+  var CHAT    = { href:'/app-chat',     label:'Chat',     icon:'chat'     };
+  var PEOPLE  = { href:'/app-people',   label:'People',   icon:'people'   };
+  var PATH    = { href:'/app-progress', label:'Progress', icon:'progress' };
 
-  var here = (location.pathname.split('/').pop() || 'app.html').toLowerCase();
+  var here = (location.pathname.split('/').pop() || '/app').toLowerCase();
 
   /* The same five for everybody, in the same order, on every page. */
   function tabsFor(){

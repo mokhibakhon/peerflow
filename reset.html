@@ -74,7 +74,7 @@
     <p class="lead">Reset links last an hour and work once. Ask for a fresh one and
       it'll be in your inbox in a minute.</p>
     <div class="stack">
-      <a class="btn big wide" href="login.html">Back to log in</a>
+      <a class="btn big wide" href="/login">Back to log in</a>
     </div>
   </div>
 
@@ -176,7 +176,7 @@
       saveBtn.textContent = 'Save new password';
       if (res && res.saved) {
         /* The recovery session is a real session, so they're already in. */
-        window.location.replace('app.html');
+        window.location.replace('/app');
         return;
       }
       status.style.display = 'block';

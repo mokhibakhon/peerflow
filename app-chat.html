@@ -83,9 +83,9 @@
 </main>
 
 <div class="mfoot">
-  <a href="conduct.html">Code of conduct</a>
-  <a href="privacy.html">Privacy</a>
-  <a href="app-people.html">Everyone</a>
+  <a href="/conduct">Code of conduct</a>
+  <a href="/privacy">Privacy</a>
+  <a href="/app-people">Everyone</a>
   <span>peerflow</span>
 </div>
 
@@ -180,7 +180,7 @@
     if (!shown.length && !cold.length) {
       document.getElementById('ch-people').innerHTML =
         '<p class="ch-none">Nobody to talk to yet. Ask somebody on ' +
-        '<a href="app-people.html">People</a> and you can message them from the moment you do.</p>';
+        '<a href="/app-people">People</a> and you can message them from the moment you do.</p>';
       document.getElementById('ch-more').hidden = true;
       return;
     }
@@ -251,7 +251,7 @@
     $('ch-empty').hidden = true;
     $('ch-open').hidden = false;
     $('chat').classList.add('open');
-    var href = 'app-person.html?id=' + encodeURIComponent(id);
+    var href = '/app-person?id=' + encodeURIComponent(id);
     $('ch-av').textContent = initial(openName);
     $('ch-av').href = href;
     $('ch-name').textContent = openName;
