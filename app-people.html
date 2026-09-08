@@ -222,11 +222,25 @@
     return topicScore(p) + Math.min(overlap(p), 40);
   }
 
-  function initial(nm){ return esc(nm.trim().charAt(0).toUpperCase() || '?'); }
+  function initial(s){ return (String(s || '').trim()[0] || '·').toUpperCase(); }
 
   /* What goes inside an avatar circle: the person's photo where there is one,
      and the initial on its colour where there is not.
-     
+
+     THIS IS THE ORIGINAL. It is copied verbatim into app.html,
+     app-person.html, app-chat.html and app-sessions.html, which is how this
+     repository shares small view helpers — esc() is written out on thirteen
+     pages for the same reason. There is no module system here, and the one
+     file that could hold it, appshell.js, is loaded at the end of the body on
+     some of these pages: a page whose data arrives in a microtask would call
+     it before it existed. Change one, change all five.
+
+     initial() no longer escapes, because faceOf does. It used to, on this
+     page only, and every other page's initial() returns the raw character —
+     so a copy of this helper that trusted its local initial() would have put
+     one unescaped character into an attribute. Escaping here rather than
+     there is what lets the five copies be identical.
+
      A photo is not the common case and must not be assumed. Somebody who
      signed up with an email address has none, and neither does anybody at all
      until supabase/migration-avatars.sql has been run — so this returns the
@@ -243,11 +257,11 @@
      column has a check constraint saying the same thing; this is the half that
      does not depend on the migration having been run. */
   function faceOf(nm, url){
-    var u = String(url || '');
-    if (!/^https:\/\//.test(u)) return initial(nm);
+    var i = esc(initial(nm)), u = String(url || '');
+    if (!/^https:\/\//.test(u)) return i;
     return '<img src="' + esc(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer" ' +
            'onerror="this.parentNode.textContent=this.getAttribute(\'data-i\')" ' +
-           'data-i="' + initial(nm) + '">';
+           'data-i="' + i + '">';
   }
 
   /* Reliability, compressed to fit a row.

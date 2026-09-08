@@ -344,6 +344,17 @@
     });
   }
   function initial(s){ return (String(s || '').trim()[0] || '·').toUpperCase(); }
+  /* Their photo where there is one, their initial where there is not. Copied
+     from app-people.html the way esc() above is copied from everywhere; the
+     reasoning, and the list of the five pages that carry it, is in the long
+     note over the original. */
+  function faceOf(nm, url){
+    var i = esc(initial(nm)), u = String(url || '');
+    if (!/^https:\/\//.test(u)) return i;
+    return '<img src="' + esc(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer" ' +
+           'onerror="this.parentNode.textContent=this.getAttribute(\'data-i\')" ' +
+           'data-i="' + i + '">';
+  }
   function when(d){
     try { return d.toLocaleString(undefined, { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); }
     catch(e){ return String(d); }
@@ -964,7 +975,7 @@
 
     $('ptm').innerHTML = list.slice(0, RAIL_FACES).map(function(p){
       return '<div class="ptm">' +
-        '<span class="av">' + esc(initial(p.name)) + '</span>' +
+        '<span class="av">' + faceOf(p.name, p.avatar) + '</span>' +
         '<span class="nm">' + esc(p.name || 'Someone') +
           '<span class="tp">' + esc(p.topic || 'Topic not set yet') + '</span>' +
         '</span></div>';
@@ -1369,7 +1380,7 @@
 
     if (kind === 'who') return bookPartners.map(function(p, n){
       return '<button type="button" class="opt' + (p === bookPartner ? ' on' : '') +
-        '" data-v="' + n + '"><span class="av">' + esc(initial(p.name || '?')) + '</span>' +
+        '" data-v="' + n + '"><span class="av">' + faceOf(p.name || '?', p.avatar) + '</span>' +
         '<span>' + esc(p.name || 'Your partner') +
         (p.topic ? '<em>' + esc(p.topic) + '</em>' : '') + '</span></button>';
     }).join('');
@@ -3132,6 +3143,12 @@
                 id: x.profile.id,
                 name: x.profile.name,
                 topic: x.profile.topic,
+                /* Carried across because the rail and the who-menu draw a
+                   face, and this shape — not the profile row — is what they
+                   are handed. Empty for a password signup and on a database
+                   that has not had migration-avatars.sql run, which faceOf
+                   reads as "draw the initial". */
+                avatar: x.profile.avatar_url || '',
                 availability: x.profile.availability || [],
                 timezone: x.profile.timezone || '',
                 requestId: x.requestId,

@@ -30,13 +30,29 @@ window.pfUserMenu = (function(){
     return TONES[h % TONES.length];
   }
 
-  /* A real picture when the account has one (Google hands us one on sign-in),
-     otherwise the initial on its colour. */
+  /* Your own chip, and the bigger one at the top of the menu: a real picture
+     when the account has one (Google hands us one on sign-in), otherwise the
+     initial on its colour.
+
+     The two guards here are the ones every other avatar in the app grew when
+     photos reached the pages that list other people, and this one was written
+     before any of that existed: it took whatever string it was handed and put
+     it straight into src.
+
+     https only, because that string comes from an auth provider's metadata
+     and lands in an attribute. And onerror, because Google's photo URLs
+     expire the moment somebody changes their picture — this used to leave a
+     broken-image glyph sitting on a coloured circle in the corner of every
+     signed-in page, which reads as the site being broken rather than as a
+     photo having moved. Falling back to the initial makes it look like an
+     account that never had a photo, which is the honest appearance. */
   function face(name, url, cls){
-    var t = tone(name);
-    var inner = url
-      ? '<img src="' + esc(url) + '" alt="" referrerpolicy="no-referrer">'
-      : esc(initial(name));
+    var t = tone(name), i = esc(initial(name)), u = String(url || '');
+    var inner = /^https:\/\//.test(u)
+      ? '<img src="' + esc(u) + '" alt="" referrerpolicy="no-referrer" ' +
+        'onerror="this.parentNode.textContent=this.getAttribute(\'data-i\')" ' +
+        'data-i="' + i + '">'
+      : i;
     return '<span class="' + cls + '" style="background:' + t[0] + ';color:' + t[1] + '">' + inner + '</span>';
   }
   function esc(s){

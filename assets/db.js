@@ -25,7 +25,7 @@
  * genuinely running what you shipped. Bump it when you change anything in
  * assets/, and ask for it before believing a bug report about behaviour you
  * have already fixed. */
-window.PF_BUILD = '2026-09-08b';
+window.PF_BUILD = '2026-09-08c';
 try { console.info('PeerFlow build ' + window.PF_BUILD); } catch (e) {}
 
 /* PeerFlow data layer.
@@ -158,6 +158,45 @@ window.pf = (function(){
   function missingFunction(err){
     return !!err && (err.code === 'PGRST202' ||
                      /function .* does not exist/i.test(String(err.message || '')));
+  }
+
+  /* Whether public.profiles has avatar_url, once we have found out.
+
+     Every surface that draws another person — the People directory, a
+     profile, the chat list, the partner rail, the booking menu, the partner
+     cards on Sessions — reads it, through three different queries. PostgREST
+     rejects the whole request when a select names a column the database has
+     not got, so on a deployment where supabase/migration-avatars.sql has not
+     been pasted in yet each of those queries fails once and is asked again
+     without the column. Everybody then renders as an initial, which is what
+     these pages did before photos existed.
+
+     Remembered for the life of the page for the same reason reqCols is: the
+     fallback works but costs a rejected request to discover, and three
+     readers asking independently means three red 400s in the console on a
+     page that is working fine underneath. Not stored, so running the
+     migration fixes it on the next load with no stale flag to clear. */
+  var hasAvatarCol = null;
+
+  /* Runs a profiles query with avatar_url appended to its column list, and
+     once — and only once per page — without it if the database says no.
+
+     Takes a builder rather than a query because the retry has to be a fresh
+     one: a PostgREST builder is a thenable that runs when it is awaited, and
+     re-awaiting the one that just failed would not change the columns it was
+     built with. */
+  function withAvatar(cols, build){
+    if (hasAvatarCol === false) return build(cols);
+    return build(cols + ',avatar_url').then(function(r){
+      if (!r.error) { hasAvatarCol = true; return r; }
+      if (!missingColumn(r.error)) return r;
+      try {
+        console.warn('PeerFlow: profiles.avatar_url is missing. ' +
+                     'Run supabase/migration-avatars.sql.');
+      } catch (e) {}
+      hasAvatarCol = false;
+      return build(cols);
+    });
   }
 
   /* The database refusing a booking because the hour is already taken.
@@ -1040,10 +1079,15 @@ window.pf = (function(){
           var rows = r.data || [];
           var others = rows.map(function(x){ return x.from_user === uid ? x.to_user : x.from_user; });
           if (!others.length) return { incoming: [], outgoing: [], me: uid };
-          return client.from('profiles')
-            .select('id,name,track_id,topic,level,timezone,availability')
-            .in('id', others)
-            .then(function(p){
+          /* This one join is where the photo reaches most of the signed-in
+             app: acceptedPartners() hands x.other straight out as .profile,
+             so the partner rail and the booking menu on Today, the partner
+             cards on Sessions and the conversation list on Chat all draw
+             whatever this select brings back. */
+          return withAvatar('id,name,track_id,topic,level,timezone,availability',
+            function(cols){
+              return client.from('profiles').select(cols).in('id', others);
+            }).then(function(p){
               var byId = {};
               (p.data || []).forEach(function(x){ byId[x.id] = x; });
               var incoming = [], outgoing = [];
@@ -1475,10 +1519,10 @@ window.pf = (function(){
      cannot judge whether somebody suits you from a name and a topic. */
   function getPerson(id){
     if (!client || !id) return Promise.resolve(null);
-    return client.from('profiles')
-      .select('id,name,track_id,topic,level,timezone,availability,created_at')
-      .eq('id', id).limit(1)
-      .then(function(r){
+    return withAvatar('id,name,track_id,topic,level,timezone,availability,created_at',
+      function(cols){
+        return client.from('profiles').select(cols).eq('id', id).limit(1);
+      }).then(function(r){
         if (r.error || !r.data || !r.data.length) return null;
         return r.data[0];
       }).catch(function(){ return null; });
@@ -1561,7 +1605,12 @@ window.pf = (function(){
       var people = {};
       if (reqs) reqs.incoming.concat(reqs.outgoing).forEach(function(r){
         var o = r.other || {};
+        /* avatar rather than avatar_url, because this is a thread rather than
+           a profile row — the page reads .name and .topic off it too, and
+           they are not called name_url either. Empty on a database without
+           the column, and empty for anyone who signed up with a password. */
         if (o.id) people[o.id] = { id: o.id, name: o.name || 'Someone', topic: o.topic || '',
+                                   avatar: o.avatar_url || '',
                                    partner: r.status === 'accepted' };
       });
 
@@ -1578,7 +1627,8 @@ window.pf = (function(){
             /* A thread with somebody whose request has since been deleted
                still has to be readable — you said those things to a real
                person. */
-            if (!t) t = people[otherId] = { id: otherId, name: 'Someone', topic: '', partner: false };
+            if (!t) t = people[otherId] = { id: otherId, name: 'Someone', topic: '',
+                                            avatar: '', partner: false };
             if (!t.last) { t.last = m.body; t.at = new Date(m.created_at); t.lastMine = m.from_user === uid; }
             if (m.to_user === uid && !m.read_at) t.unread = (t.unread || 0) + 1;
           });
@@ -1938,45 +1988,33 @@ window.pf = (function(){
   function fetchPeers(limit){
     if (!client) return Promise.resolve(null);
     return currentUid().then(function(uid){
-      var q = client.from('profiles')
-        .select('id,name,track_id,topic,level,timezone,created_at,availability,avatar_url')
-        /* Signing in with Google creates the row before any question is
-           answered, and this used to require a path so those half-finished
-           rows stayed out. It hid real people: somebody who signed up, sent a
-           request and had not yet picked a path was invisible to the person
-           they had asked — who then could not find them to answer.
+      /* The photo is asked for through withAvatar rather than named here, so
+         a database without the column costs one rejected request per page
+         instead of a blank People page. This reader used to carry its own
+         copy of that retry, written out twice — the query, then the same
+         query again minus one column — which was the first of three places
+         that would have needed it. */
+      return withAvatar('id,name,track_id,topic,level,timezone,created_at,availability',
+        function(cols){
+          var q = client.from('profiles')
+            .select(cols)
+            /* Signing in with Google creates the row before any question is
+               answered, and this used to require a path so those half-finished
+               rows stayed out. It hid real people: somebody who signed up, sent a
+               request and had not yet picked a path was invisible to the person
+               they had asked — who then could not find them to answer.
 
-           A name is the honest floor. Somebody who has told us who they are
-           has joined; the ranking already sorts anyone with nothing in common
-           to the bottom, which is where a half-finished profile belongs
-           without being erased. */
-        .not('name', 'is', null)
-        .neq('name', '')
-        .order('created_at', { ascending: false })
-        .limit(limit || 24);
-      if (uid) q = q.neq('id', uid);
-      return q.then(function(r){
-        if (!r.error) return r.data || [];
-        /* avatar_url arrived after this reader did, and a select naming a
-           column the database has not got is a hard error rather than a null
-           field — so without this the People page would go blank on any
-           deployment where supabase/migration-avatars.sql has not been pasted
-           in yet, which is every deployment for as long as it takes somebody
-           to paste it.
-           
-           The whole page, not the pictures: PostgREST rejects the request, not
-           the column. So the query is asked again without it and everybody
-           renders as an initial, which is exactly what the page did before
-           avatars existed. */
-        if (!missingColumn(r.error)) return null;
-        var again = client.from('profiles')
-          .select('id,name,track_id,topic,level,timezone,created_at,availability')
-          .not('name', 'is', null).neq('name', '')
-          .order('created_at', { ascending: false })
-          .limit(limit || 24);
-        if (uid) again = again.neq('id', uid);
-        return again.then(function(f){ return f.error ? null : (f.data || []); });
-      });
+               A name is the honest floor. Somebody who has told us who they are
+               has joined; the ranking already sorts anyone with nothing in common
+               to the bottom, which is where a half-finished profile belongs
+               without being erased. */
+            .not('name', 'is', null)
+            .neq('name', '')
+            .order('created_at', { ascending: false })
+            .limit(limit || 24);
+          if (uid) q = q.neq('id', uid);
+          return q;
+        }).then(function(r){ return r.error ? null : (r.data || []); });
     }).catch(function(){ return null; });
   }
 
