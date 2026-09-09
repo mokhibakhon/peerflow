@@ -170,6 +170,18 @@
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
   }
+  function initial(s){ return (String(s || '').trim()[0] || '·').toUpperCase(); }
+  /* Their photo where there is one, their initial where there is not. Copied
+     from app-people.html the way esc() above is copied from everywhere; the
+     reasoning, and the list of the five pages that carry it, is in the long
+     note over the original. */
+  function faceOf(nm, url){
+    var i = esc(initial(nm)), u = String(url || '');
+    if (!/^https:\/\//.test(u)) return i;
+    return '<img src="' + esc(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer" ' +
+           'onerror="this.parentNode.textContent=this.getAttribute(\'data-i\')" ' +
+           'data-i="' + i + '">';
+  }
 
   /* Honest state: nobody is pairing people by hand and there is no matching
      engine — you ask someone on the People page and they accept. */
@@ -284,7 +296,7 @@
       var tn = tint(pr.id || nm);
       return '<div class="pcard">' +
         '<div class="pcard-av"><span style="background:' + tn[0] + ';color:' + tn[1] + '">' +
-          esc(nm.trim().charAt(0).toUpperCase()) + '</span></div>' +
+          faceOf(nm, pr.avatar_url) + '</span></div>' +
         '<div class="pcard-main">' +
           '<p class="pcard-nm">' + esc(nm) + '</p>' +
           '<p class="pcard-tp">' +

@@ -31,11 +31,23 @@ const ok = (n, c, x) => { if (c) console.log('  PASS ' + n); else { fails++; con
 async function chip(b, dials){
   if (!dials.dials && !dials.store) dials = { dials: dials, store: {} };
   const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
-  /* Neither the webfont nor the stub's Google avatar is reachable from the
-     container, and both would otherwise spend fifteen seconds giving up. */
+  /* The webfont is not reachable from the container and would otherwise spend
+     fifteen seconds giving up. */
   await p.route('**://fonts.googleapis.com/**', r => r.abort());
   await p.route('**://fonts.gstatic.com/**', r => r.abort());
-  await p.route('**://lh3.googleusercontent.com/**', r => r.abort());
+  /* The avatar is answered with a real pixel rather than aborted. It used to
+     be aborted, which was fine for as long as a failed photo left its <img>
+     sitting there empty — the checks below only ask whether the element is
+     present. Then the avatar grew the onerror fallback every other avatar in
+     the app has, and a refused request became a photo that correctly turns
+     itself back into an initial: the element goes away, and "the account
+     photo survived that repaint" failed on a page where nothing was wrong.
+     Fulfilling locally keeps the suite off the network and tests the state it
+     means to test, which is an account whose photo works. */
+  await p.route('**://lh3.googleusercontent.com/**', r => r.fulfill({
+    contentType: 'image/png',
+    body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk' +
+                      '+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64') }));
   p.on('pageerror', e => { fails++; console.log('  page error: ' + e.message); });
   await p.addInitScript(d => {
     Object.assign(window, d.dials || {});

@@ -515,10 +515,13 @@ read it holding SELECT, and cannot shadow it with a temp table — `pg_temp` is
 searched first for relations whether or not `search_path` names it, and what
 defeats that is every table reference in both functions being schema-qualified.
 
-## Two suites that measure rectangles
+## The suites that measure rectangles
 
-Some bugs here are invisible in the DOM, and two of them cost real time before
-they got suites of their own.
+Some bugs here are invisible in the DOM, and the ones below cost real time
+before they got suites of their own. This heading said "two" for as long as it
+took three more of them to be written, which is the same way every stale line
+in this repository has happened: a count written down next to the thing it
+counts, and nothing that can contradict it.
 
 `node dev/nav-tests.js` measures the top bar at twenty widths. `.tabs` is
 `overflow-x:auto` with the scrollbar hidden, so when the five tabs are wider
@@ -565,6 +568,25 @@ that a step somebody did reach never rounds away, and `min-width` applies just
 as happily to a genuine zero; on a platform where nothing has happened yet that
 drew seven small bars, a chart reporting activity on a page whose only job is
 reporting what there has been.
+
+`node dev/avatar-tests.js` walks the six places the signed-in app draws another
+person — People's card and row, a profile heading, the chat list and the open
+thread's header, the partner rail and the who-menu on Today, and a partner card
+on Sessions — because they were built at six different times by six separate
+pieces of code, and the photo reached one of them a day before the other five.
+A feature that is live on one page and absent on five reads as a bug on five
+pages rather than as a feature on one, and nothing in the DOM says so: every
+one of those surfaces was rendering exactly what it was written to render.
+Each is checked in the three states it has to survive: a photo that loads, a
+photo whose URL has expired — Google's do, whenever somebody changes their
+picture — and no `avatar_url` column at all, which is the state of every
+deployment between a merge and somebody opening the SQL editor.
+Two of its assertions are geometric — that the photo is clipped to the avatar
+and fills it — because the way this breaks in practice is a new avatar class
+nobody added to the one CSS rule, which reads perfectly in the markup and puts
+a square photo across a round hole. And every assertion requires at least one
+avatar to have been found, because a menu that failed to open satisfies "no
+broken images" beautifully.
 
 
 ## Status

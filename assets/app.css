@@ -1380,21 +1380,31 @@ html{scroll-behavior:smooth}
 .tp-av{width:58px;height:58px;border-radius:var(--r-card);display:flex;align-items:center;
   justify-content:center;font-weight:700;font-size:20px;flex:0 0 auto}
 
-/* A photo inside any of the three avatar shapes on this page.
-   
-   overflow:hidden on the circle rather than a radius on the image, so the
-   image inherits whichever shape its container has — the People card uses a
-   card radius, the partner row a control radius, and a request a full circle.
-   One rule, three shapes, and adding a fourth needs nothing here.
-   
+/* A photo inside an avatar, wherever the signed-in app draws a person.
+
+   Every one of these is a fixed box with a background tone and a letter
+   centred in it, and a photo is the same box with an image filling it. They
+   are listed together rather than each carrying its own two lines, because
+   the rule is a property of "avatar" and not of any one page: People's card,
+   row and request; a profile heading; a chat row and the open thread's
+   header; the partner rail and the who-menu on Today; a partner card on
+   Sessions.
+
+   overflow:hidden on the container rather than a radius on the image, so the
+   image inherits whichever shape it has been put in — the People card uses a
+   card radius, the partner row a control radius, and everything else a full
+   circle. One rule, eight shapes, and adding a ninth needs nothing here.
+
    object-fit:cover because a Google photo is square but nothing guarantees it,
    and the alternative to cropping is a letterboxed face on a coloured circle.
-   
+
    display:block kills the inline baseline gap that would otherwise leave a
    sliver of the background colour along the bottom edge — visible precisely
    because the background is a strong tone chosen to carry white text. */
-.tp-av,.pt-av,.inreq-av{overflow:hidden}
-.tp-av img,.pt-av img,.inreq-av img{
+.tp-av,.pt-av,.inreq-av,.pv-av,.ch-av,.ptm .av,#bk-sent .opt .av,
+.pcard-av span{overflow:hidden}
+.tp-av img,.pt-av img,.inreq-av img,.pv-av img,.ch-av img,.ptm .av img,
+#bk-sent .opt .av img,.pcard-av span img{
   display:block;width:100%;height:100%;object-fit:cover}
 .tp-nm{margin:0;font-size:var(--t-card);font-weight:800;letter-spacing:-.02em}
 .tp-sub{margin:2px 0 0;font-size:var(--t-sm);color:var(--soft)}

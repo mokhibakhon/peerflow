@@ -89,6 +89,14 @@
                    been run: the column is not selected, nudge_dormant and
                    snooze_dormant answer as missing, and the gone-quiet band
                    must not be drawn — there would be nowhere to put a Not now
+     __avatarsMissing  true to act as though migration-avatars.sql has not been
+                   run: nobody in any fixture carries a photo, so every page
+                   that draws a person draws their initial. That is not an
+                   edge case — it is the state of every deployment until the
+                   file is pasted into the SQL editor by hand, and the state
+                   of anyone who signed up with a password forever after.
+                   Distinct from __noAvatar, which is about your own account's
+                   photo in the header and nobody else's
      __snoozeFail  an error sentence for the Not now failure path
      __attendanceMissing  true to act as though migration-attendance.sql has
                    not been run: settling, check-ins and the cooldown all go
@@ -191,6 +199,17 @@ window.pf = (function(){
     past(28,'completed',false)
   ];
 
+  /* The photo a fixture carries, or nothing at all when __avatarsMissing says
+     this database has not had supabase/migration-avatars.sql run. Written as
+     a function rather than as a literal in each row so that one dial answers
+     for every page at once — the whole point of the dial is that People, a
+     profile, Chat, the rail and the partner cards all have to fall back
+     together, and a fixture edited row by row would inevitably miss one.
+
+     undefined rather than null, because that is what the real readers hand
+     back: the column is not in the select at all on a database without it. */
+  function face(url){ return window.__avatarsMissing ? undefined : url; }
+
   function standingOf(){
     var s=window.__standing; if(!s) return null;
     var a=new Date(); a.setHours(19,0,0,0);
@@ -213,7 +232,11 @@ window.pf = (function(){
       return window.__dormantAt || null; },
     get standing(){return standingOf();},
     profile:{id:'u2',name:'Amir Karimov',track_id:'cybersecurity',topic:'Cybersecurity',
-      level:'tutorials',timezone:'Asia/Tashkent',availability:THEIR_AVAIL}};
+      level:'tutorials',timezone:'Asia/Tashkent',availability:THEIR_AVAIL,
+      /* The one partner has a photo, so the rail, the who-menu and the
+         partner card on Sessions all have something to draw. The extra
+         partners below deliberately do not. */
+      get avatar_url(){ return face('https://lh3.googleusercontent.com/a/amir=s96-c'); }}};
 
   /* More than one partner. The single-partner fixture is the state the app
      was designed around and it hides a whole class of problem: a card headed
@@ -386,10 +409,10 @@ window.pf = (function(){
          a test unless the test routes them itself. */
       {id:'m1',name:'Amir Karimov',track_id:'cybersecurity',topic:'SOC analyst',level:'tutorials',
        timezone:'Asia/Tashkent',availability:THEIR_AVAIL,
-       avatar_url:'https://lh3.googleusercontent.com/a/amir=s96-c'},
+       avatar_url:face('https://lh3.googleusercontent.com/a/amir=s96-c')},
       {id:'m2',name:'Dilnoza Rahimova',track_id:'cybersecurity',topic:'Pentesting',level:'tutorials',
        timezone:'Asia/Tashkent',availability:['thu-evening'],
-       avatar_url:'https://lh3.googleusercontent.com/a/dilnoza=s96-c'}]
+       avatar_url:face('https://lh3.googleusercontent.com/a/dilnoza=s96-c')}]
       .concat(window.__trackless?[{id:'m3',name:'Nodira Yusupova',track_id:null,topic:'',
        level:null,timezone:null,availability:[]}]:[]))},
     learnerStats:function(){return P({total:12,sameTopic:3})},
@@ -399,7 +422,10 @@ window.pf = (function(){
       var PEOPLE={
         u2:{id:'u2',name:'Amir Karimov',track_id:'cybersecurity',topic:'SOC analyst',
             level:'tutorials',timezone:'Asia/Tashkent',availability:THEIR_AVAIL,
-            created_at:'2026-05-14T00:00:00Z'},
+            created_at:'2026-05-14T00:00:00Z',
+            avatar_url:face('https://lh3.googleusercontent.com/a/amir=s96-c')},
+        /* No photo, deliberately: this is the half-finished profile, and an
+           email signup has none. The heading must still draw an initial. */
         u9:{id:'u9',name:'Nobody Yet',track_id:'frontend',topic:'',level:'new',
             timezone:'',availability:[],created_at:null}};
       return P(PEOPLE[id]||null);
@@ -408,9 +434,14 @@ window.pf = (function(){
       if(window.__chatMissing) return P({needsMigration:true});
       var t=new Date(); t.setMinutes(t.getMinutes()-9);
       return P(window.__noThreads?[]:[
+        /* .avatar, not .avatar_url — a thread is not a profile row, and the
+           real threads() renames it on the way through. Two of the three
+           carry one so the list shows both treatments at once. */
         {id:'u2',name:'Amir Karimov',topic:'SOC analyst',partner:true,
+         avatar:face('https://lh3.googleusercontent.com/a/amir=s96-c'),
          last:'see you Thursday then',at:t,lastMine:false,unread:2},
         {id:'m2',name:'Dilnoza Rahimova',topic:'Pentesting',partner:false,
+         avatar:face('https://lh3.googleusercontent.com/a/dilnoza=s96-c'),
          last:'sure, I will look at it',at:new Date(Date.now()-864e5*2),lastMine:true,unread:0},
         {id:'m3',name:'Bekzod Yusupov',topic:'CTFs',partner:false}
       ]);
