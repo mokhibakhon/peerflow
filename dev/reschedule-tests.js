@@ -166,11 +166,22 @@ const startMove = (p) => p.evaluate(() => {
     /* The fixture already carries a proposal of Amir's that has nothing to do
        with this, so the question is not how many proposals there are — it is
        how many of them are this move. */
-    const props = await p.$$eval('#prop-list .prop', e => e.map(x => x.innerText.replace(/\s+/g, ' ')));
+    /* #wait-list, not #prop-list: a moved time is one you sent, so it belongs
+       under "Waiting on them" rather than among the things needing an answer
+       from you. Reading it out of the right list is now most of the assertion
+       below — being in that list IS "waiting on the partner". */
+    const props = await p.$$eval('#wait-list .prop', e => e.map(x => x.innerText.replace(/\s+/g, ' ')));
     const moved = props.filter(t => /moved from/i.test(t));
     ok('exactly one moved time is waiting: ' + moved.length, moved.length === 1);
-    ok('  it is waiting on the partner, not booked: "' + (moved[0] || '') + '"',
-       /waiting on/i.test(moved[0] || ''));
+    /* This used to look for the words "waiting on" inside the row, which came
+       from a pill that sat next to the button. The pill is gone — the heading
+       over the list says it once instead of every row saying it again — so
+       the check is now that the list itself is the one that says so. That is
+       the same fact asserted where it actually lives rather than through a
+       string that happened to be nearby. */
+    ok('  it is waiting on the partner, not booked',
+       !(await p.$eval('#wait-h', e => e.hidden)),
+       'the "Waiting on them" heading is not drawn');
     ok('  and it names the hour it came from: "' + (moved[0] || '') + '"',
        /* Case-insensitive: .prop-m is text-transform:uppercase, so innerText
           hands back the rendered capitals rather than the written ones. */
@@ -223,8 +234,13 @@ const startMove = (p) => p.evaluate(() => {
     const upcoming = await rowWhen(p);
     ok('the original booking is exactly where it was: ' + JSON.stringify(upcoming),
        upcoming.indexOf(was) >= 0);
+    /* Counted by what the row says rather than by a [data-moved] attribute,
+       which no version of app.html has ever emitted — so this passed on an
+       empty selector whatever the page did, which is the failure it exists to
+       catch. "moved from" is the text renderProposals actually writes. */
     ok('and nothing new was created',
-       (await p.$$('#prop-list .prop[data-moved]')).length === 0);
+       (await p.$$eval('#wait-list .prop',
+          e => e.filter(x => /moved from/i.test(x.innerText)).length)) === 0);
     await p.close();
   }
 
@@ -272,7 +288,7 @@ const startMove = (p) => p.evaluate(() => {
     const c = await calls(p);
     ok('one call, not two: ' + JSON.stringify(c.filter(x => x === 'reschedule')),
        c.filter(x => x === 'reschedule').length === 1);
-    const moved = await p.$$eval('#prop-list .prop',
+    const moved = await p.$$eval('#wait-list .prop',
       e => e.filter(x => /moved from/i.test(x.innerText)).length);
     ok('and one moved proposal, not two: ' + moved, moved === 1);
     await p.close();
