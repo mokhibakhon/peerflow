@@ -1335,8 +1335,27 @@ html{scroll-behavior:smooth}
 /* ---------- proposed times ---------- */
 /* A proposal is not a booking, so it doesn't get the confident green card a
    confirmed session does — it sits quietly until somebody answers it. */
-.prop{border-top:1px dashed var(--line);padding:15px 0}
+.prop{border-top:1px dashed var(--line);padding:15px 0;display:flex;gap:14px;align-items:flex-start}
 .prop:first-child{border-top:0;padding-top:2px}
+.prop-body{flex:1;min-width:0}
+
+/* The date, as a block rather than as a clause.
+
+   A row of these is scanned for "when" before it is read for "what", and a
+   month over a numeral is the shape every wall calendar and every phone icon
+   has already taught people to read without looking twice. It replaced
+   "Thu, Sep 10, 06:00 AM" sitting inside the sentence, which is a timestamp
+   with four commas in it and the slowest part of the row to take in.
+
+   Fixed width so a two-digit day and a one-digit day line up down the list;
+   tabular-nums for the same reason within the numeral itself. */
+.prop-cal{flex:0 0 auto;width:46px;padding:6px 0 7px;text-align:center;
+  border-radius:var(--r-control);background:var(--band);color:var(--ink-soft)}
+.prop-cal b{display:block;font-family:var(--mono);font-size:var(--t-tiny);
+  letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.prop-cal i{display:block;font-style:normal;font-size:19px;font-weight:800;
+  letter-spacing:-.02em;line-height:1.15;color:var(--ink);font-variant-numeric:tabular-nums}
+
 .prop-h{margin:0;font-size:var(--t-sm);color:var(--soft)}
 .prop-h b{color:var(--ink);font-weight:700}
 .prop-m{margin:3px 0 0;font-family:var(--mono);font-size:var(--t-tiny);letter-spacing:.04em;
@@ -1344,7 +1363,6 @@ html{scroll-behavior:smooth}
 .prop-note{margin:8px 0 0;font-size:var(--t-sm);color:var(--soft);
   border-left:2px solid var(--line);padding-left:11px}
 .prop-acts{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:13px}
-.prop-wait{font-size:var(--t-xs);color:var(--faint)}
 .prop-err{margin:9px 0 0;font-size:var(--t-xs);color:#B4471F}
 
 /* A turned-down time isn't an error, it's an answer — warm rather than red,

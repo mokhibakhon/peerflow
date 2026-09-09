@@ -168,8 +168,19 @@
           <div class="grow"><span class="mono kick">Your time</span><h2 id="sess-h">Needs you</h2></div>
         </div>
 
-        <p class="mono sub-h" id="prop-h" hidden>Waiting on an answer</p>
+        <!-- Two lists, not one, and the split is the fix rather than a
+             tidy-up. A proposal you sent and a proposal you were sent are
+             opposite states — one is waiting on somebody else, the other is
+             waiting on you — and they used to share a list under one heading
+             reading "Waiting on an answer", inside a card headed "Needs you".
+             So a row saying "Waiting on Asalxon" sat under two headings both
+             claiming the opposite, and whose answer was being waited for was
+             the one thing none of the three said. -->
+        <p class="mono sub-h" id="prop-h" hidden>Needs your answer</p>
         <div id="prop-list"></div>
+
+        <p class="mono sub-h" id="wait-h" hidden>Waiting on them</p>
+        <div id="wait-list"></div>
 
         <p class="mono sub-h" id="up-h" hidden>Booked</p>
         <div id="upcoming"></div>
@@ -395,13 +406,23 @@
   }
 
   /* relative() reads well inside a sentence — "in 2 hours" — and badly as a
-     number on a wall. Same fact, cut for the countdown column. */
+     number on a wall. Same fact, cut for the countdown column.
+   *
+   * The label used to be "from now", which makes the column read "11h from
+   * now" — and that is not a sentence anybody finishes the same way. It could
+   * be how long the session lasts, how long until it starts, or how long ago
+   * something happened, and the number is the biggest thing on the page, so
+   * the ambiguity is the first thing a new account meets.
+   *
+   * "until it starts" can only mean one thing. It costs seven characters in a
+   * column that has the room, and it is the difference between a figure you
+   * have to work out and one you read. */
   function countdown(d){
     var mins = Math.round((d.getTime() - Date.now()) / 60000);
     if (mins <= 0)   return { n:'Now',  l:'live' };
-    if (mins < 60)   return { n:mins + 'm', l:'from now' };
-    if (mins < 1440) return { n:Math.round(mins / 60) + 'h', l:'from now' };
-    return { n:Math.round(mins / 1440) + 'd', l:'from now' };
+    if (mins < 60)   return { n:mins + 'm', l:'until it starts' };
+    if (mins < 1440) return { n:Math.round(mins / 60) + 'h', l:'until it starts' };
+    return { n:Math.round(mins / 1440) + 'd', l:'until it starts' };
   }
 
   /* Small counts read better as words inside a sentence. Past ten they stop
@@ -1952,7 +1973,7 @@
      sub-headings already track their own list, so they answer the question. */
   /* How many rows the card is holding, so it can tell whether it is saying
      anything the band has not already said. */
-  var sessRows = { prop: 0, up: 0, goal: 0, ci: 0 };
+  var sessRows = { prop: 0, wait: 0, up: 0, goal: 0, ci: 0 };
 
   /* The card exists to list things. With one booked session and nothing else
      it listed the one thing the band above it was already describing, in
@@ -1990,12 +2011,25 @@
        so that is where the list starts earning its space. */
     var showBooked = sessRows.up > 1;
     document.getElementById('prop-h').hidden = !sessRows.prop;
+    document.getElementById('wait-h').hidden = !sessRows.wait;
     document.getElementById('up-h').hidden   = !showBooked;
     document.getElementById('upcoming').hidden = !showBooked;
     document.getElementById('ci-h').hidden   = !sessRows.ci;
     document.getElementById('goal-h').hidden = !sessRows.goal;
     document.getElementById('sess-card').hidden =
-      !sessRows.goal && !sessRows.prop && !showBooked && !sessRows.ci;
+      !sessRows.goal && !sessRows.prop && !sessRows.wait && !showBooked && !sessRows.ci;
+
+    /* The card's own heading, from what is actually inside it. It was the
+       fixed word "Needs you", which was right often enough that nobody
+       noticed it was a claim: a card holding nothing but a time you proposed
+       and are waiting on says "Needs you" over a row that needs the other
+       person, and a card holding only booked sessions says it over nothing to
+       do at all. A heading that is sometimes a lie is worse than a duller one
+       that is always true. */
+    var el = document.getElementById('sess-h');
+    el.textContent = (sessRows.prop || sessRows.ci || sessRows.goal) ? 'Needs you'
+                   : sessRows.wait ? 'Waiting on them'
+                   : 'Your sessions';
     syncDash();
   }
   /* Called by a relay from the band before it clicks the row's real button,
@@ -2401,7 +2435,7 @@
   function renderProposals(list){
     return Promise.resolve().then(function(){
       var head = document.getElementById('prop-h');
-      if (!list) { sessRows.prop = 0; syncSessCard(); return; }
+      if (!list) { sessRows.prop = sessRows.wait = 0; syncSessCard(); return; }
       var now = Date.now();
       var open = list.filter(function(x){
         if (x.startsAt.getTime() <= now) return false;
@@ -2416,36 +2450,63 @@
       /* Empty the list as well as hiding it, so nothing answered is left
          sitting in the DOM waiting to reappear. */
       if (!open.length) {
-        sessRows.prop = 0;
+        sessRows.prop = sessRows.wait = 0;
         document.getElementById('prop-list').innerHTML = '';
+        document.getElementById('wait-list').innerHTML = '';
         syncSessCard();
         return;
       }
 
-      document.getElementById('prop-list').innerHTML = open.map(function(x){
+      function row(x){
         var who = esc(x.partnerName || 'your partner');
         var turned = x.status === 'declined' || x.status === 'cancelled';
+        /* The sentence names the person and says who did what. It used to
+           carry the date too \u2014 "You proposed Thu, Sep 10, 06:00 AM" \u2014 which
+           is four commas and a timestamp inside a sentence, and the date is
+           now the block to the left of it where a date is easier to read
+           than to parse. */
         var head = x.status === 'cancelled'
-          ? '<b>' + who + '</b> cancelled <b>' + esc(propWhen(x.startsAt)) + '</b>'
+          ? '<b>' + who + '</b> cancelled this one'
           : x.status === 'declined'
-            ? '<b>' + who + '</b> can\u2019t do <b>' + esc(propWhen(x.startsAt)) + '</b>'
+            ? '<b>' + who + '</b> can\u2019t make this one'
             : x.mine
-              ? 'You proposed <b>' + esc(propWhen(x.startsAt)) + '</b>'
-              : '<b>' + who + '</b> proposed <b>' + esc(propWhen(x.startsAt)) + '</b>';
+              ? 'You asked <b>' + who + '</b> to meet'
+              : '<b>' + who + '</b> asked you to meet';
         var key = ' data-at="' + esc(x.startsAt.toISOString()) + '" data-room="' + esc(x.roomUrl || '') +
                   '" data-len="' + x.durationMin + '"';
+        /* No "Waiting on <name>" pill any more. It sat in the actions row, so
+           a fact and a button shared a line and the fact was the wider of the
+           two; and it said the same thing as the heading over the list and as
+           the sentence beside it. Three copies of one status is what made
+           this row look cluttered, not the button. */
         var acts = turned
           ? '<button class="btn" data-swap' + key + '>Propose another time</button>' +
             '<button class="small" data-drop' + key + '>Dismiss</button>'
           : x.mine
-            ? '<span class="prop-wait">Waiting on ' + who + '</span>' +
-              '<button class="small" data-drop' + key + '>Cancel</button>'
+            /* "Cancel" was ambiguous on a time nobody has agreed to yet \u2014
+               there is no booking to cancel, only your own ask to take back,
+               and "Cancel" next to a session reads like cancelling a session
+               you have. */
+            ? '<button class="small" data-drop' + key + '>Withdraw</button>'
             : '<button class="btn" data-accept' + key + '>Accept</button>' +
               '<button class="small" data-no' + key + '>Decline</button>' +
               '<button class="small" data-swap' + key + '>Suggest another time</button>';
         return '<div class="prop' + (turned ? ' turned' : '') + '">' +
+          /* The date as a block rather than as words. A row is scanned for
+             "when" before it is read for "what", and a month over a numeral
+             is the shape every calendar has trained people to read at a
+             glance. aria-hidden because the full date is spelled out in the
+             line below it, and a screen reader should get "Thursday, 6:00 AM"
+             rather than "SEP 10 Thursday 6:00 AM". */
+          '<span class="prop-cal" aria-hidden="true"><b>' +
+            esc(x.startsAt.toLocaleDateString(undefined, { month:'short' })) + '</b><i>' +
+            esc(x.startsAt.toLocaleDateString(undefined, { day:'numeric' })) + '</i></span>' +
+          '<div class="prop-body">' +
           '<p class="prop-h">' + head + '</p>' +
-          '<p class="prop-m">' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') +
+          '<p class="prop-m">' +
+            esc(x.startsAt.toLocaleDateString(undefined, { weekday:'long' })) + ' \u00b7 ' +
+            esc(x.startsAt.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' })) +
+            ' \u00b7 ' + x.durationMin + ' minutes' + (x.topic ? ' \u00b7 ' + esc(x.topic) : '') +
             /* Where it came from, on the row rather than only in the
                notification that announced it. The note is read once; this
                sits here for days, and without it a moved session reads as an
@@ -2455,9 +2516,19 @@
               ? ' \u00b7 moved from ' + esc(propWhen(x.rescheduledFrom)) : '') + '</p>' +
           (x.goal ? '<p class="prop-goal"><b>By the end:</b> ' + esc(x.goal) + '</p>' : '') +
           (x.note ? '<p class="prop-note">\u201c' + esc(x.note) + '\u201d</p>' : '') +
-          '<div class="prop-acts">' + acts + '</div><p class="prop-err" hidden></p></div>';
-      }).join('');
-      sessRows.prop = open.length;
+          '<div class="prop-acts">' + acts + '</div><p class="prop-err" hidden></p>' +
+          '</div></div>';
+      }
+
+      /* Split by who the row is waiting on. Anything they turned down counts
+         as needing you: a declined time is yours to replace. */
+      var needsYou = open.filter(function(x){ return !x.mine || x.status !== 'proposed'; });
+      var waiting  = open.filter(function(x){ return x.mine && x.status === 'proposed'; });
+
+      document.getElementById('prop-list').innerHTML = needsYou.map(row).join('');
+      document.getElementById('wait-list').innerHTML = waiting.map(row).join('');
+      sessRows.prop = needsYou.length;
+      sessRows.wait = waiting.length;
       syncSessCard();
     });
   }
@@ -2484,7 +2555,11 @@
     btn.textContent = question;
   }
 
-  document.getElementById('prop-list').addEventListener('click', function(e){
+  /* Both proposal lists, same handler. Attached per list rather than
+     delegated from the card, because `this` is used below to disarm only the
+     buttons in the list that was clicked — arming a Withdraw in one list must
+     not silently disarm one in the other. */
+  function onPropClick(e){
     var btn = e.target.closest('[data-accept],[data-drop],[data-swap],[data-no]');
     if (!btn) { disarmAll(this); return; }
     var box = btn.closest('.prop'), err = box.querySelector('.prop-err');
@@ -2590,7 +2665,9 @@
     }, function(){
       undo('That didn\u2019t go through \u2014 check your connection and try again.');
     });
-  });
+  }
+  document.getElementById('prop-list').addEventListener('click', onPropClick);
+  document.getElementById('wait-list').addEventListener('click', onPropClick);
 
 
   /* ================= calendar =================
