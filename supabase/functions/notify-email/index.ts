@@ -37,17 +37,32 @@ function esc(s: string): string {
  * landed in Promotions, which is where a session request is least likely to
  * be seen.
  *
- * Gmail's tabs sort on what a message looks like, not on whether it is spam.
- * A 600px card centred on a grey page, a coloured masthead carrying a logo
- * image, and a gradient call-to-action button are the shape of a campaign.
- * The content is the opposite of one: "Amir proposed Thursday 7pm", sent to
- * exactly one person, about a thing they asked for. The template was arguing
- * with the message and the template was winning.
+ * A first version of this fix stripped everything — logo, button, the lot —
+ * on the theory that the template shape was the cause. That was wrong, and
+ * the counter-example is one line long: Apple's "Billing Problem" mail has a
+ * logo, a grey product card and a blue call-to-action button, and it lands in
+ * Primary. Shape is a real signal and it is the WEAKEST of the three that
+ * matter. In order:
  *
- * So the chrome is gone. No masthead, no logo image, no card, no button, no
- * page background — left-aligned text, the fact at the top, and a plain link.
- * This is what mail from a person looks like, and it is also what the text/
- * part has always looked like, so the two halves now agree.
+ *   Sender reputation, and this recipient's history with this sender. Gmail
+ *   has learned across every inbox it has that Apple billing mail gets opened
+ *   and acted on. peerflow.dev is a new domain with no history at all, which
+ *   is why the remaining signals carry more weight here than they would for
+ *   anybody established — not because the template was wrong.
+ *
+ *   List-Unsubscribe. See the note at the send call: it is the header bulk
+ *   senders are obliged to set, Apple does not set it on a billing notice,
+ *   and this function used to. That is the change that matters.
+ *
+ *   What the words are doing. "A session needs an answer from you" is account
+ *   language, the same register as "update your payment information". There
+ *   is no offer in it and nothing to buy.
+ *
+ * So the logo is back, and so is a button. What stays gone is the shape that
+ * is specifically a NEWSLETTER rather than a branded transactional note: the
+ * 600px card floating on a grey page, the dark masthead band, the gradient
+ * fill, the three-link legal footer. Apple's own mail is the reference — logo
+ * on white, the fact in plain sentences, one flat button, a short footer.
  *
  * What is deliberately KEPT from the old version, because none of it is a
  * campaign signal:
@@ -153,21 +168,49 @@ function body(opts: {
  <tr><td style="padding:24px 22px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#171A2E">
 
   <div style="max-width:560px">
+
+   <!-- The logo, on white rather than on a dark band. A masthead — a strip of
+        brand colour running the full width with artwork in it — is the part
+        that reads as a newsletter; the logo itself is just who is writing.
+        Apple puts theirs top-left on white above a plain greeting, and that
+        is what this is.
+
+        Hosted PNG because Gmail strips inline SVG and base64 data URIs, so a
+        file on the site is the only thing that arrives. Alt text carries the
+        name for anybody who blocks images, which is most of the point of a
+        logo surviving at all.
+
+        -light, not email-logo.png. The original was drawn for the dark green
+        band it used to sit on: the mark in --p2, "peer" in white, "flow" in
+        --p1. Put that on white and "peer" disappears completely and the rest
+        is too pale to read — the first render of this change showed a mark
+        and the word "flow" floating on its own. The light file is the same
+        artwork with those three remapped to what the site itself uses on a
+        light ground (--p4, --ink, --p6), so it is the same logo rather than a
+        second version of it. Both files are kept: the dark one is still
+        correct on a dark band, should anything ever want one. -->
+   <img src="${esc(SITE)}/assets/email-logo-light.png" width="122" height="32" alt="PeerFlow"
+        style="display:block;border:0;width:122px;height:32px;margin:0 0 24px">
+
    ${hello ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#171A2E">${esc(hello)}</p>` : ""}
 
-   <!-- The fact, at body size rather than as a heading. An <h1> at 21px over
-        one sentence is a headline, and a headline is a thing a campaign has.
-        This is somebody telling you what happened. -->
+   <!-- The fact, at body size rather than as a 21px heading. A headline over
+        a single sentence is a thing a campaign has; this is somebody telling
+        you what happened. -->
    <p style="margin:0 0 14px;font-size:16px;line-height:1.6;color:#171A2E">${esc(title)}</p>
-   ${note ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#171A2E">${esc(note)}</p>` : ""}
+   ${note ? `<p style="margin:0 0 22px;font-size:16px;line-height:1.6;color:#171A2E">${esc(note)}</p>` : ""}
 
-   <!-- A link, not a button. The button was a 13px-padded gradient block
-        reading "Open PeerFlow", which says nothing about where it goes and
-        looks like every promotion ever sent. A plain underlined link that
-        names the destination is what a person would paste. -->
-   <p style="margin:0 0 22px;font-size:16px;line-height:1.6">
-     <a href="${esc(link)}" style="color:#0F6E56;text-decoration:underline">Open it on PeerFlow</a>
-   </p>
+   <!-- A flat button. The colour is p6 rather than the old gradient: a
+        gradient fill is decoration, and decoration is the half of a button
+        that reads as advertising. The label names the destination, which
+        "Open PeerFlow" did not. -->
+   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 26px">
+    <tr><td bgcolor="#0F6E56" style="background:#0F6E56;border-radius:8px">
+      <a href="${esc(link)}"
+         style="display:inline-block;padding:11px 20px;font-size:15px;font-weight:600;
+                color:#FFFFFF;text-decoration:none">Open it on PeerFlow</a>
+    </td></tr>
+   </table>
 
    <p style="margin:0;font-size:13.5px;line-height:1.6;color:#82869C">
      You are getting this because a session on PeerFlow needs an answer from you.
