@@ -124,22 +124,34 @@ const read = p => p.evaluate(() => ({
     proposedBy:'me',note:null,mine:true,cancelledByMe:false,confirmedAt:null,goal:null,
     goalDone:null,attended:null,completedAt:null,cancelledAt:null}];`;
 
-  for (const [name, dials, says] of [
-        ['cancelling a proposal of your own', MINE,   /you asked/i],
-        ['dismissing a decline they gave you', TURNED, /can.t make that time/i]]) {
+  /* Which list each row lands in is the fourth column, and it is not
+     incidental. app.html splits proposals by who is being waited on: a time
+     you sent sits under "Waiting on them" in #wait-list, and a decline they
+     gave you is yours to replace, so it sits under "Needs your answer" in
+     #prop-list with everything else that needs you.
+
+     Both were #prop-list until that split, and this suite is how it was
+     caught: the withdraw flow itself never broke, the button had simply
+     moved, and a selector pinned to the old shape times out rather than
+     failing with anything that says so. */
+  for (const [name, dials, says, list] of [
+        ['cancelling a proposal of your own', MINE,   /you asked/i,             '#wait-list'],
+        ['dismissing a decline they gave you', TURNED, /can.t make that time/i, '#prop-list']]) {
     console.log('\n==> ' + name);
     p = await open(b, dials);
     const was = await read(p);
     ok('the band describes it first: "' + was.head + '"', says.test(was.head), was.head);
+    ok('the row is in ' + list, (await p.$$(list + ' .prop')).length === 1,
+       'the split put it somewhere else');
     /* Cancelling your own arms first; dismissing a decline goes straight
        through, so the button is gone after one click. */
-    await p.click('#prop-list [data-drop]');
+    await p.click(list + ' [data-drop]');
     await p.waitForTimeout(300);
-    if (await p.$('#prop-list [data-drop]')) await p.click('#prop-list [data-drop]');
+    if (await p.$(list + ' [data-drop]')) await p.click(list + ' [data-drop]');
     await p.waitForTimeout(1600);
     const now = await read(p);
     console.log('    band now: ' + now.kicker + ' / ' + now.head);
-    ok('the row is gone', (await p.$$('#prop-list .prop')).length === 0);
+    ok('the row is gone', (await p.$$(list + ' .prop')).length === 0);
     ok('and the band stops describing it', !says.test(now.head), now.head);
     await p.close();
   }
