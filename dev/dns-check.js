@@ -120,6 +120,22 @@ const fail = (s, fix) => { bad++; console.log('  \x1b[31mMISSING\x1b[0m ' + s);
                            if (fix) console.log('        \x1b[2m' + fix + '\x1b[0m'); };
 const note = (s) => console.log('        \x1b[2m' + s + '\x1b[0m');
 
+/* Not everything absent is wrong.
+ *
+ * Two of the five steps are supposed to be undone for a fortnight: DMARC
+ * enforcement waits on reports, and BIMI is ignored by every client until
+ * enforcement, so adding it early does nothing at all. This printed both as a
+ * red MISSING, identical in weight to the duplicate DMARC record that had
+ * genuinely broken the domain — and the first person to finish the setup
+ * correctly read "2 record(s) to add" and asked what was wrong.
+ *
+ * Nothing was. The tool was describing a schedule as a fault. A separate word
+ * for "correct, and not yet" is the whole fix, and it counts separately at
+ * the foot so a clean run can say so out loud. */
+let waiting = 0;
+const later = (s, fix) => { waiting++; console.log('  \x1b[36mLATER\x1b[0m   ' + s);
+                            if (fix) console.log('        \x1b[2m' + fix + '\x1b[0m'); };
+
 async function txt(name){ return every(name, "TXT"); }
 async function mx(name){ return every(name, "MX"); }
 
@@ -233,11 +249,11 @@ async function doubled(host, zone){
               'TXT   _dmarc.peerflow.dev   v=DMARC1; p=none; rua=mailto:dmarc@peerflow.dev; fo=1;');
     if (policy === 'quarantine' || policy === 'reject') ok('policy is at enforcement (p=' + policy + ')');
     else {
-      fail('p=' + policy + ' asks nobody to do anything, and BIMI needs enforcement.',
-           'TXT   _dmarc.peerflow.dev   v=DMARC1; p=quarantine; pct=100; rua=mailto:dmarc@peerflow.dev; fo=1;');
-      note('Do this one LAST of the four, and only after reading rua reports for a');
-      note('week or two. Right now DMARC passes on DKIM alone — if anything is');
-      note('quietly failing, enforcement is when it starts being quarantined.');
+      later('p=' + policy + ' asks nobody to do anything. Enforcement comes after the reports.',
+            'TXT   _dmarc.peerflow.dev   v=DMARC1; p=quarantine; pct=100; rua=mailto:dmarc@peerflow.dev; fo=1;');
+      note('Not yet. Read a week or two of rua reports first: right now DMARC');
+      note('passes on DKIM alone, so anything quietly failing is quietly');
+      note('delivered, and enforcement is the moment that stops.');
     }
   }
 
@@ -251,11 +267,12 @@ async function doubled(host, zone){
       note('Gmail needs a VMC, which needs a registered trademark and about $1k a year.');
     }
   } else {
-    fail('default._bimi.' + SEND + ' has no BIMI record.',
-         'TXT   default._bimi.send.peerflow.dev   v=BIMI1; l=' + LOGO + ';');
-    note('The l= URL is www, deliberately: peerflow.dev 308s to www, and not every');
-    note('BIMI validator follows a redirect.');
-    note('Pointless until DMARC is at enforcement — the record is read only then.');
+    later('default._bimi.' + SEND + ' has no BIMI record. It follows enforcement.',
+          'TXT   default._bimi.send.peerflow.dev   v=BIMI1; l=' + LOGO + ';');
+    note('Adding this before DMARC is at enforcement does nothing whatsoever —');
+    note('no client reads the record until then. So it is last, not forgotten.');
+    note('The l= URL is www deliberately: peerflow.dev 308s to www, and not');
+    note('every BIMI validator follows a redirect.');
   }
 
   console.log('\n' + '-'.repeat(66));
@@ -273,6 +290,19 @@ async function doubled(host, zone){
     console.log('simply not have reached every server — re-run in a few minutes before');
     console.log('changing it.');
   }
-  console.log(bad ? '\n' + bad + ' record(s) to add.\n' : '\nAll present.\n');
+  /* The two counts are reported separately, and the wording of the good case
+     is the point of the whole change: somebody who has done everything
+     correctly should be told so in as many words, not handed a number that
+     reads like a bill. */
+  console.log('');
+  if (bad) console.log('\x1b[31m' + bad + ' thing(s) to fix.\x1b[0m');
+  else     console.log('\x1b[32mNothing to fix — everything that should be set up is.\x1b[0m');
+  if (waiting) {
+    console.log('\x1b[36m' + waiting + ' step(s) waiting on time rather than on you.\x1b[0m ' +
+                'Read the DMARC reports');
+    console.log('arriving at dmarc@peerflow.dev for a week or two, then do them in the');
+    console.log('order above. Nothing to do until then.');
+  }
+  console.log('');
   process.exit(0);
 })();
