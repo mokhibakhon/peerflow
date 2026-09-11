@@ -224,3 +224,27 @@
   letter-spacing:.06em;text-transform:uppercase;color:var(--live-deep);
   background:var(--live-soft);padding:3px 8px;border-radius:999px;margin-left:10px;
 }
+
+/* The three guides, linked from every path page.
+
+   They were the least-linked pages on the site and by some distance the most
+   substantial: 1,200 to 1,600 words each carrying Article schema, against a
+   path page's ~620 with FAQPage. Every path page linked to the other seven
+   and to none of the guides, so the only internal links a guide had were from
+   the home page and from the other two — three each, against eleven for a
+   path page. Worse, the flow ran the wrong way: the guides linked out to the
+   paths and got nothing back, so the pages most likely to rank for a question
+   somebody actually types were the ones being starved.
+
+   Titles rather than the pills .seo-path-links uses, because on these the
+   anchor text IS the query. "How to run a study-with-me session that produces
+   work" is what somebody searches; a pill reading "Sessions" throws that away
+   and looks tidier doing it. */
+.seo-guide-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));
+  gap:14px;max-width:980px}
+.seo-guide-links a{display:block;padding:18px 20px;border:1px solid var(--line);
+  border-radius:14px;background:var(--card)}
+.seo-guide-links a:hover{border-color:var(--live)}
+.seo-guide-links b{display:block;font-size:15.5px;font-weight:700;line-height:1.35;
+  letter-spacing:-.01em;margin-bottom:7px}
+.seo-guide-links span{display:block;font-size:13.5px;line-height:1.55;color:var(--ink-soft)}
