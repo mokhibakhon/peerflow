@@ -26,7 +26,50 @@ function esc(s: string): string {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
 }
 
-/* One transactional email, laid out the way transactional email has to be
+/* One transactional email, laid out the way a person writes one.
+ *
+ * WHY THIS STOPPED BEING A CARD
+ *
+ * Everything below the next paragraph is the note this file used to carry,
+ * and all of it is still true about how mail clients render. What it got
+ * wrong was the target: it built the most robust possible *marketing*
+ * template for a message that is not marketing, and Gmail agreed — these
+ * landed in Promotions, which is where a session request is least likely to
+ * be seen.
+ *
+ * Gmail's tabs sort on what a message looks like, not on whether it is spam.
+ * A 600px card centred on a grey page, a coloured masthead carrying a logo
+ * image, and a gradient call-to-action button are the shape of a campaign.
+ * The content is the opposite of one: "Amir proposed Thursday 7pm", sent to
+ * exactly one person, about a thing they asked for. The template was arguing
+ * with the message and the template was winning.
+ *
+ * So the chrome is gone. No masthead, no logo image, no card, no button, no
+ * page background — left-aligned text, the fact at the top, and a plain link.
+ * This is what mail from a person looks like, and it is also what the text/
+ * part has always looked like, so the two halves now agree.
+ *
+ * What is deliberately KEPT from the old version, because none of it is a
+ * campaign signal:
+ *
+ *   The preheader. Still the first thing Gmail shows next to the subject.
+ *
+ *   Fixed colours on every element, and color-scheme: light. Dark mode
+ *   inverts what it is not told, and a half-inverted email looks broken.
+ *
+ *   Tables for the frame. There is much less frame now, but Outlook still
+ *   renders through Word, and what remains is still a table.
+ *
+ *   The settings link, in the body. Removing the List-Unsubscribe HEADER is
+ *   not the same as hiding the control: the header is what marks a send as
+ *   bulk, the link is what lets somebody act. Keeping the second without the
+ *   first is the honest combination for one-to-one mail.
+ *
+ * The original note follows, and still applies to what is left.
+ *
+ * ---
+ *
+   One transactional email, laid out the way transactional email has to be
    laid out rather than the way a web page is.
  *
  * This was a bare <div> with a few inline styles. It rendered, and it looked
@@ -103,58 +146,35 @@ function body(opts: {
 <meta name="supported-color-schemes" content="light">
 <title>${esc(title)}</title>
 </head>
-<body style="margin:0;padding:0;background:#F3F2F6;-webkit-font-smoothing:antialiased">
+<body style="margin:0;padding:0;background:#FFFFFF;-webkit-font-smoothing:antialiased">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${preheader}</div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-       style="background:#F3F2F6">
- <tr><td align="center" style="padding:32px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF">
+ <tr><td style="padding:24px 22px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#171A2E">
 
-  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
-         style="width:100%;max-width:600px;background:#FFFFFF;border:1px solid #E4E3EB;border-radius:14px;overflow:hidden">
+  <div style="max-width:560px">
+   ${hello ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#171A2E">${esc(hello)}</p>` : ""}
 
-   <tr><td bgcolor="#12352C" style="background:#12352C;padding:20px 28px">
-     <img src="${esc(SITE)}/assets/email-logo.png" width="158" height="42" alt="PeerFlow"
-          style="display:block;border:0;width:158px;height:42px">
-   </td></tr>
+   <!-- The fact, at body size rather than as a heading. An <h1> at 21px over
+        one sentence is a headline, and a headline is a thing a campaign has.
+        This is somebody telling you what happened. -->
+   <p style="margin:0 0 14px;font-size:16px;line-height:1.6;color:#171A2E">${esc(title)}</p>
+   ${note ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#171A2E">${esc(note)}</p>` : ""}
 
-   <tr><td style="padding:30px 28px 26px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
-     ${hello ? `<p style="margin:0 0 14px;font-size:15px;line-height:1.5;color:#4A4E68">${esc(hello)}</p>` : ""}
-     <h1 style="margin:0 0 10px;font-size:21px;line-height:1.3;font-weight:700;color:#171A2E">${esc(title)}</h1>
-     ${note ? `<p style="margin:0 0 24px;font-size:16px;line-height:1.55;color:#4A4E68">${esc(note)}</p>` : ""}
+   <!-- A link, not a button. The button was a 13px-padded gradient block
+        reading "Open PeerFlow", which says nothing about where it goes and
+        looks like every promotion ever sent. A plain underlined link that
+        names the destination is what a person would paste. -->
+   <p style="margin:0 0 22px;font-size:16px;line-height:1.6">
+     <a href="${esc(link)}" style="color:#0F6E56;text-decoration:underline">Open it on PeerFlow</a>
+   </p>
 
-     <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-      <tr><td bgcolor="#16865F" style="border-radius:10px">
-        <a href="${esc(link)}"
-           style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:700;
-                  color:#FFFFFF;text-decoration:none;border-radius:10px;
-                  background-image:linear-gradient(180deg,#1D9E75,#0F6E56)">Open PeerFlow</a>
-      </td></tr>
-     </table>
-
-     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr><td style="padding:26px 0 0">
-        <div style="height:1px;background:#E4E3EB;line-height:1px;font-size:0">&nbsp;</div>
-      </td></tr>
-     </table>
-
-     <p style="margin:18px 0 0;font-size:13px;line-height:1.55;color:#82869C">
-       You are receiving this because a session on PeerFlow needs an answer from you.
-       It is the only kind of email we send.
-       <a href="${esc(settings)}" style="color:#0F6E56;text-decoration:underline">Manage email in Settings</a>.
-     </p>
-   </td></tr>
-  </table>
-
-  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
-         style="width:100%;max-width:600px">
-   <tr><td style="padding:18px 28px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.6;color:#82869C">
-     PeerFlow &middot; <a href="${esc(SITE)}" style="color:#82869C;text-decoration:none">peerflow.dev</a><br>
-     <a href="${esc(SITE)}/privacy.html" style="color:#82869C">Privacy</a> &middot;
-     <a href="${esc(SITE)}/terms.html" style="color:#82869C">Terms</a> &middot;
-     <a href="${esc(SITE)}/conduct.html" style="color:#82869C">Code of conduct</a>
-   </td></tr>
-  </table>
+   <p style="margin:0;font-size:13.5px;line-height:1.6;color:#82869C">
+     You are getting this because a session on PeerFlow needs an answer from you.
+     It is the only kind of email we send.
+     <a href="${esc(settings)}" style="color:#82869C;text-decoration:underline">Turn it off in Settings</a>.
+   </p>
+  </div>
 
  </td></tr>
 </table>
@@ -249,17 +269,33 @@ Deno.serve(async (req) => {
     headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: FROM, to, subject: note.title, text: mail.text, html: mail.html,
-      /* Gmail and Apple Mail put their own Unsubscribe control next to the
-         sender when this is present, and its absence on a repeating send is
-         one of the things spam filters weigh. Deliberately without
-         List-Unsubscribe-Post: one-click promises a POST that unsubscribes
-         with no further interaction, and app-settings.html is a static page
-         that would take the POST and do nothing. Claiming a control that does
-         not work is worse than not claiming it. */
-      headers: {
-        "List-Unsubscribe":
-          "<mailto:hello@peerflow.dev?subject=unsubscribe>, <" + SITE + "/app-settings.html>",
-      },
+      /* No List-Unsubscribe header, and that is the deliberate half of the
+         Promotions fix rather than an oversight.
+
+         The header used to be here on the reasoning below, which is sound for
+         the Spam folder and backwards for the tab: List-Unsubscribe is the
+         header bulk senders are obliged to set, so setting it is one of the
+         clearest ways to tell Gmail a send is a campaign. On a one-to-one
+         message about a session somebody asked for, it buys protection
+         against a filter that was never the problem and pays for it in the
+         only currency that matters here — whether the recipient sees it.
+
+         The control itself is not gone. The body carries a link to Settings,
+         where the preference actually lives and can actually be changed. What
+         is dropped is the machine-readable claim that this is a mailing list,
+         because it is not one.
+
+         Put it back if PeerFlow ever sends something that IS bulk — a digest,
+         an announcement, anything going to more than one person at a time.
+         The old note, still true of that case:
+
+           Gmail and Apple Mail put their own Unsubscribe control next to the
+           sender when this is present, and its absence on a repeating send is
+           one of the things spam filters weigh. Deliberately without
+           List-Unsubscribe-Post: one-click promises a POST that unsubscribes
+           with no further interaction, and app-settings.html is a static page
+           that would take the POST and do nothing. Claiming a control that
+           does not work is worse than not claiming it. */
     }),
   });
 
