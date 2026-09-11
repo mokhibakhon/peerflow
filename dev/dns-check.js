@@ -52,8 +52,36 @@ async function mx(name){
   try { return await dns.resolveMx(name); } catch (e) { return []; }
 }
 
+/* The doubled label.
+ *
+ * Every DNS editor asks for the name in one of two ways — the host part on
+ * its own ("send"), or the whole name ("send.peerflow.dev") — and nothing on
+ * the screen says which. Give the full name to a field that wanted the host
+ * part and you get send.send.peerflow.dev: created without complaint, shown
+ * in the record list looking almost right, and resolving nowhere anything
+ * reads.
+ *
+ * It is checked for by name because the failure is otherwise indistinguishable
+ * from never having added the record at all — the check above just says
+ * MISSING, you look at the dashboard, and the record is plainly there. That
+ * is a long loop to be stuck in, and this shortens it to one line. */
+async function doubled(host, zone){
+  const bad = host + '.' + host + '.' + zone;
+  const [t, m] = [await txt(bad), await mx(bad)];
+  if (!t.length && !m.length) return false;
+  console.log('  \x1b[33mWRONG NAME\x1b[0m ' + bad);
+  if (t.length) note('TXT  ' + t[0]);
+  if (m.length) note('MX   ' + m.map(r => r.exchange).join(', '));
+  note('The label is in there twice. Whatever was typed went into a field that');
+  note('appends the zone itself, so "' + host + '.' + zone + '" became the above.');
+  note('Edit these so the full name reads exactly ' + host + '.' + zone + '.');
+  return true;
+}
+
 (async () => {
   console.log('\nReading live DNS. Nothing here is cached from the repository.\n');
+
+  if (await doubled('send', ROOT)) { bad++; console.log(''); }
 
   /* ---------- 1. SPF ---------- */
   console.log('1. SPF — who is allowed to send');
