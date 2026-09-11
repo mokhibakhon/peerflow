@@ -2035,7 +2035,7 @@
   /* Called by a relay from the band before it clicks the row's real button,
      so whatever that button has to say lands somewhere visible. It has to
      open the booked section too, not just the card: the relay that needs it
-     most is "Cancel this one", whose button is inside #upcoming. */
+     most is the band's Cancel, whose real button is inside #upcoming. */
   function openSessCard(){
     document.getElementById('sess-card').hidden = false;
     document.getElementById('upcoming').hidden = false;
@@ -3381,8 +3381,15 @@
                      (canMove(next)
                        ? '<button class="ghost" type="button"' +
                          ' data-relay="#upcoming [data-reschedule]">Reschedule</button>' : '') +
+                     /* "Cancel", not "Cancel this one". Both buttons relay
+                        into the same row and do the same thing, and both are
+                        on screen together the moment there are two bookings —
+                        the band at the top, the list below it — so two names
+                        for one action read as two different actions. The
+                        band's own heading already names the session, which is
+                        the work "this one" was doing. */
                      '<button class="ghost" type="button" data-relay="#upcoming [data-cancel-booked]"' +
-                     ' data-arm="Sure? Cancel it">Cancel this one</button>',
+                     ' data-arm="Sure? Cancel it">Cancel</button>',
               /* Not "the call link" any more: there is no link. The room is
                  a PeerFlow page that opens when the session does. */
               f: live ? '' : 'Your room opens fifteen minutes before you start.'

@@ -49,7 +49,7 @@ const figures = (p) => p.evaluate(() => ({
     const p = await open(b, () => { window.__peers = []; });
     const g = await figures(p);
     /* people.length + 1, because the reader is not in their own directory. */
-    ok('"People here" counts the reader, so it reads 1 rather than a dash',
+    ok('"On PeerFlow" counts the reader, so it reads 1 rather than a dash',
        g.total === '1', 'got ' + JSON.stringify(g.total));
     ok('  and "On your path" is a true zero, not an unknown',
        g.same === '0', 'got ' + JSON.stringify(g.same));

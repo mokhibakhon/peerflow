@@ -79,7 +79,20 @@
           <div class="card rec-mini" id="pair-card" hidden>
             <h3 id="pair-h">Together</h3>
             <dl class="figs stack">
-              <div><dt>Weeks running</dt><dd id="pair-streak">—</dd></div>
+              <!-- "Weeks in a row" and "Studying together" below both used to
+                   be measured in weeks and labelled in a way that did not say
+                   which was which: "Weeks running — 4 weeks" over "Together —
+                   3 weeks", four lines apart. They are different questions,
+                   and they can disagree without either being wrong — a pair
+                   who met weekly since June and took August off have a short
+                   run and a long partnership. They can also be flatly
+                   impossible together, a 4-week run inside a 3-week
+                   partnership, and nothing on the card would have caught it
+                   because nothing on the card said what either number was.
+
+                   The unit moved into the label here so the two stop looking
+                   like the same measurement twice. -->
+              <div><dt>Weeks in a row</dt><dd id="pair-streak">—</dd></div>
               <div><dt>Sessions</dt><dd id="pair-done">—</dd></div>
               <div><dt>Time together</dt><dd id="pair-mins">—</dd></div>
               <!-- How long the two of you have been at this, which is a
@@ -88,7 +101,7 @@
                    studied every week for two months and then took August off
                    have a streak of nothing and four months together, and the
                    second number is the one that says the partnership is real. -->
-              <div id="pair-since-row" hidden><dt>Together</dt><dd id="pair-since">—</dd></div>
+              <div id="pair-since-row" hidden><dt>Studying together</dt><dd id="pair-since">—</dd></div>
             </dl>
             <p class="ph-note" id="pair-note"></p>
           </div>
@@ -118,14 +131,27 @@
           </ol>
         </div>
 
+        <!-- This card used to say "Meet someone compatible with your path,
+             goals, and weekly availability" over a button reading "Explore
+             matches", and both halves promised a thing that does not exist.
+             Nobody is pairing people here and there is no matching engine —
+             renderNone() forty lines below says exactly that, and the page
+             the button opens says it too: the person at the top of People is
+             "a suggestion, not a match".
+
+             So somebody new read "Explore matches", pressed it expecting a
+             shortlist chosen for them, and arrived at a directory of everyone
+             with the work still to do. The feature was never missing; the
+             claim was. The button now says where it goes. -->
         <div class="find-card">
           <h3>Find another partner</h3>
-          <p>Meet someone compatible with your path, goals, and weekly availability.</p>
+          <p>Everyone who has signed up, with whoever is closest to what
+            you’re learning at the top.</p>
           <a class="btn on-dark" href="/app-people">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
             </svg>
-            Explore matches
+            See everyone
           </a>
         </div>
       </div>
@@ -408,8 +434,9 @@
       if (!m || !m.done) return;
       document.getElementById('pair-card').hidden = false;
       document.getElementById('pair-h').textContent = 'You and ' + who;
-      document.getElementById('pair-streak').textContent =
-        m.streak ? plural(m.streak, 'week') : '—';
+      /* The bare count, because "Weeks in a row" already says weeks and
+         "Weeks in a row — 4 weeks" says it twice. */
+      document.getElementById('pair-streak').textContent = m.streak || '—';
       document.getElementById('pair-done').textContent = m.done;
       document.getElementById('pair-mins').textContent = dur(m.minutes);
       document.getElementById('pair-note').textContent = m.streak

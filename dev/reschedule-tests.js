@@ -86,9 +86,14 @@ const startMove = (p) => p.evaluate(() => {
        acts[0] === 'Reschedule' && acts.indexOf('Cancel') > 0);
 
     const band = await p.$$eval('#now-a button, #now-a a', e => e.map(x => x.textContent.trim()));
+    /* The band's cancel used to read "Cancel this one" and now reads
+       "Cancel", the same as the row's — they relay into one another and both
+       are on screen together as soon as there are two bookings, so two names
+       for one action read as two actions. "in the same order" is the point of
+       the check either way: whichever word it uses, Reschedule comes first. */
     ok('so does the band, in the same order: ' + JSON.stringify(band),
        band.indexOf('Reschedule') > 0 &&
-       band.indexOf('Reschedule') < band.indexOf('Cancel this one'));
+       band.indexOf('Reschedule') < band.indexOf('Cancel'));
     await p.close();
   }
 
