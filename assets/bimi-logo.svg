@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PeerFlow, as a BIMI mark.
+
+     This is the logo a mail client draws in the sender avatar slot, where
+     Gmail shows a grey silhouette today. It is not part of the email and
+     cannot be: no markup in the message body reaches that circle. The client
+     fetches it over DNS from default._bimi.<domain>, for senders that pass
+     the checks listed at the foot of this file.
+
+     Separate from assets/logo.svg because BIMI will not take an ordinary
+     SVG. The profile is SVG Tiny 1.2 Portable/Secure, and its rules are what
+     shaped the file: version and baseProfile declared on the root, a title
+     element carrying the brand name, and a SQUARE viewBox — assets/logo.svg
+     is 173 by 171, which is not square and is rejected on that alone, so the
+     mark is centred on a 512 canvas here rather than the file being reused.
+     The profile also forbids scripting, stylesheets, CSS, animation, links,
+     external references and embedded bitmaps, which is why every fill below
+     is a presentation attribute. Ceiling is 32KB; this is about 2.
+
+     Solid green rather than a transparent ground with a green mark: every
+     client that draws this crops it to a circle at roughly 32 pixels, and a
+     filled shape survives that where a thin mark on nothing does not. White
+     on p6 is the pairing the site already uses for a primary button, so it
+     introduces no new colour.
+
+     The geometry is assets/logo.svg untouched — same rects, same paths, same
+     coordinate space — scaled 1.9 and centred, so this cannot drift into a
+     second version of the mark. Changing one means changing both. -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     version="1.2" baseProfile="tiny-ps"
+     viewBox="0 0 512 512">
+  <title>PeerFlow</title>
+  <rect x="0" y="0" width="512" height="512" fill="#0F6E56"/>
+  <g transform="translate(92 94) scale(1.9)" fill="#FFFFFF">
+    <rect x="79" y="0" width="13" height="15"/>
+    <rect x="0" y="81" width="15" height="13"/>
+    <rect x="158" y="81" width="14" height="13"/>
+    <rect x="79" y="156" width="13" height="15"/>
+    <path d="M52 24H116V39H99V56H83V70H67V39H52Z"/>
+    <path d="M24 57H39V74H56V89H70V106H39V121H24Z"/>
+    <path d="M134 53H149V118H134V101H117V85H103V69H134Z"/>
+    <path d="M119 147H55V132H72V115H88V101H104V132H119Z"/>
+  </g>
+</svg>
