@@ -26,7 +26,65 @@ function esc(s: string): string {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
 }
 
-/* One transactional email, laid out the way transactional email has to be
+/* One transactional email, laid out the way a person writes one.
+ *
+ * WHY THIS STOPPED BEING A CARD
+ *
+ * Everything below the next paragraph is the note this file used to carry,
+ * and all of it is still true about how mail clients render. What it got
+ * wrong was the target: it built the most robust possible *marketing*
+ * template for a message that is not marketing, and Gmail agreed — these
+ * landed in Promotions, which is where a session request is least likely to
+ * be seen.
+ *
+ * A first version of this fix stripped everything — logo, button, the lot —
+ * on the theory that the template shape was the cause. That was wrong, and
+ * the counter-example is one line long: Apple's "Billing Problem" mail has a
+ * logo, a grey product card and a blue call-to-action button, and it lands in
+ * Primary. Shape is a real signal and it is the WEAKEST of the three that
+ * matter. In order:
+ *
+ *   Sender reputation, and this recipient's history with this sender. Gmail
+ *   has learned across every inbox it has that Apple billing mail gets opened
+ *   and acted on. peerflow.dev is a new domain with no history at all, which
+ *   is why the remaining signals carry more weight here than they would for
+ *   anybody established — not because the template was wrong.
+ *
+ *   List-Unsubscribe. See the note at the send call: it is the header bulk
+ *   senders are obliged to set, Apple does not set it on a billing notice,
+ *   and this function used to. That is the change that matters.
+ *
+ *   What the words are doing. "A session needs an answer from you" is account
+ *   language, the same register as "update your payment information". There
+ *   is no offer in it and nothing to buy.
+ *
+ * So the logo is back, and so is a button. What stays gone is the shape that
+ * is specifically a NEWSLETTER rather than a branded transactional note: the
+ * 600px card floating on a grey page, the dark masthead band, the gradient
+ * fill, the three-link legal footer. Apple's own mail is the reference — logo
+ * on white, the fact in plain sentences, one flat button, a short footer.
+ *
+ * What is deliberately KEPT from the old version, because none of it is a
+ * campaign signal:
+ *
+ *   The preheader. Still the first thing Gmail shows next to the subject.
+ *
+ *   Fixed colours on every element, and color-scheme: light. Dark mode
+ *   inverts what it is not told, and a half-inverted email looks broken.
+ *
+ *   Tables for the frame. There is much less frame now, but Outlook still
+ *   renders through Word, and what remains is still a table.
+ *
+ *   The settings link, in the body. Removing the List-Unsubscribe HEADER is
+ *   not the same as hiding the control: the header is what marks a send as
+ *   bulk, the link is what lets somebody act. Keeping the second without the
+ *   first is the honest combination for one-to-one mail.
+ *
+ * The original note follows, and still applies to what is left.
+ *
+ * ---
+ *
+   One transactional email, laid out the way transactional email has to be
    laid out rather than the way a web page is.
  *
  * This was a bare <div> with a few inline styles. It rendered, and it looked
@@ -103,58 +161,63 @@ function body(opts: {
 <meta name="supported-color-schemes" content="light">
 <title>${esc(title)}</title>
 </head>
-<body style="margin:0;padding:0;background:#F3F2F6;-webkit-font-smoothing:antialiased">
+<body style="margin:0;padding:0;background:#FFFFFF;-webkit-font-smoothing:antialiased">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${preheader}</div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-       style="background:#F3F2F6">
- <tr><td align="center" style="padding:32px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF">
+ <tr><td style="padding:24px 22px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#171A2E">
 
-  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
-         style="width:100%;max-width:600px;background:#FFFFFF;border:1px solid #E4E3EB;border-radius:14px;overflow:hidden">
+  <div style="max-width:560px">
 
-   <tr><td bgcolor="#12352C" style="background:#12352C;padding:20px 28px">
-     <img src="${esc(SITE)}/assets/email-logo.png" width="158" height="42" alt="PeerFlow"
-          style="display:block;border:0;width:158px;height:42px">
-   </td></tr>
+   <!-- The logo, on white rather than on a dark band. A masthead — a strip of
+        brand colour running the full width with artwork in it — is the part
+        that reads as a newsletter; the logo itself is just who is writing.
+        Apple puts theirs top-left on white above a plain greeting, and that
+        is what this is.
 
-   <tr><td style="padding:30px 28px 26px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
-     ${hello ? `<p style="margin:0 0 14px;font-size:15px;line-height:1.5;color:#4A4E68">${esc(hello)}</p>` : ""}
-     <h1 style="margin:0 0 10px;font-size:21px;line-height:1.3;font-weight:700;color:#171A2E">${esc(title)}</h1>
-     ${note ? `<p style="margin:0 0 24px;font-size:16px;line-height:1.55;color:#4A4E68">${esc(note)}</p>` : ""}
+        Hosted PNG because Gmail strips inline SVG and base64 data URIs, so a
+        file on the site is the only thing that arrives. Alt text carries the
+        name for anybody who blocks images, which is most of the point of a
+        logo surviving at all.
 
-     <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-      <tr><td bgcolor="#16865F" style="border-radius:10px">
-        <a href="${esc(link)}"
-           style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:700;
-                  color:#FFFFFF;text-decoration:none;border-radius:10px;
-                  background-image:linear-gradient(180deg,#1D9E75,#0F6E56)">Open PeerFlow</a>
-      </td></tr>
-     </table>
+        -light, not email-logo.png. The original was drawn for the dark green
+        band it used to sit on: the mark in --p2, "peer" in white, "flow" in
+        --p1. Put that on white and "peer" disappears completely and the rest
+        is too pale to read — the first render of this change showed a mark
+        and the word "flow" floating on its own. The light file is the same
+        artwork with those three remapped to what the site itself uses on a
+        light ground (--p4, --ink, --p6), so it is the same logo rather than a
+        second version of it. Both files are kept: the dark one is still
+        correct on a dark band, should anything ever want one. -->
+   <img src="${esc(SITE)}/assets/email-logo-light.png" width="122" height="32" alt="PeerFlow"
+        style="display:block;border:0;width:122px;height:32px;margin:0 0 24px">
 
-     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr><td style="padding:26px 0 0">
-        <div style="height:1px;background:#E4E3EB;line-height:1px;font-size:0">&nbsp;</div>
-      </td></tr>
-     </table>
+   ${hello ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#171A2E">${esc(hello)}</p>` : ""}
 
-     <p style="margin:18px 0 0;font-size:13px;line-height:1.55;color:#82869C">
-       You are receiving this because a session on PeerFlow needs an answer from you.
-       It is the only kind of email we send.
-       <a href="${esc(settings)}" style="color:#0F6E56;text-decoration:underline">Manage email in Settings</a>.
-     </p>
-   </td></tr>
-  </table>
+   <!-- The fact, at body size rather than as a 21px heading. A headline over
+        a single sentence is a thing a campaign has; this is somebody telling
+        you what happened. -->
+   <p style="margin:0 0 14px;font-size:16px;line-height:1.6;color:#171A2E">${esc(title)}</p>
+   ${note ? `<p style="margin:0 0 22px;font-size:16px;line-height:1.6;color:#171A2E">${esc(note)}</p>` : ""}
 
-  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
-         style="width:100%;max-width:600px">
-   <tr><td style="padding:18px 28px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.6;color:#82869C">
-     PeerFlow &middot; <a href="${esc(SITE)}" style="color:#82869C;text-decoration:none">peerflow.dev</a><br>
-     <a href="${esc(SITE)}/privacy.html" style="color:#82869C">Privacy</a> &middot;
-     <a href="${esc(SITE)}/terms.html" style="color:#82869C">Terms</a> &middot;
-     <a href="${esc(SITE)}/conduct.html" style="color:#82869C">Code of conduct</a>
-   </td></tr>
-  </table>
+   <!-- A flat button. The colour is p6 rather than the old gradient: a
+        gradient fill is decoration, and decoration is the half of a button
+        that reads as advertising. The label names the destination, which
+        "Open PeerFlow" did not. -->
+   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 26px">
+    <tr><td bgcolor="#0F6E56" style="background:#0F6E56;border-radius:8px">
+      <a href="${esc(link)}"
+         style="display:inline-block;padding:11px 20px;font-size:15px;font-weight:600;
+                color:#FFFFFF;text-decoration:none">Open it on PeerFlow</a>
+    </td></tr>
+   </table>
+
+   <p style="margin:0;font-size:13.5px;line-height:1.6;color:#82869C">
+     You are getting this because a session on PeerFlow needs an answer from you.
+     It is the only kind of email we send.
+     <a href="${esc(settings)}" style="color:#82869C;text-decoration:underline">Turn it off in Settings</a>.
+   </p>
+  </div>
 
  </td></tr>
 </table>
@@ -249,17 +312,33 @@ Deno.serve(async (req) => {
     headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: FROM, to, subject: note.title, text: mail.text, html: mail.html,
-      /* Gmail and Apple Mail put their own Unsubscribe control next to the
-         sender when this is present, and its absence on a repeating send is
-         one of the things spam filters weigh. Deliberately without
-         List-Unsubscribe-Post: one-click promises a POST that unsubscribes
-         with no further interaction, and app-settings.html is a static page
-         that would take the POST and do nothing. Claiming a control that does
-         not work is worse than not claiming it. */
-      headers: {
-        "List-Unsubscribe":
-          "<mailto:hello@peerflow.dev?subject=unsubscribe>, <" + SITE + "/app-settings.html>",
-      },
+      /* No List-Unsubscribe header, and that is the deliberate half of the
+         Promotions fix rather than an oversight.
+
+         The header used to be here on the reasoning below, which is sound for
+         the Spam folder and backwards for the tab: List-Unsubscribe is the
+         header bulk senders are obliged to set, so setting it is one of the
+         clearest ways to tell Gmail a send is a campaign. On a one-to-one
+         message about a session somebody asked for, it buys protection
+         against a filter that was never the problem and pays for it in the
+         only currency that matters here — whether the recipient sees it.
+
+         The control itself is not gone. The body carries a link to Settings,
+         where the preference actually lives and can actually be changed. What
+         is dropped is the machine-readable claim that this is a mailing list,
+         because it is not one.
+
+         Put it back if PeerFlow ever sends something that IS bulk — a digest,
+         an announcement, anything going to more than one person at a time.
+         The old note, still true of that case:
+
+           Gmail and Apple Mail put their own Unsubscribe control next to the
+           sender when this is present, and its absence on a repeating send is
+           one of the things spam filters weigh. Deliberately without
+           List-Unsubscribe-Post: one-click promises a POST that unsubscribes
+           with no further interaction, and app-settings.html is a static page
+           that would take the POST and do nothing. Claiming a control that
+           does not work is worse than not claiming it. */
     }),
   });
 
