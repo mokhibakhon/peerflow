@@ -160,6 +160,31 @@ congratulating the user.
   `PF_BUILD` from the browser console before writing another line**, and ask
   the owner rather than trusting this file about deployment.
 
+- **PeerFlow matches, and "match" is the right word. This is settled — leave
+  it alone.** The People page scores everyone on path, level, topic overlap
+  and shared hours, and puts the closest person at the top under CLOSEST ON
+  YOUR PATH. That is matching. The landing page, the meta description, the
+  JSON-LD and `docs/launch-copy.md` all say so, and they are correct.
+
+  What PeerFlow does not do is *pair people automatically*. `renderNone()` in
+  `app-sessions.html` says "nobody is pairing people by hand and there is no
+  matching engine", and that sentence is about assignment: you choose somebody
+  and ask them, rather than being allocated a partner. It is not a statement
+  that no matching happens.
+
+  A session read that comment as "there is no matching at all", went looking,
+  found the word in five places on the landing page and six in the launch
+  copy, and proposed rewriting every one of them as a false claim — including
+  the metadata, where it would have been a permanent change to what search
+  engines are told. The owner rejected it. Ranked suggestion *is* matching,
+  and a product that ranks candidates for you and lets you pick is a matching
+  product; "no matching engine" in that comment means no auto-pairing.
+
+  The `Explore matches` → `See everyone` change on My partners was made under
+  this mistaken reading before it was corrected. It is a fine button label on
+  its own merits, so it stays, but do not treat it as evidence the word is
+  banned elsewhere — it is not.
+
 ## Migrations
 
 `supabase/*.sql` are run by hand by the user in the Supabase SQL editor. They
