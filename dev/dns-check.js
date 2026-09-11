@@ -167,7 +167,7 @@ async function doubled(host, zone){
     }
   } else {
     fail(SEND + ' has no SPF record.',
-         'TXT   host: send            value: v=spf1 include:amazonses.com ~all');
+         'TXT   send.peerflow.dev     v=spf1 include:amazonses.com ~all');
     note('This is the one that matters: SPF is checked against the Return-Path,');
     note('and Resend uses the verified subdomain for it, not the From domain.');
   }
@@ -175,7 +175,7 @@ async function doubled(host, zone){
   const rootSpf = (await txt(ROOT)).find(t => /^v=spf1/i.test(t));
   if (rootSpf) ok(ROOT + '  ' + rootSpf);
   else fail(ROOT + ' has no SPF record.',
-            'TXT   host: (blank/@)     value: v=spf1 include:spf.improvmx.com ~all');
+            'TXT   peerflow.dev          v=spf1 include:spf.improvmx.com ~all');
 
   /* ---------- 2. the bounce path ---------- */
   console.log('\n2. Bounces — where a rejection goes');
@@ -183,7 +183,7 @@ async function doubled(host, zone){
   if (sendMx.length) ok(SEND + '  ' + sendMx.map(r => r.exchange).join(', '));
   else {
     fail(SEND + ' has no MX record, so bounces are not reaching Resend.',
-         'MX    host: send            value: from Resend, priority 10');
+         'MX    send.peerflow.dev     the hostname Resend shows, priority 10');
     note('Resend shows the exact hostname — it is feedback-smtp.<region>.amazonses.com');
     note('and the region is whichever one the domain was created in, so copy it');
     note('rather than guessing.');
@@ -230,11 +230,11 @@ async function doubled(host, zone){
     console.log('        current: ' + dmarc);
     if (rua) ok('reports are going somewhere');
     else fail('no rua=, so nobody is being told what is failing.',
-              'TXT   host: _dmarc          value: v=DMARC1; p=none; rua=mailto:dmarc@peerflow.dev; fo=1;');
+              'TXT   _dmarc.peerflow.dev   v=DMARC1; p=none; rua=mailto:dmarc@peerflow.dev; fo=1;');
     if (policy === 'quarantine' || policy === 'reject') ok('policy is at enforcement (p=' + policy + ')');
     else {
       fail('p=' + policy + ' asks nobody to do anything, and BIMI needs enforcement.',
-           'TXT   host: _dmarc          value: v=DMARC1; p=quarantine; pct=100; rua=mailto:dmarc@peerflow.dev; fo=1;');
+           'TXT   _dmarc.peerflow.dev   v=DMARC1; p=quarantine; pct=100; rua=mailto:dmarc@peerflow.dev; fo=1;');
       note('Do this one LAST of the four, and only after reading rua reports for a');
       note('week or two. Right now DMARC passes on DKIM alone — if anything is');
       note('quietly failing, enforcement is when it starts being quarantined.');
@@ -252,7 +252,7 @@ async function doubled(host, zone){
     }
   } else {
     fail('default._bimi.' + SEND + ' has no BIMI record.',
-         'TXT   host: default._bimi.send   value: v=BIMI1; l=' + LOGO + ';');
+         'TXT   default._bimi.send.peerflow.dev   v=BIMI1; l=' + LOGO + ';');
     note('The l= URL is www, deliberately: peerflow.dev 308s to www, and not every');
     note('BIMI validator follows a redirect.');
     note('Pointless until DMARC is at enforcement — the record is read only then.');
