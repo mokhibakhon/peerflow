@@ -135,6 +135,27 @@
 .art strong{font-weight:700}
 .art a:not(.btn){color:var(--live-deep);text-decoration:underline;text-underline-offset:2px}
 
+/* ---------- the closing band, when it is inside an article ----------
+   .seo-cta is shared with the landing pages on purpose, and on those it is a
+   top-level section: its own rules near the top of this file give the heading
+   clamp(26px,4vw,37px) with no top margin and paint the paragraph #CFE7DD
+   against the dark green. On a guide the same band sits inside
+   <article class="art">, so .art h2 and .art p apply to it too — same
+   specificity, several dozen lines later in the file, so they win the tie.
+
+   That has been the render on all three guides since the first one shipped:
+   the heading 25px instead of 37 with 44px of margin above it inside the band,
+   and the paragraph var(--ink) — near-black on a near-black green, contrast
+   about 1.1:1, which is text you cannot read at all rather than text that is
+   merely dim. Nobody noticed because the landing pages, where the same markup
+   is not nested, look right.
+
+   Scoped to .art rather than fixed by moving the .seo-cta block further down
+   the file: a source-order fix holds only until somebody adds a rule after it,
+   and ties decided by order are already the thing that caused this. */
+.art .seo-cta h2{font-size:clamp(26px,4vw,37px);margin:0 0 8px}
+.art .seo-cta p{color:#CFE7DD}
+
 /* ---------- the timeline ---------- */
 .tl{margin:0 0 26px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card)}
 .tl-bar{display:flex;height:12px}
@@ -167,12 +188,28 @@
 .art-bad b{display:block;font-size:16.5px;margin-bottom:4px}
 .art-bad span{display:block;font-size:15.5px;line-height:1.62;color:var(--ink-soft)}
 
-/* ---------- related ---------- */
+/* ---------- related ----------
+   The same nesting problem as the band above, and the same fix. This list is
+   inside .art, so .art a:not(.btn) — (0,2,1) — beat the plain .art-rel a at
+   (0,1,1), and every guide has been drawing its related list in underlined
+   green rather than the ink-on-nothing it is written for. The underline ran
+   through the grey description too, because that is a <span> inside the
+   anchor. Adding :not(.btn) here matches the specificity, and this block is
+   the later of the two, so it now takes the tie.
+
+   The last rule is the sentence of path links at the foot of the block, which
+   is prose rather than a list: .art-rel a is display:block and caught those as
+   well, stacking eight path names down the page with the middots between them
+   orphaned on lines of their own. They go back to inline at the sentence's own
+   size, and they keep the green underline the rest of the prose has, because
+   inside a sentence that is what a link is supposed to look like. */
 .art-rel{margin:44px 0 0;padding-top:26px;border-top:1px solid var(--line)}
 .art-rel h2{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 14px}
-.art-rel a{display:block;font-size:17px;font-weight:600;color:var(--ink);text-decoration:none;padding:9px 0}
-.art-rel a:hover{color:var(--live-deep)}
+.art-rel a:not(.btn){display:block;font-size:17px;font-weight:600;color:var(--ink);text-decoration:none;padding:9px 0}
+.art-rel a:not(.btn):hover{color:var(--live-deep)}
 .art-rel a span{display:block;font-size:14.5px;font-weight:400;color:var(--ink-soft);margin-top:2px}
+.art-rel p.small a:not(.btn){display:inline;font-size:inherit;font-weight:inherit;padding:0;
+  color:var(--live-deep);text-decoration:underline}
 
 
 /* ---------- the takeaway ----------
@@ -225,7 +262,7 @@
   background:var(--live-soft);padding:3px 8px;border-radius:999px;margin-left:10px;
 }
 
-/* The three guides, linked from every path page.
+/* The guides, linked from every path page.
 
    They were the least-linked pages on the site and by some distance the most
    substantial: 1,200 to 1,600 words each carrying Article schema, against a
@@ -239,8 +276,26 @@
    Titles rather than the pills .seo-path-links uses, because on these the
    anchor text IS the query. "How to run a study-with-me session that produces
    work" is what somebody searches; a pill reading "Sessions" throws that away
-   and looks tidier doing it. */
-.seo-guide-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));
+   and looks tidier doing it.
+
+   The min track is 330px rather than the 258px it was, which is not a taste
+   change: with three guides, 258 fitted three across at this width and looked
+   right. The fourth guide made it three plus one, and a lone card under a full
+   row reads as a mistake rather than as a list. 330 cannot fit three into 980,
+   so the same rule now lays four out as two by two, and would lay five out as
+   three and three rather than orphaning one again. The cards get wider in the
+   process, which costs nothing — at 483px most of these titles fit on one
+   line, where at 317 none of them did.
+
+   min(330px,100%) rather than a bare 330px, because a minmax() minimum is a
+   floor the container cannot talk it out of. 258 was narrower than the content
+   box of any phone, so it never showed this; 330 is wider than the 326px a
+   390px viewport leaves inside .wrap's 32px gutters, and measured with the
+   bare form the cards ran past the gutter on a 390 and a 375, and past the
+   viewport itself at 360 and below — 42px of sideways scroll on a 320. The
+   min() lets the track collapse to the container when the container is the
+   smaller of the two, which is the whole of the mobile case. */
+.seo-guide-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr));
   gap:14px;max-width:980px}
 .seo-guide-links a{display:block;padding:18px 20px;border:1px solid var(--line);
   border-radius:14px;background:var(--card)}
