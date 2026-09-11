@@ -4,255 +4,210 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Draft — saying what is and isn't booked</title>
+<title>Draft — three ways to open the landing page</title>
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/tokens.css">
-<link rel="stylesheet" href="/assets/app.css">
 <style>
-/* Draft chrome only. The options below use the real .now and .pop classes out
-   of app.css, so what is on screen is what the page would look like. */
-body{background:var(--bg);margin:0}
-.d-wrap{max-width:1000px;margin:0 auto;padding:36px 20px 90px}
-.d-head{max-width:66ch;margin-bottom:8px}
-.d-head h1{font-size:27px;line-height:1.18;letter-spacing:-.03em;margin:0 0 12px;color:var(--ink)}
-.d-head p{margin:0 0 12px;color:var(--soft);font-size:14.5px;line-height:1.65}
-.d-head b{color:var(--ink)}
-.d-sec{margin:44px 0 0;padding-top:26px;border-top:2px solid var(--line)}
-.d-sec > h2{font-size:20px;letter-spacing:-.02em;margin:0 0 8px;color:var(--ink)}
-.d-sec > .lede{margin:0 0 6px;color:var(--soft);font-size:14.5px;max-width:70ch;line-height:1.6}
-.d-opt{margin:26px 0 0}
-.d-opt > h3{font-size:14px;margin:0 0 5px;color:var(--ink)}
-.d-opt > .why{margin:0 0 13px;color:var(--soft);font-size:13.5px;max-width:72ch;line-height:1.6}
-.d-opt > .why b{color:var(--ink)}
-.d-now{max-width:820px}
-.tag{display:inline-block;font:600 11px/1 var(--mono,monospace);letter-spacing:.08em;
-     text-transform:uppercase;padding:4px 8px;border-radius:var(--r-mark);
-     background:var(--p0);color:var(--p6);margin-left:8px;vertical-align:middle}
-.tag.now{background:#FDF0D8;color:#7A5A12}
+/* Every class here is dx-prefixed. A draft that links the real stylesheets
+   inherits every class name in them, and the last one of these lost half an
+   hour to a week-strip marked .now colliding with the dashboard's green
+   band. Only tokens.css is linked, so the colours and type are the real ones
+   and the layout is this file's own. */
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);font-family:var(--body);color:var(--ink)}
+.dx-wrap{max-width:1080px;margin:0 auto;padding:40px 24px 100px}
+.dx-head{max-width:72ch}
+.dx-head h1{font-size:30px;line-height:1.15;letter-spacing:-.03em;margin:0 0 14px}
+.dx-head p{margin:0 0 14px;color:var(--ink-soft);font-size:15px;line-height:1.7}
+.dx-head b{color:var(--ink)}
 
-/* a stand-in for the time popover, using the same shapes app.css gives it */
-.mock-pop{width:300px;border:1px solid var(--line);border-radius:var(--r-card);
-  background:var(--card);padding:14px 15px;box-shadow:0 10px 30px rgba(23,26,46,.10)}
-.mock-pop .ph{font:600 11px/1 var(--mono,monospace);letter-spacing:.09em;text-transform:uppercase;
-  color:var(--faint);margin:0 0 9px}
-.mock-pop .ph.big{color:var(--soft)}
-.mock-grid{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
-.mock-grid button{font:600 13px/1 inherit;padding:8px 11px;border-radius:var(--r-control);
-  border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:default}
-.mock-grid button.free{background:var(--p0);border-color:var(--p0)}
-.mock-grid button.on{background:var(--p8);border-color:var(--p8);color:#fff}
-.mock-grid button.wide{width:100%;background:var(--p0);border-color:var(--p0);color:var(--p6)}
-.mock-sep{height:1px;background:var(--line);margin:0 0 13px}
-.two{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+.dx-find{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--bad);
+  border-radius:var(--r-card);padding:18px 22px;margin:22px 0 0}
+.dx-find h3{margin:0 0 8px;font-size:var(--t-card)}
+.dx-find p{margin:0 0 10px;font-size:var(--t-sm);color:var(--ink-soft);line-height:1.65}
+.dx-find ul{margin:0;padding-left:20px;font-size:var(--t-sm);color:var(--ink-soft);line-height:1.8}
+.dx-find code{font-family:var(--mono);font-size:12.5px;background:var(--band);padding:1px 5px;border-radius:var(--r-mark)}
+
+.dx-sec{margin:52px 0 0;padding-top:26px;border-top:2px solid var(--line-strong)}
+.dx-kick{font:600 var(--t-kicker)/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--p6);margin:0 0 8px}
+.dx-sec>h2{font-size:21px;letter-spacing:-.02em;margin:0 0 8px}
+.dx-sec>.dx-why{margin:0 0 4px;color:var(--ink-soft);font-size:15px;line-height:1.65;max-width:74ch}
+.dx-sec>.dx-why b{color:var(--ink)}
+
+/* The stage renders each option at something close to landing-page scale, so
+   a line that only works at 15px cannot pass as a headline. */
+.dx-stage{margin:22px 0 0;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-card);padding:44px 46px}
+.dx-h1{font-size:clamp(32px,4.4vw,52px);line-height:1.05;letter-spacing:-.035em;
+  font-weight:800;margin:0 0 18px;max-width:16ch;color:var(--p6)}
+.dx-h1 em{font-style:normal;color:var(--ink)}
+.dx-lede{font-size:var(--t-lede);line-height:1.55;color:var(--ink-soft);margin:0 0 26px;max-width:46ch}
+.dx-cta{display:inline-block;background:var(--p8);color:#fff;font-weight:700;font-size:15px;
+  padding:13px 24px;border-radius:var(--r-control);text-decoration:none}
+.dx-meta{margin:18px 0 0;font-size:var(--t-xs);color:var(--ink-faint)}
+
+.dx-rest{margin:26px 0 0;padding-top:20px;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.dx-rest h4{margin:0 0 5px;font:600 var(--t-kicker)/1 var(--mono);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-faint)}
+.dx-rest p{margin:0;font-size:var(--t-sm);line-height:1.6;color:var(--ink-soft)}
+.dx-rest b{color:var(--ink)}
+
+.dx-note{margin:14px 0 0;font-size:var(--t-sm);color:var(--ink-soft);line-height:1.65;max-width:74ch}
+.dx-note b{color:var(--ink)}
+.dx-old{font-size:var(--t-sm);color:var(--ink-faint);line-height:1.6}
+.dx-old s{color:var(--ink-faint)}
 </style>
 </head>
 <body>
+<div class="dx-wrap">
 
-<div class="d-wrap">
+<div class="dx-head">
+  <h1>Three ways to open the landing page</h1>
+  <p>You asked whether there are other options for the words. There are, but
+    two things are worth settling before picking one, because they are true of
+    the page as it stands regardless of which direction wins.</p>
 
-<div class="d-head">
-  <h1>Saying what is booked, and what is only being asked</h1>
-  <p>Two things on the Today page read as more settled and more restricted than
-    they are. Both are wording rather than behaviour — <b>nothing below changes
-    what the app can do</b>, only what it claims.</p>
-  <p style="background:var(--p0);border:1px solid var(--p2);border-radius:var(--r-card);padding:14px 17px;color:var(--ink)">
-    <b>Decided.</b> The band takes <b>option A</b> — it is in <code>app.html</code>
-    now. The time menu <b>stays exactly as it ships</b>: D and E were both
-    declined, and they are left below as a record of what was considered rather
-    than as live proposals. Nothing in section 2 is going to be built.</p>
-  <p><b>The second one is worth reading before you pick anything:</b> you can
-    already propose any time on any day. The time menu has an <i>Any other
-    time</i> section listing every hour from 7am to 11pm, and the day menu has
-    a date box for any date at all. Nothing is restricted to the hours you
-    share. The menu just puts those first and gives them more weight, which
-    reads as "these are the options" rather than "these are the likely ones".</p>
+  <div class="dx-find">
+    <h3>1. The page promises matching in five places, and there is no matcher</h3>
+    <p>This is the same thing as “Explore matches” on My partners, but stated
+      far more strongly — and two of the five are machine-readable, so it is
+      what search engines have been told PeerFlow does.</p>
+    <ul>
+      <li><code>index.html:10</code> — meta description: “<b>Match</b> by path, level, goals and weekly availability.”</li>
+      <li><code>index.html:53</code> — JSON-LD: “PeerFlow <b>matches</b> tech learners across eight learning paths…”</li>
+      <li><code>index.html:164</code> — the hero: “<b>Match</b> with one learner on the same path and level.”</li>
+      <li><code>index.html:454</code> — paths: “PeerFlow <b>matches</b> you with someone learning in the same direction.”</li>
+      <li><code>index.html:643</code> — “Eight paths, one format: <b>matched</b> peer-to-peer study…”</li>
+    </ul>
+    <p style="margin:12px 0 0">What actually happens: you open a list of
+      everyone, sorted so the closest person is first, and you ask them
+      yourself. That is a good product. It is not matching, and somebody who
+      arrives expecting to be matched is disappointed in the first thirty
+      seconds — before they have met anybody.</p>
+  </div>
+
+  <div class="dx-find" style="border-left-color:var(--p4)">
+    <h3>2. The best sentence on the page is the last one on the page</h3>
+    <p class="dx-old" style="font-size:16px;color:var(--ink);line-height:1.6;
+       border-left:2px solid var(--p2);padding-left:14px;margin:0 0 10px">
+      “I grew up in a small town. I didn’t need another course — I needed
+      someone who’d show up on Tuesday because I was expecting them.”</p>
+    <p>That is the product, in one line, in a voice no competitor can copy. It
+      is currently below the guides, below the eight path cards, below the
+      four-step explainer — roughly 4,000 pixels down, where almost nobody
+      reaches it. The hero instead says “Find your tech study partner”, which
+      names the category rather than the thing.</p>
+  </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════ 1 ══════════ -->
-<div class="d-sec">
-  <h2>1. The band says you have a session when you have not proposed one</h2>
-  <p class="lede">The heading is a noun phrase with no verb, so it asserts that
-    the thing exists. The correction is in the third sentence of the subline,
-    after the day, the time and the length — by which point the heading has
-    already been believed.</p>
 
-  <div class="d-opt">
-    <h3>Now <span class="tag now">shipping</span></h3>
-    <p class="why">Reads as: this session exists, on Saturday, at 11.</p>
-    <div class="now d-now" data-tone="idle">
-      <div class="now-txt">
-        <span class="mono now-k">Your first session</span>
-        <p class="now-h">Your first session with Gulsanam.</p>
-        <p class="now-s">Saturday, Sep 5 · 11:00 AM · a 50-minute first session. Nothing is booked until they accept.</p>
-        <div class="now-a">
-          <a class="btn" href="#">Propose this time</a>
-          <a class="ghost" href="#">Someone else</a>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="dx-sec">
+  <p class="dx-kick">Option A</p>
+  <h2>Lead with the line that is already at the bottom</h2>
+  <p class="dx-why">Move the founder’s insight to the top and let the mechanism
+    follow it. <b>The strongest option if the page has one job: making somebody
+    feel the difference between a course and a person.</b> Risk: it is a
+    feeling rather than a description, so the subhead has to work harder.</p>
 
-  <div class="d-opt">
-    <h3>A — put the verb back <span class="tag">chosen, now shipping</span></h3>
-    <p class="why">The heading becomes the ask it actually is, and keeps every
-      specific the current one has: who, when, how long. <b>Nothing is booked
-      until they accept</b> moves out of the subline because the heading no
-      longer contradicts it — the button already says <i>Propose</i>, and the
-      form repeats it on save.</p>
-    <p class="why"><b>Corrected after this draft was first put up:</b> the
-      button here said <i>Send this</i>, and that is wrong by one step. The
-      band button does not send — it calls <code>openBook()</code>, which fills
-      the form in and scrolls to it, and the proposal goes out from the form's
-      own button. A band promising to send would also disagree with the control
-      it hands you. The heading is where the honesty was missing; the button
-      was already telling the truth, so it keeps its words.</p>
-    <div class="now d-now" data-tone="idle">
-      <div class="now-txt">
-        <span class="mono now-k">Your first session</span>
-        <p class="now-h">Ask Gulsanam to meet on Saturday at 11:00 AM.</p>
-        <p class="now-s">A 50-minute first session. They can accept it, or offer a different time.</p>
-        <div class="now-a">
-          <a class="btn" href="#">Propose this time</a>
-          <a class="ghost" href="#">Someone else</a>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="dx-stage">
+    <h1 class="dx-h1">Someone is <em>expecting you</em> on Tuesday.</h1>
+    <p class="dx-lede">That is the whole difference. One study partner, the
+      same hour every week, cameras on. Not another course you start alone and
+      stop alone.</p>
+    <a class="dx-cta" href="#">Find your partner</a>
+    <p class="dx-meta">Eight tech paths · one-to-one · 50 minutes a week · free</p>
 
-  <div class="d-opt">
-    <h3>B — leave the heading, fix the label</h3>
-    <p class="why">The smallest possible change: the eyebrow above the heading
-      is doing nothing today (<i>Your first session</i> restates the heading),
-      so it carries the state instead. <b>Cost:</b> the heading still says the
-      session is yours, and the label is the smallest text in the band — it is
-      the one people skip.</p>
-    <div class="now d-now" data-tone="idle">
-      <div class="now-txt">
-        <span class="mono now-k">Not booked yet</span>
-        <p class="now-h">Your first session with Gulsanam.</p>
-        <p class="now-s">Saturday, Sep 5 · 11:00 AM · a 50-minute first session, if they accept.</p>
-        <div class="now-a">
-          <a class="btn" href="#">Propose this time</a>
-          <a class="ghost" href="#">Someone else</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="d-opt">
-    <h3>C — lead with the true state</h3>
-    <p class="why">Says the honest thing first and the suggestion second. It is
-      the most accurate of the three and the least motivating: the band's whole
-      job is to make a first session easy to start, and this one opens by
-      telling you that you have not.</p>
-    <div class="now d-now" data-tone="idle">
-      <div class="now-txt">
-        <span class="mono now-k">Your first session</span>
-        <p class="now-h">You and Gulsanam haven’t met yet.</p>
-        <p class="now-s">Saturday at 11:00 AM works for you both — 50 minutes. Send it and they decide.</p>
-        <div class="now-a">
-          <a class="btn" href="#">Propose this time</a>
-          <a class="ghost" href="#">Someone else</a>
-        </div>
-      </div>
+    <div class="dx-rest">
+      <div><h4>Section 2 becomes</h4><p><b>“Why people stop.”</b> One sentence,
+        not three bullets: most people quit in the weeks when nothing is
+        due and nobody notices.</p></div>
+      <div><h4>The paths section</h4><p>“Eight paths. Pick yours and see who is
+        already on it.” — a directory, honestly named.</p></div>
+      <div><h4>The founder quote</h4><p>Stays at the foot, now as the proof of
+        the headline rather than as the reveal.</p></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════ 2 ══════════ -->
-<div class="d-sec">
-  <h2>2. The time menu looks like a list of the times you’re allowed</h2>
-  <p class="lede">It isn’t. Every hour is already there. But the shared ones sit
-    under a heading that names a fact about both of you, and the rest sit under
-    <i>Any other time</i> — which reads as the overflow drawer rather than as
-    equally valid. The line under the sentence says the same thing again:
-    <i>You’re both free in the morning that day.</i></p>
 
-  <div class="two">
-    <div class="d-opt" style="flex:1;min-width:300px">
-      <h3>Now <span class="tag now">shipping</span></h3>
-      <p class="why">Three visual weights, and the third reads as leftovers.</p>
-      <div class="mock-pop">
-        <p class="ph">Straight away</p>
-        <div class="mock-grid"><button class="wide">Now — 8:31 AM</button></div>
-        <div class="mock-sep"></div>
-        <p class="ph">Evening — you’re both free</p>
-        <div class="mock-grid">
-          <button class="on">5:00 PM</button><button class="free">6:00 PM</button>
-          <button class="free">7:00 PM</button><button class="free">8:00 PM</button>
-        </div>
-        <div class="mock-sep"></div>
-        <p class="ph">Any other time</p>
-        <div class="mock-grid">
-          <button>7:00 AM</button><button>8:00 AM</button><button>9:00 AM</button>
-          <button>10:00 AM</button><button>11:00 AM</button>
-        </div>
-      </div>
-    </div>
+<div class="dx-sec">
+  <p class="dx-kick">Option B</p>
+  <h2>Say the mechanism, plainly</h2>
+  <p class="dx-why">No feeling, no promise, no abstraction — just what you get,
+    in words nobody has to decode. <b>The safest option, and the most
+    defensible: every claim on it is one the product keeps.</b> Risk: it is
+    calm to the point of quiet, and a quiet headline has to be carried by the
+    page under it.</p>
 
-    <div class="d-opt" style="flex:1;min-width:300px">
-      <h3>D — name what the sections mean <span class="tag now">not taken</span></h3>
-      <p class="why">The headings stop describing the times and start describing
-        <b>the odds</b>. Nothing moves, nothing is restyled — the second heading
-        just stops sounding like a rule. Pairs with the helper line below.</p>
-      <div class="mock-pop">
-        <p class="ph">Straight away</p>
-        <div class="mock-grid"><button class="wide">Now — 8:31 AM</button></div>
-        <div class="mock-sep"></div>
-        <p class="ph">Hours they said suit them</p>
-        <div class="mock-grid">
-          <button class="on">5:00 PM</button><button class="free">6:00 PM</button>
-          <button class="free">7:00 PM</button><button class="free">8:00 PM</button>
-        </div>
-        <div class="mock-sep"></div>
-        <p class="ph big">Any other hour — they’ll still be asked</p>
-        <div class="mock-grid">
-          <button>7:00 AM</button><button>8:00 AM</button><button>9:00 AM</button>
-          <button>10:00 AM</button><button>11:00 AM</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="dx-stage">
+    <h1 class="dx-h1"><em>One partner.<br>One hour a week.</em><br>Cameras on.</h1>
+    <p class="dx-lede">Pick your path, find someone learning the same thing at
+      roughly your level, and agree a regular time. You both turn up, or you
+      both know about it.</p>
+    <a class="dx-cta" href="#">See who is here</a>
+    <p class="dx-meta">Eight tech paths · one-to-one · 50 minutes a week · free</p>
 
-  <div class="d-opt">
-    <h3>E — the line under the sentence <span class="tag now">not taken</span></h3>
-    <p class="why">This is the line that most made it feel like a constraint,
-      because it is the only sentence on the card that mentions availability at
-      all. Same change either way, and it is worth taking even if you keep the
-      menu exactly as it is.</p>
-    <div style="display:grid;gap:10px;max-width:620px">
-      <div style="background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:15px 18px">
-        <p style="margin:0 0 4px;font:600 11px/1 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)">Now</p>
-        <p style="margin:0;color:var(--soft);font-size:14px">You’re both free in the morning that day.</p>
-      </div>
-      <div style="background:var(--card);border:1px solid var(--p2);border-radius:var(--r-card);padding:15px 18px">
-        <p style="margin:0 0 4px;font:600 11px/1 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--p6)">Instead</p>
-        <p style="margin:0;color:var(--soft);font-size:14px">Mornings suit you both — but any time can be proposed, and they decide.</p>
-      </div>
+    <div class="dx-rest">
+      <div><h4>Section 2 becomes</h4><p><b>“What an hour looks like.”</b> The
+        50-minute shape, which is the thing people are most unsure about and
+        the page never shows.</p></div>
+      <div><h4>The paths section</h4><p>Unchanged apart from the word
+        “matches”, which becomes “shows you who else is on it”.</p></div>
+      <div><h4>The founder quote</h4><p>Moves up, directly under the hero, as
+        the reason the mechanism is shaped this way.</p></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════════════ -->
-<div class="d-sec">
-  <h2>One thing I noticed and did not change</h2>
-  <p class="lede">In your screenshot the band names <b>Gulsanam</b> and the form
-    underneath says <b>Meet Asalxon</b>. The code points the form at the same
-    partner the band names — <code>pickPartner(target.i)</code> runs immediately
-    before the band is written, and there is a comment saying why: <i>"The band
-    and the form have to be about the same person and the same hour, or Propose
-    this time opens a form offering a different one."</i></p>
-  <p class="lede">So either you opened the form with <i>Someone else</i> and
-    changed the name yourself, which is the boring explanation — or the thing
-    that comment is guarding against is happening anyway. Worth knowing which.
-    If you did not touch the name dropdown, say so and I will go and find it,
-    because that is a real bug rather than a wording one.</p>
+
+<div class="dx-sec">
+  <p class="dx-kick">Option C</p>
+  <h2>Name the failure first</h2>
+  <p class="dx-why">Open on the thing the reader has already lived, then offer
+    the fix. This is what the current page attempts with “Sounds familiar?”
+    and three bullets — <b>the same idea, done in one specific sentence
+    instead of three generic ones.</b> Risk: opening on failure is a tone some
+    people bounce off.</p>
+
+  <div class="dx-stage">
+    <h1 class="dx-h1">You didn’t run out of <em>courses.</em></h1>
+    <p class="dx-lede">You ran out of reasons to open one on a Tuesday night.
+      PeerFlow gives you a person instead — same path, same level, same hour
+      every week, on camera.</p>
+    <a class="dx-cta" href="#">Find your partner</a>
+    <p class="dx-meta">Eight tech paths · one-to-one · 50 minutes a week · free</p>
+
+    <div class="dx-rest">
+      <div><h4>Section 2 becomes</h4><p>The current three bullets, kept — they
+        now answer the headline instead of repeating it.</p></div>
+      <div><h4>The paths section</h4><p>“Eight paths. Pick yours and see who is
+        already on it.”</p></div>
+      <div><h4>The founder quote</h4><p>Stays at the foot. The headline already
+        borrows its argument, so leading with it as well would say it twice.</p></div>
+    </div>
+  </div>
+</div>
+
+
+<div class="dx-sec">
+  <h2>What I would pick, and what I would do either way</h2>
+  <p class="dx-why"><b>B for the hero, A’s ending.</b> The product's whole
+    claim is that it is honest about being small and real — no algorithm, no
+    course library, no gamification — and B is the only one of the three whose
+    headline is a fact you can check. A has the better emotional line, which is
+    why it should stay where it lands hardest rather than being spent at the
+    top.</p>
+  <p class="dx-why" style="margin-top:12px"><b>Regardless of which wins:</b>
+    the five “match” claims should go. That one is not a matter of taste — the
+    page is describing a feature that does not exist, in the two places search
+    engines read, and it sets up every new arrival to be disappointed by a
+    product that would otherwise have pleased them.</p>
 </div>
 
 </div>
-
-<script src="/assets/supabase-config.js"></script>
 </body>
 </html>
