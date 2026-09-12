@@ -120,7 +120,16 @@ for (const f of indexable) {
 
   const graph = data['@graph'] || [data];
   const types = graph.map((n) => n['@type']);
-  check(types.includes('WebPage'), `${f}: declares a WebPage node`);
+  /* CollectionPage counts, because it IS a WebPage in schema.org's hierarchy
+     and it is the more accurate type for a page whose content is a list of
+     other pages — /blog is one. The rule being enforced is "every page
+     declares the node that represents the page itself", not "every page calls
+     it WebPage", so the allowlist widens rather than the check being dropped.
+     Anything not on this list still fails: a graph with only an Article or an
+     ItemList in it leaves consumers nothing to hang the page on. */
+  const PAGE_NODES = ['WebPage', 'CollectionPage'];
+  check(types.some((t) => PAGE_NODES.includes(t)),
+    `${f}: declares a page node (${PAGE_NODES.join(' or ')})`);
 
   // Every @id a node references must resolve to a node that is actually
   // present, or the graph is broken and consumers drop the relationship.

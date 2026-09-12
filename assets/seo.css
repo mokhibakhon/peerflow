@@ -262,6 +262,17 @@
   background:var(--live-soft);padding:3px 8px;border-radius:999px;margin-left:10px;
 }
 
+/* ---------- the guides hub ----------
+   /blog is a directory rather than an article, so it borrows .seo-guide-links
+   for the cards below and needs only a heading of its own. It cannot use the
+   article header classes: .art h1 is scoped to the 44rem prose column, which
+   is the wrong measure for a page whose content is a two-up grid, and .art-head
+   carries the rule above the byline that this page has no byline for. */
+.hub{padding:64px 0 4px;max-width:640px}
+.hub h1{font-size:clamp(32px,5vw,46px);line-height:1.08;letter-spacing:-.035em;margin:14px 0 16px}
+.hub p{margin:0;font-size:18px;line-height:1.62;color:var(--ink-soft)}
+.hub-list{padding:26px 0 44px}
+
 /* The guides, linked from every path page.
 
    They were the least-linked pages on the site and by some distance the most
